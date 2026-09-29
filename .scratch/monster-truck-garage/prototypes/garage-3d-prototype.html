@@ -103,6 +103,8 @@ button{font:inherit;color:inherit;border:0;background:none;padding:0;cursor:poin
 </div>
 <div id="sheet"></div>
 <div id="bar"></div>
+<script src="voice.js"></script>
+<script src="say.js"></script>
 <script type="module">
 import * as THREE from 'three';
 import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
@@ -189,9 +191,8 @@ const HORNS = [
 const fanfare = () => [523,659,784,1047].forEach((f,i)=>tone(f,.2,'triangle',.22,i*.1));
 const clink = (i=0) => tone(1760,.09,'triangle',.22,i*.18);
 const nope = () => tone(220,.22,'square',.08,0,160);
-function say(t, queue=false){
-  try{ if(!queue) speechSynthesis.cancel(); const u=new SpeechSynthesisUtterance(t); u.rate=.95; u.pitch=1.1; speechSynthesis.speak(u);}catch(e){}
-}
+// Same recorded voice as the game (say.js + voice.js)
+function say(t, queue=false){ queue ? window.sayMore(t) : window.say(t); }
 
 // ---------- 2D icons for the HUD and tiles ----------
 function bolt(s){ return `<svg width="${s}" height="${s}" viewBox="0 0 40 40"><rect x="15" y="16" width="10" height="22" rx="2" fill="#d9a520"/><path d="M15 23h10M15 28h10M15 33h10" stroke="#8a620a" stroke-width="2"/><polygon points="20,2 34,8 34,17 20,23 6,17 6,8" fill="#ffc53d" stroke="#8a620a" stroke-width="2"/></svg>`; }
@@ -649,7 +650,13 @@ function render(){
     ${Object.entries(ARTS).map(([k,a])=>`<button data-act="art" data-art="${k}" class="${k===ART?'sel':''}">${a.name}</button>`).join('')}<span class="sep"></span>
     <button data-act="round">+3 ${bolt(18)}</button><button data-act="all">All</button><button data-act="reset">Reset</button>
     <span class="state">art=${ART} bolts=${S.bolts} body=${S.body} fit=${SLOTS.map(s=>s.id[0]+f[s.id]).join(',')} unlocked=${S.unlocked.size}/15 goal=${goalKey()||'none'}</span></div>`;
+  if(EMBED){ const g=goalKey(); parent.postMessage({type:'garage',bolts:S.bolts,unlocked:S.unlocked.size,body:S.body,afford:affordCount(),
+    goal:g?{name:SLOT[g.split(':')[0]].mods[+g.split(':')[1]],icon:SLOT[g.split(':')[0]].icon,cost:COST[+g.split(':')[1]]}:null},'*'); }
 }
+// Embedded in app-shell-prototype.html: the shell owns the Bolt count and hides the look/debug bar
+const EMBED=new URLSearchParams(location.search).has('embed');
+if(EMBED){ document.getElementById('bar').style.display='none';
+  addEventListener('message',e=>{ if(e.data?.type==='bolts'){ S.bolts=e.data.bolts; render(); } }); }
 function sparks(){
   const v=new V3(0,1,0).project(camera), rc=stage.getBoundingClientRect(), cx=rc.left+(v.x+1)/2*rc.width, cy=rc.top+(1-v.y)/2*rc.height;
   for(let i=0;i<10;i++){ const e=document.createElement('div'); e.className='spark'; e.textContent=i%2?'✨':'⭐';
@@ -713,7 +720,7 @@ function loop(now){
   renderer.render(scene,camera);
   requestAnimationFrame(loop);
 }
-{ const q=new URLSearchParams(location.search); if(q.get('body')&&BODIES[q.get('body')]) S.body=q.get('body'); if(q.get('max')) ACT.all(); if(q.get('sheet')) { S.sheet=q.get('sheet'); focusSlot(S.sheet); } }
+{ const q=new URLSearchParams(location.search); if(q.has('bolts')) S.bolts=+q.get('bolts'); if(q.get('body')&&BODIES[q.get('body')]) S.body=q.get('body'); if(q.get('max')) ACT.all(); if(q.get('sheet')) { S.sheet=q.get('sheet'); focusSlot(S.sheet); } }
 applyScene(); render(); resize();
 if(!tween) camera.position.sub(controls.target).setLength(fitDist(false)).add(controls.target);
 let lastLand=null; new ResizeObserver(()=>{ const land=stage.clientWidth>stage.clientHeight; if(lastLand!==null&&land!==lastLand) zoomTo(fitDist(!!S.sheet)); lastLand=land; }).observe(stage);
