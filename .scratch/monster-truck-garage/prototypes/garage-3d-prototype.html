@@ -657,6 +657,16 @@ function render(){
 const EMBED=new URLSearchParams(location.search).has('embed');
 if(EMBED){ document.getElementById('bar').style.display='none';
   addEventListener('message',e=>{ if(e.data?.type==='bolts'){ S.bolts=e.data.bolts; render(); } }); }
+// ?cel=parent (celebration-prototype.html): unlocks are reported to the shell, which sends back a Truck move to play
+const PFX=new URLSearchParams(location.search).get('cel')==='parent';
+const FXK={hop:{dur:600,h:.35,spin:0},jump:{dur:1300,h:1.1,spin:1},mega:{dur:2100,h:1.9,spin:2}};
+let fx=null;
+addEventListener('message',e=>{ const d=e.data;
+  if(d?.type==='truckfx'){ fx={kind:d.kind,t0:performance.now()}; const ms=FXK[d.kind].dur;
+    if(d.kind==='hop'&&d.sparks) sparks(); else if(d.sparks) setTimeout(()=>{ sparks(); if(d.sparks>2) setTimeout(sparks,200); },ms-120);
+    if(d.horn!=null) setTimeout(()=>HORNS[d.horn](),d.kind==='hop'?500:ms); }
+  if(d?.type==='force'){ const r=d.rung, s=SLOTS.find(s=>!isUn(s.id,r))||SLOTS[0], k=key(s.id,r);
+    S.unlocked.delete(k); if(S.bolts<COST[r]) S.bolts=COST[r]; S.sheet=s.id; focusSlot(s.id); render(); setTimeout(()=>tapMod(s.id,r),950); } });
 function sparks(){
   const v=new V3(0,1,0).project(camera), rc=stage.getBoundingClientRect(), cx=rc.left+(v.x+1)/2*rc.width, cy=rc.top+(1-v.y)/2*rc.height;
   for(let i=0;i<10;i++){ const e=document.createElement('div'); e.className='spark'; e.textContent=i%2?'✨':'⭐';
@@ -671,6 +681,7 @@ function tapMod(slot,r){
   if(isUn(slot,r)){ fitNow()[slot]=r; if(slot==='horn') HORNS[r](); else { clink(); say(name); } return render(); }
   if(S.bolts>=c){
     S.bolts-=c; S.unlocked.add(k); fitNow()[slot]=r; if(S.goal===k) S.goal=null;
+    if(PFX){ parent.postMessage({type:'unlock',slot,rung:r,name,icon:partIcon(slot,r)},'*'); return render(); } // the shell celebrates
     fanfare(); if(slot==='horn') setTimeout(()=>HORNS[r](),500);
     say(`You got ${name}!`); hop=performance.now(); flash({type:'unlock',key:k}); sparks(); return;
   }
@@ -704,7 +715,12 @@ function loop(now){
   const land=stage.clientWidth>stage.clientHeight, tx=S.sheet&&land?.24:0, ty=S.sheet&&!land?.23:0;
   if(Math.abs(off.x-tx)+Math.abs(off.y-ty)>.001){ off.x+=(tx-off.x)*.12; off.y+=(ty-off.y)*.12; applyOffset(); }
   if(truck){
-    const k=(now-hop)/600; truck.position.y=k>=0&&k<1?Math.sin(k*Math.PI)*.35:0;
+    const k=(now-hop)/600; let y=k>=0&&k<1?Math.sin(k*Math.PI)*.35:0;
+    if(fx){ const c=FXK[fx.kind], q=(now-fx.t0)/c.dur;
+      if(q>=1){ fx=null; truck.rotation.set(0,0,0); }
+      else if(q<.15) y=-Math.sin(q/.15*Math.PI)*.08; // crouch
+      else { const a=(q-.15)/.85; y=Math.sin(a*Math.PI)*c.h; truck.rotation.y=c.spin*Math.PI*2*ease(a); if(fx.kind==='mega') truck.rotation.z=Math.sin(a*Math.PI)*.35; } }
+    truck.position.y=y;
     for(const w of anim.spin) w.rotation.z-=.06;
     if(anim.glow){ const p=.65+.35*Math.sin(now/220); anim.glow.m.opacity=p; anim.glow.l.intensity=4*p; }
     if(anim.paint&&anim.paint.f.paint===3&&(!anim.bricks||frame%4===0)) drawPaint(now);
@@ -714,7 +730,7 @@ function loop(now){
   }
   const A=anchors(), w=stage.clientWidth, h=stage.clientHeight;
   for(const el of hotEls){ const a=A[el.dataset.slot], v=a.p.clone().project(camera);
-    let vis=v.z<1; if(a.n) vis=vis&&a.n.dot(camera.position.clone().sub(a.p).normalize())>a.min;
+    let vis=v.z<1&&!fx; if(a.n) vis=vis&&a.n.dot(camera.position.clone().sub(a.p).normalize())>a.min;
     el.style.transform=`translate(${((v.x+1)/2*w).toFixed(1)}px,${((1-v.y)/2*h).toFixed(1)}px) translate(-50%,-50%)`;
     el.classList.toggle('hidden',!vis); }
   renderer.render(scene,camera);

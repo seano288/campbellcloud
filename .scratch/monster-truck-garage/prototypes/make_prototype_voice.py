@@ -39,6 +39,8 @@ PHRASES = [
     # Garage
     *BODIES, *SLOTS, *MODS, *[f'You got {m}!' for m in MODS], *[f'You can get {m}!' for m in MODS],
     *[f'You need {n} more Bolt{"" if n == 1 else "s"}.' for n in range(1, 19)], 'You built everything!',
+    # celebrations
+    'Wow!', "That's the best one!",
 ]
 
 

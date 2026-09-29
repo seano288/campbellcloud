@@ -1,0 +1,747 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>PROTOTYPE: Celebrations</title>
+<!--
+  PROTOTYPE, throwaway. Answers "Prototype the sound and celebration moments".
+  Built on the approved Tile home shell (app-shell-prototype.html, variant A). Three structurally different ways
+  to celebrate, switchable with ?variant=A|B|C and the floating bar (or ← →):
+    A  Quick pop    every moment is small and the same size: a chime, a pop, the voice line; he can tap again in about 1 s
+    B  Big show     each moment takes over the screen with its own card; the card and its lock grow with the event (1.2 / 2.5 / 4 s)
+    C  Truck show   the Truck itself celebrates (drives in with the Bolts, wheelies, crushes padlocks, jumps); moves grow with the event
+  Tiers: 1 = Round done, a first-rung Mod.  2 = a second-rung Mod, Level up, a Game Mode opening.  3 = a top-rung Mod, a Game Mode reaching ⭐.
+  The ⋯ menu on the floating bar triggers each moment directly; "lock" in its state line is how long he had to wait before he could tap.
+  The Garage is garage-3d-prototype.html in an iframe (?embed&cel=parent: it reports unlocks here and plays the Truck moves it is sent).
+  Run: python3 -m http.server 8080 here. Nothing is saved. The floating bar is prototype-only.
+-->
+<link href="https://fonts.googleapis.com/css2?family=Bungee&family=Nunito:wght@600;800;900&display=swap" rel="stylesheet">
+<style>
+:root{--yellow:#ffd23f;--orange:#ff7a00;--red:#e63946;--green:#2bb673;--ink:#1d1d1f;--u:1}
+*{box-sizing:border-box}
+html,body{margin:0;height:100%;overflow:hidden}
+body{font-family:Nunito,system-ui,sans-serif;color:var(--ink);background:#23252b;-webkit-tap-highlight-color:transparent;user-select:none;-webkit-user-select:none}
+button{font:inherit;color:inherit;border:0;background:none;padding:0;cursor:pointer}
+#app{position:fixed;inset:0;display:flex;flex-direction:column;padding:env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left)}
+@media (max-width:700px),(max-height:700px){:root{--u:.8}}
+@media (max-width:430px),(max-height:520px){:root{--u:.62}}
+
+/* ---------- shared bits ---------- */
+.bolt{display:inline-block;vertical-align:middle;flex:none}
+.pilebox{display:flex;align-items:center;gap:6px;background:#000;color:var(--yellow);border:3px solid var(--yellow);border-radius:999px;padding:3px 14px 3px 6px;font:900 calc(24px*var(--u)) Nunito}
+.goalchip{display:flex;align-items:center;gap:8px;background:#000c;color:#fff;border-radius:999px;padding:4px 12px 4px 8px;font:900 calc(16px*var(--u)) Nunito;min-width:0}
+.goalchip .gi{font-size:calc(24px*var(--u))}
+.goalchip .track{width:calc(90px*var(--u));height:12px;border-radius:6px;background:#fff3;overflow:hidden}
+.goalchip .track i{display:block;height:100%;background:var(--yellow)}
+.goalchip.ready{animation:pulse 1s infinite}
+.icon-btn{width:calc(56px*var(--u));height:calc(56px*var(--u));border-radius:50%;background:#000;border:3px solid var(--yellow);font-size:calc(26px*var(--u));display:grid;place-items:center;flex:none}
+.big-btn{display:flex;align-items:center;justify-content:center;gap:10px;border:4px solid #000;border-radius:22px;box-shadow:0 6px 0 #000;font:900 calc(30px*var(--u)) Nunito;padding:calc(16px*var(--u)) calc(28px*var(--u));background:#fff}
+.big-btn:active{transform:translateY(4px);box-shadow:0 2px 0 #000}
+.big-btn.go{background:var(--green);color:#fff}
+.big-btn.garage{background:var(--yellow)}
+.big-btn .e{font-size:1.4em}
+.pulse{animation:pulse 1s infinite}
+@keyframes pulse{50%{box-shadow:0 6px 0 #000,0 0 0 8px #ffd23f99,0 0 30px 10px #ffd23f}}
+.stars{display:flex;gap:4px;font-size:calc(28px*var(--u))}
+.stars span{filter:grayscale(1) opacity(.3);transition:.3s}.stars span.on{filter:none;transform:scale(1.15)}
+.lvl{display:flex;gap:5px}.lvl i{width:calc(14px*var(--u));height:calc(14px*var(--u));border-radius:50%;background:#0003;border:2px solid #0006}.lvl i.on{background:var(--orange);border-color:#000}
+
+/* ---------- game body (shared: the question area inside every variant's Round screen) ---------- */
+.game{flex:1;min-height:0;display:flex;flex-direction:column;align-items:center;justify-content:space-evenly;gap:calc(8px*var(--u));text-align:center;padding:calc(10px*var(--u))}
+.ask{display:flex;align-items:center;gap:12px}
+.ask h2{margin:0;font:400 calc(28px*var(--u)) Bungee,sans-serif}
+.say-btn{flex:none;width:calc(58px*var(--u));height:calc(58px*var(--u));border-radius:50%;border:4px solid #000;background:var(--yellow);font-size:calc(26px*var(--u));box-shadow:0 4px 0 #000}
+.speaking{outline:5px solid var(--orange);outline-offset:3px;transform:scale(1.06)}
+.pile{display:flex;flex-wrap:wrap;justify-content:center;align-items:center;gap:calc(14px*var(--u));padding:calc(10px*var(--u));background:#f3efe6;border-radius:18px;max-width:100%}
+.pile.learn{background:none;gap:calc(26px*var(--u))}
+.slot{display:flex;flex-direction:column;align-items:center;gap:4px;transition:transform .2s}
+.slot .run{font-weight:900;font-size:calc(18px*var(--u));color:var(--green);min-height:1.2em}
+.slot.lit{transform:translateY(-6px) scale(1.08)}
+.slot.lit .coin,.slot.lit .bill{box-shadow:0 0 0 4px var(--yellow),0 0 16px 4px var(--yellow)}
+.money{display:flex;flex-direction:column;align-items:center}
+.cap{font-weight:900;font-size:calc(14px*var(--u));color:#444;margin-top:4px;white-space:nowrap}.cap.hide{visibility:hidden}
+.coin{width:calc(var(--s)*var(--u));height:calc(var(--s)*var(--u));border-radius:50%;overflow:hidden;flex:none;box-shadow:0 3px 0 #0004}
+.coin img{width:100%;height:100%;display:block;pointer-events:none}
+.bill{width:calc(140px*var(--b,1)*var(--u));height:calc(64px*var(--b,1)*var(--u));position:relative;flex:none;border-radius:6px;background:linear-gradient(135deg,#d6ebc8,#a7cf93);border:3px solid #4f7f40;color:#1e4718;box-shadow:0 3px 0 #0004}
+.bill .c{position:absolute;font-weight:900;font-size:calc(16px*var(--u))}.bill .tl{top:2px;left:6px}.bill .br{bottom:2px;right:6px}
+.bill .oval{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);width:42%;height:62%;border-radius:50%;border:2px solid #4f7f40;background:#e8f4df;display:grid;place-items:center;font-weight:900;font-size:calc(20px*var(--u))}
+.money-btn{border-radius:14px;padding:4px}.money-btn:active{transform:scale(.92)}.money-btn.nope{opacity:.4}
+.money-btn.right .coin,.money-btn.right .bill{box-shadow:0 0 0 6px var(--green)}
+.choices{display:grid;grid-template-columns:repeat(2,1fr);gap:calc(12px*var(--u));width:min(100%,520px)}
+.choice{font:900 calc(30px*var(--u)) Nunito;padding:calc(14px*var(--u));border-radius:16px;border:4px solid #000;background:var(--yellow);box-shadow:0 5px 0 #000}
+.choice:active{transform:translateY(3px);box-shadow:0 2px 0 #000}
+.choice.wrong{background:#ddd;color:#999;animation:shake .4s}.choice.right{background:var(--green);color:#fff}
+@keyframes shake{25%{transform:translateX(-8px)}75%{transform:translateX(8px)}}
+.helpers{display:flex;gap:10px;flex-wrap:wrap;justify-content:center}
+.help-btn{font:900 calc(20px*var(--u)) Nunito;padding:calc(10px*var(--u)) calc(18px*var(--u));border-radius:14px;border:3px solid #000;background:#fff;box-shadow:0 4px 0 #000}
+.price-tag{display:inline-flex;align-items:center;gap:12px;background:var(--yellow);border:4px dashed #000;border-radius:18px;padding:calc(8px*var(--u)) calc(20px*var(--u));font:900 calc(24px*var(--u)) Nunito}
+.price-tag .e{font-size:calc(46px*var(--u))}.price-tag .price{font-size:calc(36px*var(--u));background:#000;color:var(--yellow);padding:2px 12px;border-radius:10px}
+.bank{display:flex;flex-wrap:wrap;justify-content:center;align-items:center;gap:calc(10px*var(--u))}
+.tray{display:flex;flex-wrap:wrap;justify-content:center;align-items:center;gap:6px;min-height:calc(96px*var(--u));width:min(100%,640px);padding:8px;border:4px dashed #999;border-radius:18px;background:#f7f7f7}
+.tray .money-btn{animation:pop .2s}.tray .cap{display:none}
+.tray .empty{color:#999;font-weight:900;font-size:calc(20px*var(--u))}
+@keyframes pop{from{transform:scale(.4)}}
+.paidrow{display:flex;align-items:center;gap:14px;font:900 calc(24px*var(--u)) Nunito}.paidrow b{color:var(--green);font-size:1.3em}
+
+/* toast, modal, flying bolts */
+.toast{position:fixed;left:50%;top:18%;transform:translate(-50%,-30px) scale(.8);opacity:0;z-index:60;background:#000;color:var(--yellow);border:3px solid var(--yellow);padding:12px 22px;border-radius:16px;font:900 calc(24px*var(--u)) Nunito;transition:.25s;pointer-events:none;text-align:center;max-width:90vw}
+.toast.show{opacity:1;transform:translate(-50%,0) scale(1)}
+.modal{position:fixed;inset:0;z-index:50;background:#000b;display:grid;place-items:center;padding:16px}
+.modal .card{background:#fff;border:4px solid #000;border-radius:26px;box-shadow:0 8px 0 #000;padding:calc(22px*var(--u));text-align:center;display:flex;flex-direction:column;align-items:center;gap:calc(16px*var(--u));max-width:min(620px,94vw);max-height:94dvh}
+.modal h2{margin:0;font:400 calc(34px*var(--u)) Bungee}
+.intro-money{display:flex;gap:calc(24px*var(--u));flex-wrap:wrap;justify-content:center;align-items:center}
+.fly{position:fixed;z-index:70;pointer-events:none;transition:transform .7s cubic-bezier(.5,-.4,.6,1),opacity .2s .65s}
+.confetti{position:fixed;top:-20px;width:12px;height:18px;z-index:65;pointer-events:none;animation:fall linear forwards}
+@keyframes fall{to{transform:translateY(110vh) rotate(720deg)}}
+#splash{position:fixed;inset:0;z-index:80;background:radial-gradient(#3a3d46,#15161a);display:grid;place-items:center;text-align:center;color:#fff}
+#splash h1{font:400 clamp(28px,7vmin,64px) Bungee;color:var(--yellow);text-shadow:3px 3px 0 var(--red),6px 6px 0 #000;margin:0 0 24px}
+
+/* the Garage lives in one persistent iframe; each variant positions it */
+#garage{position:fixed;inset:0;width:100%;height:100%;border:0;z-index:1;visibility:hidden;transition:inset .5s,width .5s,height .5s}
+body.show-garage #garage{visibility:visible}
+.garage-nav{position:fixed;z-index:5;display:none;gap:10px}
+body.show-garage .garage-nav{display:flex}
+
+/* ======================= A: Tile home ======================= */
+.A{background:#2b2d33 repeating-linear-gradient(45deg,#2b2d33 0 22px,#30323a 22px 44px)}
+.A header{display:flex;align-items:center;gap:12px;padding:calc(12px*var(--u)) 16px}
+.A header h1{margin:0;flex:1;font:400 calc(30px*var(--u)) Bungee;color:var(--yellow);text-shadow:2px 2px 0 var(--red),4px 4px 0 #000;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.A .home{flex:1;min-height:0;display:grid;gap:calc(16px*var(--u));padding:0 16px 16px;
+  grid-template-areas:"g g g" "l c p";grid-template-rows:1.25fr 1fr;grid-template-columns:repeat(3,1fr)}
+@media (orientation:landscape){.A .home{grid-template-areas:"l g" "c g" "p g";grid-template-rows:repeat(3,1fr);grid-template-columns:1fr 1.3fr}}
+.A .tile{position:relative;border:4px solid #000;border-radius:26px;box-shadow:0 7px 0 #000;display:flex;align-items:center;justify-content:center;gap:calc(14px*var(--u));padding:10px;min-height:0;overflow:hidden}
+.A .tile:active{transform:translateY(4px);box-shadow:0 3px 0 #000}
+.A .tile .e{font-size:calc(64px*var(--u))}
+.A .tile .nm{font:400 calc(22px*var(--u)) Bungee;line-height:1.1}
+.A .tile.mode{flex-direction:column;text-align:center}
+@media (orientation:landscape){.A .tile.mode{flex-direction:row;justify-content:flex-start;padding-left:24px;text-align:left}.A .tile.mode .e{font-size:calc(56px*var(--u))}}
+.A .t-learn{grid-area:l;background:#ffd23f}.A .t-count{grid-area:c;background:#7fd6a0}.A .t-pay{grid-area:p;background:#7cc8ff}
+.A .t-garage{grid-area:g;background:linear-gradient(#ff9a3c,#e8611a);flex-direction:column;color:#000}
+.A .t-garage .truck{width:min(70%,420px);max-height:65%;flex:1;min-height:0}
+.A .t-garage .nm{font-size:calc(34px*var(--u))}
+.A .tile.locked{filter:grayscale(.9) brightness(.7)}
+.A .tile .lock{position:absolute;right:12px;top:10px;font-size:calc(38px*var(--u))}
+.A .tile .badge{position:absolute;right:12px;top:10px;font-size:calc(34px*var(--u))}
+.A .tile.fresh{animation:pulse 1s 4}
+.A .roundbar{display:flex;align-items:center;gap:12px;padding:calc(10px*var(--u)) 16px}
+.A .roundbar .stars{flex:1;justify-content:center}
+.A .card{flex:1;min-height:0;margin:0 16px 16px;background:#fff;border:4px solid #000;border-radius:26px;box-shadow:0 8px 0 #000;display:flex;flex-direction:column}
+.A .reward{position:fixed;inset:0;z-index:40;background:#000c;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:calc(22px*var(--u));color:#fff;text-align:center;padding:16px}
+.A .reward h2{margin:0;font:400 calc(40px*var(--u)) Bungee;color:var(--yellow)}
+.A .reward .bigpile{display:flex;align-items:center;gap:12px;font:900 calc(64px*var(--u)) Nunito;color:var(--yellow)}
+.A .reward .lines{font:900 calc(24px*var(--u)) Nunito;display:flex;flex-direction:column;gap:6px}
+.A .reward .btns{display:flex;gap:calc(20px*var(--u));flex-wrap:wrap;justify-content:center}
+.A .reward .btns .big-btn{font-size:calc(38px*var(--u));padding:calc(22px*var(--u)) calc(40px*var(--u))}
+body.vA .garage-nav{top:calc(10px + env(safe-area-inset-top));right:12px}
+
+/* ======================= celebrations ======================= */
+.asleep{opacity:.25;pointer-events:none;filter:grayscale(.6)}
+.btns,.icon-btn{transition:opacity .3s,filter .3s}
+#blocker{position:fixed;inset:0;z-index:45;display:none}
+#blocker.on{display:block}
+.A .reward .moment{position:relative;width:min(92vw,720px);height:calc(170px*var(--u));flex:none;display:flex;align-items:center;justify-content:center;gap:12px;flex-wrap:wrap}
+.A .reward .lines:empty{display:none}
+.bigpile span{display:inline-block;transition:transform .15s}
+.bigpile span.bump{transform:scale(1.35)}
+/* A: chips */
+.chip{display:inline-flex;align-items:center;gap:8px;background:#fff;color:#000;border:4px solid #000;border-radius:999px;padding:6px 18px;font:900 calc(26px*var(--u)) Nunito;animation:chip .35s cubic-bezier(.3,1.6,.6,1)}
+.chip .e{font-size:1.4em}
+@keyframes chip{from{transform:scale(0)}}
+.lockdrop{position:absolute;animation:lockdrop .9s ease-in forwards;pointer-events:none}
+@keyframes lockdrop{30%{transform:translateY(-14px) rotate(-20deg)}to{transform:translateY(160px) rotate(80deg);opacity:0}}
+.tile.fresh-a{animation:pulse 1s 3}
+/* B: takeover cards */
+.take{position:fixed;inset:0;z-index:55;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:calc(18px*var(--u));background:radial-gradient(#3b2a6b,#0b0716 70%);color:#fff;text-align:center;overflow:hidden;animation:fadein .25s}
+.take.t1{background:#000c}
+@keyframes fadein{from{opacity:0}}
+.take .rays{position:absolute;left:50%;top:45%;width:260vmax;height:260vmax;translate:-50% -50%;background:repeating-conic-gradient(#ffd23f33 0 10deg,transparent 10deg 20deg);animation:spin 14s linear infinite;pointer-events:none}
+.take.t3 .rays{background:repeating-conic-gradient(#ffd23f66 0 8deg,#ff7a0022 8deg 16deg);animation-duration:7s}
+@keyframes spin{to{rotate:360deg}}
+.take .hero{position:relative;font-size:calc(150px*var(--u));line-height:1;display:grid;place-items:center;min-height:calc(190px*var(--u))}
+.take .hero svg{width:calc(190px*var(--u));height:calc(190px*var(--u))}
+.take .hero.in{animation:heroin .7s cubic-bezier(.3,1.7,.5,1) both}
+@keyframes heroin{from{transform:scale(0) rotate(-200deg)}}
+.take .hero.boxed{animation:boxshake .12s infinite}
+@keyframes boxshake{25%{transform:rotate(-6deg) scale(1.03)}75%{transform:rotate(6deg) scale(.98)}}
+.take h2{position:relative;margin:0;font:400 calc(58px*var(--u)) Bungee;color:var(--yellow);text-shadow:3px 3px 0 var(--red),6px 6px 0 #000}
+.take h2 span{display:inline-block;animation:letter .5s cubic-bezier(.3,1.8,.5,1) both}
+@keyframes letter{from{transform:translateY(-120px) scale(.2);opacity:0}}
+.take .next{position:relative;opacity:0;pointer-events:none;transition:opacity .3s}
+.take .next.on{opacity:1;pointer-events:auto;animation:pulse 1s infinite}
+.shatter{position:absolute;font-size:calc(60px*var(--u));animation:shard .9s ease-out forwards}
+@keyframes shard{to{transform:translate(var(--dx),var(--dy)) rotate(var(--r));opacity:0}}
+.firework{position:fixed;width:8px;height:8px;border-radius:50%;z-index:66;pointer-events:none;animation:fw 1s ease-out forwards}
+@keyframes fw{to{transform:translate(var(--dx),var(--dy));opacity:0}}
+/* C: the Truck on a little stage */
+.road{position:absolute;left:0;right:0;bottom:8px;height:10px;border-radius:5px;background:#6b4220;box-shadow:0 4px 0 #000}
+.ctruck{position:absolute;bottom:14px;left:50%;width:calc(170px*var(--u));translate:-50% 0;transform-origin:26% 100%}
+.ctruck .truck{width:100%;display:block}
+.ctruck .load{position:absolute;left:12%;top:8%;display:flex;gap:2px}
+.cprop{position:absolute;bottom:14px;font-size:calc(70px*var(--u));line-height:1}
+.homeTruck{position:fixed;z-index:44;width:calc(130px*var(--u));pointer-events:none;translate:-50% -85%;transition:left .9s ease-in-out,top .9s ease-in-out}
+.homeTruck .truck{width:100%;display:block}
+.shake{animation:shakeit .35s}
+@keyframes shakeit{20%{translate:-8px 4px}40%{translate:7px -5px}60%{translate:-5px 3px}80%{translate:4px -2px}}
+
+/* ---------- prototype switcher (not part of the design) ---------- */
+.proto{overflow-x:auto;position:fixed;left:50%;bottom:calc(6px + env(safe-area-inset-bottom));transform:translateX(-50%);z-index:100;display:flex;align-items:center;gap:6px;height:42px;padding:0 6px;background:#fff;color:#111;border-radius:21px;box-shadow:0 6px 24px #000a;font:600 13px system-ui,sans-serif;white-space:nowrap;max-width:calc(100vw - 12px);opacity:.92}
+.proto button{height:32px;min-width:32px;padding:0 9px;border-radius:16px;background:#eee;font:inherit}
+.proto .lbl{padding:0 4px;font-weight:800}
+.proto .state{font:11px ui-monospace,Menlo,monospace;color:#555;overflow:hidden;text-overflow:ellipsis;max-width:26vw}
+.proto .more{display:none;align-items:center;gap:6px}
+.proto.open .more{display:flex}
+</style>
+<script src="coins.js"></script>
+<script src="voice.js"></script>
+<script src="say.js"></script>
+</head>
+<body>
+<div id="app"></div>
+<iframe id="garage" src="garage-3d-prototype.html?embed=1&bolts=0&cel=parent" title="Garage"></iframe>
+<div id="blocker"></div>
+<div class="garage-nav" id="garageNav"></div>
+<div class="toast" id="toast"></div>
+<div id="modal"></div>
+<div id="splash"><div><h1>Monster Truck<br>Money</h1><button class="big-btn go" id="startBtn"><span class="e">▶</span></button></div></div>
+<div class="proto" id="proto"></div>
+
+<script>
+/* =================== helpers, sound, voice (as in the current app) =================== */
+const $ = s => document.querySelector(s);
+const rand = (a, b) => a + Math.floor(Math.random() * (b - a + 1));
+const pick = a => a[Math.floor(Math.random() * a.length)];
+const shuffle = a => { for (let i = a.length - 1; i > 0; i--) { const j = rand(0, i); [a[i], a[j]] = [a[j], a[i]]; } return a; };
+const fmt = c => c < 100 ? c + '¢' : '$' + (c / 100).toFixed(2);
+const sleep = ms => new Promise(r => setTimeout(r, ms));
+
+let actx;
+function tone(f, d, type = 'sine', when = 0, vol = .15) {
+  try { actx ||= new (window.AudioContext || window.webkitAudioContext)();
+    const t = actx.currentTime + when, o = actx.createOscillator(), g = actx.createGain();
+    o.type = type; o.frequency.setValueAtTime(f, t); g.gain.setValueAtTime(vol, t); g.gain.exponentialRampToValueAtTime(.001, t + d);
+    o.connect(g).connect(actx.destination); o.start(t); o.stop(t + d); } catch {}
+}
+const sGood = () => { tone(523, .15, 'triangle'); tone(659, .15, 'triangle', .12); tone(784, .3, 'triangle', .24); };
+const sBad = () => tone(160, .3, 'square', 0, .08);
+const sClink = (w = 0) => { tone(1800, .08, 'triangle', w, .1); tone(2600, .1, 'triangle', w + .04, .06); };
+const sCount = i => tone(400 + i * 60, .12, 'triangle', 0, .1);
+const sFanfare = () => [523, 659, 784, 1047].forEach((f, i) => tone(f, .25, 'triangle', i * .12, .14));
+
+// say() and sayMore() come from say.js, shared with the Garage so both use the game's recorded voice
+let toastT;
+function toast(msg) { const t = $('#toast'); t.textContent = msg; t.classList.add('show'); say(msg); clearTimeout(toastT); toastT = setTimeout(() => t.classList.remove('show'), 1800); }
+function confetti() { const cs = ['#ffd23f', '#e63946', '#2bb673', '#2a6fdb', '#ff7a00'];
+  for (let i = 0; i < 60; i++) { const c = document.createElement('div'); c.className = 'confetti'; c.style.left = Math.random() * 100 + 'vw';
+    c.style.background = pick(cs); c.style.animationDuration = 1.8 + Math.random() * 1.6 + 's'; c.style.animationDelay = Math.random() * .5 + 's';
+    document.body.appendChild(c); setTimeout(() => c.remove(), 4200); } }
+
+const BOLT = s => `<svg class="bolt" width="${s}" height="${s}" viewBox="0 0 40 40"><polygon points="20,2 36,11 36,29 20,38 4,29 4,11" fill="#ffc21a" stroke="#7a5200" stroke-width="3"/><circle cx="20" cy="20" r="7" fill="#e0a000" stroke="#7a5200" stroke-width="2.5"/></svg>`;
+const TRUCK = (c = '#e63946') => `<svg viewBox="0 0 130 90" class="truck"><path d="M34 48 L40 62 M96 48 L90 62" stroke="#555" stroke-width="5"/><path d="M44 26 L54 6 H84 L94 26 Z" fill="${c}"/><path d="M57 10 H81 L88 25 H50 Z" fill="#bfe3ff"/><rect x="12" y="24" width="106" height="26" rx="7" fill="${c}"/><rect x="110" y="30" width="10" height="7" rx="2" fill="#ffd23f"/><path d="M16 44 Q30 30 38 40 Q44 28 52 40 Q58 32 64 44 Z" fill="#ffd23f"/>${[34, 96].map(x => `<g><circle cx="${x}" cy="68" r="20" fill="#1a1a1a"/><circle cx="${x}" cy="68" r="20" fill="none" stroke="#333" stroke-width="4" stroke-dasharray="5 4"/><circle cx="${x}" cy="68" r="8" fill="#bbb"/></g>`).join('')}</svg>`;
+
+/* =================== money =================== */
+const MONEY = {
+  b5: { v: 500, bill: 1, n: 5, label: '$5', short: '$5 Bill' }, b1: { v: 100, bill: 1, n: 1, label: '$1', short: '$1 Bill' },
+  q: { v: 25, label: '25¢', short: 'Quarter', size: 81 }, n: { v: 5, label: '5¢', short: 'Nickel', size: 71 },
+  p: { v: 1, label: '1¢', short: 'Penny', size: 64 }, d: { v: 10, label: '10¢', short: 'Dime', size: 60 },
+};
+const ORDER = ['b5', 'b1', 'q', 'd', 'n', 'p'];
+const byOrder = (a, b) => ORDER.indexOf(a) - ORDER.indexOf(b);
+const LEVEL_MONEY = { 1: ['d', 'n', 'p'], 2: ['q', 'd', 'n', 'p'], 3: ['b5', 'b1', 'q', 'd', 'n', 'p'] };
+const NEW_MONEY = { 2: ['q'], 3: ['b1', 'b5'] };
+const LEVELUP_LINE = { 2: 'Level up! Now you get quarters!', 3: 'Level up! Now you get dollar bills!' };
+function moneyHTML(k, cap = true, scale = 1) {
+  const m = MONEY[k];
+  const body = m.bill ? `<div class="bill" style="--b:${scale}"><span class="c tl">${m.n}</span><span class="c br">${m.n}</span><span class="oval">$${m.n}</span></div>`
+    : `<div class="coin" style="--s:${Math.round(m.size * scale)}px"><img src="${COIN_IMG[k]}" alt=""></div>`;
+  return `<div class="money">${body}<div class="cap${cap ? '' : ' hide'}">${m.short} · ${m.label}</div></div>`;
+}
+
+/* =================== game state (in memory only) =================== */
+const MODES = {
+  learn: { name: 'Learn the Coins', icon: '🪙', color: '#ffd23f', hint: 'Play Learn the Coins to open this!' },
+  count: { name: 'Count the Cash', icon: '💰', color: '#7fd6a0', needs: 'learn', hint: 'Learn more coins to open this!' },
+  pay: { name: 'Pay the Shop', icon: '🛒', color: '#7cc8ff', needs: 'count', hint: 'Count more cash to open this!' },
+};
+const MODE_IDS = Object.keys(MODES);
+const fresh = () => ({ bolts: 0, modes: Object.fromEntries(MODE_IDS.map(m => [m, { level: 1, win: [], mastered: false, intro: false }])),
+  screen: 'home', mode: 'learn', round: null, lastMode: 'learn', fresh: null, garage: { goal: null, afford: 0, unlocked: 0 } });
+let S = fresh();
+const isOpen = m => !MODES[m].needs || S.modes[MODES[m].needs].level >= 2;
+
+// garage iframe <-> shell
+const gframe = $('#garage');
+const sendBolts = () => gframe.contentWindow?.postMessage({ type: 'bolts', bolts: S.bolts }, '*');
+addEventListener('message', e => { if (e.data?.type !== 'garage') return;
+  S.bolts = e.data.bolts; S.garage = e.data; A.refresh(); proto(); });
+gframe.addEventListener('load', sendBolts);
+
+/* =================== Round controller (shared across variants) =================== */
+const CHEERS = ['VROOM! Great job!', 'Monster move!', 'You got it!', 'Truck-tastic!', 'Crushing it!', 'Awesome counting!'];
+async function startRound(mode) {
+  if (!isOpen(mode)) { sBad(); say(MODES[mode].hint); return; }
+  celGen++;
+  const md = S.modes[mode];
+  if (md.intro) { md.intro = false; await introCard(md.level); }
+  S.mode = S.lastMode = mode; S.round = { n: 0, level: md.level, events: [], done: false };
+  S.screen = 'round'; A.showRound(); newProblem(); proto();
+}
+function record(ok) {
+  const md = S.modes[S.mode]; md.win.push(ok); if (md.win.length > 10) md.win.shift();
+  if (md.win.filter(Boolean).length >= 8) {
+    if (md.level < 3) {
+      md.level++; md.win = []; md.intro = true; S.round.events.push({ t: 'level', mode: S.mode, level: md.level, text: LEVELUP_LINE[md.level] });
+      for (const m of MODE_IDS) if (MODES[m].needs === S.mode && md.level === 2) { S.round.events.push({ t: 'open', mode: m, text: `You opened ${MODES[m].name}!` }); S.fresh = m; }
+    } else if (!md.mastered) { md.mastered = true; md.win = []; S.round.events.push({ t: 'star', mode: S.mode, text: `You are a ${MODES[S.mode].name} star!` }); }
+  }
+}
+const struggling = () => S.modes[S.mode].win.filter(x => !x).length >= 5;
+function correct() {
+  const r = S.round; if (r.busy) return; r.busy = true;
+  record(P.firstTry && !P.helped);
+  sGood(); r.n++; A.progress(r.n);
+  if (r.n >= 5) setTimeout(endRound, 900);
+  else { toast(pick(CHEERS)); setTimeout(() => { r.busy = false; newProblem(); }, 1500); }
+}
+function miss() { P.firstTry = false; sBad(); }
+async function endRound() {
+  const before = S.garage.afford;
+  S.bolts += 3; sendBolts();
+  await sleep(250); // let the Garage report what's affordable now
+  const canBuild = S.garage.afford > before;
+  S.round.done = true; S.screen = 'reward';
+  const lines = ['You earned 3 Bolts!', ...S.round.events.map(evText), ...(canBuild ? ['You can build something new!'] : [])];
+  A.showReward({ lines, canBuild, events: S.round.events }); proto();
+}
+function introCard(level) {
+  return new Promise(res => {
+    const ks = NEW_MONEY[level];
+    $('#modal').innerHTML = `<div class="modal"><div class="card"><h2>New money!</h2>
+      <div class="intro-money">${ks.map(k => `<button class="money-btn" data-k="${k}">${moneyHTML(k, true, 2)}</button>`).join('')}</div>
+      <button class="big-btn go" id="introGo"><span class="e">▶</span></button></div></div>`;
+    const lines = ks.map(k => [`This is a ${MONEY[k].short}. It is worth ${MONEY[k].label}.`, $(`#modal [data-k=${k}]`)]);
+    say('Look! New money!', ...lines);
+    $('#modal').querySelectorAll('.money-btn').forEach(b => b.onclick = () => say([`${MONEY[b.dataset.k].short} is ${MONEY[b.dataset.k].label}.`, b]));
+    $('#introGo').onclick = () => { $('#modal').innerHTML = ''; res(); };
+  });
+}
+function peek() {
+  const ks = LEVEL_MONEY[S.round?.level || 1];
+  $('#modal').innerHTML = `<div class="modal"><div class="card"><div class="intro-money">${ks.map(k => `<button class="money-btn" data-k="${k}">${moneyHTML(k)}</button>`).join('')}</div>
+    <button class="big-btn go" id="peekOk"><span class="e">👍</span></button></div></div>`;
+  $('#modal').querySelectorAll('.money-btn').forEach(b => b.onclick = () => say([`${MONEY[b.dataset.k].short} is ${MONEY[b.dataset.k].label}.`, b]));
+  $('#peekOk').onclick = () => { $('#modal').innerHTML = ''; say(...P.question); };
+  say('Tap a coin to hear its name.');
+}
+
+/* =================== the three Game Mode screens (rendered into #game by any variant) =================== */
+let P = {}; // current problem
+const askHTML = t => `<div class="ask"><button class="say-btn" id="replay">🔊</button><h2>${t}</h2></div>`;
+function newProblem() {
+  P = { firstTry: true, helped: false, question: [] };
+  ({ learn: newLearn, count: newCount, pay: newPay })[S.mode](S.round.level, $('#game'));
+  $('#replay').onclick = () => say(...P.question);
+  say(...P.question);
+}
+function newLearn(level, root) {
+  const pool = LEVEL_MONEY[level], type = pick(['find', 'find', 'name', 'value', 'more']);
+  const others = t => shuffle(pool.filter(k => k !== t)).slice(0, 3);
+  const pickBtn = (k, sc) => `<button class="money-btn pickable" data-k="${k}">${moneyHTML(k, false, sc)}</button>`;
+  let target, html, q;
+  if (type === 'find') { target = pick(pool); q = `Tap the ${MONEY[target].short}!`;
+    html = askHTML(q) + `<div class="pile learn">${shuffle([target, ...others(target)]).map(k => pickBtn(k, 1.6)).join('')}</div>`; }
+  else if (type === 'more') { const [a, b] = shuffle(pool.slice()).slice(0, 2), more = Math.random() < .6;
+    target = (MONEY[a].v > MONEY[b].v) === more ? a : b; q = `Which is worth ${more ? 'more' : 'less'}?`;
+    html = askHTML(`Which is worth ${more ? 'MORE' : 'LESS'}?`) + `<div class="pile learn">${[a, b].map(k => pickBtn(k, 1.9)).join('')}</div>`; }
+  else { target = pick(pool); q = type === 'name' ? 'What is this called?' : 'How much is this worth?';
+    html = askHTML(q) + `<div class="pile learn">${moneyHTML(target, false, 2)}</div><div class="choices">${shuffle([target, ...others(target)]).map(k =>
+      `<button class="choice" data-k="${k}">${type === 'name' ? MONEY[k].short : MONEY[k].label}</button>`).join('')}</div>`; }
+  root.innerHTML = `<div class="game">${html}</div>`;
+  P.question = [q, ...[...root.querySelectorAll('.choice')].map(b => [b.textContent + '?', b])];
+  root.querySelectorAll('.pickable,.choice').forEach(b => b.onclick = () => {
+    if (S.round.busy) return;
+    const k = b.dataset.k, reveal = el => el?.querySelectorAll('.cap').forEach(c => c.classList.remove('hide'));
+    if (k === target) { b.classList.add('right'); reveal(root.querySelector('.pile')); return correct(); }
+    miss(); b.disabled = true;
+    if (b.classList.contains('choice')) { b.classList.add('wrong'); return toast('Try again!'); }
+    b.classList.add('nope'); reveal(b);
+    toast(type === 'find' ? `That's a ${MONEY[k].short}. Find the ${MONEY[target].short}!` : `${MONEY[target].short} is ${MONEY[target].label}. ${MONEY[k].short} is ${MONEY[k].label}.`);
+  });
+}
+function newCount(level, root) {
+  const cfg = { 1: { money: ['d', 'n', 'p'], max: 5, cap: 30, deltas: [1, 5, 10] }, 2: { money: ['q', 'd', 'n', 'p'], max: 6, cap: 75, deltas: [1, 5, 10, 25] },
+    3: { money: ['b1', 'q', 'd', 'n', 'p'], max: 6, cap: 300, deltas: [5, 10, 25, 100] } }[level];
+  let pile, total;
+  for (;;) {
+    pile = Array.from({ length: rand(2, cfg.max) }, () => pick(cfg.money));
+    if (level === 3 && !pile.some(k => k[0] === 'b')) pile[0] = 'b1';
+    if (level === 3 && Math.random() < .15) pile[0] = 'b5'; // a $5 bill now and then
+    total = pile.reduce((s, k) => s + MONEY[k].v, 0);
+    if (total <= (pile.includes('b5') ? 800 : cfg.cap)) break;
+  }
+  pile.sort(byOrder);
+  const opts = new Set([total]); while (opts.size < 4) { const c = total + pick(cfg.deltas) * pick([-1, 1]); if (c > 0) opts.add(c); }
+  root.innerHTML = `<div class="game">${askHTML('How much money is this?')}
+    <div class="pile" id="pile">${pile.map(k => `<div class="slot">${moneyHTML(k)}<div class="run"></div></div>`).join('')}</div>
+    <div class="choices">${shuffle([...opts]).map(v => `<button class="choice" data-v="${v}">${fmt(v)}</button>`).join('')}</div>
+    <div class="helpers"><button class="help-btn" id="help">🔎 Help me count</button><button class="help-btn" id="peekBtn">👀</button></div></div>`;
+  P.question = ['How much money is this?', ...[...root.querySelectorAll('.choice')].map(b => [b.textContent + '?', b])];
+  let counting = false;
+  const helpCount = () => { if (counting) return; counting = true; P.helped = true;
+    const slots = [...root.querySelectorAll('#pile .slot')]; let run = 0;
+    slots.forEach(s => { s.classList.remove('lit'); s.querySelector('.run').textContent = ''; });
+    const me = P;
+    slots.forEach((s, i) => setTimeout(() => { if (P !== me) return; run += MONEY[pile[i]].v; s.classList.add('lit'); s.querySelector('.run').textContent = fmt(run); sCount(i);
+      if (i === slots.length - 1) { counting = false; say(fmt(run)); } }, i * 800)); };
+  root.querySelectorAll('.choice').forEach(b => b.onclick = () => {
+    if (S.round.busy) return;
+    if (+b.dataset.v === total) { b.classList.add('right'); return correct(); }
+    b.classList.add('wrong'); b.disabled = true; miss(); toast("Not quite! Let's count together."); setTimeout(helpCount, 1200);
+  });
+  $('#help').onclick = helpCount; $('#peekBtn').onclick = peek;
+}
+function newPay(level, root) {
+  const items = [['⛽', 'Fuel'], ['🍿', 'Snack'], ['🧽', 'Car Wash'], ['🛢️', 'Oil'], ['🧃', 'Juice'], ['🔋', 'Battery']];
+  const [e, name] = pick(items);
+  const price = level === 1 ? rand(5, 25) : level === 2 ? rand(10, 60) : rand(1, 3) * 100 + pick([0, 5, 10, 15, 25, 30, 50, 75]);
+  const bank = LEVEL_MONEY[level].filter(k => k !== 'b5');
+  let tray = [];
+  root.innerHTML = `<div class="game">${askHTML(`Buy the ${name}!`)}
+    <div class="price-tag"><span class="e">${e}</span><span class="price">${fmt(price)}</span></div>
+    <div class="bank">${bank.map(k => `<button class="money-btn" data-k="${k}">${moneyHTML(k)}</button>`).join('')}</div>
+    <div class="tray" id="tray"></div>
+    <div class="paidrow"><span>🪙 <b id="paid">0¢</b></span><button class="big-btn go" id="payBtn"><span class="e">✅</span></button></div>
+    <div class="helpers"><button class="help-btn" id="helpPay">🔎 Help me pay</button><button class="help-btn" id="clear">↩</button><button class="help-btn" id="peekBtn">👀</button></div></div>`;
+  P.question = [`Buy the ${name}! It costs ${fmt(price)}.`];
+  const sum = () => tray.reduce((s, k) => s + MONEY[k].v, 0);
+  const draw = (speak = true) => { tray.sort(byOrder);
+    $('#tray').innerHTML = tray.length ? tray.map((k, i) => `<button class="money-btn" data-i="${i}">${moneyHTML(k, false, .8)}</button>`).join('') : '<span class="empty">👇 🪙</span>';
+    $('#tray').querySelectorAll('.money-btn').forEach(b => b.onclick = () => { tray.splice(+b.dataset.i, 1); draw(); });
+    $('#paid').textContent = fmt(sum()); if (speak) say(tray.length ? fmt(sum()) : ''); };
+  root.querySelectorAll('.bank .money-btn').forEach(b => b.onclick = () => { if (S.round.busy || tray.length > 20) return; tray.push(b.dataset.k); sClink(); draw(); });
+  $('#clear').onclick = () => { tray = []; draw(false); };
+  let helping = false;
+  const helpPay = async () => { if (helping) return; helping = true; P.helped = true; tray = []; draw(false);
+    const me = P; let left = price; for (const k of bank) while (MONEY[k].v <= left) { if (P !== me) return; left -= MONEY[k].v; tray.push(k); sClink(); draw(false); await say(fmt(sum())); await sleep(250); }
+    helping = false; };
+  $('#helpPay').onclick = helpPay; $('#peekBtn').onclick = peek;
+  $('#payBtn').onclick = () => { if (S.round.busy) return; const paid = sum();
+    if (paid === price) return correct();
+    miss(); toast(paid === 0 ? 'Tap some money first!' : paid < price ? `Almost! You need ${fmt(price - paid)} more.` : `Too much! Take back ${fmt(paid - price)}.`);
+    if (paid && struggling()) setTimeout(helpPay, 1800); };
+  draw(false);
+}
+
+/* shared snippets the variants use */
+const pileHTML = () => `<div class="pilebox" id="pileBox">${BOLT(34 * 1)}<span>${S.bolts}</span></div>`;
+function goalHTML() { const g = S.garage.goal; if (!g) return '';
+  return `<div class="goalchip ${S.bolts >= g.cost ? 'ready' : ''}"><span>🎯</span><span class="gi">${g.icon}</span><span class="track"><i style="width:${Math.min(100, S.bolts / g.cost * 100)}%"></i></span><span>${Math.min(S.bolts, g.cost)}/${g.cost}</span></div>`; }
+const lvlHTML = m => `<span class="lvl">${[1, 2, 3].map(i => `<i class="${i <= S.modes[m].level ? 'on' : ''}"></i>`).join('')}</span>`;
+const starsHTML = n => `<div class="stars" id="stars">${[0, 1, 2, 3, 4].map(i => `<span class="${i < n ? 'on' : ''}">⭐</span>`).join('')}</div>`;
+const modeBadge = m => !isOpen(m) ? '<span class="lock">🔒</span>' : S.modes[m].mastered ? '<span class="badge">⭐</span>' : '';
+function flyBolts(toEl) {
+  const to = toEl?.getBoundingClientRect(); if (!to) return;
+  for (let i = 0; i < 3; i++) { const b = document.createElement('div'); b.className = 'fly'; b.innerHTML = BOLT(48);
+    b.style.left = innerWidth / 2 - 24 + 'px'; b.style.top = innerHeight / 2 - 24 + 'px'; document.body.appendChild(b);
+    setTimeout(() => { b.style.transform = `translate(${to.left + to.width / 2 - innerWidth / 2}px,${to.top + to.height / 2 - innerHeight / 2}px) scale(.5)`; b.style.opacity = 0; }, 300 + i * 150);
+    setTimeout(() => b.remove(), 1400 + i * 150); }
+}
+function showGarage(on) { document.body.classList.toggle('show-garage', on); if (on) { sendBolts(); say('Garage!'); } }
+
+/* ======================= Variant A: Tile home ======================= */
+const A = {
+  name: 'Tile home',
+  enter() { S.screen === 'round' || S.screen === 'reward' ? this.showRound() : S.screen === 'garage' ? this.garage() : this.home(); },
+  home() {
+    celGen++; S.screen = 'home'; showGarage(false);
+    $('#app').className = 'A';
+    $('#app').innerHTML = `<header><h1>Monster Truck Money</h1>${goalHTML()}${pileHTML()}</header>
+      <div class="home">
+        <button class="tile t-garage" data-go="garage">${TRUCK()}<span class="nm">🔧 Garage</span></button>
+        ${MODE_IDS.map(m => `<button class="tile mode t-${m} ${isOpen(m) ? '' : 'locked'}" data-mode="${m}"><span class="e">${MODES[m].icon}</span>
+          <span><span class="nm">${MODES[m].name}</span><br>${lvlHTML(m)}</span>${S.fresh === m ? '<span class="lock">🔒</span>' : modeBadge(m)}</button>`).join('')}
+      </div>`;
+    if (S.fresh) { const m = S.fresh; S.fresh = null; CEL().opened($(`[data-mode=${m}]`), m); }
+    $('#app').querySelectorAll('[data-mode]').forEach(b => b.onclick = () => startRound(b.dataset.mode));
+    $('[data-go=garage]').onclick = () => this.garage();
+  },
+  showRound() {
+    $('#app').className = 'A'; showGarage(false);
+    $('#app').innerHTML = `<div class="roundbar"><button class="icon-btn" id="homeBtn">🏠</button>${starsHTML(S.round.n)}${goalHTML()}${pileHTML()}</div>
+      <main class="card" id="game"></main>`;
+    $('#homeBtn').onclick = () => { say(); this.home(); };
+  },
+  progress(n) { $('#stars').outerHTML = starsHTML(n); },
+  // The overlay's frame is shared; what happens inside it (#moment, the lines, when the buttons wake up) is the celebration variant's
+  showReward({ lines, canBuild, events }) {
+    const el = document.createElement('div'); el.className = 'reward'; el.id = 'reward';
+    el.innerHTML = `<h2>Round done!</h2><div class="bigpile" id="bigPile">${BOLT(80)}<span id="pileN">${S.bolts - 3}</span></div>
+      <div class="moment" id="moment"></div>
+      <div class="lines" id="lines"></div>
+      <div class="btns asleep" id="rBtns"><button class="big-btn garage" id="toGarage"><span class="e">🔧</span></button>
+      <button class="big-btn go" id="again"><span class="e">▶</span></button></div>
+      <button class="icon-btn asleep" id="rHome">🏠</button>`;
+    $('#app').appendChild(el);
+    $('#toGarage').onclick = () => this.garage(); $('#again').onclick = () => startRound(S.mode); $('#rHome').onclick = () => this.home();
+    const t0 = performance.now(), gen = ++celGen;
+    CEL().round({ lines, canBuild, events, gen }).then(() => {
+      if (gen !== celGen) return;
+      $('#rBtns')?.classList.remove('asleep'); $('#rHome')?.classList.remove('asleep');
+      if (canBuild) $('#toGarage')?.classList.add('pulse');
+      S.lastLock = performance.now() - t0; proto();
+    });
+  },
+  garage() {
+    celGen++; S.screen = 'garage'; showGarage(true);
+    $('#garageNav').innerHTML = `<button class="icon-btn" id="gHome">🏠</button><button class="icon-btn" id="gPlay" style="background:var(--green)">▶</button>`;
+    $('#gHome').onclick = () => this.home(); $('#gPlay').onclick = () => startRound(S.lastMode);
+  },
+  refresh() { if (S.screen === 'home') { const h = $('#app header'); if (h) h.innerHTML = `<h1>Monster Truck Money</h1>${goalHTML()}${pileHTML()}`; } },
+};
+
+
+/* ======================= celebrations ======================= */
+let celGen = 0; // bumped whenever he leaves a screen, so a running celebration stops touching it
+const alive = g => g === celGen;
+const tierOf = e => ({ round: 1, level: 2, open: 2, star: 3 })[e.t] ?? e.rung;
+const byTier = evs => [...evs].sort((a, b) => tierOf(a) - tierOf(b));
+const evIcon = (e, sc = 1) => e.t === 'level' ? NEW_MONEY[e.level].map(k => moneyHTML(k, false, sc)).join('') : e.t === 'open' ? MODES[e.mode].icon : '⭐';
+const evTitle = e => e.t === 'level' ? `Level ${e.level}!` : e.t === 'open' ? 'Open!' : 'Star!';
+function lockFor(ms) { const b = $('#blocker'); b.classList.add('on'); S.lastLock = ms; proto(); clearTimeout(lockFor.t); lockFor.t = setTimeout(() => b.classList.remove('on'), ms); }
+function bumpPile(n) { const p = $('#pileN'); if (!p) return; p.textContent = n; p.classList.add('bump'); setTimeout(() => p.classList.remove('bump'), 150); }
+function flyOne(from, toEl, size = 56) { // one Bolt from a point to an element; resolves when it lands
+  return new Promise(res => { const to = toEl?.getBoundingClientRect(); if (!to) return res();
+    const b = document.createElement('div'); b.className = 'fly'; b.innerHTML = BOLT(size);
+    b.style.left = from.x - size / 2 + 'px'; b.style.top = from.y - size / 2 + 'px'; document.body.appendChild(b);
+    requestAnimationFrame(() => requestAnimationFrame(() => { b.style.transform = `translate(${to.left + to.width / 2 - from.x}px,${to.top + to.height / 2 - from.y}px) scale(.6)`; b.style.opacity = 0; }));
+    setTimeout(() => { b.remove(); res(); }, 700); });
+}
+async function landBolts(from, gap, gen) { // three Bolts onto the big pile, one clink and one count-up each
+  const pile = $('#bigPile'); let n = S.bolts - 3;
+  await Promise.all([0, 1, 2].map(i => sleep(i * gap).then(() => alive(gen) && flyOne(typeof from === 'function' ? from(i) : from, pile))
+    .then(() => { if (!alive(gen)) return; sClink(); bumpPile(++n); })));
+}
+function confettiN(n) { const cs = ['#ffd23f', '#e63946', '#2bb673', '#2a6fdb', '#ff7a00'];
+  for (let i = 0; i < n; i++) { const c = document.createElement('div'); c.className = 'confetti'; c.style.left = Math.random() * 100 + 'vw';
+    c.style.background = pick(cs); c.style.animationDuration = 1.8 + Math.random() * 1.6 + 's'; c.style.animationDelay = Math.random() * .5 + 's';
+    document.body.appendChild(c); setTimeout(() => c.remove(), 4200); } }
+function firework(x = rand(15, 85) / 100 * innerWidth, y = rand(15, 45) / 100 * innerHeight) {
+  const col = pick(['#ffd23f', '#ff5d8f', '#6ee7ff', '#9dff6e', '#ff9a3c']); sPop();
+  for (let i = 0; i < 26; i++) { const d = document.createElement('div'); d.className = 'firework'; const a = i / 26 * Math.PI * 2, r = 80 + Math.random() * 90;
+    d.style.cssText = `left:${x}px;top:${y}px;background:${col};--dx:${Math.cos(a) * r}px;--dy:${Math.sin(a) * r}px`; document.body.appendChild(d); setTimeout(() => d.remove(), 1050); }
+}
+function shatter(parent, ch, x, y, n = 6) { // bits of something flying apart, e.g. a padlock
+  for (let i = 0; i < n; i++) { const s = document.createElement('div'); s.className = 'shatter'; s.textContent = ch; const a = -Math.PI / 2 + (i - n / 2) * .5;
+    s.style.cssText = `left:${x}px;top:${y}px;--dx:${Math.cos(a) * 160}px;--dy:${Math.sin(a) * 160 + 120}px;--r:${rand(-300, 300)}deg`; parent.appendChild(s); setTimeout(() => s.remove(), 950); }
+}
+const shake = el => { el?.classList.remove('shake'); void el?.offsetWidth; el?.classList.add('shake'); };
+const garageFx = (kind, extra = {}) => gframe.contentWindow?.postMessage({ type: 'truckfx', kind, ...extra }, '*');
+const FX_MS = { hop: 600, jump: 1300, mega: 2100 }; // same as the Garage's FXK
+
+/* --- sounds, all synthesized; the voice lines are the game's recorded clips --- */
+function osc({ f, f2, d, type = 'triangle', when = 0, vol = .15 }) {
+  try { actx ||= new (window.AudioContext || window.webkitAudioContext)();
+    const t = actx.currentTime + when, o = actx.createOscillator(), g = actx.createGain();
+    o.type = type; o.frequency.setValueAtTime(f, t); if (f2) o.frequency.exponentialRampToValueAtTime(f2, t + d);
+    g.gain.setValueAtTime(vol, t); g.gain.exponentialRampToValueAtTime(.001, t + d);
+    o.connect(g).connect(actx.destination); o.start(t); o.stop(t + d + .05); } catch {}
+}
+function noise({ d, vol = .25, type = 'lowpass', f = 800, f2, when = 0, beat = 0, grow = false }) {
+  try { actx ||= new (window.AudioContext || window.webkitAudioContext)();
+    const t = actx.currentTime + when, b = actx.createBuffer(1, actx.sampleRate * d, actx.sampleRate), ch = b.getChannelData(0);
+    for (let i = 0; i < ch.length; i++) ch[i] = Math.random() * 2 - 1;
+    const s = actx.createBufferSource(), fl = actx.createBiquadFilter(), g = actx.createGain(); s.buffer = b; fl.type = type;
+    fl.frequency.setValueAtTime(f, t); if (f2) fl.frequency.exponentialRampToValueAtTime(f2, t + d);
+    if (beat) for (let x = 0; x < d; x += beat) { const v = grow ? vol * (.25 + .75 * x / d) : vol; g.gain.setValueAtTime(v, t + x); g.gain.setValueAtTime(v * .15, t + x + beat * .5); }
+    else { g.gain.setValueAtTime(vol, t); g.gain.exponentialRampToValueAtTime(.001, t + d); }
+    s.connect(fl).connect(g).connect(actx.destination); s.start(t); } catch {}
+}
+const sChime = () => { osc({ f: 1319, d: .35, vol: .12 }); osc({ f: 1760, d: .45, vol: .1, when: .08 }); };
+const sBigFanfare = () => { [523, 659, 784, 1047, 784, 1047].forEach((f, i) => osc({ f, d: .22, vol: .14, when: i * .13 })); [1047, 1319, 1568].forEach(f => osc({ f, d: 1.2, vol: .09, when: .8 })); };
+const sDrumroll = d => noise({ d, vol: .3, type: 'bandpass', f: 1200, beat: .05, grow: true });
+const sWhoosh = (d = .5) => noise({ d, vol: .3, type: 'bandpass', f: 400, f2: 3500 });
+const sEngine = (d = .9) => { osc({ f: 55, f2: 150, d, type: 'sawtooth', vol: .12 }); osc({ f: 82, f2: 220, d, type: 'square', vol: .05 }); };
+const sCrunch = () => { noise({ d: .3, vol: .5, f: 900 }); osc({ f: 120, f2: 50, d: .3, type: 'square', vol: .12 }); };
+const sThud = () => { osc({ f: 90, f2: 40, d: .35, type: 'sine', vol: .4 }); noise({ d: .2, vol: .3, f: 300 }); };
+const sHonk = () => { osc({ f: 392, d: .4, type: 'sawtooth', vol: .1 }); osc({ f: 494, d: .4, type: 'sawtooth', vol: .1 }); };
+const sBoing = () => osc({ f: 260, f2: 780, d: .25, type: 'sine', vol: .2 });
+function sPop() { noise({ d: .15, vol: .35, type: 'highpass', f: 1500 }); noise({ d: .6, vol: .08, type: 'highpass', f: 4000, when: .1, beat: .06 }); }
+
+/* ---------- A: Quick pop. Small, fast and the same size for everything ---------- */
+const QUICK = {
+  name: 'Quick pop',
+  async round({ lines, events, gen }) {
+    sFanfare(); confettiN(25); say(...lines);
+    await landBolts({ x: innerWidth / 2, y: innerHeight * .4 }, 180, gen);
+    if (!alive(gen)) return;
+    for (const e of byTier(events)) { const c = document.createElement('div'); c.className = 'chip';
+      c.innerHTML = `<span class="e">${e.t === 'level' ? '⬆️' : e.t === 'open' ? '🔓' : '⭐'}</span><span class="e">${e.t === 'star' ? MODES[e.mode].icon : evIcon(e, .6)}</span>`;
+      $('#moment').appendChild(c); sChime(); await sleep(200); }
+  },
+  mod(m) { sFanfare(); garageFx('hop', { sparks: 1, horn: m.slot === 'horn' ? m.rung : null }); say(`You got ${m.name}!`); lockFor(600); },
+  opened(tile, m) { const l = tile.querySelector('.lock'); l.classList.add('lockdrop'); setTimeout(() => l.remove(), 900);
+    tile.classList.add('fresh-a'); sChime(); say(`You opened ${MODES[m].name}!`); lockFor(0); },
+};
+
+/* ---------- B: Big show. Every moment gets a takeover card that grows with the event ---------- */
+const B_LOCK = { 1: 1200, 2: 2500, 3: 4000 }; // from the card appearing to the ▶ waking up
+function takeover({ tier, hero, title, voice, gen }) {
+  return new Promise(async res => {
+    const el = document.createElement('div'); el.className = `take t${tier}`;
+    el.innerHTML = `${tier >= 2 ? '<div class="rays"></div>' : ''}<div class="hero">${tier === 3 ? '🎁' : hero}</div><h2></h2>
+      <button class="big-btn go next"><span class="e">▶</span></button>`;
+    document.body.appendChild(el);
+    const heroEl = el.querySelector('.hero'), h2 = el.querySelector('h2'), next = el.querySelector('.next');
+    let done = false; const close = () => { if (done) return; done = true; el.remove(); res(); };
+    if (tier === 3) { heroEl.classList.add('boxed'); sDrumroll(1.3); await sleep(1300); if (!alive(gen)) return close();
+      heroEl.classList.remove('boxed'); heroEl.innerHTML = hero; shatter(el, '✨', innerWidth / 2, innerHeight * .4, 10); }
+    heroEl.classList.add('in');
+    h2.innerHTML = [...title].map((ch, i) => `<span style="animation-delay:${.25 + i * .05}s">${ch === ' ' ? '&nbsp;' : ch}</span>`).join('');
+    if (tier === 1) { sChime(); confettiN(20); }
+    if (tier === 2) { sFanfare(); sWhoosh(); confettiN(70); }
+    if (tier === 3) { sBigFanfare(); confettiN(160); [0, 400, 800, 1300, 1800].forEach(t => setTimeout(() => alive(gen) && firework(), t)); }
+    say(...voice);
+    await sleep(B_LOCK[tier] - (tier === 3 ? 1300 : 0)); if (!alive(gen)) return close();
+    next.classList.add('on'); next.onclick = close; el.onclick = close;
+    setTimeout(close, 6000); // don't strand him if he doesn't tap
+  });
+}
+const BIG = {
+  name: 'Big show',
+  async round({ lines, canBuild, events, gen }) {
+    sFanfare(); confettiN(50); say('You earned 3 Bolts!');
+    await landBolts(i => ({ x: innerWidth * (.3 + .2 * i), y: -40 }), 250, gen);
+    for (const e of byTier(events)) { if (!alive(gen)) return;
+      await sleep(300); await takeover({ tier: tierOf(e), hero: evIcon(e, 1.8), title: evTitle(e), voice: [evText(e)], gen }); }
+    if (alive(gen) && canBuild) say('You can build something new!');
+  },
+  async mod(m) {
+    const gen = celGen; S.lastLock = B_LOCK[m.rung]; proto();
+    const voice = m.rung === 3 ? ['Wow!', `You got ${m.name}!`, "That's the best one!"] : [`You got ${m.name}!`];
+    await takeover({ tier: m.rung, hero: m.icon, title: m.name, voice, gen });
+    garageFx('hop', { sparks: 1, horn: m.slot === 'horn' ? m.rung : null });
+  },
+  opened(tile, m) { tile.querySelector('.lock')?.remove(); tile.classList.add('fresh-a'); say(`You opened ${MODES[m].name}!`); lockFor(0); },
+};
+
+/* ---------- C: Truck show. The Truck does the celebrating, and its moves grow with the event ---------- */
+function stage() { const m = $('#moment'); m.innerHTML = `<div class="road"></div><div class="ctruck" id="ctruck">${TRUCK()}<div class="load" id="load">${BOLT(34).repeat(3)}</div></div>`; return $('#ctruck'); }
+const anim = (el, kf, ms, easing = 'ease-in-out') => el.animate(kf, { duration: ms, easing, fill: 'forwards' }).finished.catch(() => {});
+const TRUCKY = {
+  name: 'Truck show',
+  async round({ lines, canBuild, events, gen }) {
+    const t = stage(), load = $('#load'), mom = $('#moment');
+    sEngine(.9); await anim(t, [{ transform: 'translateX(-80vw)' }, { transform: 'translateX(0)' }], 900, 'cubic-bezier(.2,.8,.3,1)');
+    if (!alive(gen)) return;
+    await anim(t, [{ transform: 'rotate(0)' }, { transform: 'rotate(4deg)' }, { transform: 'rotate(0)' }], 250); // stop and rock
+    sFanfare(); say('You earned 3 Bolts!');
+    const r = load.getBoundingClientRect(); load.style.visibility = 'hidden';
+    await landBolts(i => ({ x: r.left + 17 + i * 36, y: r.top + 17 }), 200, gen);
+    for (const e of byTier(events)) { if (!alive(gen)) return; await sleep(250); await this[e.t](t, mom, e, gen); t.style.transform = ''; }
+    if (alive(gen) && canBuild) { say('You can build something new!'); sHonk(); }
+  },
+  async level(t, mom, e, gen) { // a wheelie with a honk, and the new money pops up beside it
+    const sign = document.createElement('div'); sign.className = 'cprop'; sign.style.right = '4%'; sign.style.bottom = '30px'; sign.innerHTML = evIcon(e, .8);
+    sHonk(); sEngine(1); say(evText(e));
+    const w = anim(t, [{ transform: 'rotate(0)' }, { transform: 'rotate(-28deg)', offset: .3 }, { transform: 'rotate(-24deg)', offset: .75 }, { transform: 'rotate(0)' }], 1500);
+    await sleep(350); mom.appendChild(sign); anim(sign, [{ transform: 'scale(0)' }, { transform: 'scale(1.2)' }, { transform: 'scale(1)' }], 400); sChime(); confettiN(40);
+    await w; await sleep(300);
+  },
+  async open(t, mom, e, gen) { // drives up onto the locked mode and crushes the padlock
+    const prop = document.createElement('div'); prop.className = 'cprop'; prop.style.right = '6%'; prop.innerHTML = `${MODES[e.mode].icon}<span style="position:absolute;left:30%;top:-40%">🔒</span>`;
+    mom.appendChild(prop); await anim(prop, [{ transform: 'scale(0)' }, { transform: 'scale(1)' }], 300);
+    const dx = prop.getBoundingClientRect().left - t.getBoundingClientRect().left - 20;
+    sEngine(.8); await anim(t, [{ transform: 'translate(0,0)' }, { transform: `translate(${dx * .6}px,-90px) rotate(-10deg)`, offset: .6 }, { transform: `translate(${dx}px,-30px)` }], 800, 'ease-in');
+    if (!alive(gen)) return;
+    sCrunch(); shake($('#reward')); prop.querySelector('span').remove(); const pr = prop.getBoundingClientRect(), mr = mom.getBoundingClientRect();
+    shatter(mom, '🔩', pr.left - mr.left + 20, pr.top - mr.top, 5); say(evText(e)); confettiN(50);
+    await anim(t, [{ transform: `translate(${dx}px,-30px)` }, { transform: `translate(${dx}px,-60px)` }, { transform: `translate(${dx}px,-30px)` }], 300);
+    await sleep(600); await anim(t, [{ transform: `translate(${dx}px,-30px)` }, { transform: 'translate(0,0)' }], 600);
+    prop.remove();
+  },
+  async star(t, mom, e, gen) { // a ramp jump with a full flip through a giant star, then fireworks
+    const ramp = document.createElement('div'); ramp.className = 'cprop'; ramp.style.left = '58%';
+    ramp.innerHTML = `<svg width="${110 * +getComputedStyle(document.documentElement).getPropertyValue('--u')}" viewBox="0 0 110 50"><path d="M0 50 L110 50 L110 0 Z" fill="#ffd23f" stroke="#000" stroke-width="4"/></svg>`;
+    mom.appendChild(ramp); sEngine(1.4); await anim(t, [{ transform: 'translateX(0)' }, { transform: 'translateX(-30vw)' }], 500);
+    sDrumroll(.9); await anim(t, [{ transform: 'translateX(-30vw)' }, { transform: 'translateX(10vw)' }], 900, 'ease-in');
+    if (!alive(gen)) return;
+    const star = document.createElement('div'); star.className = 'cprop'; star.style.cssText = 'position:fixed;left:50%;top:6%;bottom:auto;translate:-50% 0;font-size:calc(150px*var(--u));z-index:41'; star.textContent = '⭐';
+    mom.appendChild(star); anim(star, [{ transform: 'scale(0) rotate(-180deg)' }, { transform: 'scale(1) rotate(0)' }], 600, 'cubic-bezier(.3,1.7,.5,1)');
+    sWhoosh(.9); sBigFanfare(); say(evText(e)); [0, 350, 700, 1100].forEach(ms => setTimeout(() => alive(gen) && firework(), ms));
+    await anim(t, [{ transform: 'translate(10vw,0) rotate(0)' }, { transform: 'translate(22vw,-42vh) rotate(-200deg)', offset: .5 }, { transform: 'translate(34vw,0) rotate(-360deg)' }], 1300, 'linear');
+    sThud(); shake($('#reward')); confettiN(120);
+    await anim(t, [{ transform: 'translate(34vw,0)' }, { transform: 'translate(0,0)' }], 700);
+    ramp.remove(); await sleep(600); star.remove();
+  },
+  mod(m) {
+    const kind = ['hop', 'jump', 'mega'][m.rung - 1], ms = FX_MS[kind];
+    garageFx(kind, { sparks: m.rung, horn: m.slot === 'horn' ? m.rung : null }); lockFor(ms);
+    if (m.rung === 1) { sBoing(); sChime(); say(`You got ${m.name}!`); return; }
+    sEngine(m.rung === 3 ? 1.1 : .6); setTimeout(() => sWhoosh(.6), 250);
+    setTimeout(() => { if (m.rung === 3) { sThud(); sBigFanfare(); shake(gframe); [0, 300, 650].forEach(t => setTimeout(firework, t)); say('Wow!', `You got ${m.name}!`, "That's the best one!"); }
+      else { sFanfare(); say(`You got ${m.name}!`); } }, ms - 150);
+  },
+  opened(tile, m) { tile.querySelector('.lock')?.remove(); tile.classList.add('fresh-a'); say(`You opened ${MODES[m].name}!`); lockFor(0); },
+};
+const evText = e => e.text || (e.t === 'level' ? LEVELUP_LINE[e.level] : e.t === 'open' ? `You opened ${MODES[e.mode].name}!` : `You are a ${MODES[e.mode].name} star!`);
+
+// the Garage reports unlocks here (it runs with ?cel=parent) and the variant decides how to celebrate
+addEventListener('message', e => { if (e.data?.type === 'unlock' && S.screen === 'garage') CEL().mod(e.data); });
+
+/* =================== variant switching + prototype bar =================== */
+const VARIANTS = { A: QUICK, B: BIG, C: TRUCKY }, KEYS = Object.keys(VARIANTS);
+let cur = (k => VARIANTS[k] ? k : 'A')(new URLSearchParams(location.search).get('variant'));
+const CEL = () => VARIANTS[cur];
+let protoOpen = true;
+function setVariant(k) {
+  cur = k; const q = new URLSearchParams(location.search); q.set('variant', k); history.replaceState(null, '', '?' + q);
+  celGen++; document.querySelectorAll('.take').forEach(t => t.remove()); $('#modal').innerHTML = '';
+  if (S.screen === 'reward' || S.screen === 'round') A.home(); else if (S.screen === 'garage') A.garage(); else A.home();
+  proto();
+}
+function fakeRound(events) { // jump straight to the end of a Round with these events
+  celGen++; document.querySelectorAll('.take').forEach(t => t.remove()); $('#modal').innerHTML = '';
+  S.round = { n: 5, level: S.modes[S.mode].level, events, done: false, busy: true }; S.screen = 'round';
+  A.showRound(); A.progress(5); endRound();
+}
+function trigger(a) {
+  const lockedMode = MODE_IDS.find(m => !isOpen(m)) || 'pay';
+  const openEv = () => { const m = lockedMode; if (!isOpen(m)) S.modes[MODES[m].needs].level = 2; S.fresh = m; return { t: 'open', mode: m }; };
+  if (a === 'round') fakeRound([]);
+  if (a === 'level') fakeRound([{ t: 'level', mode: S.mode, level: S.modes[S.mode].level >= 2 ? 3 : 2 }]);
+  if (a === 'open') fakeRound([openEv()]);
+  if (a === 'star') { S.modes[S.mode].mastered = true; fakeRound([{ t: 'star', mode: S.mode }]); }
+  if (a === 'combo') fakeRound([{ t: 'level', mode: 'learn', level: 2 }, openEv()]);
+  if (a[0] === 'm') { A.garage(); setTimeout(() => gframe.contentWindow?.postMessage({ type: 'force', rung: +a[1] }, '*'), 300); }
+}
+function proto() {
+  const m = S.modes;
+  $('#proto').className = 'proto' + (protoOpen ? ' open' : '');
+  $('#proto').innerHTML = `<button data-p="prev">◀</button><span class="lbl">${cur} (${CEL().name})</span><button data-p="next">▶</button>
+    <button data-p="more">⋯</button><span class="more">
+    <button data-t="round" title="Finish a Round">🏁</button><button data-t="m1" title="Unlock a first-rung Mod">🔧1</button><button data-t="m2" title="Unlock a second-rung Mod">🔧2</button><button data-t="m3" title="Unlock a top-rung Mod">🔧3</button>
+    <button data-t="level" title="Round that levels up">⬆️</button><button data-t="open" title="Round that opens a Game Mode">🔓</button><button data-t="star" title="Round that masters a mode">⭐</button><button data-t="combo" title="Level up and a mode opening in one Round">🎉</button>
+    <button data-p="bolts">+9 🔩</button><button data-p="reset">↺</button>
+    <span class="state">lock=${S.lastLock == null ? '-' : (S.lastLock / 1000).toFixed(1) + 's'} screen=${S.screen} bolts=${S.bolts} ${MODE_IDS.map(k => `${k}:${isOpen(k) ? 'L' + m[k].level + (m[k].mastered ? '⭐' : '') : '🔒'}`).join(' ')}</span></span>`;
+}
+$('#proto').addEventListener('click', e => {
+  const t = e.target.closest('[data-t]')?.dataset.t; if (t) return trigger(t);
+  const a = e.target.closest('[data-p]')?.dataset.p; if (!a) return;
+  const i = KEYS.indexOf(cur);
+  if (a === 'prev') setVariant(KEYS[(i + KEYS.length - 1) % KEYS.length]);
+  if (a === 'next') setVariant(KEYS[(i + 1) % KEYS.length]);
+  if (a === 'more') { protoOpen = !protoOpen; proto(); }
+  if (a === 'bolts') { S.bolts += 9; sendBolts(); A.refresh(); proto(); }
+  if (a === 'reset') { S = fresh(); sendBolts(); gframe.src = gframe.src; setVariant(cur); }
+});
+addEventListener('keydown', e => { if (e.target.closest('input,textarea,[contenteditable]')) return;
+  const i = KEYS.indexOf(cur);
+  if (e.key === 'ArrowLeft') setVariant(KEYS[(i + KEYS.length - 1) % KEYS.length]);
+  if (e.key === 'ArrowRight') setVariant(KEYS[(i + 1) % KEYS.length]); });
+
+// A first tap is needed before iPad Safari allows sound
+$('#startBtn').onclick = () => { try { actx ||= new AudioContext(); actx.resume(); } catch {} unlockAudio(); $('#splash').remove(); say("Let's go!"); };
+setVariant(cur);
+</script>
+</body>
+</html>
