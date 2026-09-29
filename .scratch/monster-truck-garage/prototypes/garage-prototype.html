@@ -1,0 +1,427 @@
+<!doctype html>
+<!--
+  PROTOTYPE, THROWAWAY. Answers "Prototype the Truck art and the Garage screen".
+  Three variants of the Garage screen on one page, switchable with ?variant=A|B|C
+  and the white bar at the bottom (or the arrow keys):
+    A  Tabs + tray    : big Truck, 5 Slot buttons, the chosen Slot's 4 Mods in a tray
+    B  Parts wall     : every Mod visible at once, one row per Slot, cheap to cool left to right
+    C  Tap the truck  : tap a glowing spot on the Truck itself, a sheet of Mods pops up
+  Truck art: layered inline SVG (Body path + paint fill, clipped decals, lights, wheels).
+  Voice: the device's speech synthesis stands in for recorded clips. Nothing is saved.
+  Run: python3 -m http.server 8080 in this folder, then open http://<mac-ip>:8080/garage-prototype.html on the iPad.
+-->
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<title>PROTOTYPE Garage</title>
+<style>
+:root{--bg:#141824;--panel:#222a3b;--panel2:#2d3650;--ink:#fff;--muted:#9aa3b5;--gold:#ffc53d;--ok:#3ddc84;--bar:64px}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{margin:0;height:100%;overflow:hidden;background:var(--bg);color:var(--ink);font-family:ui-rounded,"SF Pro Rounded","Arial Rounded MT Bold",system-ui,sans-serif;-webkit-user-select:none;user-select:none;touch-action:manipulation}
+button{font:inherit;color:inherit;border:0;background:none;padding:0;cursor:pointer}
+#app{height:100vh;height:100dvh;display:flex;flex-direction:column;padding:max(8px,env(safe-area-inset-top)) max(8px,env(safe-area-inset-right)) calc(var(--bar) + 4px) max(8px,env(safe-area-inset-left))}
+
+/* HUD: Bolt pile + goal bar (the goal bar is meant to reappear during Rounds) */
+.hud{flex:0 0 auto;display:flex;align-items:center;gap:16px;height:76px;padding:0 4px 8px}
+.pile{display:flex;align-items:center;gap:6px;font-size:42px;font-weight:800;color:var(--gold)}
+.goal{flex:1;min-width:0;display:flex;align-items:center;gap:12px;background:var(--panel);border-radius:34px;height:64px;padding:0 20px 0 8px;max-width:560px;margin-left:auto}
+.goal .gi{width:52px;height:52px;flex:0 0 auto}
+.goal .gi svg{width:100%;height:100%}
+.goal .track{flex:1;height:22px;background:#0006;border-radius:11px;overflow:hidden}
+.goal .track i{display:block;height:100%;background:linear-gradient(90deg,#ffb300,#ffe066);border-radius:11px}
+.goal .num{font-weight:800;font-size:22px;white-space:nowrap}
+.goal.ready{box-shadow:0 0 0 4px var(--gold);animation:pulse 1.2s infinite}
+
+main{flex:1;min-height:0;display:grid;gap:12px}
+.stage{position:relative;min-height:0;min-width:0;border-radius:28px;background:radial-gradient(ellipse at 50% 85%,#3b4766 0,#222a3b 70%);display:flex;flex-direction:column;overflow:hidden}
+.truckbox{flex:1;min-height:0;display:flex;padding:8px;transition:padding .25s}
+.truckbox>svg{width:100%;height:100%}
+.bodies{display:flex;gap:8px;padding:10px}
+.bodybtn{width:104px;height:68px;border-radius:16px;background:#0003;padding:4px;border:3px solid transparent}
+.bodybtn.on{border-color:var(--gold);background:#ffc53d22}
+.bodybtn svg{width:100%;height:100%}
+.honk{position:absolute;right:12px;bottom:12px;width:84px;height:84px;border-radius:50%;background:var(--panel2);box-shadow:0 5px 0 #0008;display:flex;align-items:center;justify-content:center}
+.honk svg{width:60px;height:60px}
+
+/* Mod tiles */
+.tile{position:relative;min-height:0;min-width:0;border-radius:20px;background:var(--panel2);display:flex;flex-direction:column;align-items:center;justify-content:center;padding:10px 6px 12px;box-shadow:0 5px 0 #0007;border:4px solid transparent;overflow:hidden}
+.tile:active{transform:translateY(3px);box-shadow:0 2px 0 #0007}
+.tile .ico{flex:1;min-height:0;width:100%;display:flex;justify-content:center}
+.tile .ico svg{height:100%;width:100%;max-width:130px}
+.tile .nm{font-size:15px;font-weight:700;line-height:1.1;text-align:center;margin-top:2px}
+.tile .cost{position:absolute;top:5px;right:8px;display:flex;align-items:center;gap:2px;font-weight:800;font-size:20px;color:var(--gold)}
+.tile .check{position:absolute;top:2px;left:8px;font-size:26px;color:var(--ok);font-weight:900}
+.tile .lock{position:absolute;top:5px;left:8px;font-size:18px}
+.tile .flag{position:absolute;top:30px;right:6px;font-size:20px}
+.tile .prog{position:absolute;left:12px;right:12px;bottom:4px;height:6px;border-radius:3px;background:#0006;overflow:hidden}
+.tile .prog i{display:block;height:100%;background:var(--gold)}
+.tile.fitted{border-color:var(--ok);background:#1f4a39}
+.tile.locked{background:#1b2130}
+.tile.locked .ico{filter:grayscale(.85);opacity:.4}
+.tile.afford{border-color:var(--gold);animation:pulse 1.2s infinite}
+.wiggle{animation:wiggle .4s}
+.bounce{animation:bounce .7s}
+.underglow{animation:glowp 1.4s ease-in-out infinite}
+.flicker{animation:flick 1.8s infinite}
+@keyframes pulse{50%{box-shadow:0 0 0 7px #ffc53d55,0 5px 0 #0007}}
+@keyframes wiggle{20%,60%{transform:translateX(-8px)}40%,80%{transform:translateX(8px)}}
+@keyframes bounce{30%{transform:translateY(-7%) scale(1.04)}60%{transform:translateY(2%)}}
+@keyframes glowp{50%{opacity:.4}}
+@keyframes flick{0%,70%,100%{opacity:1}75%{opacity:.3}80%{opacity:1}85%{opacity:.4}}
+.spark{position:absolute;font-size:40px;pointer-events:none;animation:spark .9s ease-out forwards}
+@keyframes spark{to{transform:translate(var(--dx),var(--dy)) scale(1.6);opacity:0}}
+
+/* A: Tabs + tray */
+.va{grid-template-columns:1.25fr 1fr}
+.va .ctl{min-height:0;display:grid;grid-template-columns:108px 1fr;gap:12px}
+.slots{display:grid;grid-template-rows:repeat(5,1fr);gap:8px;min-height:0}
+.slotbtn{position:relative;min-height:0;border-radius:18px;background:var(--panel);display:flex;flex-direction:column;align-items:center;justify-content:center;padding:6px;border:4px solid transparent}
+.slotbtn.on{border-color:#fff;background:var(--panel2)}
+.slotbtn svg{flex:1;min-height:0;width:100%}
+.slotbtn span{font-size:14px;font-weight:700}
+.slotbtn .dot{position:absolute;top:6px;right:6px;width:16px;height:16px;border-radius:50%;background:var(--gold);animation:pulse 1.2s infinite}
+.tray{display:grid;grid-template-columns:1fr 1fr;grid-template-rows:1fr 1fr;gap:12px;min-height:0}
+@media (orientation:portrait){
+  .va{grid-template-columns:1fr;grid-template-rows:1fr auto}
+  .va .ctl{grid-template-columns:1fr;grid-template-rows:96px 170px}
+  .slots{grid-template-rows:none;grid-template-columns:repeat(5,1fr)}
+  .tray{grid-template-columns:repeat(4,1fr);grid-template-rows:1fr}
+}
+
+/* B: Parts wall */
+.vb{grid-template-columns:1fr 1.25fr}
+.wall{display:grid;grid-template-columns:64px repeat(4,minmax(0,1fr));grid-template-rows:repeat(5,1fr);gap:8px;min-height:0}
+.rowlbl{display:flex;flex-direction:column;align-items:center;justify-content:center;font-size:34px;min-height:0}
+.rowlbl span{font-size:12px;font-weight:700;color:var(--muted)}
+.vb .tile .nm{font-size:13px}
+.vb .tile .cost{font-size:17px}
+@media (orientation:portrait){.vb{grid-template-columns:1fr;grid-template-rows:.8fr 1.3fr}}
+
+/* C: Tap the truck */
+.vc{grid-template-columns:1fr}
+.arrow{position:absolute;top:50%;transform:translateY(-50%);width:72px;height:104px;border-radius:20px;background:#0004;font-size:36px;z-index:2}
+.arrow.l{left:10px}.arrow.r{right:10px}
+.vc .truckbox{padding:40px 90px 8px}
+.bodyname{position:absolute;top:12px;left:0;right:0;text-align:center;font-size:22px;font-weight:800;color:var(--muted)}
+.hot{cursor:pointer}
+.hot .ring{fill:none;stroke:#fff9;stroke-width:3}
+.hot.aff .ring{stroke:var(--gold);stroke-width:5;transform-box:fill-box;transform-origin:center;animation:ping 1.4s infinite}
+@keyframes ping{50%{transform:scale(1.3);opacity:.35}}
+.scrim{position:fixed;inset:0;background:#0006;z-index:5}
+.sheet{position:fixed;z-index:6;left:8px;right:8px;bottom:calc(var(--bar) + 4px);height:38%;background:var(--panel);border-radius:28px;padding:12px;display:flex;flex-direction:column;gap:10px;box-shadow:0 -10px 40px #0008}
+.sheethead{display:flex;align-items:center;gap:12px;font-size:26px;font-weight:800;height:56px;flex:0 0 auto}
+.sheethead .x{margin-left:auto;width:56px;height:56px;border-radius:50%;background:var(--panel2);font-size:26px}
+.sheettiles{flex:1;min-height:0;display:grid;grid-template-columns:repeat(4,1fr);gap:12px}
+.vc.open .truckbox{padding-bottom:40vh}
+@media (orientation:landscape){
+  .sheet{left:auto;top:92px;width:46%;height:auto}
+  .sheettiles{grid-template-columns:1fr 1fr;grid-template-rows:1fr 1fr}
+  .vc.open .truckbox{padding-bottom:8px;padding-right:48%}
+  .vc.open .arrow.r{display:none}
+}
+
+/* Prototype switcher, not part of the design */
+.proto-bar{position:fixed;left:50%;bottom:8px;transform:translateX(-50%);z-index:10;display:flex;align-items:center;gap:6px;height:48px;padding:0 8px;background:#fff;color:#111;border-radius:24px;box-shadow:0 6px 24px #0009;font:600 14px system-ui,sans-serif;white-space:nowrap;max-width:calc(100vw - 16px)}
+.proto-bar button{height:36px;min-width:36px;padding:0 10px;border-radius:18px;background:#eee;display:flex;align-items:center;gap:4px;font:inherit;color:#111}
+.proto-bar .vlabel{padding:0 4px}
+.proto-bar .state{font:11px ui-monospace,Menlo,monospace;color:#555;overflow:hidden;text-overflow:ellipsis;max-width:30vw}
+@media (max-width:700px){.proto-bar .state{display:none}}
+@media (max-width:500px){.pile{font-size:30px}.goal{padding-right:10px;gap:6px}.goal .num{font-size:16px}.wall{grid-template-columns:40px repeat(4,minmax(0,1fr));gap:5px}.rowlbl{font-size:24px}.rowlbl span{display:none}.vb .tile .nm{font-size:11px}.vb .tile .cost{font-size:14px}.tray .tile .nm{font-size:12px}.proto-bar button{padding:0 6px}}
+</style>
+</head>
+<body>
+<div id="defs"></div>
+<div id="app"></div>
+<div id="bar"></div>
+<script>
+// ---------- data ----------
+const SLOTS = [
+  {id:'tires',  name:'Tires',  icon:'🛞', mods:['Small','Chunky','Giant','Mega Spikes']},
+  {id:'paint',  name:'Paint',  icon:'🎨', mods:['Plain','Blue Blast','Fire Fade','Rainbow Chrome']},
+  {id:'decals', name:'Decals', icon:'⚡', mods:['None','Stripes','Flames','Lightning']},
+  {id:'lights', name:'Lights', icon:'💡', mods:['Basic','Fog Lights','Roof Bar','Glow Under']},
+  {id:'horn',   name:'Horn',   icon:'📣', mods:['Beep','Honk','Air Horn','Roar']},
+];
+const COST = [0,3,9,18];
+const SLOT = Object.fromEntries(SLOTS.map(s=>[s.id,s]));
+const BODIES = {
+  pickup:  {name:'Pickup',  wheels:[110,290], front:342, mid:200,
+    path:'M60,0 L60,-42 L150,-45 L172,-88 L262,-88 L288,-48 L342,-42 L342,0 Z',
+    win:'M182,-80 L252,-80 L270,-50 L182,-50 Z', head:[336,-30], roof:[182,262,-88],
+    hot:{paint:[160,-24], decals:[248,-22], horn:[222,-114]}},
+  bigfoot: {name:'Big Foot', wheels:[118,282], front:330, mid:200,
+    path:'M72,0 L72,-62 L112,-112 L288,-112 L330,-64 L330,0 Z',
+    win:'M122,-100 L195,-100 L195,-68 L100,-68 Z M205,-100 L280,-100 L310,-68 L205,-68 Z', head:[324,-46], roof:[112,288,-112],
+    hot:{paint:[168,-40], decals:[250,-36], horn:[200,-138]}},
+  dragster:{name:'Dragster', wheels:[92,316], front:362, mid:210,
+    path:'M38,0 L38,-32 L140,-36 L188,-72 L238,-72 L262,-36 L362,-22 L362,0 Z M38,-32 L26,-78 L74,-78 L74,-34 Z',
+    win:'M196,-64 L232,-64 L248,-38 L196,-38 Z', head:[354,-12], roof:[190,236,-72],
+    hot:{paint:[160,-20], decals:[290,-15], horn:[214,-100]}},
+};
+const BODY_IDS = Object.keys(BODIES);
+const TIRE_R = [30,38,48,52];
+const PAINT = ['#8d96a3','#1e7bff','url(#fire)','url(#rainbow)'];
+const GROUND = 250;
+const VARIANTS = [['A','Tabs + tray',VA],['B','Parts wall',VB],['C','Tap the truck',VC]];
+
+// ---------- state (memory only) ----------
+const blankFit = () => ({tires:0,paint:0,decals:0,lights:0,horn:0});
+function fresh(){ return {bolts:7, unlocked:new Set(), body:'pickup',
+  fit:{pickup:blankFit(), bigfoot:blankFit(), dragster:blankFit()}, goal:null, openSlot:'tires', sheet:null, fx:null}; }
+let S = fresh();
+let variant = (new URLSearchParams(location.search).get('variant') || 'A').toUpperCase();
+if (!VARIANTS.some(v=>v[0]===variant)) variant = 'A';
+
+const key = (slot,r) => slot+':'+r;
+const isUn = (slot,r) => r===0 || S.unlocked.has(key(slot,r));
+const fitNow = () => S.fit[S.body];
+function goalKey(){
+  if (S.goal && !S.unlocked.has(S.goal)) return S.goal;
+  let best=null, bc=1e9;
+  for (const s of SLOTS) for (let r=1;r<4;r++) if (!isUn(s.id,r) && COST[r]<bc){best=key(s.id,r); bc=COST[r];}
+  return best;
+}
+const affordCount = () => SLOTS.reduce((n,s)=>n+[1,2,3].filter(r=>!isUn(s.id,r)&&COST[r]<=S.bolts).length,0);
+const slotHasAfford = id => [1,2,3].some(r=>!isUn(id,r)&&COST[r]<=S.bolts);
+
+// ---------- sound + voice ----------
+let ac;
+const ctx = () => ac || (ac = new (window.AudioContext||window.webkitAudioContext)());
+function tone(f,dur,type='square',vol=.2,when=0,slide){
+  const c=ctx(), o=c.createOscillator(), g=c.createGain(), t=c.currentTime+when;
+  o.type=type; o.frequency.setValueAtTime(f,t); if(slide) o.frequency.exponentialRampToValueAtTime(slide,t+dur);
+  g.gain.setValueAtTime(vol,t); g.gain.exponentialRampToValueAtTime(.001,t+dur);
+  o.connect(g).connect(c.destination); o.start(t); o.stop(t+dur+.05);
+}
+function noise(dur,vol=.25){
+  const c=ctx(), b=c.createBuffer(1,c.sampleRate*dur,c.sampleRate), d=b.getChannelData(0);
+  for(let i=0;i<d.length;i++) d[i]=Math.random()*2-1;
+  const s=c.createBufferSource(), f=c.createBiquadFilter(), g=c.createGain();
+  f.type='lowpass'; f.frequency.value=500; s.buffer=b;
+  g.gain.setValueAtTime(vol,c.currentTime); g.gain.exponentialRampToValueAtTime(.001,c.currentTime+dur);
+  s.connect(f).connect(g).connect(c.destination); s.start();
+}
+const HORNS = [
+  ()=>tone(880,.18),
+  ()=>{tone(392,.45,'sawtooth',.14);tone(494,.45,'sawtooth',.14)},
+  ()=>{tone(233,1,'sawtooth',.16);tone(311,1,'sawtooth',.16);tone(370,1,'sawtooth',.1)},
+  ()=>{tone(110,1.2,'sawtooth',.3,0,45);tone(160,1.1,'square',.1,0,60);noise(1.1)},
+];
+const fanfare = () => [523,659,784,1047].forEach((f,i)=>tone(f,.2,'triangle',.22,i*.1));
+const clink = (i=0) => tone(1760,.09,'triangle',.22,i*.18);
+const nope = () => tone(220,.22,'square',.08,0,160);
+function say(t, queue=false){
+  try{ if(!queue) speechSynthesis.cancel(); const u=new SpeechSynthesisUtterance(t); u.rate=.95; u.pitch=1.1; speechSynthesis.speak(u);}catch(e){}
+}
+
+// ---------- art ----------
+function bolt(s){ return `<svg width="${s}" height="${s}" viewBox="0 0 40 40"><rect x="15" y="16" width="10" height="22" rx="2" fill="#d9a520"/><path d="M15 23h10M15 28h10M15 33h10" stroke="#8a620a" stroke-width="2"/><polygon points="20,2 34,8 34,17 20,23 6,17 6,8" fill="#ffc53d" stroke="#8a620a" stroke-width="2"/></svg>`; }
+
+function defs(){
+  return `<svg width="0" height="0" style="position:absolute" aria-hidden="true"><defs>
+  <linearGradient id="fire" x1="1" y1="0" x2="0" y2="0"><stop offset="0" stop-color="#ffe14d"/><stop offset=".45" stop-color="#ff6a00"/><stop offset="1" stop-color="#a80000"/></linearGradient>
+  <linearGradient id="rainbow" x1="0" y1="0" x2=".5" y2=".25" spreadMethod="reflect">
+    <stop offset="0" stop-color="#ff3b3b"/><stop offset=".2" stop-color="#ffb800"/><stop offset=".4" stop-color="#f4ff5a"/>
+    <stop offset=".6" stop-color="#3dff8b"/><stop offset=".8" stop-color="#3dc8ff"/><stop offset="1" stop-color="#c04dff"/>
+    <animateTransform attributeName="gradientTransform" type="translate" from="0 0" to="1 0" dur="3s" repeatCount="indefinite"/>
+  </linearGradient>
+  <filter id="glow" x="-50%" y="-50%" width="200%" height="200%"><feGaussianBlur stdDeviation="3" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
+  <filter id="blur" x="-20%" y="-300%" width="140%" height="700%"><feGaussianBlur stdDeviation="6"/></filter>
+  ${BODY_IDS.map(id=>`<clipPath id="clip-${id}"><path d="${BODIES[id].path}"/></clipPath>`).join('')}
+  </defs></svg>`;
+}
+
+function wheel(cx,cy,r,rung){
+  let s='';
+  if(rung===3){ const p=[]; for(let i=0;i<32;i++){const a=i*Math.PI/16, rr=i%2?r:r+8; p.push((cx+rr*Math.cos(a)).toFixed(1)+','+(cy+rr*Math.sin(a)).toFixed(1));} s+=`<polygon points="${p.join(' ')}" fill="#444"/>`; }
+  s+=`<circle cx="${cx}" cy="${cy}" r="${r}" fill="#1c1c1c"/>`;
+  if(rung>=1) s+=`<circle cx="${cx}" cy="${cy}" r="${r-4}" fill="none" stroke="#3a3a3a" stroke-width="7" stroke-dasharray="7 6"/>`;
+  const rim=['#b9c0c8','#d8dde3','#ffcc33','#ff3df0'][rung];
+  s+=`<g><circle cx="${cx}" cy="${cy}" r="${(r*.48).toFixed(1)}" fill="${rim}" ${rung===3?'filter="url(#glow)"':''}/>`;
+  for(let i=0;i<5;i++){const a=i*2*Math.PI/5; s+=`<line x1="${cx}" y1="${cy}" x2="${(cx+r*.44*Math.cos(a)).toFixed(1)}" y2="${(cy+r*.44*Math.sin(a)).toFixed(1)}" stroke="#555" stroke-width="3"/>`;}
+  s+=`<circle cx="${cx}" cy="${cy}" r="${(r*.14).toFixed(1)}" fill="#333"/>`;
+  if(rung===3) s+=`<animateTransform attributeName="transform" type="rotate" from="0 ${cx} ${cy}" to="360 ${cx} ${cy}" dur="2s" repeatCount="indefinite"/>`;
+  return s+'</g>';
+}
+
+function decals(B,r){
+  if(r===1) return `<rect x="0" y="-26" width="400" height="6" fill="#fff"/><rect x="0" y="-16" width="400" height="6" fill="#fff"/>`;
+  if(r===2) return `<g transform="translate(${B.front} 0)"><path d="M0,-3 C-40,-3 -60,-30 -90,-20 C-72,-36 -100,-46 -120,-32 C-106,-52 -134,-58 -152,-40 C-142,-16 -100,-1 -60,1 Z" fill="#ff7a00"/><path d="M0,-3 C-30,-4 -44,-20 -64,-14 C-52,-26 -72,-30 -86,-22 C-80,-10 -50,-1 -30,0 Z" fill="#ffe14d"/></g>`;
+  if(r===3) return `<g class="flicker" fill="#fff23a" stroke="#111" stroke-width="2.5" stroke-linejoin="round"><polygon transform="translate(${B.mid} 0)" points="-4,-54 -26,-18 -8,-20 -20,6 18,-32 0,-30 12,-54"/><polygon transform="translate(${B.mid-100} 0) scale(.7)" points="-4,-54 -26,-18 -8,-20 -20,6 18,-32 0,-30 12,-54"/></g>`;
+  return '';
+}
+
+function lights(B,r){
+  const [hx,hy]=B.head; let s='';
+  if(r>=1) s+=`<polygon points="${hx},${hy-5} ${hx+70},${hy-24} ${hx+70},${hy+20}" fill="#fff6c0" opacity=".22"/>`;
+  s+=`<circle cx="${hx}" cy="${hy}" r="7" fill="#ffe9a8" stroke="#111" stroke-width="2"/>`;
+  if(r>=1) s+=`<circle cx="${hx-6}" cy="-8" r="5.5" fill="#ffb300" stroke="#111" stroke-width="2"/><circle cx="${hx-20}" cy="-8" r="5.5" fill="#ffb300" stroke="#111" stroke-width="2"/>`;
+  if(r>=2){ const [x0,x1,y]=B.roof, w=x1-x0-12, n=Math.max(3,Math.floor(w/16));
+    s+=`<rect x="${x0+6}" y="${y-12}" width="${w}" height="11" rx="3" fill="#222" stroke="#111" stroke-width="2"/>`;
+    for(let i=0;i<n;i++) s+=`<circle cx="${(x0+6+w*(i+.5)/n).toFixed(1)}" cy="${y-6.5}" r="4" fill="${r===3?'#7ff9ff':'#fff27a'}" ${r===3?'filter="url(#glow)"':''}/>`; }
+  return s;
+}
+
+function truck(bodyId, fit, opts={}){
+  const B=BODIES[bodyId], r=TIRE_R[fit.tires], cy=GROUND-r, ch=cy-(r*.35+8), [w0,w1]=B.wheels;
+  let s=`<svg viewBox="0 0 400 260" preserveAspectRatio="xMidYMid meet">`;
+  s+=`<ellipse cx="200" cy="${GROUND+2}" rx="175" ry="7" fill="#000" opacity=".35"/>`;
+  s+=`<g transform="translate(0 ${ch.toFixed(1)})">`;
+  if(fit.lights===3) s+=`<ellipse class="underglow" cx="${(w0+w1)/2}" cy="12" rx="165" ry="12" fill="#2ef2ff" filter="url(#blur)"/>`;
+  s+=[w0,w1].map(x=>`<rect x="${x-5}" y="-4" width="10" height="${(cy-ch+4).toFixed(1)}" fill="#555"/>`).join('');
+  s+=`<path d="${B.path}" fill="${PAINT[fit.paint]}"/>`;
+  s+=`<g clip-path="url(#clip-${bodyId})">${decals(B,fit.decals)}</g>`;
+  s+=`<path d="${B.path}" fill="none" stroke="#111" stroke-width="4" stroke-linejoin="round"/>`;
+  s+=`<path d="${B.win}" fill="#bfe6ff" stroke="#111" stroke-width="3" opacity=".92"/>`;
+  s+=lights(B,fit.lights)+`</g>`;
+  s+=wheel(w0,cy,r,fit.tires)+wheel(w1,cy,r,fit.tires);
+  if(opts.hotspots) s+=hotspots(B,ch,cy);
+  return s+'</svg>';
+}
+
+function hotspots(B,ch,cy){
+  const P={tires:[B.wheels[0],cy], lights:[B.head[0],ch+B.head[1]]};
+  for(const k of ['paint','decals','horn']) P[k]=[B.hot[k][0], ch+B.hot[k][1]];
+  return SLOTS.map(s=>{const [x,y]=P[s.id]; return `<g class="hot ${slotHasAfford(s.id)?'aff':''}" data-act="sheet" data-slot="${s.id}">
+    <circle class="ring" cx="${x}" cy="${y}" r="24"/><circle cx="${x}" cy="${y}" r="20" fill="#fff" opacity=".92" stroke="#111" stroke-width="2"/>
+    <text x="${x}" y="${y+7}" text-anchor="middle" font-size="20">${s.icon}</text></g>`}).join('');
+}
+
+function partIcon(slot,r){
+  const o='<svg viewBox="0 0 100 100">';
+  switch(slot){
+    case 'tires': return o+wheel(50,50,[24,30,36,38][r],r)+'</svg>';
+    case 'paint': return o+`<rect x="12" y="22" width="76" height="56" rx="14" fill="${PAINT[r]}" stroke="#111" stroke-width="4"/></svg>`;
+    case 'decals': return o+`<rect x="8" y="24" width="84" height="52" rx="10" fill="#8d96a3" stroke="#111" stroke-width="4"/>`+[
+      '',
+      '<rect x="10" y="42" width="80" height="6" fill="#fff"/><rect x="10" y="54" width="80" height="6" fill="#fff"/>',
+      '<path d="M90,72 C70,72 62,52 50,60 C58,46 44,42 36,52 C40,36 28,34 20,46 C26,62 50,73 90,73Z" fill="#ff7a00"/><path d="M90,72 C76,72 70,62 62,66 C66,58 58,56 52,62 C56,70 72,73 90,73Z" fill="#ffe14d"/>',
+      '<polygon class="flicker" points="56,28 36,56 50,54 42,74 68,44 54,46 64,28" fill="#fff23a" stroke="#111" stroke-width="2.5" stroke-linejoin="round"/>'][r]+'</svg>';
+    case 'lights': {
+      let s=o;
+      if(r===3) s+='<ellipse class="underglow" cx="50" cy="86" rx="40" ry="7" fill="#2ef2ff" filter="url(#blur)"/>';
+      if(r>=2){ s+='<rect x="16" y="20" width="68" height="16" rx="4" fill="#222" stroke="#111" stroke-width="2"/>'; for(let i=0;i<4;i++) s+=`<circle cx="${25+i*17}" cy="28" r="5" fill="${r===3?'#7ff9ff':'#fff27a'}"/>`; }
+      s+='<circle cx="50" cy="58" r="13" fill="#ffe9a8" stroke="#111" stroke-width="3"/>';
+      if(r>=1) s+='<circle cx="26" cy="72" r="8" fill="#ffb300" stroke="#111" stroke-width="2"/><circle cx="74" cy="72" r="8" fill="#ffb300" stroke="#111" stroke-width="2"/>';
+      return s+'</svg>';
+    }
+    case 'horn': {
+      const c=r===3?'#ff4d4d':'#fff';
+      let s=o+`<polygon points="16,40 32,40 50,24 50,76 32,60 16,60" fill="${c}" stroke="#111" stroke-width="3" stroke-linejoin="round"/>`;
+      for(let i=0;i<=r;i++) s+=`<path d="M${60+i*9},${38-i*6} q ${12+i*3} ${12+i*6} 0 ${24+i*12}" stroke="${c}" stroke-width="5" fill="none" stroke-linecap="round"/>`;
+      return s+'</svg>';
+    }
+  }
+}
+
+// ---------- shared pieces ----------
+function hud(){
+  const g=goalKey(); let goal='';
+  if(g){ const [slot,r]=g.split(':'), c=COST[+r], pct=Math.min(100,S.bolts/c*100);
+    goal=`<button class="goal ${S.bolts>=c?'ready':''}" data-act="goalsay"><span>🎯</span><span class="gi">${partIcon(slot,+r)}</span>
+      <span class="track"><i style="width:${pct}%"></i></span><span class="num">${Math.min(S.bolts,c)} / ${c}</span></button>`; }
+  return `<header class="hud"><div class="pile">${bolt(48)}<span>${S.bolts}</span></div>${goal}</header>`;
+}
+function tile(slot,r){
+  const k=key(slot,r), un=isUn(slot,r), fitted=fitNow()[slot]===r, c=COST[r], aff=!un&&S.bolts>=c;
+  const cls=fitted?'fitted':un?'owned':aff?'afford':'locked';
+  const wig=S.fx&&S.fx.type==='nope'&&S.fx.key===k?'wiggle':'';
+  return `<button class="tile ${cls} ${wig}" data-act="mod" data-slot="${slot}" data-rung="${r}">
+    <div class="ico">${partIcon(slot,r)}</div><div class="nm">${SLOT[slot].mods[r]}</div>
+    ${!un?`<div class="cost">${bolt(20)}${c}</div>`:''}
+    ${fitted?'<div class="check">✓</div>':''}
+    ${cls==='locked'?`<div class="lock">🔒</div><div class="prog"><i style="width:${S.bolts/c*100}%"></i></div>`:''}
+    ${goalKey()===k?'<div class="flag">🎯</div>':''}</button>`;
+}
+const bump = () => S.fx&&S.fx.type==='unlock'?'bounce':'';
+const bodyPicker = () => `<div class="bodies">${BODY_IDS.map(id=>`<button class="bodybtn ${id===S.body?'on':''}" data-act="body" data-body="${id}">${truck(id,S.fit[id])}</button>`).join('')}</div>`;
+const honkBtn = () => `<button class="honk" data-act="honk">${partIcon('horn',fitNow().horn)}</button>`;
+
+// ---------- variants ----------
+function VA(){
+  const sl=S.openSlot;
+  return `<main class="va"><section class="stage">${bodyPicker()}<div class="truckbox ${bump()}">${truck(S.body,fitNow())}</div>${honkBtn()}</section>
+    <section class="ctl"><nav class="slots">${SLOTS.map(s=>`<button class="slotbtn ${s.id===sl?'on':''}" data-act="slot" data-slot="${s.id}">${partIcon(s.id,fitNow()[s.id])}<span>${s.name}</span>${slotHasAfford(s.id)?'<i class="dot"></i>':''}</button>`).join('')}</nav>
+    <div class="tray">${[0,1,2,3].map(r=>tile(sl,r)).join('')}</div></section></main>`;
+}
+function VB(){
+  return `<main class="vb"><section class="stage">${bodyPicker()}<div class="truckbox ${bump()}">${truck(S.body,fitNow())}</div>${honkBtn()}</section>
+    <section class="wall">${SLOTS.map(s=>`<button class="rowlbl" data-act="slotsay" data-slot="${s.id}">${s.icon}<span>${s.name}</span></button>${[0,1,2,3].map(r=>tile(s.id,r)).join('')}`).join('')}</section></main>`;
+}
+function VC(){
+  const sh=S.sheet;
+  return `<main class="vc ${sh?'open':''}"><section class="stage">
+    <div class="bodyname">${BODIES[S.body].name}</div>
+    <button class="arrow l" data-act="bodystep" data-d="-1">◀</button>
+    <div class="truckbox ${bump()}">${truck(S.body,fitNow(),{hotspots:true})}</div>
+    <button class="arrow r" data-act="bodystep" data-d="1">▶</button></section>
+    ${sh?`<div class="scrim" data-act="closesheet"></div><div class="sheet"><div class="sheethead"><span>${SLOT[sh].icon}</span>${SLOT[sh].name}<button class="x" data-act="closesheet">✕</button></div>
+      <div class="sheettiles">${[0,1,2,3].map(r=>tile(sh,r)).join('')}</div></div>`:''}</main>`;
+}
+
+// ---------- render ----------
+function stateLine(){
+  const f=fitNow();
+  return `bolts=${S.bolts} body=${S.body} fit=${SLOTS.map(s=>s.id[0]+f[s.id]).join(',')} unlocked=${S.unlocked.size}/15 goal=${goalKey()||'none'}${S.goal?'(picked)':'(auto)'}`;
+}
+function render(){
+  const v=VARIANTS.find(x=>x[0]===variant);
+  document.getElementById('app').innerHTML = hud()+v[2]();
+  document.getElementById('bar').innerHTML = `<div class="proto-bar"><button data-act="vstep" data-d="-1">◀</button><span class="vlabel">${v[0]} (${v[1]})</span><button data-act="vstep" data-d="1">▶</button>
+    <button data-act="round">+3 ${bolt(18)} Round</button><button data-act="all">Unlock all</button><button data-act="reset">Reset</button><span class="state">${stateLine()}</span></div>`;
+}
+function sparks(){
+  const box=document.querySelector('.truckbox'); if(!box) return; const rc=box.getBoundingClientRect();
+  for(let i=0;i<10;i++){ const e=document.createElement('div'); e.className='spark'; e.textContent=i%2?'✨':'⭐';
+    e.style.left=(rc.left+rc.width/2)+'px'; e.style.top=(rc.top+rc.height/2)+'px'; e.style.position='fixed';
+    const a=i/10*Math.PI*2; e.style.setProperty('--dx',Math.cos(a)*rc.width*.4+'px'); e.style.setProperty('--dy',Math.sin(a)*rc.height*.4+'px');
+    document.body.appendChild(e); setTimeout(()=>e.remove(),950); }
+}
+function flash(fx){ S.fx=fx; render(); setTimeout(()=>{ if(S.fx===fx){S.fx=null; render();} },750); }
+
+// ---------- actions ----------
+function tapMod(slot,r){
+  const k=key(slot,r), name=SLOT[slot].mods[r], c=COST[r];
+  if(isUn(slot,r)){
+    fitNow()[slot]=r;
+    if(slot==='horn') HORNS[r](); else { clink(); say(name); }
+    return render();
+  }
+  if(S.bolts>=c){
+    S.bolts-=c; S.unlocked.add(k); fitNow()[slot]=r; if(S.goal===k) S.goal=null;
+    fanfare(); if(slot==='horn') setTimeout(()=>HORNS[r](),500);
+    say(`You got ${name}!`); flash({type:'unlock',key:k}); sparks(); return;
+  }
+  S.goal=k; nope(); const n=c-S.bolts; say(`${name}. You need ${n} more Bolt${n===1?'':'s'}.`); flash({type:'nope',key:k});
+}
+const ACT = {
+  mod: d=>tapMod(d.slot,+d.rung),
+  slot: d=>{ S.openSlot=d.slot; say(SLOT[d.slot].name); render(); },
+  slotsay: d=>say(SLOT[d.slot].name),
+  sheet: d=>{ S.sheet=d.slot; say(SLOT[d.slot].name); if(d.slot==='horn') HORNS[fitNow().horn](); render(); },
+  closesheet: ()=>{ S.sheet=null; render(); },
+  body: d=>{ S.body=d.body; say(BODIES[d.body].name); render(); },
+  bodystep: d=>{ const i=BODY_IDS.indexOf(S.body); S.body=BODY_IDS[(i+ +d.d+3)%3]; say(BODIES[S.body].name); render(); },
+  honk: ()=>HORNS[fitNow().horn](),
+  goalsay: ()=>{ const g=goalKey(); if(!g) return say('You built everything!'); const [s,r]=g.split(':'), n=COST[+r]-S.bolts;
+    say(n>0?`${SLOT[s].mods[+r]}. You need ${n} more Bolt${n===1?'':'s'}.`:`You can get ${SLOT[s].mods[+r]}!`); },
+  round: ()=>{ const before=affordCount(); S.bolts+=3; [0,1,2].forEach(clink); say('You earned 3 Bolts!');
+    if(affordCount()>before) say('You can build something new!', true); render(); },
+  reset: ()=>{ S=fresh(); render(); },
+  all: ()=>{ for(const s of SLOTS) for(let r=1;r<4;r++) S.unlocked.add(key(s.id,r)); for(const b of BODY_IDS) for(const s of SLOTS) S.fit[b][s.id]=3; render(); },
+  vstep: d=>{ const i=VARIANTS.findIndex(v=>v[0]===variant); variant=VARIANTS[(i+ +d.d+VARIANTS.length)%VARIANTS.length][0];
+    S.sheet=null; try{ history.replaceState(null,'','?variant='+variant); }catch(e){} render(); },
+};
+document.addEventListener('click', e=>{ const el=e.target.closest('[data-act]'); if(!el) return; ACT[el.dataset.act](el.dataset); });
+document.addEventListener('keydown', e=>{
+  if(e.target.closest('input,textarea,[contenteditable]')) return;
+  if(e.key==='ArrowLeft') ACT.vstep({d:-1}); if(e.key==='ArrowRight') ACT.vstep({d:1});
+});
+document.getElementById('defs').innerHTML = defs();
+{ const q=new URLSearchParams(location.search); if(q.get('max')) ACT.all(); if(q.get('sheet')) S.sheet=q.get('sheet'); if(q.get('body')) S.body=q.get('body'); }
+render();
+</script>
+</body>
+</html>
