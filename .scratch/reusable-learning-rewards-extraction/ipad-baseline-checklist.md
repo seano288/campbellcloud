@@ -88,3 +88,5 @@ No discrepancies have been recorded by a human yet.
 - [ ] Tester and requesting human explicitly confirm baseline capture is complete, with date and name below.
 
 Confirmation: **Not provided.** Ticket 02 remains incomplete. This document grants no extraction acceptance, production deployment or release approval.
+
+On 2026-10-14, the requesting human deferred these checks: "skip the manual check ... we'll do it later". No device observations or sign-off were supplied in this session. All unperformed cases and completion gates remain open. Capture this baseline before extraction begins; this deferral does not waive that gate.

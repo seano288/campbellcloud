@@ -24,3 +24,9 @@
 - [ ] Retain the evidence for ticket 18. This ticket must remain incomplete if required device observations have not happened; it does not approve the extraction or its release.
 
 **Out of scope:** Extraction changes, resetting or migrating real saves, production replacement and declaring existing defects required behaviour.
+
+## Comments
+
+2026-10-14, requesting human: "skip the manual check ... we'll do it later".
+
+Device checks are deferred, not passed or waived. No human device observations or completion confirmation were supplied in this session. The [comparison checklist](../ipad-baseline-checklist.md) remains unperformed, this ticket stays `ready-for-human` and incomplete, and the baseline-before-extraction gate remains in place. Resume with the retained baseline build and synthetic fixtures; record the required device evidence before extraction begins.
