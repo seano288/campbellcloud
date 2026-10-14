@@ -9,7 +9,9 @@
     "preview": "vite preview",
     "typecheck": "tsc --noEmit",
     "test": "vitest run",
-    "check:offline": "tsx tools/offline-check.ts"
+    "check:offline": "tsx tools/offline-check.ts",
+    "check:baseline": "tsx tools/baseline/browser.ts",
+    "baseline:save": "tsx tools/baseline/export-save.ts"
   },
   "dependencies": {
     "@fontsource/bungee": "^5.3.0",
