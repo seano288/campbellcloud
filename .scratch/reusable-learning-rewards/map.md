@@ -21,6 +21,7 @@ A build-ready extraction design for independently reusable learning, earned-curr
 ## Decisions so far
 
 - [01: Module responsibilities](issues/01-module-responsibilities.md#answer) resolved through live discussion. Records the ownership model, permitted dependencies and app composition role. Detailed interfaces and compatibility remain in the downstream tickets.
+- [02: Learning/Round interface](issues/02-learning-round-interface.md#answer) resolved through live discussion. Records the subject-owned checker and progression, shared lifecycle, cancellation and result facts, with behaviour traces and a minimal non-money example.
 
 ## Not yet specified
 
