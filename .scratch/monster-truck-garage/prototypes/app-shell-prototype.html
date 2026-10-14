@@ -1,0 +1,662 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>PROTOTYPE: App shell</title>
+<!--
+  PROTOTYPE, throwaway. Answers "Prototype the app layout and the game screens".
+  Three structurally different app shells, switchable with ?variant=A|B|C and the floating bar (or ← →):
+    A  Tile home      home is a launcher of big tiles; Rounds and the Garage are full screens
+    B  Garage home    the 3D Garage IS home; ▶ Play opens a mode picker; the Round slides over the Garage, which stays visible in a strip
+    C  Road trip      home is a road with a stop per Game Mode ending at the Garage; the Truck drives stop to stop during a Round
+  All three share one in-memory game state (Bolts, Levels, Mastery windows), so switching keeps progress.
+  The Garage is the approved garage-3d-prototype.html in an iframe (?embed). Run: python3 -m http.server 8080 here.
+  Nothing is saved. The floating bar is prototype-only (there is no production build of this file).
+-->
+<link href="https://fonts.googleapis.com/css2?family=Bungee&family=Nunito:wght@600;800;900&display=swap" rel="stylesheet">
+<style>
+:root{--yellow:#ffd23f;--orange:#ff7a00;--red:#e63946;--green:#2bb673;--ink:#1d1d1f;--u:1}
+*{box-sizing:border-box}
+html,body{margin:0;height:100%;overflow:hidden}
+body{font-family:Nunito,system-ui,sans-serif;color:var(--ink);background:#23252b;-webkit-tap-highlight-color:transparent;user-select:none;-webkit-user-select:none}
+button{font:inherit;color:inherit;border:0;background:none;padding:0;cursor:pointer}
+#app{position:fixed;inset:0;display:flex;flex-direction:column;padding:env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left)}
+@media (max-width:700px),(max-height:700px){:root{--u:.8}}
+@media (max-width:430px),(max-height:520px){:root{--u:.62}}
+
+/* ---------- shared bits ---------- */
+.bolt{display:inline-block;vertical-align:middle;flex:none}
+.pilebox{display:flex;align-items:center;gap:6px;background:#000;color:var(--yellow);border:3px solid var(--yellow);border-radius:999px;padding:3px 14px 3px 6px;font:900 calc(24px*var(--u)) Nunito}
+.goalchip{display:flex;align-items:center;gap:8px;background:#000c;color:#fff;border-radius:999px;padding:4px 12px 4px 8px;font:900 calc(16px*var(--u)) Nunito;min-width:0}
+.goalchip .gi{font-size:calc(24px*var(--u))}
+.goalchip .track{width:calc(90px*var(--u));height:12px;border-radius:6px;background:#fff3;overflow:hidden}
+.goalchip .track i{display:block;height:100%;background:var(--yellow)}
+.goalchip.ready{animation:pulse 1s infinite}
+.icon-btn{width:calc(56px*var(--u));height:calc(56px*var(--u));border-radius:50%;background:#000;border:3px solid var(--yellow);font-size:calc(26px*var(--u));display:grid;place-items:center;flex:none}
+.big-btn{display:flex;align-items:center;justify-content:center;gap:10px;border:4px solid #000;border-radius:22px;box-shadow:0 6px 0 #000;font:900 calc(30px*var(--u)) Nunito;padding:calc(16px*var(--u)) calc(28px*var(--u));background:#fff}
+.big-btn:active{transform:translateY(4px);box-shadow:0 2px 0 #000}
+.big-btn.go{background:var(--green);color:#fff}
+.big-btn.garage{background:var(--yellow)}
+.big-btn .e{font-size:1.4em}
+.pulse{animation:pulse 1s infinite}
+@keyframes pulse{50%{box-shadow:0 6px 0 #000,0 0 0 8px #ffd23f99,0 0 30px 10px #ffd23f}}
+.stars{display:flex;gap:4px;font-size:calc(28px*var(--u))}
+.stars span{filter:grayscale(1) opacity(.3);transition:.3s}.stars span.on{filter:none;transform:scale(1.15)}
+.lvl{display:flex;gap:5px}.lvl i{width:calc(14px*var(--u));height:calc(14px*var(--u));border-radius:50%;background:#0003;border:2px solid #0006}.lvl i.on{background:var(--orange);border-color:#000}
+
+/* ---------- game body (shared: the question area inside every variant's Round screen) ---------- */
+.game{flex:1;min-height:0;display:flex;flex-direction:column;align-items:center;justify-content:space-evenly;gap:calc(8px*var(--u));text-align:center;padding:calc(10px*var(--u))}
+.ask{display:flex;align-items:center;gap:12px}
+.ask h2{margin:0;font:400 calc(28px*var(--u)) Bungee,sans-serif}
+.say-btn{flex:none;width:calc(58px*var(--u));height:calc(58px*var(--u));border-radius:50%;border:4px solid #000;background:var(--yellow);font-size:calc(26px*var(--u));box-shadow:0 4px 0 #000}
+.speaking{outline:5px solid var(--orange);outline-offset:3px;transform:scale(1.06)}
+.pile{display:flex;flex-wrap:wrap;justify-content:center;align-items:center;gap:calc(14px*var(--u));padding:calc(10px*var(--u));background:#f3efe6;border-radius:18px;max-width:100%}
+.pile.learn{background:none;gap:calc(26px*var(--u))}
+.slot{display:flex;flex-direction:column;align-items:center;gap:4px;transition:transform .2s}
+.slot .run{font-weight:900;font-size:calc(18px*var(--u));color:var(--green);min-height:1.2em}
+.slot.lit{transform:translateY(-6px) scale(1.08)}
+.slot.lit .coin,.slot.lit .bill{box-shadow:0 0 0 4px var(--yellow),0 0 16px 4px var(--yellow)}
+.money{display:flex;flex-direction:column;align-items:center}
+.cap{font-weight:900;font-size:calc(14px*var(--u));color:#444;margin-top:4px;white-space:nowrap}.cap.hide{visibility:hidden}
+.coin{width:calc(var(--s)*var(--u));height:calc(var(--s)*var(--u));border-radius:50%;overflow:hidden;flex:none;box-shadow:0 3px 0 #0004}
+.coin img{width:100%;height:100%;display:block;pointer-events:none}
+.bill{width:calc(140px*var(--b,1)*var(--u));height:calc(64px*var(--b,1)*var(--u));position:relative;flex:none;border-radius:6px;background:linear-gradient(135deg,#d6ebc8,#a7cf93);border:3px solid #4f7f40;color:#1e4718;box-shadow:0 3px 0 #0004}
+.bill .c{position:absolute;font-weight:900;font-size:calc(16px*var(--u))}.bill .tl{top:2px;left:6px}.bill .br{bottom:2px;right:6px}
+.bill .oval{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);width:42%;height:62%;border-radius:50%;border:2px solid #4f7f40;background:#e8f4df;display:grid;place-items:center;font-weight:900;font-size:calc(20px*var(--u))}
+.money-btn{border-radius:14px;padding:4px}.money-btn:active{transform:scale(.92)}.money-btn.nope{opacity:.4}
+.money-btn.right .coin,.money-btn.right .bill{box-shadow:0 0 0 6px var(--green)}
+.choices{display:grid;grid-template-columns:repeat(2,1fr);gap:calc(12px*var(--u));width:min(100%,520px)}
+.choice{font:900 calc(30px*var(--u)) Nunito;padding:calc(14px*var(--u));border-radius:16px;border:4px solid #000;background:var(--yellow);box-shadow:0 5px 0 #000}
+.choice:active{transform:translateY(3px);box-shadow:0 2px 0 #000}
+.choice.wrong{background:#ddd;color:#999;animation:shake .4s}.choice.right{background:var(--green);color:#fff}
+@keyframes shake{25%{transform:translateX(-8px)}75%{transform:translateX(8px)}}
+.helpers{display:flex;gap:10px;flex-wrap:wrap;justify-content:center}
+.help-btn{font:900 calc(20px*var(--u)) Nunito;padding:calc(10px*var(--u)) calc(18px*var(--u));border-radius:14px;border:3px solid #000;background:#fff;box-shadow:0 4px 0 #000}
+.price-tag{display:inline-flex;align-items:center;gap:12px;background:var(--yellow);border:4px dashed #000;border-radius:18px;padding:calc(8px*var(--u)) calc(20px*var(--u));font:900 calc(24px*var(--u)) Nunito}
+.price-tag .e{font-size:calc(46px*var(--u))}.price-tag .price{font-size:calc(36px*var(--u));background:#000;color:var(--yellow);padding:2px 12px;border-radius:10px}
+.bank{display:flex;flex-wrap:wrap;justify-content:center;align-items:center;gap:calc(10px*var(--u))}
+.tray{display:flex;flex-wrap:wrap;justify-content:center;align-items:center;gap:6px;min-height:calc(96px*var(--u));width:min(100%,640px);padding:8px;border:4px dashed #999;border-radius:18px;background:#f7f7f7}
+.tray .money-btn{animation:pop .2s}.tray .cap{display:none}
+.tray .empty{color:#999;font-weight:900;font-size:calc(20px*var(--u))}
+@keyframes pop{from{transform:scale(.4)}}
+.paidrow{display:flex;align-items:center;gap:14px;font:900 calc(24px*var(--u)) Nunito}.paidrow b{color:var(--green);font-size:1.3em}
+
+/* toast, modal, flying bolts */
+.toast{position:fixed;left:50%;top:18%;transform:translate(-50%,-30px) scale(.8);opacity:0;z-index:60;background:#000;color:var(--yellow);border:3px solid var(--yellow);padding:12px 22px;border-radius:16px;font:900 calc(24px*var(--u)) Nunito;transition:.25s;pointer-events:none;text-align:center;max-width:90vw}
+.toast.show{opacity:1;transform:translate(-50%,0) scale(1)}
+.modal{position:fixed;inset:0;z-index:50;background:#000b;display:grid;place-items:center;padding:16px}
+.modal .card{background:#fff;border:4px solid #000;border-radius:26px;box-shadow:0 8px 0 #000;padding:calc(22px*var(--u));text-align:center;display:flex;flex-direction:column;align-items:center;gap:calc(16px*var(--u));max-width:min(620px,94vw);max-height:94dvh}
+.modal h2{margin:0;font:400 calc(34px*var(--u)) Bungee}
+.intro-money{display:flex;gap:calc(24px*var(--u));flex-wrap:wrap;justify-content:center;align-items:center}
+.fly{position:fixed;z-index:70;pointer-events:none;transition:transform .7s cubic-bezier(.5,-.4,.6,1),opacity .2s .65s}
+.confetti{position:fixed;top:-20px;width:12px;height:18px;z-index:65;pointer-events:none;animation:fall linear forwards}
+@keyframes fall{to{transform:translateY(110vh) rotate(720deg)}}
+#splash{position:fixed;inset:0;z-index:80;background:radial-gradient(#3a3d46,#15161a);display:grid;place-items:center;text-align:center;color:#fff}
+#splash h1{font:400 clamp(28px,7vmin,64px) Bungee;color:var(--yellow);text-shadow:3px 3px 0 var(--red),6px 6px 0 #000;margin:0 0 24px}
+
+/* the Garage lives in one persistent iframe; each variant positions it */
+#garage{position:fixed;inset:0;width:100%;height:100%;border:0;z-index:1;visibility:hidden;transition:inset .5s,width .5s,height .5s}
+body.show-garage #garage{visibility:visible}
+.garage-nav{position:fixed;z-index:5;display:none;gap:10px}
+body.show-garage .garage-nav{display:flex}
+
+/* ======================= A: Tile home ======================= */
+.A{background:#2b2d33 repeating-linear-gradient(45deg,#2b2d33 0 22px,#30323a 22px 44px)}
+.A header{display:flex;align-items:center;gap:12px;padding:calc(12px*var(--u)) 16px}
+.A header h1{margin:0;flex:1;font:400 calc(30px*var(--u)) Bungee;color:var(--yellow);text-shadow:2px 2px 0 var(--red),4px 4px 0 #000;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.A .home{flex:1;min-height:0;display:grid;gap:calc(16px*var(--u));padding:0 16px 16px;
+  grid-template-areas:"g g g" "l c p";grid-template-rows:1.25fr 1fr;grid-template-columns:repeat(3,1fr)}
+@media (orientation:landscape){.A .home{grid-template-areas:"l g" "c g" "p g";grid-template-rows:repeat(3,1fr);grid-template-columns:1fr 1.3fr}}
+.A .tile{position:relative;border:4px solid #000;border-radius:26px;box-shadow:0 7px 0 #000;display:flex;align-items:center;justify-content:center;gap:calc(14px*var(--u));padding:10px;min-height:0;overflow:hidden}
+.A .tile:active{transform:translateY(4px);box-shadow:0 3px 0 #000}
+.A .tile .e{font-size:calc(64px*var(--u))}
+.A .tile .nm{font:400 calc(22px*var(--u)) Bungee;line-height:1.1}
+.A .tile.mode{flex-direction:column;text-align:center}
+@media (orientation:landscape){.A .tile.mode{flex-direction:row;justify-content:flex-start;padding-left:24px;text-align:left}.A .tile.mode .e{font-size:calc(56px*var(--u))}}
+.A .t-learn{grid-area:l;background:#ffd23f}.A .t-count{grid-area:c;background:#7fd6a0}.A .t-pay{grid-area:p;background:#7cc8ff}
+.A .t-garage{grid-area:g;background:linear-gradient(#ff9a3c,#e8611a);flex-direction:column;color:#000}
+.A .t-garage .truck{width:min(70%,420px);max-height:65%;flex:1;min-height:0}
+.A .t-garage .nm{font-size:calc(34px*var(--u))}
+.A .tile.locked{filter:grayscale(.9) brightness(.7)}
+.A .tile .lock{position:absolute;right:12px;top:10px;font-size:calc(38px*var(--u))}
+.A .tile .badge{position:absolute;right:12px;top:10px;font-size:calc(34px*var(--u))}
+.A .tile.fresh{animation:pulse 1s 4}
+.A .roundbar{display:flex;align-items:center;gap:12px;padding:calc(10px*var(--u)) 16px}
+.A .roundbar .stars{flex:1;justify-content:center}
+.A .card{flex:1;min-height:0;margin:0 16px 16px;background:#fff;border:4px solid #000;border-radius:26px;box-shadow:0 8px 0 #000;display:flex;flex-direction:column}
+.A .reward{position:fixed;inset:0;z-index:40;background:#000c;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:calc(22px*var(--u));color:#fff;text-align:center;padding:16px}
+.A .reward h2{margin:0;font:400 calc(40px*var(--u)) Bungee;color:var(--yellow)}
+.A .reward .bigpile{display:flex;align-items:center;gap:12px;font:900 calc(64px*var(--u)) Nunito;color:var(--yellow)}
+.A .reward .lines{font:900 calc(24px*var(--u)) Nunito;display:flex;flex-direction:column;gap:6px}
+.A .reward .btns{display:flex;gap:calc(20px*var(--u));flex-wrap:wrap;justify-content:center}
+.A .reward .btns .big-btn{font-size:calc(38px*var(--u));padding:calc(22px*var(--u)) calc(40px*var(--u))}
+body.vA .garage-nav{top:calc(10px + env(safe-area-inset-top));right:12px}
+
+/* ======================= B: Garage home ======================= */
+.B{pointer-events:none;z-index:2}
+.B>*{pointer-events:auto}
+body.vB #garage{visibility:visible}
+.B .playfab{position:fixed;right:calc(14px + env(safe-area-inset-right));top:calc(12px + env(safe-area-inset-top));z-index:6;background:var(--green);color:#fff;border:4px solid #000;border-radius:999px;box-shadow:0 6px 0 #000;font:900 calc(34px*var(--u)) Nunito;padding:calc(12px*var(--u)) calc(30px*var(--u));display:flex;gap:10px;align-items:center}
+.B .picker{position:fixed;inset:0;z-index:30;background:#000a;display:flex;align-items:center;justify-content:center;gap:calc(18px*var(--u));padding:16px;flex-wrap:wrap}
+@media (orientation:portrait){.B .picker{flex-direction:column;flex-wrap:nowrap}}
+.B .picker .mt{position:relative;width:min(30vw,260px);aspect-ratio:1;border:4px solid #000;border-radius:50%;box-shadow:0 7px 0 #000;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px}
+@media (orientation:portrait){.B .picker .mt{width:min(26dvh,300px)}}
+.B .picker .mt .e{font-size:calc(70px*var(--u))}.B .picker .mt .nm{font:400 calc(18px*var(--u)) Bungee;text-align:center;line-height:1.1}
+.B .picker .mt.locked{filter:grayscale(.9) brightness(.7)}
+.B .picker .mt .lock,.B .picker .mt .badge{position:absolute;top:6%;right:12%;font-size:calc(40px*var(--u))}
+.B .picker .x{position:fixed;left:16px;top:calc(14px + env(safe-area-inset-top))}
+body.vB.in-round #garage{pointer-events:none;filter:saturate(.85)}
+@media (orientation:landscape){body.vB.in-round #garage{width:36%}}
+@media (orientation:portrait){body.vB.in-round #garage{height:30%}}
+.B .panel{position:fixed;z-index:20;background:#fff;border:4px solid #000;display:flex;flex-direction:column;box-shadow:0 0 0 2000px transparent;transition:transform .5s}
+@media (orientation:landscape){.B .panel{top:0;bottom:0;right:0;left:36%;border-radius:28px 0 0 28px;border-right:0}.B .panel.off{transform:translateX(105%)}}
+@media (orientation:portrait){.B .panel{left:0;right:0;bottom:0;top:30%;border-radius:28px 28px 0 0;border-bottom:0}.B .panel.off{transform:translateY(105%)}}
+.B .panel .bar{display:flex;align-items:center;gap:12px;padding:calc(10px*var(--u)) 14px 0}
+.B .panel .bar .stars{flex:1;justify-content:center}
+.B .panel .reward{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:calc(20px*var(--u));text-align:center;padding:16px}
+.B .panel .reward h2{margin:0;font:400 calc(38px*var(--u)) Bungee}
+.B .panel .reward .earn{display:flex;align-items:center;gap:10px;font:900 calc(52px*var(--u)) Nunito}
+.B .panel .reward .lines{font:900 calc(22px*var(--u)) Nunito;display:flex;flex-direction:column;gap:6px}
+.B .panel .reward .btns{display:flex;gap:18px;flex-wrap:wrap;justify-content:center}
+
+/* ======================= C: Road trip ======================= */
+.C{background:linear-gradient(#7cc8ff,#d8f0ff 55%,#8fd17a 55%,#5fae4e)}
+.C .hud{position:absolute;left:14px;top:calc(12px + env(safe-area-inset-top));display:flex;gap:10px;z-index:4;align-items:center}
+.C .map{position:absolute;inset:0}
+.C .map svg.road{position:absolute;inset:0;width:100%;height:100%}
+.C .stop{position:absolute;transform:translate(-50%,-50%);display:flex;flex-direction:column;align-items:center;gap:4px;z-index:2}
+.C .stop .sign{width:calc(150px*var(--u));height:calc(150px*var(--u));border-radius:50%;border:5px solid #000;box-shadow:0 7px 0 #000;display:grid;place-items:center;font-size:calc(72px*var(--u));position:relative}
+.C .stop .nm{font:400 calc(18px*var(--u)) Bungee;background:#000;color:#fff;padding:3px 10px;border-radius:10px;white-space:nowrap}
+.C .stop.locked .sign{filter:grayscale(.9) brightness(.75)}
+.C .stop .lock,.C .stop .badge{position:absolute;right:-8px;top:-8px;font-size:calc(40px*var(--u))}
+.C .stop.garage .sign{border-radius:18px;width:calc(190px*var(--u));height:calc(160px*var(--u));background:linear-gradient(#ff9a3c,#e8611a);font-size:calc(80px*var(--u))}
+.C .stop.fresh .sign{animation:pulse 1s 4}
+.C .mapTruck{position:absolute;width:calc(150px*var(--u));transform:translate(-50%,-100%);z-index:3;transition:left .9s ease-in-out,top .9s ease-in-out;pointer-events:none}
+.C .round{position:absolute;inset:0;display:flex;background:linear-gradient(#7cc8ff,#d8f0ff)}
+@media (orientation:landscape){.C .round{flex-direction:row}}
+@media (orientation:portrait){.C .round{flex-direction:column}}
+.C .rail{position:relative;flex:none;background:#8b5a2b;border:4px solid #000}
+@media (orientation:landscape){.C .rail{width:calc(170px*var(--u));margin:12px 0 12px 12px;border-radius:24px}}
+@media (orientation:portrait){.C .rail{height:calc(150px*var(--u));margin:12px 12px 0;border-radius:24px}}
+.C .rail .dot{position:absolute;width:calc(34px*var(--u));height:calc(34px*var(--u));border-radius:50%;background:#0005;border:3px solid #0008;transform:translate(-50%,-50%);display:grid;place-items:center;font-size:calc(20px*var(--u))}
+.C .rail .dot.on{background:var(--yellow);border-color:#000}
+.C .rail .end{position:absolute;transform:translate(-50%,-50%);font-size:calc(58px*var(--u))}
+.C .rail .railTruck{position:absolute;width:calc(110px*var(--u));transform:translate(-50%,-80%);transition:left .9s,top .9s;z-index:2}
+.C .rail .tools{position:absolute;display:flex;gap:8px}
+@media (orientation:landscape){.C .rail .tools{left:50%;bottom:10px;transform:translateX(-50%);flex-direction:column}}
+@media (orientation:portrait){.C .rail .tools{left:10px;top:10px}}
+.C .card{flex:1;min-width:0;min-height:0;margin:12px;background:#fff;border:4px solid #000;border-radius:26px;box-shadow:0 8px 0 #000;display:flex;flex-direction:column}
+.C .card .top{display:flex;justify-content:flex-end;padding:10px 12px 0;gap:10px}
+.C .reward{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:calc(20px*var(--u));text-align:center;padding:16px}
+.C .reward h2{margin:0;font:400 calc(38px*var(--u)) Bungee}
+.C .reward .earn{display:flex;align-items:center;gap:10px;font:900 calc(52px*var(--u)) Nunito}
+.C .reward .lines{font:900 calc(22px*var(--u)) Nunito;display:flex;flex-direction:column;gap:6px}
+.C .reward .btns{display:flex;gap:18px;flex-wrap:wrap;justify-content:center}
+body.vC .garage-nav{top:calc(10px + env(safe-area-inset-top));right:12px}
+
+/* ---------- prototype switcher (not part of the design) ---------- */
+.proto{position:fixed;left:50%;bottom:calc(6px + env(safe-area-inset-bottom));transform:translateX(-50%);z-index:100;display:flex;align-items:center;gap:6px;height:42px;padding:0 6px;background:#fff;color:#111;border-radius:21px;box-shadow:0 6px 24px #000a;font:600 13px system-ui,sans-serif;white-space:nowrap;max-width:calc(100vw - 12px);opacity:.92}
+.proto button{height:32px;min-width:32px;padding:0 9px;border-radius:16px;background:#eee;font:inherit}
+.proto .lbl{padding:0 4px;font-weight:800}
+.proto .state{font:11px ui-monospace,Menlo,monospace;color:#555;overflow:hidden;text-overflow:ellipsis;max-width:26vw}
+.proto .more{display:none;align-items:center;gap:6px}
+.proto.open .more{display:flex}
+</style>
+<script src="coins.js"></script>
+<script src="voice.js"></script>
+<script src="say.js"></script>
+</head>
+<body>
+<div id="app"></div>
+<iframe id="garage" src="garage-3d-prototype.html?embed=1&bolts=0" title="Garage"></iframe>
+<div class="garage-nav" id="garageNav"></div>
+<div class="toast" id="toast"></div>
+<div id="modal"></div>
+<div id="splash"><div><h1>Monster Truck<br>Money</h1><button class="big-btn go" id="startBtn"><span class="e">▶</span></button></div></div>
+<div class="proto" id="proto"></div>
+
+<script>
+/* =================== helpers, sound, voice (as in the current app) =================== */
+const $ = s => document.querySelector(s);
+const rand = (a, b) => a + Math.floor(Math.random() * (b - a + 1));
+const pick = a => a[Math.floor(Math.random() * a.length)];
+const shuffle = a => { for (let i = a.length - 1; i > 0; i--) { const j = rand(0, i); [a[i], a[j]] = [a[j], a[i]]; } return a; };
+const fmt = c => c < 100 ? c + '¢' : '$' + (c / 100).toFixed(2);
+const sleep = ms => new Promise(r => setTimeout(r, ms));
+
+let actx;
+function tone(f, d, type = 'sine', when = 0, vol = .15) {
+  try { actx ||= new (window.AudioContext || window.webkitAudioContext)();
+    const t = actx.currentTime + when, o = actx.createOscillator(), g = actx.createGain();
+    o.type = type; o.frequency.setValueAtTime(f, t); g.gain.setValueAtTime(vol, t); g.gain.exponentialRampToValueAtTime(.001, t + d);
+    o.connect(g).connect(actx.destination); o.start(t); o.stop(t + d); } catch {}
+}
+const sGood = () => { tone(523, .15, 'triangle'); tone(659, .15, 'triangle', .12); tone(784, .3, 'triangle', .24); };
+const sBad = () => tone(160, .3, 'square', 0, .08);
+const sClink = (w = 0) => { tone(1800, .08, 'triangle', w, .1); tone(2600, .1, 'triangle', w + .04, .06); };
+const sCount = i => tone(400 + i * 60, .12, 'triangle', 0, .1);
+const sFanfare = () => [523, 659, 784, 1047].forEach((f, i) => tone(f, .25, 'triangle', i * .12, .14));
+
+// say() and sayMore() come from say.js, shared with the Garage so both use the game's recorded voice
+let toastT;
+function toast(msg) { const t = $('#toast'); t.textContent = msg; t.classList.add('show'); say(msg); clearTimeout(toastT); toastT = setTimeout(() => t.classList.remove('show'), 1800); }
+function confetti() { const cs = ['#ffd23f', '#e63946', '#2bb673', '#2a6fdb', '#ff7a00'];
+  for (let i = 0; i < 60; i++) { const c = document.createElement('div'); c.className = 'confetti'; c.style.left = Math.random() * 100 + 'vw';
+    c.style.background = pick(cs); c.style.animationDuration = 1.8 + Math.random() * 1.6 + 's'; c.style.animationDelay = Math.random() * .5 + 's';
+    document.body.appendChild(c); setTimeout(() => c.remove(), 4200); } }
+
+const BOLT = s => `<svg class="bolt" width="${s}" height="${s}" viewBox="0 0 40 40"><polygon points="20,2 36,11 36,29 20,38 4,29 4,11" fill="#ffc21a" stroke="#7a5200" stroke-width="3"/><circle cx="20" cy="20" r="7" fill="#e0a000" stroke="#7a5200" stroke-width="2.5"/></svg>`;
+const TRUCK = (c = '#e63946') => `<svg viewBox="0 0 130 90" class="truck"><path d="M34 48 L40 62 M96 48 L90 62" stroke="#555" stroke-width="5"/><path d="M44 26 L54 6 H84 L94 26 Z" fill="${c}"/><path d="M57 10 H81 L88 25 H50 Z" fill="#bfe3ff"/><rect x="12" y="24" width="106" height="26" rx="7" fill="${c}"/><rect x="110" y="30" width="10" height="7" rx="2" fill="#ffd23f"/><path d="M16 44 Q30 30 38 40 Q44 28 52 40 Q58 32 64 44 Z" fill="#ffd23f"/>${[34, 96].map(x => `<g><circle cx="${x}" cy="68" r="20" fill="#1a1a1a"/><circle cx="${x}" cy="68" r="20" fill="none" stroke="#333" stroke-width="4" stroke-dasharray="5 4"/><circle cx="${x}" cy="68" r="8" fill="#bbb"/></g>`).join('')}</svg>`;
+
+/* =================== money =================== */
+const MONEY = {
+  b5: { v: 500, bill: 1, n: 5, label: '$5', short: '$5 Bill' }, b1: { v: 100, bill: 1, n: 1, label: '$1', short: '$1 Bill' },
+  q: { v: 25, label: '25¢', short: 'Quarter', size: 81 }, n: { v: 5, label: '5¢', short: 'Nickel', size: 71 },
+  p: { v: 1, label: '1¢', short: 'Penny', size: 64 }, d: { v: 10, label: '10¢', short: 'Dime', size: 60 },
+};
+const ORDER = ['b5', 'b1', 'q', 'd', 'n', 'p'];
+const byOrder = (a, b) => ORDER.indexOf(a) - ORDER.indexOf(b);
+const LEVEL_MONEY = { 1: ['d', 'n', 'p'], 2: ['q', 'd', 'n', 'p'], 3: ['b5', 'b1', 'q', 'd', 'n', 'p'] };
+const NEW_MONEY = { 2: ['q'], 3: ['b1', 'b5'] };
+const LEVELUP_LINE = { 2: 'Level up! Now you get quarters!', 3: 'Level up! Now you get dollar bills!' };
+function moneyHTML(k, cap = true, scale = 1) {
+  const m = MONEY[k];
+  const body = m.bill ? `<div class="bill" style="--b:${scale}"><span class="c tl">${m.n}</span><span class="c br">${m.n}</span><span class="oval">$${m.n}</span></div>`
+    : `<div class="coin" style="--s:${Math.round(m.size * scale)}px"><img src="${COIN_IMG[k]}" alt=""></div>`;
+  return `<div class="money">${body}<div class="cap${cap ? '' : ' hide'}">${m.short} · ${m.label}</div></div>`;
+}
+
+/* =================== game state (in memory only) =================== */
+const MODES = {
+  learn: { name: 'Learn the Coins', icon: '🪙', color: '#ffd23f', hint: 'Play Learn the Coins to open this!' },
+  count: { name: 'Count the Cash', icon: '💰', color: '#7fd6a0', needs: 'learn', hint: 'Learn more coins to open this!' },
+  pay: { name: 'Pay the Shop', icon: '🛒', color: '#7cc8ff', needs: 'count', hint: 'Count more cash to open this!' },
+};
+const MODE_IDS = Object.keys(MODES);
+const fresh = () => ({ bolts: 0, modes: Object.fromEntries(MODE_IDS.map(m => [m, { level: 1, win: [], mastered: false, intro: false }])),
+  screen: 'home', mode: 'learn', round: null, lastMode: 'learn', fresh: null, garage: { goal: null, afford: 0, unlocked: 0 } });
+let S = fresh();
+const isOpen = m => !MODES[m].needs || S.modes[MODES[m].needs].level >= 2;
+
+// garage iframe <-> shell
+const gframe = $('#garage');
+const sendBolts = () => gframe.contentWindow?.postMessage({ type: 'bolts', bolts: S.bolts }, '*');
+addEventListener('message', e => { if (e.data?.type !== 'garage') return;
+  S.bolts = e.data.bolts; S.garage = e.data; V().refresh?.(); proto(); });
+gframe.addEventListener('load', sendBolts);
+
+/* =================== Round controller (shared across variants) =================== */
+const CHEERS = ['VROOM! Great job!', 'Monster move!', 'You got it!', 'Truck-tastic!', 'Crushing it!', 'Awesome counting!'];
+async function startRound(mode) {
+  if (!isOpen(mode)) { sBad(); say(MODES[mode].hint); return; }
+  const md = S.modes[mode];
+  if (md.intro) { md.intro = false; await introCard(md.level); }
+  S.mode = S.lastMode = mode; S.round = { n: 0, level: md.level, events: [], done: false };
+  S.screen = 'round'; V().showRound(); newProblem(); proto();
+}
+function record(ok) {
+  const md = S.modes[S.mode]; md.win.push(ok); if (md.win.length > 10) md.win.shift();
+  if (md.win.filter(Boolean).length >= 8) {
+    if (md.level < 3) {
+      md.level++; md.win = []; md.intro = true; S.round.events.push({ t: 'level', text: LEVELUP_LINE[md.level] });
+      for (const m of MODE_IDS) if (MODES[m].needs === S.mode && md.level === 2) { S.round.events.push({ t: 'open', mode: m, text: `You opened ${MODES[m].name}!` }); S.fresh = m; }
+    } else if (!md.mastered) { md.mastered = true; md.win = []; S.round.events.push({ t: 'star', text: `You are a ${MODES[S.mode].name} star!` }); }
+  }
+}
+const struggling = () => S.modes[S.mode].win.filter(x => !x).length >= 5;
+function correct() {
+  const r = S.round; if (r.busy) return; r.busy = true;
+  record(P.firstTry && !P.helped);
+  sGood(); r.n++; V().progress(r.n);
+  if (r.n >= 5) setTimeout(endRound, 900);
+  else { toast(pick(CHEERS)); setTimeout(() => { r.busy = false; newProblem(); }, 1500); }
+}
+function miss() { P.firstTry = false; sBad(); }
+async function endRound() {
+  const before = S.garage.afford;
+  S.bolts += 3; sendBolts();
+  await sleep(250); // let the Garage report what's affordable now
+  const canBuild = S.garage.afford > before;
+  S.round.done = true; S.screen = 'reward';
+  const lines = ['You earned 3 Bolts!', ...S.round.events.map(e => e.text), ...(canBuild ? ['You can build something new!'] : [])];
+  confetti(); sFanfare();
+  V().showReward({ lines, canBuild, events: S.round.events });
+  [0, .15, .3].forEach(w => sClink(w + .6));
+  say(...lines); proto();
+}
+function introCard(level) {
+  return new Promise(res => {
+    const ks = NEW_MONEY[level];
+    $('#modal').innerHTML = `<div class="modal"><div class="card"><h2>New money!</h2>
+      <div class="intro-money">${ks.map(k => `<button class="money-btn" data-k="${k}">${moneyHTML(k, true, 2)}</button>`).join('')}</div>
+      <button class="big-btn go" id="introGo"><span class="e">▶</span></button></div></div>`;
+    const lines = ks.map(k => [`This is a ${MONEY[k].short}. It is worth ${MONEY[k].label}.`, $(`#modal [data-k=${k}]`)]);
+    say('Look! New money!', ...lines);
+    $('#modal').querySelectorAll('.money-btn').forEach(b => b.onclick = () => say([`${MONEY[b.dataset.k].short} is ${MONEY[b.dataset.k].label}.`, b]));
+    $('#introGo').onclick = () => { $('#modal').innerHTML = ''; res(); };
+  });
+}
+function peek() {
+  const ks = LEVEL_MONEY[S.round?.level || 1];
+  $('#modal').innerHTML = `<div class="modal"><div class="card"><div class="intro-money">${ks.map(k => `<button class="money-btn" data-k="${k}">${moneyHTML(k)}</button>`).join('')}</div>
+    <button class="big-btn go" id="peekOk"><span class="e">👍</span></button></div></div>`;
+  $('#modal').querySelectorAll('.money-btn').forEach(b => b.onclick = () => say([`${MONEY[b.dataset.k].short} is ${MONEY[b.dataset.k].label}.`, b]));
+  $('#peekOk').onclick = () => { $('#modal').innerHTML = ''; say(...P.question); };
+  say('Tap a coin to hear its name.');
+}
+
+/* =================== the three Game Mode screens (rendered into #game by any variant) =================== */
+let P = {}; // current problem
+const askHTML = t => `<div class="ask"><button class="say-btn" id="replay">🔊</button><h2>${t}</h2></div>`;
+function newProblem() {
+  P = { firstTry: true, helped: false, question: [] };
+  ({ learn: newLearn, count: newCount, pay: newPay })[S.mode](S.round.level, $('#game'));
+  $('#replay').onclick = () => say(...P.question);
+  say(...P.question);
+}
+function newLearn(level, root) {
+  const pool = LEVEL_MONEY[level], type = pick(['find', 'find', 'name', 'value', 'more']);
+  const others = t => shuffle(pool.filter(k => k !== t)).slice(0, 3);
+  const pickBtn = (k, sc) => `<button class="money-btn pickable" data-k="${k}">${moneyHTML(k, false, sc)}</button>`;
+  let target, html, q;
+  if (type === 'find') { target = pick(pool); q = `Tap the ${MONEY[target].short}!`;
+    html = askHTML(q) + `<div class="pile learn">${shuffle([target, ...others(target)]).map(k => pickBtn(k, 1.6)).join('')}</div>`; }
+  else if (type === 'more') { const [a, b] = shuffle(pool.slice()).slice(0, 2), more = Math.random() < .6;
+    target = (MONEY[a].v > MONEY[b].v) === more ? a : b; q = `Which is worth ${more ? 'more' : 'less'}?`;
+    html = askHTML(`Which is worth ${more ? 'MORE' : 'LESS'}?`) + `<div class="pile learn">${[a, b].map(k => pickBtn(k, 1.9)).join('')}</div>`; }
+  else { target = pick(pool); q = type === 'name' ? 'What is this called?' : 'How much is this worth?';
+    html = askHTML(q) + `<div class="pile learn">${moneyHTML(target, false, 2)}</div><div class="choices">${shuffle([target, ...others(target)]).map(k =>
+      `<button class="choice" data-k="${k}">${type === 'name' ? MONEY[k].short : MONEY[k].label}</button>`).join('')}</div>`; }
+  root.innerHTML = `<div class="game">${html}</div>`;
+  P.question = [q, ...[...root.querySelectorAll('.choice')].map(b => [b.textContent + '?', b])];
+  root.querySelectorAll('.pickable,.choice').forEach(b => b.onclick = () => {
+    if (S.round.busy) return;
+    const k = b.dataset.k, reveal = el => el?.querySelectorAll('.cap').forEach(c => c.classList.remove('hide'));
+    if (k === target) { b.classList.add('right'); reveal(root.querySelector('.pile')); return correct(); }
+    miss(); b.disabled = true;
+    if (b.classList.contains('choice')) { b.classList.add('wrong'); return toast('Try again!'); }
+    b.classList.add('nope'); reveal(b);
+    toast(type === 'find' ? `That's a ${MONEY[k].short}. Find the ${MONEY[target].short}!` : `${MONEY[target].short} is ${MONEY[target].label}. ${MONEY[k].short} is ${MONEY[k].label}.`);
+  });
+}
+function newCount(level, root) {
+  const cfg = { 1: { money: ['d', 'n', 'p'], max: 5, cap: 30, deltas: [1, 5, 10] }, 2: { money: ['q', 'd', 'n', 'p'], max: 6, cap: 75, deltas: [1, 5, 10, 25] },
+    3: { money: ['b1', 'q', 'd', 'n', 'p'], max: 6, cap: 300, deltas: [5, 10, 25, 100] } }[level];
+  let pile, total;
+  for (;;) {
+    pile = Array.from({ length: rand(2, cfg.max) }, () => pick(cfg.money));
+    if (level === 3 && !pile.some(k => k[0] === 'b')) pile[0] = 'b1';
+    if (level === 3 && Math.random() < .15) pile[0] = 'b5'; // a $5 bill now and then
+    total = pile.reduce((s, k) => s + MONEY[k].v, 0);
+    if (total <= (pile.includes('b5') ? 800 : cfg.cap)) break;
+  }
+  pile.sort(byOrder);
+  const opts = new Set([total]); while (opts.size < 4) { const c = total + pick(cfg.deltas) * pick([-1, 1]); if (c > 0) opts.add(c); }
+  root.innerHTML = `<div class="game">${askHTML('How much money is this?')}
+    <div class="pile" id="pile">${pile.map(k => `<div class="slot">${moneyHTML(k)}<div class="run"></div></div>`).join('')}</div>
+    <div class="choices">${shuffle([...opts]).map(v => `<button class="choice" data-v="${v}">${fmt(v)}</button>`).join('')}</div>
+    <div class="helpers"><button class="help-btn" id="help">🔎 Help me count</button><button class="help-btn" id="peekBtn">👀</button></div></div>`;
+  P.question = ['How much money is this?', ...[...root.querySelectorAll('.choice')].map(b => [b.textContent + '?', b])];
+  let counting = false;
+  const helpCount = () => { if (counting) return; counting = true; P.helped = true;
+    const slots = [...root.querySelectorAll('#pile .slot')]; let run = 0;
+    slots.forEach(s => { s.classList.remove('lit'); s.querySelector('.run').textContent = ''; });
+    const me = P;
+    slots.forEach((s, i) => setTimeout(() => { if (P !== me) return; run += MONEY[pile[i]].v; s.classList.add('lit'); s.querySelector('.run').textContent = fmt(run); sCount(i);
+      if (i === slots.length - 1) { counting = false; say(fmt(run)); } }, i * 800)); };
+  root.querySelectorAll('.choice').forEach(b => b.onclick = () => {
+    if (S.round.busy) return;
+    if (+b.dataset.v === total) { b.classList.add('right'); return correct(); }
+    b.classList.add('wrong'); b.disabled = true; miss(); toast("Not quite! Let's count together."); setTimeout(helpCount, 1200);
+  });
+  $('#help').onclick = helpCount; $('#peekBtn').onclick = peek;
+}
+function newPay(level, root) {
+  const items = [['⛽', 'Fuel'], ['🍿', 'Snack'], ['🧽', 'Car Wash'], ['🛢️', 'Oil'], ['🧃', 'Juice'], ['🔋', 'Battery']];
+  const [e, name] = pick(items);
+  const price = level === 1 ? rand(5, 25) : level === 2 ? rand(10, 60) : rand(1, 3) * 100 + pick([0, 5, 10, 15, 25, 30, 50, 75]);
+  const bank = LEVEL_MONEY[level].filter(k => k !== 'b5');
+  let tray = [];
+  root.innerHTML = `<div class="game">${askHTML(`Buy the ${name}!`)}
+    <div class="price-tag"><span class="e">${e}</span><span class="price">${fmt(price)}</span></div>
+    <div class="bank">${bank.map(k => `<button class="money-btn" data-k="${k}">${moneyHTML(k)}</button>`).join('')}</div>
+    <div class="tray" id="tray"></div>
+    <div class="paidrow"><span>🪙 <b id="paid">0¢</b></span><button class="big-btn go" id="payBtn"><span class="e">✅</span></button></div>
+    <div class="helpers"><button class="help-btn" id="helpPay">🔎 Help me pay</button><button class="help-btn" id="clear">↩</button><button class="help-btn" id="peekBtn">👀</button></div></div>`;
+  P.question = [`Buy the ${name}! It costs ${fmt(price)}.`];
+  const sum = () => tray.reduce((s, k) => s + MONEY[k].v, 0);
+  const draw = (speak = true) => { tray.sort(byOrder);
+    $('#tray').innerHTML = tray.length ? tray.map((k, i) => `<button class="money-btn" data-i="${i}">${moneyHTML(k, false, .8)}</button>`).join('') : '<span class="empty">👇 🪙</span>';
+    $('#tray').querySelectorAll('.money-btn').forEach(b => b.onclick = () => { tray.splice(+b.dataset.i, 1); draw(); });
+    $('#paid').textContent = fmt(sum()); if (speak) say(tray.length ? fmt(sum()) : ''); };
+  root.querySelectorAll('.bank .money-btn').forEach(b => b.onclick = () => { if (S.round.busy || tray.length > 20) return; tray.push(b.dataset.k); sClink(); draw(); });
+  $('#clear').onclick = () => { tray = []; draw(false); };
+  let helping = false;
+  const helpPay = async () => { if (helping) return; helping = true; P.helped = true; tray = []; draw(false);
+    const me = P; let left = price; for (const k of bank) while (MONEY[k].v <= left) { if (P !== me) return; left -= MONEY[k].v; tray.push(k); sClink(); draw(false); await say(fmt(sum())); await sleep(250); }
+    helping = false; };
+  $('#helpPay').onclick = helpPay; $('#peekBtn').onclick = peek;
+  $('#payBtn').onclick = () => { if (S.round.busy) return; const paid = sum();
+    if (paid === price) return correct();
+    miss(); toast(paid === 0 ? 'Tap some money first!' : paid < price ? `Almost! You need ${fmt(price - paid)} more.` : `Too much! Take back ${fmt(paid - price)}.`);
+    if (paid && struggling()) setTimeout(helpPay, 1800); };
+  draw(false);
+}
+
+/* shared snippets the variants use */
+const pileHTML = () => `<div class="pilebox" id="pileBox">${BOLT(34 * 1)}<span>${S.bolts}</span></div>`;
+function goalHTML() { const g = S.garage.goal; if (!g) return '';
+  return `<div class="goalchip ${S.bolts >= g.cost ? 'ready' : ''}"><span>🎯</span><span class="gi">${g.icon}</span><span class="track"><i style="width:${Math.min(100, S.bolts / g.cost * 100)}%"></i></span><span>${Math.min(S.bolts, g.cost)}/${g.cost}</span></div>`; }
+const lvlHTML = m => `<span class="lvl">${[1, 2, 3].map(i => `<i class="${i <= S.modes[m].level ? 'on' : ''}"></i>`).join('')}</span>`;
+const starsHTML = n => `<div class="stars" id="stars">${[0, 1, 2, 3, 4].map(i => `<span class="${i < n ? 'on' : ''}">⭐</span>`).join('')}</div>`;
+const modeBadge = m => !isOpen(m) ? '<span class="lock">🔒</span>' : S.modes[m].mastered ? '<span class="badge">⭐</span>' : '';
+function flyBolts(toEl) {
+  const to = toEl?.getBoundingClientRect(); if (!to) return;
+  for (let i = 0; i < 3; i++) { const b = document.createElement('div'); b.className = 'fly'; b.innerHTML = BOLT(48);
+    b.style.left = innerWidth / 2 - 24 + 'px'; b.style.top = innerHeight / 2 - 24 + 'px'; document.body.appendChild(b);
+    setTimeout(() => { b.style.transform = `translate(${to.left + to.width / 2 - innerWidth / 2}px,${to.top + to.height / 2 - innerHeight / 2}px) scale(.5)`; b.style.opacity = 0; }, 300 + i * 150);
+    setTimeout(() => b.remove(), 1400 + i * 150); }
+}
+function showGarage(on) { document.body.classList.toggle('show-garage', on); if (on) { sendBolts(); say('Garage!'); } }
+
+/* ======================= Variant A: Tile home ======================= */
+const A = {
+  name: 'Tile home',
+  enter() { S.screen === 'round' || S.screen === 'reward' ? this.showRound() : S.screen === 'garage' ? this.garage() : this.home(); },
+  home() {
+    S.screen = 'home'; showGarage(false);
+    $('#app').className = 'A';
+    $('#app').innerHTML = `<header><h1>Monster Truck Money</h1>${goalHTML()}${pileHTML()}</header>
+      <div class="home">
+        <button class="tile t-garage" data-go="garage">${TRUCK()}<span class="nm">🔧 Garage</span></button>
+        ${MODE_IDS.map(m => `<button class="tile mode t-${m} ${isOpen(m) ? '' : 'locked'} ${S.fresh === m ? 'fresh' : ''}" data-mode="${m}"><span class="e">${MODES[m].icon}</span>
+          <span><span class="nm">${MODES[m].name}</span><br>${lvlHTML(m)}</span>${modeBadge(m)}</button>`).join('')}
+      </div>`;
+    if (S.fresh) { say(`You opened ${MODES[S.fresh].name}!`); S.fresh = null; }
+    $('#app').querySelectorAll('[data-mode]').forEach(b => b.onclick = () => startRound(b.dataset.mode));
+    $('[data-go=garage]').onclick = () => this.garage();
+  },
+  showRound() {
+    $('#app').className = 'A'; showGarage(false);
+    $('#app').innerHTML = `<div class="roundbar"><button class="icon-btn" id="homeBtn">🏠</button>${starsHTML(S.round.n)}${goalHTML()}${pileHTML()}</div>
+      <main class="card" id="game"></main>`;
+    $('#homeBtn').onclick = () => { say(); this.home(); };
+  },
+  progress(n) { $('#stars').outerHTML = starsHTML(n); },
+  showReward({ lines, canBuild }) {
+    const el = document.createElement('div'); el.className = 'reward';
+    el.innerHTML = `<h2>Round done!</h2><div class="bigpile" id="bigPile">${BOLT(80)}<span>${S.bolts}</span></div>
+      <div class="lines">${lines.map(l => `<div>${l}</div>`).join('')}</div>
+      <div class="btns"><button class="big-btn garage ${canBuild ? 'pulse' : ''}" id="toGarage"><span class="e">🔧</span></button>
+      <button class="big-btn go" id="again"><span class="e">▶</span></button></div>
+      <button class="icon-btn" id="rHome">🏠</button>`;
+    $('#app').appendChild(el); flyBolts($('#bigPile'));
+    $('#toGarage').onclick = () => this.garage(); $('#again').onclick = () => startRound(S.mode); $('#rHome').onclick = () => this.home();
+  },
+  garage() {
+    S.screen = 'garage'; showGarage(true);
+    $('#garageNav').innerHTML = `<button class="icon-btn" id="gHome">🏠</button><button class="icon-btn" id="gPlay" style="background:var(--green)">▶</button>`;
+    $('#gHome').onclick = () => this.home(); $('#gPlay').onclick = () => startRound(S.lastMode);
+  },
+  refresh() { if (S.screen === 'home') { const h = $('#app header'); if (h) h.innerHTML = `<h1>Monster Truck Money</h1>${goalHTML()}${pileHTML()}`; } },
+};
+
+/* ======================= Variant B: Garage home ======================= */
+const B = {
+  name: 'Garage home',
+  enter() { S.screen === 'round' || S.screen === 'reward' ? this.showRound() : this.home(); },
+  home() {
+    S.screen = 'home'; document.body.classList.remove('in-round');
+    $('#app').className = 'B';
+    $('#app').innerHTML = `<button class="playfab ${S.fresh ? 'pulse' : ''}" id="play">▶</button>`;
+    $('#play').onclick = () => this.picker();
+  },
+  picker() {
+    const el = document.createElement('div'); el.className = 'picker';
+    el.innerHTML = `<button class="icon-btn x" id="pX">✕</button>` + MODE_IDS.map(m => `<button class="mt ${isOpen(m) ? '' : 'locked'} ${S.fresh === m ? 'pulse' : ''}" data-mode="${m}" style="background:${MODES[m].color}">
+      <span class="e">${MODES[m].icon}</span><span class="nm">${MODES[m].name}</span>${lvlHTML(m)}${modeBadge(m)}</button>`).join('');
+    $('#app').appendChild(el);
+    if (S.fresh) { say(`You opened ${MODES[S.fresh].name}!`); S.fresh = null; }
+    $('#pX').onclick = () => el.remove();
+    el.querySelectorAll('[data-mode]').forEach(b => b.onclick = () => { if (isOpen(b.dataset.mode)) el.remove(); startRound(b.dataset.mode); });
+  },
+  showRound() {
+    document.body.classList.add('in-round');
+    $('#app').className = 'B';
+    if ($('#panel') && !$('#panel').classList.contains('off')) { $('#stars').outerHTML = starsHTML(0); return; } // Play again: keep the panel up
+    $('#app').innerHTML = `<div class="panel off" id="panel"><div class="bar"><button class="icon-btn" id="close">✕</button>${starsHTML(S.round.n)}</div><main id="game" style="flex:1;min-height:0;display:flex;flex-direction:column"></main></div>`;
+    requestAnimationFrame(() => requestAnimationFrame(() => $('#panel').classList.remove('off')));
+    $('#close').onclick = () => { say(); this.leave(); };
+  },
+  leave() { $('#panel')?.classList.add('off'); document.body.classList.remove('in-round'); setTimeout(() => this.home(), 450); },
+  progress(n) { $('#stars').outerHTML = starsHTML(n); },
+  showReward({ lines, canBuild }) {
+    $('#game').innerHTML = `<div class="reward"><h2>Round done!</h2><div class="earn" id="earn">+3 ${BOLT(64)}</div>
+      <div class="lines">${lines.map(l => `<div>${l}</div>`).join('')}</div>
+      <div class="btns"><button class="big-btn garage ${canBuild ? 'pulse' : ''}" id="toGarage"><span class="e">🔧</span></button>
+      <button class="big-btn go" id="again"><span class="e">▶</span></button></div></div>`;
+    // the Bolts fly to the Garage's own pile, top-left of the strip
+    const r = gframe.getBoundingClientRect(); flyBolts({ getBoundingClientRect: () => ({ left: r.left + 20, top: r.top + 20, width: 60, height: 40 }) });
+    $('#toGarage').onclick = () => this.leave(); $('#again').onclick = () => startRound(S.mode);
+  },
+};
+
+/* ======================= Variant C: Road trip ======================= */
+const STOPS = { // % positions on the map, per orientation
+  land: { learn: [16, 68], count: [38, 34], pay: [62, 68], garage: [85, 36] },
+  port: { learn: [28, 22], count: [70, 40], pay: [30, 60], garage: [66, 82] },
+};
+const C = {
+  name: 'Road trip',
+  at: 'learn',
+  enter() { S.screen === 'round' || S.screen === 'reward' ? this.showRound() : S.screen === 'garage' ? this.garage() : this.home(); },
+  pos() { return STOPS[innerWidth > innerHeight ? 'land' : 'port']; },
+  home() {
+    S.screen = 'home'; showGarage(false);
+    const P0 = this.pos(), ids = [...MODE_IDS, 'garage'], pts = ids.map(i => P0[i]);
+    $('#app').className = 'C';
+    $('#app').innerHTML = `<div class="hud">${pileHTML()}${goalHTML()}</div><div class="map">
+      <svg class="road" viewBox="0 0 100 100" preserveAspectRatio="none"><path d="M${pts.map(p => p.join(' ')).join(' L')}" fill="none" stroke="#6b4220" stroke-width="44" stroke-linejoin="round" stroke-linecap="round" vector-effect="non-scaling-stroke"/>
+      <path d="M${pts.map(p => p.join(' ')).join(' L')}" fill="none" stroke="#ffd23f" stroke-width="5" stroke-dasharray="18 16" stroke-linejoin="round" vector-effect="non-scaling-stroke"/></svg>
+      ${MODE_IDS.map(m => `<button class="stop ${isOpen(m) ? '' : 'locked'} ${S.fresh === m ? 'fresh' : ''}" data-stop="${m}" style="left:${P0[m][0]}%;top:${P0[m][1]}%">
+        <span class="sign" style="background:${MODES[m].color}">${MODES[m].icon}${modeBadge(m)}</span><span class="nm">${MODES[m].name}</span>${lvlHTML(m)}</button>`).join('')}
+      <button class="stop garage" data-stop="garage" style="left:${P0.garage[0]}%;top:${P0.garage[1]}%"><span class="sign">🔧</span><span class="nm">Garage</span></button>
+      <div class="mapTruck" id="mapTruck" style="left:${P0[this.at][0]}%;top:calc(${P0[this.at][1]}% - 78px*var(--u))">${TRUCK()}</div></div>`;
+    if (S.fresh) { say(`You opened ${MODES[S.fresh].name}!`); S.fresh = null; }
+    $('#app').querySelectorAll('[data-stop]').forEach(b => b.onclick = async () => {
+      const id = b.dataset.stop;
+      if (id !== 'garage' && !isOpen(id)) { sBad(); return say(MODES[id].hint); }
+      const t = $('#mapTruck'); t.style.left = P0[id][0] + '%'; t.style.top = `calc(${P0[id][1]}% - 78px*var(--u))`; this.at = id;
+      tone(70, .8, 'sawtooth', 0, .06); await sleep(950);
+      id === 'garage' ? this.garage() : startRound(id);
+    });
+  },
+  railPts() { // dots along the rail, 0..5, the Garage at the end
+    const land = innerWidth > innerHeight;
+    return Array.from({ length: 7 }, (_, i) => land ? [50, 92 - i * 14] : [6 + i * 14.5, 55]);
+  },
+  showRound() {
+    showGarage(false); $('#app').className = 'C';
+    const pts = this.railPts();
+    $('#app').innerHTML = `<div class="round"><div class="rail" id="rail">
+      ${pts.slice(1, 6).map((p, i) => `<span class="dot">${i + 1}</span>`).join('')}
+      <span class="end">🔧</span>
+      <div class="railTruck" id="railTruck">${TRUCK()}</div>
+      <div class="tools"><button class="icon-btn" id="mapBtn">🗺️</button></div></div>
+      <main class="card" id="game"></main></div>`;
+    this.progress(S.round.n, true);
+    $('#mapBtn').onclick = () => { say(); this.home(); };
+  },
+  layoutRail() {
+    const pts = this.railPts();
+    document.querySelectorAll('#rail .dot').forEach((d, i) => { d.style.left = pts[i + 1][0] + '%'; d.style.top = pts[i + 1][1] + '%'; });
+    const e = $('#rail .end'); if (e) { e.style.left = pts[6][0] + '%'; e.style.top = pts[6][1] + '%'; }
+  },
+  progress(n) {
+    this.layoutRail();
+    const p = this.railPts()[n], t = $('#railTruck'); if (!t) return;
+    t.style.left = p[0] + '%'; t.style.top = p[1] + '%';
+    document.querySelectorAll('#rail .dot').forEach((d, i) => d.classList.toggle('on', i < n));
+    if (n) tone(70, .6, 'sawtooth', 0, .05);
+  },
+  showReward({ lines, canBuild }) {
+    const p = this.railPts()[6], t = $('#railTruck'); t.style.left = p[0] + '%'; t.style.top = p[1] + '%';
+    $('#game').innerHTML = `<div class="reward"><h2>You made it!</h2><div class="earn" id="earn">+3 ${BOLT(64)}</div>
+      <div class="lines">${lines.map(l => `<div>${l}</div>`).join('')}</div>
+      <div class="btns"><button class="big-btn garage ${canBuild ? 'pulse' : ''}" id="toGarage"><span class="e">🔧</span></button>
+      <button class="big-btn go" id="again"><span class="e">▶</span></button></div></div>`;
+    flyBolts($('#earn'));
+    $('#toGarage').onclick = () => { this.at = 'garage'; this.garage(); }; $('#again').onclick = () => startRound(S.mode);
+  },
+  garage() {
+    S.screen = 'garage'; showGarage(true);
+    $('#garageNav').innerHTML = `<button class="icon-btn" id="gMap">🗺️</button>`;
+    $('#gMap').onclick = () => this.home();
+  },
+  refresh() { const h = $('#app .hud'); if (h) h.innerHTML = pileHTML() + goalHTML(); },
+};
+addEventListener('resize', () => { if (cur !== 'C') return; if (S.screen === 'home') C.home(); if (S.screen === 'round') C.progress(S.round.n); if (S.screen === 'reward') C.progress(6); });
+
+/* =================== variant switching + prototype bar =================== */
+const VARIANTS = { A, B, C }, KEYS = Object.keys(VARIANTS);
+let cur = (k => VARIANTS[k] ? k : 'A')(new URLSearchParams(location.search).get('variant'));
+const V = () => VARIANTS[cur];
+let protoOpen = false;
+function setVariant(k) {
+  cur = k; const q = new URLSearchParams(location.search); q.set('variant', k); history.replaceState(null, '', '?' + q);
+  document.body.className = 'v' + k; $('#garageNav').innerHTML = ''; $('#modal').innerHTML = '';
+  if (S.screen === 'reward') S.screen = 'home';
+  if (S.screen === 'round' && k === 'B') S.screen = 'round';
+  V().enter(); if (S.screen === 'round') newProblem(); proto();
+}
+function proto() {
+  const m = S.modes;
+  $('#proto').className = 'proto' + (protoOpen ? ' open' : '');
+  $('#proto').innerHTML = `<button data-p="prev">◀</button><span class="lbl">${cur} (${V().name})</span><button data-p="next">▶</button>
+    <button data-p="more">⋯</button><span class="more"><button data-p="right" title="Answer right">✓</button><button data-p="master" title="Next right answer masters this mode">🎓</button>
+    <button data-p="bolts">+9 🔩</button><button data-p="reset">↺</button>
+    <span class="state">screen=${S.screen} bolts=${S.bolts} ${MODE_IDS.map(k => `${k}:${isOpen(k) ? 'L' + m[k].level + ' ' + m[k].win.filter(Boolean).length + '/' + m[k].win.length : '🔒'}`).join(' ')} round=${S.round ? S.round.n + '/5' : '-'}</span></span>`;
+}
+$('#proto').addEventListener('click', e => {
+  const a = e.target.closest('[data-p]')?.dataset.p; if (!a) return;
+  const i = KEYS.indexOf(cur);
+  if (a === 'prev') setVariant(KEYS[(i + KEYS.length - 1) % KEYS.length]);
+  if (a === 'next') setVariant(KEYS[(i + 1) % KEYS.length]);
+  if (a === 'more') { protoOpen = !protoOpen; proto(); }
+  if (a === 'right' && S.screen === 'round' && !S.round.busy) correct();
+  if (a === 'master') { const k = S.screen === 'round' ? S.mode : [...MODE_IDS].reverse().find(isOpen); S.modes[k].win = Array(9).fill(true).map((x, j) => j !== 0); proto(); }
+  if (a === 'bolts') { S.bolts += 9; sendBolts(); V().refresh?.(); proto(); }
+  if (a === 'reset') { S = fresh(); sendBolts(); gframe.src = gframe.src; setVariant(cur); }
+});
+addEventListener('keydown', e => { if (e.target.closest('input,textarea,[contenteditable]')) return;
+  const i = KEYS.indexOf(cur);
+  if (e.key === 'ArrowLeft') setVariant(KEYS[(i + KEYS.length - 1) % KEYS.length]);
+  if (e.key === 'ArrowRight') setVariant(KEYS[(i + 1) % KEYS.length]); });
+
+// A first tap is needed before iPad Safari allows sound
+$('#startBtn').onclick = () => { try { actx ||= new AudioContext(); actx.resume(); } catch {} unlockAudio(); $('#splash').remove(); say("Let's go!"); };
+setVariant(cur);
+</script>
+</body>
+</html>

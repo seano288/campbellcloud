@@ -1,0 +1,275 @@
+<!doctype html>
+<!--
+  PROTOTYPE, throwaway. Question: what does Monster Truck Money look like on the iPad Home Screen?
+  Three icon designs, switchable with ?variant=A|B|C (bottom bar or ← →), shown at real Home Screen
+  size (1 CSS px = 1 pt on iPad) among other apps, in light / dark / tinted, plus the sizes to ship,
+  the maskable safe zone and the launch screen. Every icon is an SVG string drawn in code, then
+  rasterised on a canvas, the same way a build step could make the PNGs.
+  On the iPad: Share → Add to Home Screen puts the CURRENT variant and name on the real Home Screen.
+-->
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Truck Money" id="appTitle">
+<meta name="theme-color" content="#23252b">
+<link rel="apple-touch-icon" id="touchIcon" href="">
+<title>PROTOTYPE: Home Screen icon</title>
+<style>
+:root{--yellow:#ffd23f;--ink:#1d1d1f;--bg:#23252b}
+*{box-sizing:border-box}
+body{margin:0;font-family:-apple-system,system-ui,sans-serif;background:var(--bg);color:#fff;padding:16px 16px 90px}
+h2{font-size:15px;text-transform:uppercase;letter-spacing:.08em;color:#aaa;margin:26px 0 10px}
+.chrome{display:flex;flex-wrap:wrap;gap:8px 16px;align-items:center;background:#000;border:2px dashed #666;border-radius:14px;padding:10px 12px;font-size:14px}
+.chrome .grp{display:flex;gap:4px;align-items:center;flex-wrap:wrap}
+.chrome button{font:inherit;border:0;border-radius:8px;padding:6px 10px;background:#333;color:#fff;cursor:pointer}
+.chrome button.on{background:var(--yellow);color:#000;font-weight:700}
+.chrome input[type=text]{font:inherit;width:150px;border-radius:8px;border:0;padding:6px 8px}
+
+/* fake iPad Home Screen */
+.home{position:relative;border-radius:28px;overflow:hidden;padding:36px 30px 20px;max-width:820px;min-height:560px;display:flex;flex-direction:column}
+.home.light{background:linear-gradient(160deg,#9fd3ff,#f6c7e0 55%,#ffe6a8)}
+.home.dark,.home.tinted{background:linear-gradient(160deg,#0d1b3a,#321b44 55%,#3b2a14)}
+.home.dark::after,.home.tinted::after{content:"";position:absolute;inset:0;background:#0005;pointer-events:none}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,100px);justify-content:space-between;row-gap:28px;position:relative;z-index:1}
+.app{width:100px;display:flex;flex-direction:column;align-items:center;gap:6px}
+.ico{width:76px;height:76px;border-radius:22.5%;overflow:hidden;position:relative;flex:none;box-shadow:0 1px 3px #0003}
+.ico img,.ico svg{width:100%;height:100%;display:block}
+.ico.fake{display:grid;place-items:center;font-size:40px}
+.lbl{width:100px;text-align:center;font-size:12px;line-height:14px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;color:#fff;text-shadow:0 1px 2px #0008}
+.home.light .lbl{color:#fff}
+.dock{margin-top:auto;align-self:center;display:flex;gap:22px;padding:14px 18px;border-radius:30px;background:#ffffff40;backdrop-filter:blur(20px);position:relative;z-index:1}
+.home.dark .dock,.home.tinted .dock{background:#ffffff1c}
+.dock .ico{width:68px;height:68px}
+/* tinted (iPadOS 18): the system turns every icon monochrome and tints it */
+.home.tinted .ico{filter:grayscale(1) contrast(1.2) brightness(.9)}
+.home.tinted .ico::after{content:"";position:absolute;inset:0;background:#ffb04a;mix-blend-mode:multiply}
+.ours{outline:2px dashed #fff8;outline-offset:6px;border-radius:18px}
+
+.row{display:flex;flex-wrap:wrap;gap:22px;align-items:flex-end}
+.size{display:flex;flex-direction:column;align-items:center;gap:6px;font-size:12px;color:#bbb}
+.size .box{position:relative}
+.size img{display:block}
+.safe{position:absolute;inset:10%;border-radius:50%;border:2px dashed #f0f;pointer-events:none}
+.launch{width:210px;height:290px;border-radius:18px;border:6px solid #000;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:12px;font-weight:800}
+.note{color:#aaa;font-size:13px;max-width:820px;line-height:1.45}
+
+/* prototype switcher */
+.switcher{position:fixed;bottom:16px;left:50%;transform:translateX(-50%);display:flex;align-items:center;gap:6px;background:#fff;color:#000;border-radius:999px;padding:6px;box-shadow:0 6px 24px #000a;z-index:9;font:700 15px system-ui}
+.switcher button{width:40px;height:40px;border-radius:50%;border:0;background:#eee;font-size:18px;cursor:pointer}
+.switcher span{padding:0 12px;white-space:nowrap}
+</style>
+</head>
+<body>
+
+<div class="chrome">
+  <b>PROTOTYPE</b>
+  <div class="grp">Name:
+    <span id="names"></span>
+    <input type="text" id="customName" placeholder="type your own">
+  </div>
+  <div class="grp">Mode: <span id="modes"></span></div>
+</div>
+
+<h2>Home Screen, real size</h2>
+<div class="home light" id="home">
+  <div class="grid" id="grid"></div>
+  <div class="dock" id="dock"></div>
+</div>
+<p class="note">Our icon is the dashed one (once in the grid, once in the dock). The label box is 100 pt wide at 12 pt, close to iPadOS; the real cut-off is checked by adding this page to the Home Screen.</p>
+
+<h2>Sizes to ship</h2>
+<div class="row" id="sizes"></div>
+<p class="note">iOS masks the <code>apple-touch-icon</code> into its rounded square itself, so the file is a full square with no transparency (see-through parts turn black). The maskable icon keeps everything inside the pink circle, the 80% safe zone, because Android and other launchers can cut it to a circle.</p>
+
+<h2>Launch screen (background colour + icon)</h2>
+<div class="row" id="launch"></div>
+
+<h2>Try it on the iPad</h2>
+<p class="note">Open this page in Safari on the iPad, pick a variant and a name, then Share → Add to Home Screen. The icon and the name that land on the Home Screen are the current ones. Add two or three to compare them side by side, then delete them.</p>
+
+<div class="switcher">
+  <button id="prev" aria-label="previous">◀</button>
+  <span id="vlabel"></span>
+  <button id="next" aria-label="next">▶</button>
+</div>
+
+<script>
+// Show any script error on the page itself (no dev tools on the iPad).
+const showErr = m => { const d = document.createElement('pre'); d.style.cssText = 'background:#e63946;color:#fff;padding:8px;border-radius:8px;white-space:pre-wrap'; d.textContent = 'Error: ' + m; document.body.prepend(d); };
+addEventListener('error', e => showErr(e.message));
+addEventListener('unhandledrejection', e => showErr(e.reason && e.reason.message || e.reason));
+// ---------- the three icon designs (512×512 SVG, drawn in code) ----------
+// Each variant has a full-bleed background and the art on top, so the maskable
+// version can shrink just the art into the safe zone.
+const K = '#1d1d1f';
+
+const truckArt = () => `
+  <g stroke="${K}" stroke-width="12" stroke-linejoin="round">
+    <rect x="40" y="268" width="130" height="206" rx="44" fill="#2b2d33"/>
+    <rect x="342" y="268" width="130" height="206" rx="44" fill="#2b2d33"/>
+  </g>
+  <g stroke="#55585f" stroke-width="10" stroke-linecap="round">
+    ${[300,334,368,402,436].map(y=>`<line x1="66" y1="${y}" x2="144" y2="${y}"/><line x1="368" y1="${y}" x2="446" y2="${y}"/>`).join('')}
+  </g>
+  <rect x="160" y="330" width="192" height="26" rx="10" fill="#8a8f98" stroke="${K}" stroke-width="10"/>
+  <g stroke="${K}" stroke-width="12" stroke-linejoin="round">
+    <path d="M150 206 L186 104 Q190 94 202 94 L310 94 Q322 94 326 104 L362 206 Z" fill="#e63946"/>
+    <rect x="88" y="196" width="336" height="124" rx="32" fill="#e63946"/>
+    <path d="M182 192 L206 124 L306 124 L330 192 Z" fill="#7cc8ff"/>
+  </g>
+  <path d="M214 132 L236 132 L214 184 L196 184 Z" fill="#fff" opacity=".7"/>
+  <g stroke="${K}" stroke-width="10">
+    <circle cx="146" cy="256" r="28" fill="#fff6b0"/>
+    <circle cx="366" cy="256" r="28" fill="#fff6b0"/>
+    <rect x="204" y="226" width="104" height="62" rx="10" fill="${K}"/>
+  </g>
+  <g stroke="#8a8f98" stroke-width="8"><line x1="230" y1="236" x2="230" y2="278"/><line x1="256" y1="236" x2="256" y2="278"/><line x1="282" y1="236" x2="282" y2="278"/></g>
+  <rect x="100" y="306" width="312" height="30" rx="12" fill="#c9ced6" stroke="${K}" stroke-width="10"/>`;
+
+const rays = (fill) => Array.from({length:12},(_,i)=>{
+  const a0=(i*30-7)*Math.PI/180, a1=(i*30+7)*Math.PI/180, r=520;
+  return `<path d="M256 256 L${256+r*Math.cos(a0)} ${256+r*Math.sin(a0)} L${256+r*Math.cos(a1)} ${256+r*Math.sin(a1)} Z" fill="${fill}"/>`;
+}).join('');
+
+const tireArt = () => {
+  const lugs = Array.from({length:14},(_,i)=>`<rect x="236" y="36" width="40" height="58" rx="8" fill="#2b2d33" stroke="#55585f" stroke-width="6" transform="rotate(${i*360/14} 256 256)"/>`).join('');
+  return `
+  ${lugs}
+  <circle cx="256" cy="256" r="192" fill="#2b2d33" stroke="#55585f" stroke-width="10"/>
+  <circle cx="256" cy="256" r="150" fill="${K}"/>
+  <circle cx="256" cy="256" r="118" fill="#8a8f98"/>
+  <polygon points="256,158 341,207 341,305 256,354 171,305 171,207" fill="#ffc21a" stroke="#7a5200" stroke-width="14" stroke-linejoin="round"/>
+  <circle cx="256" cy="256" r="40" fill="#e0a000" stroke="#7a5200" stroke-width="12"/>
+  <path d="M206 196 L236 180" stroke="#fff6" stroke-width="12" stroke-linecap="round"/>`;
+};
+
+const coinArt = () => `
+  <path d="M0 404 Q128 374 256 392 Q384 410 512 380 L512 512 L0 512 Z" fill="#b5793f"/>
+  <g stroke="${K}" stroke-width="12">
+    <circle cx="128" cy="382" r="82" fill="#2b2d33"/>
+    <circle cx="384" cy="382" r="82" fill="#2b2d33"/>
+  </g>
+  <g fill="#8a8f98" stroke="${K}" stroke-width="8"><circle cx="128" cy="382" r="30"/><circle cx="384" cy="382" r="30"/></g>
+  <g stroke="#55585f" stroke-width="10" stroke-linecap="round">
+    ${[0,45,90,135].map(a=>`<line x1="128" y1="312" x2="128" y2="302" transform="rotate(${a} 128 382)"/><line x1="384" y1="312" x2="384" y2="302" transform="rotate(${a} 384 382)"/>`).join('')}
+  </g>
+  <rect x="150" y="300" width="212" height="20" rx="8" fill="#8a8f98" stroke="${K}" stroke-width="8"/>
+  <circle cx="256" cy="206" r="148" fill="#c9ced6" stroke="${K}" stroke-width="12"/>
+  <circle cx="256" cy="206" r="120" fill="none" stroke="#9aa0a8" stroke-width="8" stroke-dasharray="4 14"/>
+  <text x="256" y="262" text-anchor="middle" font-family="Arial Black,Arial,sans-serif" font-weight="900" font-size="170" fill="#6b717a" stroke="${K}" stroke-width="6">¢</text>
+  <path d="M170 150 Q200 110 250 100" stroke="#fff" stroke-width="14" fill="none" stroke-linecap="round" opacity=".8"/>`;
+
+const VARIANTS = {
+  A: { name: 'Truck head-on', bg: '#ffd23f',
+       back: () => `<rect width="512" height="512" fill="#ffd23f"/>${rays('#ffe070')}`, art: truckArt },
+  B: { name: 'Bolt in a tire', bg: '#1d1d1f',
+       back: () => `<rect width="512" height="512" fill="#23252b"/>${rays('#2d3038')}`, art: tireArt },
+  C: { name: 'Coin on monster tires', bg: '#7cc8ff',
+       back: () => `<rect width="512" height="512" fill="#7cc8ff"/><circle cx="430" cy="80" r="44" fill="#fff3a0"/>`, art: coinArt },
+};
+
+const svgFor = (v, scale = 1) => {
+  const off = 256 * (1 - scale);
+  return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">${v.back()}<g transform="translate(${off} ${off}) scale(${scale})">${v.art()}</g></svg>`;
+};
+
+// Rasterise the SVG to a PNG, as the build would.
+const png = (svg, size) => new Promise(res => {
+  const img = new Image();
+  img.onload = () => {
+    const c = document.createElement('canvas'); c.width = c.height = size;
+    c.getContext('2d').drawImage(img, 0, 0, size, size);
+    res(c.toDataURL('image/png'));
+  };
+  img.src = 'data:image/svg+xml;charset=utf-8,' + encodeURIComponent(svg);
+});
+
+// ---------- state ----------
+const params = new URLSearchParams(location.search);
+const S = {
+  variant: VARIANTS[params.get('variant')] ? params.get('variant') : 'A',
+  name: params.get('name') || 'Truck Money',
+  mode: params.get('mode') || 'light',
+};
+const NAMES = ['Truck Money', 'Truck Garage', 'Monster Money', 'Money Truck', 'Monster Truck Money'];
+const MODES = ['light', 'dark', 'tinted'];
+
+const OTHERS = [
+  ['📷','Camera','#6b6f76,#3a3d42'],['🖼️','Photos','#ffffff,#f1f1f1'],['🎵','Music','#ff5a7a,#e0254d'],
+  ['⏰','Clock','#2b2b2b,#111'],['📝','Notes','#fff7c4,#ffe36b'],['🗺️','Maps','#9be29b,#4fbf6a'],
+  ['📚','Books','#ffb24d,#ff8a00'],['🎨','Draw','#b98cff,#7a4dff'],['☀️','Weather','#63b8ff,#2d7cf0'],
+  ['🧮','Calculator','#4a4a4a,#222'],['⚙️','Settings','#b8bcc4,#8a8f98'],['🧩','Puzzles','#7fe0d0,#1fb5a0'],
+];
+
+const fake = ([e, n, g]) => `<div class="app"><div class="ico fake" style="background:linear-gradient(${g})">${e}</div><div class="lbl">${n}</div></div>`;
+
+function renderControls() {
+  const v = VARIANTS[S.variant];
+  document.getElementById('names').innerHTML = NAMES.map(n => `<button class="${n === S.name ? 'on' : ''}" data-name="${n}">${n}</button>`).join('');
+  document.getElementById('modes').innerHTML = MODES.map(m => `<button class="${m === S.mode ? 'on' : ''}" data-mode="${m}">${m}</button>`).join('');
+  document.getElementById('vlabel').textContent = `${S.variant} (${v.name})`;
+  document.getElementById('home').className = 'home ' + S.mode;
+  try { history.replaceState(null, '', '?' + new URLSearchParams({ variant: S.variant, name: S.name, mode: S.mode })); } catch (e) {}
+}
+
+// If PNG rasterising fails in this browser, fall back to the raw SVG so the page still works.
+const safePng = (svg, size) => Promise.race([
+  png(svg, size),
+  new Promise(res => setTimeout(() => res('data:image/svg+xml;charset=utf-8,' + encodeURIComponent(svg)), 1500)),
+]).catch(() => 'data:image/svg+xml;charset=utf-8,' + encodeURIComponent(svg));
+
+let renderId = 0;
+async function render() {
+  renderControls();
+  const id = ++renderId;
+  const v = VARIANTS[S.variant];
+  const [i180, i192, i512, m512, i40] = await Promise.all([
+    safePng(svgFor(v), 180), safePng(svgFor(v), 192), safePng(svgFor(v), 512), safePng(svgFor(v, .8), 512), safePng(svgFor(v), 40),
+  ]);
+  if (id !== renderId) return;
+
+  // the real thing: what Add to Home Screen picks up
+  document.getElementById('touchIcon').href = i180;
+  document.getElementById('appTitle').content = S.name;
+
+  const ours = (dock) => `<div class="app ours"><div class="ico"><img src="${i180}" alt=""></div>${dock ? '' : `<div class="lbl">${S.name}</div>`}</div>`;
+  const apps = OTHERS.slice(0, 5).map(fake).join('') + ours(false) + OTHERS.slice(5).map(fake).join('');
+  document.getElementById('grid').innerHTML = apps;
+  document.getElementById('dock').innerHTML = [OTHERS[1], OTHERS[2], OTHERS[4]].map(o => fake(o).replace(/<div class="lbl">.*?<\/div>/, '')).join('') + ours(true);
+  document.getElementById('home').className = 'home ' + S.mode;
+
+  document.getElementById('sizes').innerHTML = [
+    [i180, 180, 'apple-touch-icon 180', true], [i192, 96, 'manifest 192 (½ size)'], [i512, 128, 'manifest 512 (¼ size)'],
+    [m512, 128, 'maskable 512 (¼ size)', false, true], [i40, 40, '40 (Spotlight, real size)', true],
+  ].map(([src, w, label, round, safe]) => `<div class="size"><div class="box"><img src="${src}" width="${w}" height="${w}" style="border-radius:${round ? '22.5%' : '0'}">${safe ? '<div class="safe"></div>' : ''}</div>${label}</div>`).join('');
+
+  document.getElementById('launch').innerHTML = [['#23252b', 'app background #23252b'], [v.bg, 'icon colour ' + v.bg]]
+    .map(([c, l]) => `<div class="size"><div class="launch" style="background:${c}"><img src="${i180}" width="96" height="96" style="border-radius:22.5%"></div>${l}</div>`).join('');
+
+}
+
+// ---------- controls ----------
+const keys = Object.keys(VARIANTS);
+const step = d => { S.variant = keys[(keys.indexOf(S.variant) + d + keys.length) % keys.length]; render(); };
+document.getElementById('prev').onclick = () => step(-1);
+document.getElementById('next').onclick = () => step(1);
+addEventListener('keydown', e => {
+  if (e.target.closest('input,textarea,[contenteditable]')) return;
+  if (e.key === 'ArrowLeft') step(-1);
+  if (e.key === 'ArrowRight') step(1);
+});
+document.querySelector('.chrome').addEventListener('click', e => {
+  const b = e.target.closest('button'); if (!b) return;
+  if (b.dataset.name) S.name = b.dataset.name;
+  if (b.dataset.mode) S.mode = b.dataset.mode;
+  render();
+});
+document.getElementById('customName').addEventListener('change', e => { if (e.target.value.trim()) { S.name = e.target.value.trim(); render(); } });
+
+render();
+</script>
+</body>
+</html>
