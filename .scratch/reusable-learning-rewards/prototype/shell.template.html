@@ -1,0 +1,52 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Throwaway learning and reward swap bench</title>
+<style>
+:root { font-family: system-ui, sans-serif; color: #20252b; background: #f3f5f6; accent-color: #1b6660; }
+* { box-sizing: border-box; }
+body { max-width: 1180px; margin: auto; padding: 28px; line-height: 1.5; }
+h1 { font-size: 1.8rem; margin: 0 0 12px; } h2 { font-size: 1.15rem; margin-top: 0; }
+p { max-width: 90ch; } .badge { color: #1b6660; font-weight: 700; }
+section { padding: 22px; background: white; border: 1px solid #d8dfe2; border-radius: 8px; margin: 18px 0; }
+.grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; } .grid section { margin: 0; }
+button { font: inherit; font-size: .9rem; padding: 9px 13px; margin: 4px; border: 1px solid #9fadb2; border-radius: 5px; background: #fff; color: #20252b; cursor: pointer; }
+button:hover { background: #edf6f4; } button[aria-pressed="true"] { background: #1b6660; color: white; border-color: #1b6660; }
+button:focus-visible { outline: 3px solid #1b6660; outline-offset: 3px; }
+button:disabled { opacity: .45; cursor: default; } #steps button { display: block; text-align: left; }
+dl { margin: 0; } dl > div { margin: 10px 0; } dt { font-size: .8rem; font-weight: 700; color: #596971; } dd { margin: 2px 0 0; overflow-wrap: anywhere; }
+#message, #show { padding: 14px; background: #e9f4f1; border-left: 4px solid #1b6660; }
+pre { white-space: pre-wrap; overflow-wrap: anywhere; font-size: .8rem; } summary { cursor: pointer; }
+@media (max-width: 780px) { .grid { grid-template-columns: 1fr; } body { padding: 14px; } }
+</style>
+</head>
+<body>
+<header>
+<p class="badge">Throwaway design evidence. Not a player-facing app.</p>
+<h1>Can learning and rewards vary independently?</h1>
+<p>Run money or one fixed clock question with Garage or repeatable recruitment. Watch learning facts cross into earnings, purchases and presentation without sharing ownership rules. The pairing buttons are a test bench, not a proposed player selector.</p>
+<p>Everything stays in memory, including the fake save store. This file never reads or writes browser storage, imports production modules, requests assets or touches player saves. Close it to discard its state. Open this HTML file directly, with no server or installation.</p>
+<details><summary>What this prototype does not prove</summary>
+<p>Only one question per subject and one five-Bolt Garage Mod are represented. Money progression is a counter and clock progression records outcomes, not a curriculum or a production Mastery implementation. Manual Next and Complete buttons replace the 1,500 ms and 900 ms delays. Teaching, voice, setup, Trophies and celebration art are stubs or absent. Explanation locks and full asynchronous cancellation are not verified here.</p>
+<p>Garage explicitly selects practice-money checkout context 2, separately from its main subject. The Legendary cash hint remains visible, but checkout, top-Rung purchases and the rest of the catalogue are not simulated. The new composition must still implement that capability. Typed Preact presentation, voice manifests, static build selection, offline recorded playback and version 1-4 save compatibility need production evidence. The fake store checks key isolation and coherent current synthetic state only.</p>
+<p>Source files sit beside this HTML. Tests use the already agreed app-coordination and persistence seams. No production extraction or migration has happened. Human review is still required before accepting the candidate design.</p>
+</details>
+</header>
+<section><h2>Choose a composition to inspect</h2><div id="pairings"></div></section>
+<p id="message" role="status" aria-live="polite"></p>
+<div class="grid">
+<section><h2>Current state</h2><dl id="state"></dl></section>
+<section><h2>Question</h2><p id="question"></p><h2>Solved learning facts</h2><pre id="results"></pre><h2>Committed completion response</h2><p id="show"></p></section>
+</div>
+<section><h2>Free play</h2><p>Try actions in any order. Invalid or stale actions should not grant rewards or earnings. Correct answer and Next are separate steps here.</p><div id="actions"></div></section>
+<section><h2>Guided walkthroughs</h2><p>Choosing a tab resets all synthetic compositions to a known state. Free play does not advance the guide; choose the tab again to restart it.</p><div id="tabs" role="group" aria-label="Guided walkthroughs"></div><p id="scenario-description"></p><p id="step-count"></p><div id="steps"></div></section>
+<section><h2>All isolated app states</h2><dl id="other-apps"></dl></section>
+<section><h2>Inspect the evidence</h2><details><summary>Current aggregate</summary><pre id="aggregate"></pre></details><details><summary>This app's last stored synthetic snapshot</summary><pre id="saved"></pre></details><details><summary>Recent fake storage reads and writes</summary><pre id="accesses"></pre></details></section>
+<script>
+{{MODEL}}
+{{VIEW}}
+</script>
+</body>
+</html>

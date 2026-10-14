@@ -26,6 +26,7 @@ A build-ready extraction design for independently reusable learning, earned-curr
 - [04: Legendary learning connection](issues/04-legendary-learning-connection.md#answer) resolved through live discussion. Records the explicit checkout composition rule, captured context, payment and Garage validation, cancellation, behaviour traces and agreed future test seams.
 - [05: Presentation composition](issues/05-presentation-composition.md#answer) resolved through live discussion. Records the candidate reward presentation interface, app-owned screen assembly, Goal and affordability cues, shared celebration sequencing, selected typed voice/assets and separate static build responsibilities, with agreed future test seams.
 - [06: Save compatibility and isolation](issues/06-save-compatibility.md#answer) resolved through live discussion. Records module-state mapping behind the unchanged version-4 money save and storage key, coherent commits and write-failure behavior, legacy recovery and newer-version limits, explicit per-app keys, and synthetic compatibility/isolation evidence at agreed future test seams.
+- [07: Swap prototype](issues/07-swap-prototype.md#answer) resolved with human acceptance of the exercised interfaces, without revisions. Links the throwaway artifact and cross-pairing, purchase, presentation and synthetic isolation evidence, with explicit limits for the production handoff in 08.
 
 ## Not yet specified
 
