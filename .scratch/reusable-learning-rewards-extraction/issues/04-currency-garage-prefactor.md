@@ -4,7 +4,7 @@
 
 **What to build:** Garage purchase and Goal behaviour remains usable while currency arithmetic and Garage-owned rules become independent, testable proposals behind app compatibility adapters. Another reward can use the same currency contract without adopting Garage ownership or fitting.
 
-**Blocked by:** 02, Record the baseline on the target iPad.
+**Blocked by:** 01, Capture automated baseline and synthetic save expectations.
 
 **Status:** ready-for-agent
 

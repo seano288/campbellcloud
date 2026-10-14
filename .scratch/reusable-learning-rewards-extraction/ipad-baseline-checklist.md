@@ -1,6 +1,6 @@
-# Ticket 02 iPad baseline comparison
+# Ticket 18 final iPad comparison
 
-Prepared for [ticket 02](issues/02-ipad-baseline.md), not performed or accepted by an agent. Compare the later candidate using the same cases and retain this record for ticket 18. The [automated baseline](baseline.md) identifies the build, fixtures, checks and known limitations.
+Prepared for [final ticket 18](issues/18-ipad-release-acceptance.md), not performed or accepted by an agent. After implementation and automated verification, use this record for both the retained baseline and the candidate. No observations are required before implementation tickets can proceed. The [automated baseline](baseline.md) identifies the retained build, fixtures, checks and known limitations.
 
 ## Record before testing
 
@@ -10,7 +10,7 @@ Prepared for [ticket 02](issues/02-ipad-baseline.md), not performed or accepted 
 | Date and local timezone | Not recorded |
 | Baseline source commit | `4b392c9f274a95d420424c43f3a571f5240dcb18` |
 | Baseline build artifact identity | Match the fingerprints in `baseline.md`; record any difference |
-| Candidate commit/build for later comparison | Not yet available |
+| Final candidate commit/build from ticket 17 | Not yet available |
 | iPad model | Not recorded |
 | iPadOS and Safari versions | Not recorded |
 | Isolated HTTPS test origin | Not recorded |
@@ -80,13 +80,15 @@ For each discrepancy append: case, fixture, build, orientation, Safari/installed
 
 No discrepancies have been recorded by a human yet.
 
-## Human completion gate
+## Final human completion gate
 
-- [ ] The requesting human or named delegate completed all required baseline observations before extraction.
-- [ ] Every required case has observations or an explicitly recorded baseline limitation, not an assumed pass.
-- [ ] Synthetic state and evidence are retained for ticket 18.
-- [ ] Tester and requesting human explicitly confirm baseline capture is complete, with date and name below.
+Complete this record only as part of ticket 18, after implementation and automated verification.
 
-Confirmation: **Not provided.** Ticket 02 remains incomplete. This document grants no extraction acceptance, production deployment or release approval.
+- [ ] The requesting human or named delegate recorded all required observations on both the retained baseline and the identified candidate.
+- [ ] Every required case has evidence, with baseline limitations distinguished from candidate regressions and approved safety improvements. No unperformed candidate check is assumed passed.
+- [ ] Synthetic state, discrepancy details and evidence pointers are retained in ticket 18.
+- [ ] The responsible human explicitly accepted or rejected the identified candidate, with date and name below.
 
-On 2026-10-14, the requesting human deferred these checks: "skip the manual check ... we'll do it later". No device observations or sign-off were supplied in this session. All unperformed cases and completion gates remain open. Capture this baseline before extraction begins; this deferral does not waive that gate.
+Confirmation: **Not provided.** Final ticket 18 remains incomplete. This document grants no production deployment or release approval and blocks no implementation ticket.
+
+On 2026-10-14, the requesting human first deferred these checks, then directed that all device acceptance move to a single final ticket. The earlier requirement to capture device observations before extraction is superseded. All observations remain unperformed; they will be collected together in ticket 18.

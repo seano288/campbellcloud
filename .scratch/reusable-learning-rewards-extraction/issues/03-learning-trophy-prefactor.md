@@ -4,7 +4,7 @@
 
 **What to build:** Existing practice still updates learning progress and the Trophy Shelf, but the underlying learning and Trophy rules own their state independently of the aggregate save. Transitional app adapters keep current screens and Round scheduling working.
 
-**Blocked by:** 02, Record the baseline on the target iPad.
+**Blocked by:** 01, Capture automated baseline and synthetic save expectations.
 
 **Status:** ready-for-agent
 
@@ -25,7 +25,7 @@
 
 ## Comments
 
-2026-10-14, requesting human: selected "Proceed with extraction" when asked whether issue 03 may begin before the deferred iPad baseline is recorded. This explicitly overrides the baseline-before-extraction gate for issue 03 only. Issue 02 remains incomplete and device acceptance remains required before release.
+2026-10-14, requesting human: selected "Proceed with extraction" under the earlier delivery plan. The later consolidation into final ticket 18 supersedes that issue-03-only exception; no manual acceptance is required by this ticket.
 
 2026-10-14, Devin: Completed against starting commit `c251dde53c352ee7ec7369c12df1f0dd93cafb3b`.
 
@@ -36,4 +36,4 @@
 - Verification used pinned Node `22.23.2`: repeated focused test files and typechecks passed; the final full suite ran once and passed all 488 tests across 16 files. Production build, five offline smoke checks and all 14 isolated synthetic browser journeys passed. The offline smoke check fetches a cached clip; it does not establish audible iPad playback.
 - `/code-review` reviewed the staged changes against the starting commit on separate Standards and Spec axes. Standards found no hard violations and one minor duplicate verdict conversion; Learn and Count now share that conversion, and the reviewer confirmed the fix. Spec found no missing, incorrect or out-of-scope requirement. No review findings remain.
 
-Issue 02 and final human iPad acceptance remain incomplete. No release, deployment or device sign-off is claimed. The pre-existing untracked `.claude/` directory was left untouched.
+No release or deployment is claimed. Manual device evidence is outside this completed implementation ticket and belongs only to final ticket 18. The pre-existing untracked `.claude/` directory was left untouched.

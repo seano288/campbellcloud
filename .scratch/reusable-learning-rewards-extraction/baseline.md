@@ -2,7 +2,7 @@
 
 Captured on 2026-10-14 for [issue 01](issues/01-automated-baseline.md). The production baseline is commit `4b392c9f274a95d420424c43f3a571f5240dcb18`, on `main`. This ticket adds test-only fixtures, browser journeys and this handoff, not an extraction or a production replacement. The untracked `.claude/` directory was already present and is not part of the work.
 
-The authoritative design is the [eight resolved decisions](../reusable-learning-rewards/map.md), especially [save compatibility](../reusable-learning-rewards/issues/06-save-compatibility.md#answer) and [evidence and handoff](../reusable-learning-rewards/issues/08-extraction-evidence-handoff.md#answer). The prototype is not used by these checks.
+The authoritative design is the [eight resolved decisions](../reusable-learning-rewards/map.md), especially [save compatibility](../reusable-learning-rewards/issues/06-save-compatibility.md#answer) and [evidence and handoff](../reusable-learning-rewards/issues/08-extraction-evidence-handoff.md#answer). The prototype is not used by these checks. On 2026-10-14 the requesting human changed the delivery order: all manual device evidence and sign-off now belong to [final ticket 18](issues/18-ipad-release-acceptance.md), after implementation and automated verification. This supersedes earlier baseline-before-extraction gates, not the behaviour or safety requirements.
 
 ## Build identity and reproduction
 
@@ -96,16 +96,16 @@ Passing baseline checks protect normal successful behaviour. They must not requi
 | There is no app-owned terminal-result guard establishing the agreed once-per-Round completion contract. The present UI's normal success lock is not that guarantee. | Ticket 07 and the replacement controller tickets. Ordinary completion is covered; duplicate terminal notifications need later red-green tests. |
 | Saved balance validation uses `Number.isInteger`, not `Number.isSafeInteger`. | Ticket 05, using `unsafe-balance-future`; live currency validation belongs to ticket 04. |
 | End-show navigation is released only on successful resolution, without the future failure cleanup/release guarantee. | Ticket 14. Baseline protects successful ordering/pacing only. |
-| The introduction modal intercepts Home taps. The baseline journey uses a page relaunch before acknowledgement to check that the introduction stays pending. | Record the device observation in ticket 02. Do not invent a reachable navigation action or change the modal here. |
-| In the Count progression scenario at 1024×768, the accumulated celebration lines push the end-overlay Home button outside the viewport. Its real click times out. The baseline uses relaunch for that persistence check; the Learn combined show still exercises Play again. | Record layout/navigation on the actual iPad in ticket 02. No forced or scripted hidden-button clicks and no CSS fix are used to turn this limitation into a pass. |
+| The introduction modal intercepts Home taps. The baseline journey uses a page relaunch before acknowledgement to check that the introduction stays pending. | Record the device observation in final ticket 18. Do not invent a reachable navigation action or change the modal here. |
+| In the Count progression scenario at 1024×768, the accumulated celebration lines push the end-overlay Home button outside the viewport. Its real click times out. The baseline uses relaunch for that persistence check; the Learn combined show still exercises Play again. | Record layout/navigation on the actual iPad in final ticket 18. No forced or scripted hidden-button clicks and no CSS fix are used to turn this limitation into a pass. |
 | Newer saves lose unknown fields on a later accepted save; whole-save writes from multiple tabs remain last-writer-wins. | Accepted limits of decision 06, not defects to fix in this extraction. |
 
-The Show Off component currently exposes a return control, not a photo-save control. Ticket 02 should record what photo saving is actually possible on the installed iPad, including an unavailable workflow, rather than treating a missing control as implemented or adding it here.
+The Show Off component currently exposes a return control, not a photo-save control. Final ticket 18 should record what photo saving is actually possible on the installed iPad, including an unavailable workflow, rather than treating a missing control as implemented or adding it here.
 
 ## Review
 
 `/code-review` compared the proposed commit with `4b392c9` using `git diff --cached 4b392c9`, since the work had not yet been committed. Separate read-only reviewers checked Standards and Spec. Standards found no hard violations and two minor naming concerns; the fixture default is now `DEFAULT_FIT_EXPECTED` and the polling helper is `waitForAssertion`. Spec found no missing requirement, scope creep or incorrect implementation. No review findings remain unresolved. Typechecking and the focused save file passed again after the naming changes, followed by the final full root suite.
 
-## Handoff gate
+## Final device acceptance
 
-Ticket 02 must capture [the device comparison checklist](ipad-baseline-checklist.md) before extraction starts. No iPad observation, deployment, real player save read/write, replacement release or acceptance is claimed here. Tickets 03 onward remain gated by that human baseline. Ticket 18 owns final device comparison and release acceptance.
+Tickets 03 onward may proceed after their automated and implementation dependencies without per-ticket device sign-off. Ticket 02 is superseded. [Final ticket 18](issues/18-ipad-release-acceptance.md) owns all manual baseline observations, candidate comparison and release acceptance after ticket 17's automated gates. Use [the retained comparison checklist](ipad-baseline-checklist.md) and the baseline build identified above for that final pass. No iPad observation, deployment, real player save read/write, replacement release or acceptance is claimed here.

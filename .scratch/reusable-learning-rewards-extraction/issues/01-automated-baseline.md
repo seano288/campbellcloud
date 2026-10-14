@@ -17,15 +17,15 @@
 - [x] Prepare independently specified synthetic version-1/2/3/4, recoverable-corruption and newer-version saves, with fixed supplied dates and expected player state. Do not derive expected fixtures from a future encoder or copy the prototype's synthetic model as production evidence.
 - [x] The current-save expectations include nontrivial learning windows/flags, selected practice, balance, purchased Bodies/Mods/Colours including Legendaries, distinct per-Body fits/Colours/Door Numbers, every Goal kind, Trophy dates/counters and a separate null-Body setup case.
 - [x] Separate preserved behaviour from approved future improvements: coherent commits, scoped cancellation, once-per-Round completion and unsafe saved-balance recovery. Record current limitations without writing regressions that require preserving those defects. Later implementation tickets own their red-green tests.
-- [x] Provide the baseline build identity, synthetic fresh/progressed scenarios and an observable comparison checklist for ticket 02. The checklist covers all human iPad cases in design decision 08, including Show Off, recorded playback, both orientations, installed offline relaunch and update timing.
+- [x] Provide the baseline build identity, reproducible setup and synthetic fresh/progressed scenarios for later comparison.
 - [x] Baseline preparation uses fake storage or isolated browser profiles and synthetic data only. It neither reads nor changes real player saves, deploys a replacement, nor changes production behaviour.
 
 **Out of scope:** Production extraction, fixing future-contract failures, accepting iPad behaviour, deployment, a finished second app or changes to the resolved design tickets.
 
 ## Comments
 
-**2026-10-14, Devin:** Completed. [Baseline record](../baseline.md) pins source commit `4b392c9f274a95d420424c43f3a571f5240dcb18`, build fingerprints, commands, synthetic expectations and current limitations. [The iPad comparison checklist](../ipad-baseline-checklist.md) supplies ticket 02's scenarios and evidence fields; its human observations and confirmation remain unperformed.
+**2026-10-14, Devin:** Completed. [Baseline record](../baseline.md) pins source commit `4b392c9f274a95d420424c43f3a571f5240dcb18`, build fingerprints, commands, synthetic expectations and current limitations. The retained comparison checklist is supporting evidence for the final ticket, not an acceptance requirement here.
 
 Added independently specified synthetic saves, 30 save/storage baseline tests, 13 public-action browser journeys and a synthetic JSON exporter. Typechecking, all 475 root tests, production build, five offline smoke checks and all 13 browser journeys passed using Node `22.23.2`. Existing production tests are unchanged, and the rebuilt production HTML/JS/CSS/service-worker hashes match the captured baseline. CI now includes the browser baseline.
 
-The human approved the fake-storage save seam and isolated browser-action/rendered-effect/saved-state seam before tests were written. `/code-review` found no hard Standards violations and no Spec findings; two minor naming suggestions were addressed. No production behaviour, real player data, deployment or resolved design ticket was changed. Ticket 02 remains the next human gate before extraction.
+The human approved the fake-storage save seam and isolated browser-action/rendered-effect/saved-state seam before tests were written. `/code-review` found no hard Standards violations and no Spec findings; two minor naming suggestions were addressed. No production behaviour, real player data, deployment or resolved design ticket was changed. Implementation depends on this automated baseline, not a separate manual gate. All device comparison and sign-off now belong to final ticket 18.
