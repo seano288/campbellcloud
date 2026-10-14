@@ -24,6 +24,7 @@ A build-ready extraction design for independently reusable learning, earned-curr
 - [02: Learning/Round interface](issues/02-learning-round-interface.md#answer) resolved through live discussion. Records the subject-owned checker and progression, shared lifecycle, cancellation and result facts, with behaviour traces and a minimal non-money example.
 - [03: Currency, purchases and ownership](issues/03-currency-purchases-ownership.md#answer) resolved through live discussion. Records candidate currency and reward-purchase interfaces, combined purchase commits, session-local completion deduplication and agreed future test seams.
 - [04: Legendary learning connection](issues/04-legendary-learning-connection.md#answer) resolved through live discussion. Records the explicit checkout composition rule, captured context, payment and Garage validation, cancellation, behaviour traces and agreed future test seams.
+- [05: Presentation composition](issues/05-presentation-composition.md#answer) resolved through live discussion. Records the candidate reward presentation interface, app-owned screen assembly, Goal and affordability cues, shared celebration sequencing, selected typed voice/assets and separate static build responsibilities, with agreed future test seams.
 
 ## Not yet specified
 
