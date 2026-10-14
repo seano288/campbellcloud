@@ -27,10 +27,11 @@ A build-ready extraction design for independently reusable learning, earned-curr
 - [05: Presentation composition](issues/05-presentation-composition.md#answer) resolved through live discussion. Records the candidate reward presentation interface, app-owned screen assembly, Goal and affordability cues, shared celebration sequencing, selected typed voice/assets and separate static build responsibilities, with agreed future test seams.
 - [06: Save compatibility and isolation](issues/06-save-compatibility.md#answer) resolved through live discussion. Records module-state mapping behind the unchanged version-4 money save and storage key, coherent commits and write-failure behavior, legacy recovery and newer-version limits, explicit per-app keys, and synthetic compatibility/isolation evidence at agreed future test seams.
 - [07: Swap prototype](issues/07-swap-prototype.md#answer) resolved with human acceptance of the exercised interfaces, without revisions. Links the throwaway artifact and cross-pairing, purchase, presentation and synthetic isolation evidence, with explicit limits for the production handoff in 08.
+- [08: Extraction evidence and handoff](issues/08-extraction-evidence-handoff.md#answer) resolved through live discussion. Records required production regression, save, build, offline and human iPad evidence, real-module substitution/build fixtures, and the gated replacement order. The design is ready for a subsequent implementation handoff; no extraction or production release is accepted here.
 
 ## Not yet specified
 
-- Follow-on design choices exposed by the swap prototype. We cannot yet name which proposed contracts will leak money or Garage assumptions, or which competing fixes those failures will require. Turn concrete findings into new decision tickets only if they cannot be settled within the prototype ticket; do not pre-plan speculative fixes.
+- No in-scope design decision remains open after 08's child-status and prototype-fog review. Newly exposed in-scope design conflicts must become decision tickets before the affected extraction work proceeds; future-app curriculum and reward mechanics remain outside this map.
 
 ## Out of scope
 
