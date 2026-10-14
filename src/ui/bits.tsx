@@ -1,6 +1,6 @@
 import type { ComponentChildren } from 'preact';
 import { game } from '../game/store';
-import type { Outcome } from '../save/migrate';
+import type { Outcome } from '../learning/session';
 
 export function Bolt({ size }: { size: number }) {
   return (

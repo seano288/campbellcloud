@@ -1,9 +1,10 @@
 import { describe, expect, it } from 'vitest';
-import type { ModeSave, Outcome } from '../save/migrate';
+import type { Outcome } from '../learning/session';
+import type { ModeProgress } from './state';
 import { recordOutcome, struggling } from './progress';
 
-const mode = (over: Partial<ModeSave> = {}): ModeSave => ({ level: 1, window: [], opened: true, starred: false, introPending: false, fresh: false, ...over });
-const play = (m: ModeSave, outcomes: Outcome[]) => {
+const mode = (over: Partial<ModeProgress> = {}): ModeProgress => ({ level: 1, window: [], opened: true, starred: false, introPending: false, fresh: false, ...over });
+const play = (m: ModeProgress, outcomes: Outcome[]) => {
   const events = [];
   for (const o of outcomes) { const r = recordOutcome(m, o); m = r.mode; if (r.event) events.push(r.event); }
   return { mode: m, events };

@@ -1,6 +1,6 @@
 // The Round's rules against guessing: Bolts come from answers right on the first try, help steps in after two
 // misses on a problem, and a missed problem comes back once, later in the Round.
-import type { Outcome } from '../save/migrate';
+import type { Outcome } from '../learning/session';
 
 export const ROUND_LENGTH = 5;
 /** A Bolt for finishing the Round, however it went. */

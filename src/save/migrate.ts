@@ -4,25 +4,16 @@ import {
   ALL_BUYABLES, ALL_MODS, BODY_IDS, bodyOf, BOUGHT_COLOURS, colourOf, defaultFit, isBodyItem, isColourItem, isDoorNumber, isLegendary, isStarter, SLOTS, STARTER_BODIES,
   type BodyId, type BoughtColour, type Buyable, type Fit, type ModId, type Rung,
 } from '../garage/catalog';
-import { MODE_IDS, type Level, type ModeId } from '../modes/ids';
-import { backfill, dayOf, STEP_IDS, type Earned } from '../trophies/trophies';
+import type { ModeId } from '../modes/ids';
+import { freshLearning, readLearning, type ModeProgress } from '../modes/state';
+import { backfill, readTrophyFields, trophyFields } from '../app/trophies';
+import { freshTrophies } from '../trophies/rules';
+import { dayOf, type Earned } from '../trophies/trophies';
+
+export type { Outcome } from '../learning/session';
+export type { ModeProgress as ModeSave } from '../modes/state';
 
 export const SAVE_VERSION = 4;
-
-/** One problem's result in a mode's 10-problem window. */
-export type Outcome = 'clean' | 'helped' | 'missed';
-
-export interface ModeSave {
-  level: Level;
-  /** The last 10 problems, oldest first. */
-  window: Outcome[];
-  opened: boolean;
-  starred: boolean;
-  /** The introduction card for the new money still has to be shown before the next Round. */
-  introPending: boolean;
-  /** Newly opened: the tile pulses and replays "You opened …!" until he taps it. */
-  fresh: boolean;
-}
 
 export interface Save {
   version: typeof SAVE_VERSION;
@@ -39,7 +30,7 @@ export interface Save {
   colours: BoughtColour[];
   /** The locked Mod, Body or Colour he chose to save toward; null means the cheapest one. */
   goal: Buyable | null;
-  modes: Record<ModeId, ModeSave>;
+  modes: Record<ModeId, ModeProgress>;
   lastMode: ModeId;
   /** The trophy steps he has earned, and the day each was earned. */
   trophies: Earned;
@@ -53,8 +44,6 @@ export interface Save {
   lastDay: string | null;
 }
 
-const freshMode = (id: ModeId): ModeSave => ({ level: 1, window: [], opened: id === 'learn', starred: false, introPending: false, fresh: false });
-
 const freshFitted = () => Object.fromEntries(BODY_IDS.map(b => [b, defaultFit()])) as Record<BodyId, Fit>;
 
 export const freshSave = (): Save => ({
@@ -66,14 +55,8 @@ export const freshSave = (): Save => ({
   unlocked: [],
   colours: [],
   goal: null,
-  modes: Object.fromEntries(MODE_IDS.map(id => [id, freshMode(id)])) as Record<ModeId, ModeSave>,
-  lastMode: 'learn',
-  trophies: {},
-  roundsFinished: 0,
-  currentStreak: 0,
-  bestStreak: 0,
-  daysPlayed: 0,
-  lastDay: null,
+  ...freshLearning(),
+  ...trophyFields(freshTrophies()),
 });
 
 type Raw = Record<string, unknown>;
@@ -89,7 +72,6 @@ const MIGRATIONS: Record<number, (old: Raw) => Raw> = {
 
 const isRecord = (x: unknown): x is Raw => typeof x === 'object' && x !== null && !Array.isArray(x);
 const count = (x: unknown) => (typeof x === 'number' && Number.isInteger(x) && x >= 0 ? x : 0);
-const bool = (x: unknown, fallback: boolean) => (typeof x === 'boolean' ? x : fallback);
 const oneOf = <T extends string, F>(xs: readonly T[], x: unknown, fallback: F): T | F => (xs.includes(x as T) ? (x as T) : fallback);
 
 function readFit(raw: unknown, unlocked: readonly ModId[], colours: readonly BoughtColour[]): Fit {
@@ -104,25 +86,6 @@ function readFit(raw: unknown, unlocked: readonly ModId[], colours: readonly Bou
   return f;
 }
 
-function readTrophies(raw: unknown): Earned {
-  if (!isRecord(raw)) return {};
-  return Object.fromEntries(STEP_IDS.filter(id => typeof raw[id] === 'string').map(id => [id, raw[id]]));
-}
-
-function readMode(id: ModeId, raw: unknown): ModeSave {
-  const f = freshMode(id);
-  if (!isRecord(raw)) return f;
-  const outcomes = ['clean', 'helped', 'missed'] as const;
-  return {
-    level: ([1, 2, 3] as const).find(l => l === raw.level) ?? f.level,
-    window: Array.isArray(raw.window) ? raw.window.filter((o): o is Outcome => outcomes.includes(o as Outcome)).slice(-10) : f.window,
-    opened: bool(raw.opened, f.opened),
-    starred: bool(raw.starred, f.starred),
-    introPending: bool(raw.introPending, f.introPending),
-    fresh: bool(raw.fresh, f.fresh),
-  };
-}
-
 /** `today` dates the trophies an older save is backfilled with. */
 export function migrate(raw: unknown, today = dayOf(new Date())): Save {
   if (!isRecord(raw) || typeof raw.version !== 'number') return freshSave();
@@ -132,7 +95,7 @@ export function migrate(raw: unknown, today = dayOf(new Date())): Save {
     if (!step) return freshSave();
     data = step(data);
   }
-  const modes = isRecord(data.modes) ? data.modes : {};
+  const learning = readLearning({ modes: data.modes, lastMode: data.lastMode });
   const unlocked = Array.isArray(data.unlocked) ? [...new Set(data.unlocked.filter((m): m is ModId => ALL_MODS.includes(m as ModId)))] : [];
   const colours = Array.isArray(data.colours) ? [...new Set(data.colours.filter((c): c is BoughtColour => BOUGHT_COLOURS.includes(c as BoughtColour)))] : [];
   const fitted = isRecord(data.fitted) ? data.fitted : {};
@@ -140,8 +103,8 @@ export function migrate(raw: unknown, today = dayOf(new Date())): Save {
   const ownedBodies = BODY_IDS.filter(b => isStarter(b) || bought.includes(b));
   const body = oneOf(BODY_IDS, data.body, null);
   const goal = oneOf(ALL_BUYABLES, data.goal, null);
-  const modeSaves = Object.fromEntries(MODE_IDS.map(id => [id, readMode(id, modes[id])])) as Record<ModeId, ModeSave>;
-  const trophies = raw.version < 3 ? { ...backfill(modeSaves, today), ...readTrophies(data.trophies) } : readTrophies(data.trophies);
+  const trophyState = readTrophyFields(data);
+  const trophies = raw.version < 3 ? { ...backfill(learning.modes, today), ...trophyState.trophies } : trophyState.trophies;
   const goalLocked = goal && (isBodyItem(goal) ? !ownedBodies.includes(bodyOf(goal)) : isColourItem(goal) ? !colours.includes(colourOf(goal)) : !unlocked.includes(goal) && !isLegendary(goal));
   return {
     version: SAVE_VERSION,
@@ -152,13 +115,8 @@ export function migrate(raw: unknown, today = dayOf(new Date())): Save {
     unlocked,
     colours,
     goal: goalLocked ? goal : null,
-    modes: modeSaves,
-    lastMode: oneOf(MODE_IDS, data.lastMode, 'learn'),
+    ...learning,
+    ...trophyState,
     trophies,
-    roundsFinished: count(data.roundsFinished),
-    currentStreak: count(data.currentStreak),
-    bestStreak: count(data.bestStreak),
-    daysPlayed: count(data.daysPlayed),
-    lastDay: typeof data.lastDay === 'string' ? data.lastDay : null,
   };
 }

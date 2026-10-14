@@ -135,6 +135,36 @@ journey('Learn progression, combined celebrations, Trophies and next-Round intro
   assert.equal((await saved(page)).bolts, 6);
 });
 
+journey('counting Trophies upgrade in place on the rendered shelf', {
+  ...FRESH_EXPECTED, body: 'pickup', currentStreak: 9, bestStreak: 9, roundsFinished: 24,
+  daysPlayed: 4, lastDay: '2026-10-13', trophies: { 'streak:5': '2026-09-01', 'rounds:10': '2026-09-02' },
+}, async page => {
+  await button(page, 'Start').click();
+  await button(page, 'Garage').click();
+  await button(page, 'Trophies').click();
+  assert.equal(await page.locator('.shelf-trophy').count(), 13);
+  assert.equal(await button(page, '5 in a Row').locator('.pips .on').count(), 1);
+  assert.equal(await button(page, '10 Rounds').locator('svg path').first().getAttribute('stroke'), '#cd7f32');
+  await page.locator('.shelf').getByRole('button', { name: 'Close', exact: true }).click();
+  await button(page, 'Home').click();
+  await button(page, 'Learn the Coins').click();
+  for (let i = 0; i < 5; i++) await solve(page, 'learn');
+  const state = await saved(page);
+  assert.deepEqual(state.trophies, { 'streak:5': '2026-09-01', 'rounds:10': '2026-09-02', 'streak:10': TODAY, perfect: TODAY, 'rounds:25': TODAY, 'days:5': TODAY });
+  await page.reload();
+  await button(page, 'Start').click();
+  await button(page, 'Garage').click();
+  await button(page, 'Trophies').click();
+  assert.equal(await page.locator('.shelf-trophy').count(), 13);
+  assert.equal(await page.locator('.shelf-trophy.earned').count(), 4);
+  for (const name of ['10 in a Row', '25 Rounds']) {
+    const trophy = button(page, name);
+    assert.equal(await trophy.locator('.pips .on').count(), 2);
+    assert.equal(await trophy.locator('svg path').first().getAttribute('stroke'), '#d4dae3');
+  }
+  assert.equal(await page.locator('.shelf-trophy:not(.earned) svg path').first().getAttribute('stroke'), '#4b5160');
+});
+
 for (const mode of ['count', 'pay'] as const) {
   const seed: Save = {
     ...FRESH_EXPECTED, body: 'pickup', bolts: 4,

@@ -1,5 +1,6 @@
 import { LEVEL_MONEY } from '../../money/money';
 import { PAY_PHRASES } from '../../voice/phrases';
+import { OPENS_AFTER } from '../chain';
 import type { GameMode } from '../mode';
 import { checkPay, makePay, type PayProblem } from './pay';
 import { PayView } from './PayView';
@@ -8,7 +9,7 @@ export const payMode: GameMode<PayProblem, Parameters<typeof checkPay>[1]> = {
   id: 'pay',
   name: 'Pay the Shop',
   icon: '🛒',
-  opensAfter: 'count',
+  opensAfter: OPENS_AFTER.pay,
   lockedHint: 'Count more cash to open this!',
   levels: LEVEL_MONEY,
   introMoney: { 2: ['q'], 3: ['b1'] }, // no $5 bill: no price needs one

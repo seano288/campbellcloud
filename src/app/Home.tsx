@@ -2,7 +2,7 @@ import { useEffect } from 'preact/hooks';
 import { sBad } from '../audio/sfx';
 import { truckColor } from '../garage/garage';
 import { GoalBar } from '../garage/GoalBar';
-import { game, update } from '../game/store';
+import { game } from '../game/store';
 import type { ModeId } from '../modes/ids';
 import { MODES } from '../modes/modes';
 import { startRound } from '../round/round';
@@ -13,7 +13,6 @@ import { screen } from './nav';
 function tapMode(id: ModeId) {
   const m = game.value.modes[id], mode = MODES.find(x => x.id === id)!;
   if (!m.opened) { sBad(); if (mode.lockedHint) void say(mode.lockedHint); return; }
-  if (m.fresh) update(s => ({ ...s, modes: { ...s.modes, [id]: { ...s.modes[id], fresh: false } } }));
   startRound(id);
 }
 

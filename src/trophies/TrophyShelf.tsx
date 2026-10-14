@@ -24,7 +24,7 @@ export function TrophyShelf({ onClose }: { onClose: () => void }) {
         {KINDS.map(kind => (
           <div key={kind} class="plank">
             {TROPHIES.filter(t => t.kind === kind).map(t => {
-              const n = earnedCount(t, game.value), shown = t.steps[Math.max(n - 1, 0)]!;
+              const n = earnedCount(t, game.value.trophies), shown = t.steps[Math.max(n - 1, 0)]!;
               return (
                 <button key={t.id} class={`shelf-trophy ${n ? 'earned' : ''} ${speaking.value === t.id ? 'speaking' : ''}`}
                   aria-label={n ? trophyName(shown) : trophyHint(shown)} onClick={() => void say({ parts: lines(t, n), light: t.id })}>

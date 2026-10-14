@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { freshSave, type Outcome, type Save } from '../save/migrate';
-import { countAnswer, dayOf, earnedCount, finishRound, reached, stepId, TROPHIES, type TrophyStep } from './trophies';
+import { countAnswer, finishRound, reached } from '../app/trophies';
+import { dayOf, earnedCount, stepId, TROPHIES, type TrophyStep } from './trophies';
 
 const clean5: Outcome[] = ['clean', 'clean', 'clean', 'clean', 'clean'];
 const withMode = (s: Save, mode: 'learn' | 'count' | 'pay', patch: Partial<Save['modes']['learn']>): Save =>
@@ -54,7 +55,7 @@ describe('the trophy checks', () => {
     expect(ids([...streak.steps])).toEqual(['streak:5', 'streak:10', 'streak:20']);
     const rounds = TROPHIES.find(t => t.id === 'rounds')!;
     expect(ids([...rounds.steps])).toEqual(['rounds:10', 'rounds:25', 'rounds:50', 'rounds:100', 'rounds:250']);
-    expect(earnedCount(streak, { ...freshSave(), trophies: { 'streak:5': '2026-09-01', 'streak:10': '2026-09-02' } })).toBe(2);
+    expect(earnedCount(streak, { 'streak:5': '2026-09-01', 'streak:10': '2026-09-02' })).toBe(2);
   });
 });
 

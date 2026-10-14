@@ -8,18 +8,21 @@ import { screen } from '../app/nav';
 import { pick } from '../game/rng';
 import { game, update } from '../game/store';
 import { affordableCount } from '../garage/garage';
-import { opensWith } from '../modes/chain';
+import { applySolved, learningFromSave, withLearning } from '../app/practice';
+import type { Outcome } from '../learning/session';
 import type { Level, ModeId } from '../modes/ids';
-import { modeById, MODES } from '../modes/modes';
-import { recordOutcome, struggling } from '../modes/progress';
-import type { Outcome } from '../save/migrate';
-import { countAnswer, dayOf, finishRound, type TrophyStep } from '../trophies/trophies';
+import type { LearningChange } from '../modes/learning';
+import { modeById } from '../modes/modes';
+import { struggling } from '../modes/progress';
+import { acknowledgeIntro, selectPractice } from '../modes/state';
+import { countAnswer, finishRound } from '../app/trophies';
+import { dayOf, type TrophyStep } from '../trophies/trophies';
 import { toast } from '../ui/toast';
 import { CHEERS } from '../voice/phrases';
 import { hush } from '../voice/say';
 import { boltsFor, ROUND_LENGTH, takeAgain, teachNow, THINK_MS, type Again } from './rules';
 
-export type RoundEvent = { kind: 'levelUp'; mode: ModeId; level: 2 | 3 } | { kind: 'open'; mode: ModeId } | { kind: 'star'; mode: ModeId } | { kind: 'trophy'; step: TrophyStep };
+export type RoundEvent = LearningChange | { kind: 'trophy'; step: TrophyStep };
 
 export interface Round {
   mode: ModeId;
@@ -59,7 +62,7 @@ export function startRound(mode: ModeId) {
   token++;
   hush();
   const m = game.value.modes[mode];
-  update(s => ({ ...s, lastMode: mode }));
+  update(s => withLearning(s, selectPractice(learningFromSave(s), mode)));
   round.value = {
     mode, level: m.level, intro: m.introPending, results: [], problem: modeById(mode).makeProblem(m.level, Math.random), again: false, queue: [],
     key: 0, firstTry: true, helped: false, misses: 0, busy: false, thinking: false, events: [], ended: false, earned: 0, canBuild: false,
@@ -71,7 +74,7 @@ export function startRound(mode: ModeId) {
 export function introDone() {
   const r = round.value;
   if (!r) return;
-  update(s => ({ ...s, modes: { ...s.modes, [r.mode]: { ...s.modes[r.mode], introPending: false } } }));
+  update(s => withLearning(s, acknowledgeIntro(learningFromSave(s), r.mode)));
   set({ intro: false });
 }
 
@@ -90,18 +93,13 @@ function nextProblem() {
 }
 
 function record(r: Round, outcome: Outcome): RoundEvent[] {
-  const { mode, event } = recordOutcome(game.value.modes[r.mode], outcome);
-  const events: RoundEvent[] = [];
-  const opened = event === 'levelUp' ? opensWith(MODES, r.mode, mode.level) : [];
-  if (event === 'levelUp') events.push({ kind: 'levelUp', mode: r.mode, level: mode.level as 2 | 3 });
-  if (event === 'star') events.push({ kind: 'star', mode: r.mode });
-  for (const o of opened) events.push({ kind: 'open', mode: o });
+  let changes: LearningChange[] = [];
   update(s => {
-    const modes = { ...s.modes, [r.mode]: mode };
-    for (const o of opened) modes[o] = { ...modes[o], opened: true, fresh: true };
-    return countAnswer({ ...s, modes }, outcome);
+    const next = applySolved(s, r.mode, { index: r.results.length + 1, outcome, misses: r.misses, helped: r.helped, replay: r.again });
+    changes = next.changes;
+    return next.save;
   });
-  return events;
+  return changes;
 }
 
 export function correct() {

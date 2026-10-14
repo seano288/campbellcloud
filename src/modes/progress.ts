@@ -1,5 +1,6 @@
 // Mastery and Levels: each Game Mode raises its own Level when he shows Mastery.
-import type { ModeSave, Outcome } from '../save/migrate';
+import type { Outcome } from '../learning/session';
+import type { ModeProgress } from './state';
 
 export const WINDOW = 10;
 export const MASTERY = 8; // right on the first try without help, of the last 10
@@ -8,7 +9,7 @@ export const TOP_LEVEL = 3;
 
 export type ProgressEvent = 'levelUp' | 'star';
 
-export function recordOutcome(mode: ModeSave, outcome: Outcome): { mode: ModeSave; event: ProgressEvent | null } {
+export function recordOutcome(mode: ModeProgress, outcome: Outcome): { mode: ModeProgress; event: ProgressEvent | null } {
   const window = [...mode.window, outcome].slice(-WINDOW);
   const mastered = window.filter(o => o === 'clean').length >= MASTERY;
   if (mastered && mode.level < TOP_LEVEL) {
@@ -19,4 +20,4 @@ export function recordOutcome(mode: ModeSave, outcome: Outcome): { mode: ModeSav
 }
 
 /** He has missed a lot lately: help steps in after a single miss. */
-export const struggling = (mode: ModeSave) => mode.window.filter(o => o === 'missed').length >= STRUGGLE;
+export const struggling = (mode: ModeProgress) => mode.window.filter(o => o === 'missed').length >= STRUGGLE;
