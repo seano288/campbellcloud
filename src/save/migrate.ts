@@ -1,9 +1,7 @@
 // Save migrations are pure: raw JSON in, a current Save out. Anything that isn't a save starts fresh,
 // and a save's missing or broken fields fall back to their fresh values.
-import {
-  ALL_BUYABLES, ALL_MODS, BODY_IDS, bodyOf, BOUGHT_COLOURS, colourOf, defaultFit, isBodyItem, isColourItem, isDoorNumber, isLegendary, isStarter, SLOTS, STARTER_BODIES,
-  type BodyId, type BoughtColour, type Buyable, type Fit, type ModId, type Rung,
-} from '../garage/catalog';
+import { STARTER_BODIES, type BodyId, type BoughtColour, type Buyable, type Fit, type ModId } from '../garage/catalog';
+import { freshGarage, readGarage } from '../garage/state';
 import type { ModeId } from '../modes/ids';
 import { freshLearning, readLearning, type ModeProgress } from '../modes/state';
 import { backfill, readTrophyFields, trophyFields } from '../app/trophies';
@@ -44,17 +42,10 @@ export interface Save {
   lastDay: string | null;
 }
 
-const freshFitted = () => Object.fromEntries(BODY_IDS.map(b => [b, defaultFit()])) as Record<BodyId, Fit>;
-
 export const freshSave = (): Save => ({
   version: SAVE_VERSION,
   bolts: 0,
-  body: null,
-  ownedBodies: [...STARTER_BODIES],
-  fitted: freshFitted(),
-  unlocked: [],
-  colours: [],
-  goal: null,
+  ...freshGarage(),
   ...freshLearning(),
   ...trophyFields(freshTrophies()),
 });
@@ -72,19 +63,6 @@ const MIGRATIONS: Record<number, (old: Raw) => Raw> = {
 
 const isRecord = (x: unknown): x is Raw => typeof x === 'object' && x !== null && !Array.isArray(x);
 const count = (x: unknown) => (typeof x === 'number' && Number.isInteger(x) && x >= 0 ? x : 0);
-const oneOf = <T extends string, F>(xs: readonly T[], x: unknown, fallback: F): T | F => (xs.includes(x as T) ? (x as T) : fallback);
-
-function readFit(raw: unknown, unlocked: readonly ModId[], colours: readonly BoughtColour[]): Fit {
-  const f = defaultFit();
-  if (!isRecord(raw)) return f;
-  for (const { id } of SLOTS) {
-    const r = raw[id];
-    if (r === 0 || ((r === 1 || r === 2 || r === 3 || r === 4) && unlocked.includes(`${id}:${r}`))) f[id] = r as Rung;
-  }
-  if (isDoorNumber(raw.doorNumber)) f.doorNumber = raw.doorNumber; // a save from before the Door Number reads as 1
-  if (colours.includes(raw.colour as BoughtColour)) f.colour = raw.colour as BoughtColour;
-  return f;
-}
 
 /** `today` dates the trophies an older save is backfilled with. */
 export function migrate(raw: unknown, today = dayOf(new Date())): Save {
@@ -96,25 +74,13 @@ export function migrate(raw: unknown, today = dayOf(new Date())): Save {
     data = step(data);
   }
   const learning = readLearning({ modes: data.modes, lastMode: data.lastMode });
-  const unlocked = Array.isArray(data.unlocked) ? [...new Set(data.unlocked.filter((m): m is ModId => ALL_MODS.includes(m as ModId)))] : [];
-  const colours = Array.isArray(data.colours) ? [...new Set(data.colours.filter((c): c is BoughtColour => BOUGHT_COLOURS.includes(c as BoughtColour)))] : [];
-  const fitted = isRecord(data.fitted) ? data.fitted : {};
-  const bought = Array.isArray(data.ownedBodies) ? data.ownedBodies.filter((b): b is BodyId => BODY_IDS.includes(b as BodyId)) : [];
-  const ownedBodies = BODY_IDS.filter(b => isStarter(b) || bought.includes(b));
-  const body = oneOf(BODY_IDS, data.body, null);
-  const goal = oneOf(ALL_BUYABLES, data.goal, null);
+  const garage = readGarage(data);
   const trophyState = readTrophyFields(data);
   const trophies = raw.version < 3 ? { ...backfill(learning.modes, today), ...trophyState.trophies } : trophyState.trophies;
-  const goalLocked = goal && (isBodyItem(goal) ? !ownedBodies.includes(bodyOf(goal)) : isColourItem(goal) ? !colours.includes(colourOf(goal)) : !unlocked.includes(goal) && !isLegendary(goal));
   return {
     version: SAVE_VERSION,
     bolts: count(data.bolts),
-    body: body && !ownedBodies.includes(body) ? 'pickup' : body,
-    ownedBodies,
-    fitted: Object.fromEntries(BODY_IDS.map(b => [b, readFit(fitted[b], unlocked, colours)])) as Record<BodyId, Fit>,
-    unlocked,
-    colours,
-    goal: goalLocked ? goal : null,
+    ...garage,
     ...learning,
     ...trophyState,
     trophies,

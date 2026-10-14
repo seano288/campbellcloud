@@ -4,7 +4,7 @@ import { helpPayCoins } from '../modes/pay/pay';
 import { LEVEL_MONEY, MONEY, total } from '../money/money';
 import { amountPieces } from '../voice/amount';
 import { ALL_MODS, BODY_IDS, bodyItem, BOUGHT_BODIES, BOUGHT_COLOURS, colourItem, COLOURS, isLegendary, LEGENDARY, modId, SLOTS } from './catalog';
-import { affordable, forBolts, boltsNeeded, builtEverything, goalOf, nextLegendary, priceOf, unlock, waitingOn, type Wallet } from './economy';
+import { affordable, forBolts, boltsNeeded, builtEverything, goalOf, nextLegendary, priceOf, unlock, waitingOn, type Wallet } from '../app/garageEconomy';
 
 const wallet = (over: Partial<Wallet> = {}): Wallet => ({ bolts: 0, unlocked: [], ownedBodies: ['pickup', 'bigfoot', 'dragster'], colours: [], goal: null, ...over });
 

@@ -7,7 +7,10 @@ import { sBad, sGood } from '../audio/sfx';
 import { screen } from '../app/nav';
 import { pick } from '../game/rng';
 import { game, update } from '../game/store';
-import { affordableCount } from '../garage/garage';
+import { garageFromSave } from '../app/garage';
+import { currencyFromSave, withCurrency } from '../app/currency';
+import { credit } from '../currency/currency';
+import { becameAffordable } from '../garage/economy';
 import { applySolved, learningFromSave, withLearning } from '../app/practice';
 import type { Outcome } from '../learning/session';
 import type { Level, ModeId } from '../modes/ids';
@@ -133,14 +136,16 @@ export function helped() {
 }
 
 function endRound() {
-  const r = round.value!, before = affordableCount();
+  const r = round.value!, reward = garageFromSave(game.value), before = game.value.bolts;
   const earned = boltsFor(r.results);
   let trophies: TrophyStep[] = [];
   update(s => {
+    const currency = credit(currencyFromSave(s), earned);
+    if (currency.kind === 'rejected') throw new Error(currency.reason);
     const done = finishRound(s, r.results, dayOf(new Date()));
     trophies = done.earned;
-    return { ...done.save, bolts: s.bolts + earned };
+    return withCurrency(done.save, currency.state);
   });
   const events = [...r.events, ...trophies.map(step => ({ kind: 'trophy', step }) as const)];
-  set({ ended: true, earned, canBuild: affordableCount() > before, events });
+  set({ ended: true, earned, canBuild: becameAffordable(reward, before, game.value.bolts), events });
 }
