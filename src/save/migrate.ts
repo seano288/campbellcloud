@@ -2,6 +2,7 @@
 // and a save's missing or broken fields fall back to their fresh values.
 import { STARTER_BODIES, type BodyId, type BoughtColour, type Buyable, type Fit, type ModId } from '../garage/catalog';
 import { freshGarage, readGarage } from '../garage/state';
+import { readCurrency } from '../currency/currency';
 import type { ModeId } from '../modes/ids';
 import { freshLearning, readLearning, type ModeProgress } from '../modes/state';
 import { backfill, readTrophyFields, trophyFields } from '../app/trophies';
@@ -62,7 +63,6 @@ const MIGRATIONS: Record<number, (old: Raw) => Raw> = {
 };
 
 const isRecord = (x: unknown): x is Raw => typeof x === 'object' && x !== null && !Array.isArray(x);
-const count = (x: unknown) => (typeof x === 'number' && Number.isInteger(x) && x >= 0 ? x : 0);
 
 /** `today` dates the trophies an older save is backfilled with. */
 export function migrate(raw: unknown, today = dayOf(new Date())): Save {
@@ -79,7 +79,7 @@ export function migrate(raw: unknown, today = dayOf(new Date())): Save {
   const trophies = raw.version < 3 ? { ...backfill(learning.modes, today), ...trophyState.trophies } : trophyState.trophies;
   return {
     version: SAVE_VERSION,
-    bolts: count(data.bolts),
+    bolts: readCurrency(data.bolts).balance,
     ...garage,
     ...learning,
     ...trophyState,

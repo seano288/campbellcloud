@@ -1,5 +1,5 @@
 // Garage actions on the saved game: choosing and buying Bodies, fitting and unlocking Mods and Colours, and the Goal.
-import { game, update } from '../game/store';
+import { game, player, update } from '../game/store';
 import { needBolts, type Phrase } from '../voice/phrases';
 import type { Item } from '../voice/say';
 import {
@@ -11,13 +11,14 @@ import { affordable, boltsNeeded, forBolts, goalOf, nextLegendary as nextLegenda
 import { affordable as affordableItems, type BoltItem } from '../garage/economy';
 import { chooseBody as selectBody, fitColour as applyColour, fitMod, selectGoal, setDoorNumber as numberBody, type GarageState } from '../garage/state';
 import type { Save } from '../save/migrate';
+import { garageFromSave } from './save';
 
-export const garageFromSave = (save: Save): GarageState => ({
-  body: save.body, ownedBodies: save.ownedBodies, fitted: save.fitted, unlocked: save.unlocked, colours: save.colours, goal: save.goal,
-});
+export { garageFromSave } from './save';
 export const withGarage = (save: Save, state: GarageState): Save => ({
   ...save, body: state.body, ownedBodies: state.ownedBodies, fitted: state.fitted, unlocked: state.unlocked, colours: state.colours, goal: state.goal,
 });
+
+const updateGarage = (change: (state: GarageState) => GarageState) => player.commit(state => ({ ...state, garage: change(state.garage) }));
 
 export const currentBody = (): BodyId => game.value.body ?? 'pickup';
 export const currentFit = (): Fit => game.value.fitted[currentBody()] ?? defaultFit();
@@ -36,7 +37,7 @@ export function truckColor() {
 export const owns = (b: BodyId) => game.value.ownedBodies.includes(b);
 
 export function chooseBody(body: BodyId) {
-  update(s => withGarage(s, selectBody(garageFromSave(s), body)));
+  return updateGarage(state => selectBody(state, body));
 }
 
 /** The ◀ ▶ arrows step through the Bodies he owns. */
@@ -46,12 +47,12 @@ export function stepBody(d: 1 | -1) {
 }
 
 function fit(slot: SlotId, rung: Rung) {
-  update(s => withGarage(s, fitMod(garageFromSave(s), slot, rung)));
+  return updateGarage(state => fitMod(state, slot, rung));
 }
 
 /** The number on this Body's door. Changing it is always free. */
 export function setDoorNumber(n: number) {
-  update(s => withGarage(s, numberBody(garageFromSave(s), n)));
+  return updateGarage(state => numberBody(state, n));
 }
 
 export const isUnlocked = (slot: SlotId, rung: Rung) => rung === 0 || game.value.unlocked.includes(modId(slot, rung));
@@ -90,7 +91,7 @@ export const canAffordColour = (c: ColourId) => c !== FREE_COLOUR && canBuyWithB
 
 /** Fit a Colour on this Body. If the fitted Paint covers it, the Paint goes back to Plain so he sees it. */
 function fitColour(c: ColourId) {
-  update(s => withGarage(s, applyColour(garageFromSave(s), c)));
+  return updateGarage(state => applyColour(state, c));
 }
 
 /** Tapping a Colour swatch: an owned one is fitted; an affordable one is bought and fitted; a locked one becomes the Goal. */

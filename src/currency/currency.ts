@@ -2,6 +2,7 @@ import type { RoundResult } from '../learning/session';
 import { isAmount } from './amount';
 
 export interface CurrencyState { readonly balance: number }
+export const readCurrency = (balance: unknown): CurrencyState => ({ balance: isAmount(balance) ? balance : 0 });
 export type CompletedRound = RoundResult & { readonly status: 'completed' };
 export type EarningsPolicy = (result: CompletedRound) => number;
 export type CurrencyFailure = 'invalid-balance' | 'invalid-amount' | 'insufficient-funds' | 'overflow';
