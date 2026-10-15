@@ -6,7 +6,7 @@
 
 **Blocked by:** 16, Prove all four pairings with production modules.
 
-**Status:** ready-for-agent
+**Status:** resolved
 
 **Category:** enhancement
 

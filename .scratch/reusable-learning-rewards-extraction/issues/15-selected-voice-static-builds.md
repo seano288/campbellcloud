@@ -6,7 +6,7 @@
 
 **Blocked by:** 13, Compose setup, reward entry, Goals and Trophy placement; 14, Play celebrations only from committed outcomes.
 
-**Status:** ready-for-agent
+**Status:** resolved
 
 **Category:** enhancement
 

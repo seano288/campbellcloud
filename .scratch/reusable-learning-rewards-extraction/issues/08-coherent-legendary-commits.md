@@ -6,7 +6,7 @@
 
 **Blocked by:** 05, Load and save module-owned state compatibly.
 
-**Status:** ready-for-agent
+**Status:** resolved
 
 **Category:** enhancement
 

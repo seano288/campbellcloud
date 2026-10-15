@@ -6,7 +6,7 @@
 
 **Blocked by:** 11, Move Count the Cash and Pay the Shop onto shared Rounds.
 
-**Status:** ready-for-agent
+**Status:** resolved
 
 **Category:** enhancement
 

@@ -6,7 +6,7 @@
 
 **Blocked by:** 09, Introduce scoped recorded playback.
 
-**Status:** ready-for-agent
+**Status:** resolved
 
 **Category:** enhancement
 

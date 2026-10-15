@@ -6,7 +6,7 @@
 
 **Blocked by:** 01, Capture automated baseline and synthetic save expectations.
 
-**Status:** ready-for-agent
+**Status:** resolved
 
 **Category:** enhancement
 

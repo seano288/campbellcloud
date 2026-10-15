@@ -6,7 +6,7 @@
 
 **Blocked by:** 03, Prefactor learning progression and Trophies without changing play; 04, Prefactor currency, Garage purchases and Goals.
 
-**Status:** ready-for-agent
+**Status:** resolved
 
 **Category:** enhancement
 

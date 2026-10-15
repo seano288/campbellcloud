@@ -6,7 +6,7 @@
 
 **Blocked by:** 06, Commit Bolt purchases and immediate fitting together; 07, Commit answer progress and Round earnings exactly once; 08, Commit Legendary ownership and fitting together.
 
-**Status:** ready-for-agent
+**Status:** resolved
 
 **Category:** enhancement
 

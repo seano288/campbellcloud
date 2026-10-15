@@ -6,7 +6,7 @@
 
 **Blocked by:** 12, Replace Legendary checkout's lifetime and payment wiring.
 
-**Status:** ready-for-agent
+**Status:** resolved
 
 **Category:** enhancement
 

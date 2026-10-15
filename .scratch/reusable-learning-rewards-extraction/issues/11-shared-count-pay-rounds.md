@@ -6,7 +6,7 @@
 
 **Blocked by:** 10, Run Learn the Coins through the shared Round controller.
 
-**Status:** ready-for-agent
+**Status:** resolved
 
 **Category:** enhancement
 

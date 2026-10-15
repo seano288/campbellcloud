@@ -6,7 +6,7 @@
 
 **Blocked by:** 15, Select typed voice collections and static build assets.
 
-**Status:** ready-for-agent
+**Status:** resolved
 
 **Category:** enhancement
 
