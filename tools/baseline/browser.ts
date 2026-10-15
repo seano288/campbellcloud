@@ -6,100 +6,16 @@ import type { Save } from '../../src/save/migrate';
 import { CLIPS } from '../../src/voice/voice.gen';
 import { FRESH_EXPECTED, JOURNEY_SAVES, NOW, PROGRESSED_EXPECTED, STORAGE_KEY, TODAY } from './saves';
 import { observeRecordedVoice } from './voice';
+import { button, correctChoice, fillPayment, finishShow, missChoice, modeName, openSheet, purchaseSnapshots, recordPurchaseSnapshots, saved, solve, waitForAssertion } from './play';
 import { fixtureScript } from './fixture';
 import { presentationJourneys } from './presentationJourneys';
 import { celebrationJourneys } from './celebrationJourneys';
 
 const journeys: { name: string; seed: unknown; run: (page: Page) => Promise<void> }[] = [];
 const journey = (name: string, seed: unknown, run: (page: Page) => Promise<void>) => { journeys.push({ name, seed, run }); };
-const button = (page: Page, name: string) => page.getByRole('button', { name, exact: true });
 
-async function saved(page: Page): Promise<Save> {
-  return page.evaluate(key => {
-    const text = localStorage.getItem(key);
-    if (!text) throw new Error('No saved snapshot');
-    return JSON.parse(text);
-  }, STORAGE_KEY);
-}
-
-async function recordPurchaseSnapshots(page: Page) {
-  await page.evaluate(key => {
-    const write = Storage.prototype.setItem;
-    Storage.prototype.setItem = function (name, value) {
-      if (this === localStorage && name === key) {
-        const snapshots = JSON.parse(sessionStorage.getItem('purchase-snapshots') ?? '[]');
-        snapshots.push(JSON.parse(value));
-        write.call(sessionStorage, 'purchase-snapshots', JSON.stringify(snapshots));
-      }
-      write.call(this, name, value);
-    };
-  }, STORAGE_KEY);
-}
-
-const purchaseSnapshots = (page: Page): Promise<Save[]> =>
-  page.evaluate(() => JSON.parse(sessionStorage.getItem('purchase-snapshots') ?? '[]'));
-
-async function waitForAssertion(check: () => Promise<void>, timeout = 15000) {
-  const until = Date.now() + timeout;
-  for (;;) {
-    try { await check(); return; }
-    catch (error) { if (Date.now() >= until) throw error; }
-    await sleep(50);
-  }
-}
-
-const denominations = [
-  { name: '$5 Bill', cents: 500 }, { name: '$1 Bill', cents: 100 }, { name: 'Quarter', cents: 25 },
-  { name: 'Dime', cents: 10 }, { name: 'Nickel', cents: 5 }, { name: 'Penny', cents: 1 },
-];
-const centsOf = (text: string) => Math.round(Number(text.replace(/[^0-9.]/g, '')) * (text.includes('$') ? 100 : 1));
-const modeName = { learn: 'Learn the Coins', count: 'Count the Cash', pay: 'Pay the Shop' };
 let explanationFixture = '';
 let checkoutFixture = '';
-
-async function correctChoice(page: Page, mode: 'learn' | 'count') {
-  const captions = await page.locator('main .pile .cap').allTextContents();
-  const prompt = await page.locator('main .ask h2').innerText();
-  if (mode === 'count') {
-    const total = captions.reduce((sum, caption) => sum + centsOf(caption.split(' · ')[1]!), 0);
-    const choices = page.locator('main .choice');
-    for (const choice of await choices.all()) if (centsOf(await choice.innerText()) === total) return choice;
-    throw new Error('Rendered Count pile has no matching answer');
-  }
-  if (await page.locator('main .choice').count()) {
-    const [name, value] = captions[0]!.split(' · ');
-    return button(page, prompt.includes('called') ? name! : value!);
-  }
-  if (prompt.startsWith('Tap the ')) return button(page, prompt.slice(8, -1));
-  const names = await page.locator('main .money-btn').evaluateAll(elements => elements.map(el => el.getAttribute('aria-label')));
-  const values = names.map(name => {
-    const money = denominations.find(money => money.name === name);
-    assert.ok(money, `Unknown rendered money ${name}`);
-    return money;
-  }).sort((a, b) => a.cents - b.cents);
-  return button(page, (prompt.includes('MORE') ? values.at(-1) : values[0])!.name);
-}
-
-async function fillPayment(page: Page) {
-  let remaining = centsOf(await page.locator('.price').innerText());
-  for (const { name, cents } of denominations) {
-    const coin = page.locator('.bank').getByRole('button', { name, exact: true });
-    if (!await coin.count()) continue;
-    while (remaining >= cents) { await coin.click(); remaining -= cents; }
-  }
-  assert.equal(remaining, 0);
-}
-
-async function solve(page: Page, mode: 'learn' | 'count' | 'pay') {
-  if (mode === 'pay') { await fillPayment(page); await button(page, 'Pay').click(); }
-  else await (await correctChoice(page, mode)).click();
-  await page.locator('main .right').first().waitFor();
-  await page.waitForFunction(() => document.querySelector('.reward') || !document.querySelector('main .right'));
-}
-
-async function finishShow(page: Page) {
-  await waitForAssertion(async () => assert.doesNotMatch(await page.locator('.reward .btns').getAttribute('class') ?? '', /asleep/), 60000);
-}
 
 journey('fresh setup previews without saving and confirms a starter', null, async page => {
   await button(page, 'Start').click();
@@ -241,19 +157,6 @@ for (const mode of ['count', 'pay'] as const) {
     await page.locator('.home').waitFor();
     assert.deepEqual(await saved(page), state);
   });
-}
-
-async function missChoice(page: Page, mode: 'learn' | 'count') {
-  const right = await correctChoice(page, mode);
-  const answer = await right.getAttribute('aria-label') ?? await right.innerText();
-  for (const choice of await page.locator('main .choice:not(:disabled), main .money-btn:not(.nope)').all()) {
-    if ((await choice.getAttribute('aria-label') ?? await choice.innerText()) === answer) continue;
-    await choice.click();
-    await page.locator('main.thinking').waitFor();
-    await page.locator('main.thinking').waitFor({ state: 'hidden' });
-    return;
-  }
-  throw new Error('No unused wrong choice');
 }
 
 async function learnTask(page: Page) {
@@ -609,12 +512,6 @@ journey('progressed save retains per-Body state on relaunch', PROGRESSED_EXPECTE
   await page.locator('.home').waitFor();
   assert.deepEqual(await saved(page), PROGRESSED_EXPECTED);
 });
-
-async function openSheet(page: Page, name: string) {
-  if (await page.locator('.sheet').count()) await page.locator('.sheet').getByRole('button', { name: 'Close', exact: true }).click();
-  await page.locator(`.hot[aria-label="${name}"]:not(.hidden)`).click();
-  await page.locator('.sheet').waitFor();
-}
 
 journey('Bolt purchase commits once before celebration and reload renders the fitted Mod without replaying it', {
   ...FRESH_EXPECTED, body: 'pickup', bolts: 16, goal: 'tires:2',

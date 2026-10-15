@@ -12,15 +12,42 @@
 
 **Design basis:** Reusable learning, currency, and rewards design decision 08, Extraction evidence and handoff, with the contracts in decisions 01-06. All automated evidence classes are independent obligations.
 
-- [ ] Extend the current offline smoke check using isolated synthetic browser profiles and candidate build outputs. After warm precaching, go offline and exercise practice, manual/automatic help, Round completion, a Bolt purchase, Legendary checkout and save/reload through the real money app.
-- [ ] Prove recorded playback actually starts/completes through the selected audio path, with representative joined amounts/highlighting and interruption after navigation. A fetch of one cached clip is not playback evidence; human audibility/intelligibility still belongs to ticket 18.
-- [ ] Verify selected asset/precache coverage, no unexpected external requests and no browser console errors. Run representative operations against selected alternate fixture builds, retaining the module/build-isolation evidence for all four pairings.
-- [ ] Repeat representative startup, practice, purchase and recorded playback with service workers blocked while online. The app must not depend on service workers; this does not promise a first-ever uncached offline visit.
-- [ ] An available update does not reload or replace an active Round/checkout/show and becomes available on the next launch. Preserve current static deployment/relative-path operation without introducing a runtime server dependency.
-- [ ] Run the full production suite and typechecking with the pinned Node version, all explicitly selected fixture typechecks/tests, candidate production and fixture builds, controlled missing-voice build cases, output/dependency inspection and offline journeys. Extend CI to run the required new evidence without silently skipping undiscovered tests or relaxing security controls.
-- [ ] Trace every required automated row of the approved handoff to passing evidence: pure subject/Round rules; progression; currency/purchases/completion; Legendary checkout; setup/Goals/Trophies; celebrations; saves/isolation; typed voice/selected builds; and offline browser journeys.
-- [ ] Keep independently specified synthetic migration expectations, real production Trophy/shelf coverage, all four real-module pairings and ordered/failed persistence checks. Do not substitute controller tests for browser composition, round-trip-generated expectations for fixtures, or prototype success for production tests.
-- [ ] Review the candidate against project standards and the approved design. Record failures or missing evidence as blockers rather than proceeding with unproved replacements or presenting the pipeline as release sign-off.
-- [ ] Identify the exact candidate commit/build and provide its reproducible isolated test setup and comparison cases for ticket 18. No production deployment, real-save migration or human approval is performed by this ticket.
+- [x] Extend the current offline smoke check using isolated synthetic browser profiles and candidate build outputs. After warm precaching, go offline and exercise practice, manual/automatic help, Round completion, a Bolt purchase, Legendary checkout and save/reload through the real money app.
+- [x] Prove recorded playback actually starts/completes through the selected audio path, with representative joined amounts/highlighting and interruption after navigation. A fetch of one cached clip is not playback evidence; human audibility/intelligibility still belongs to ticket 18.
+- [x] Verify selected asset/precache coverage, no unexpected external requests and no browser console errors. Run representative operations against selected alternate fixture builds, retaining the module/build-isolation evidence for all four pairings.
+- [x] Repeat representative startup, practice, purchase and recorded playback with service workers blocked while online. The app must not depend on service workers; this does not promise a first-ever uncached offline visit.
+- [x] An available update does not reload or replace an active Round/checkout/show and becomes available on the next launch. Preserve current static deployment/relative-path operation without introducing a runtime server dependency.
+- [x] Run the full production suite and typechecking with the pinned Node version, all explicitly selected fixture typechecks/tests, candidate production and fixture builds, controlled missing-voice build cases, output/dependency inspection and offline journeys. Extend CI to run the required new evidence without silently skipping undiscovered tests or relaxing security controls.
+- [x] Trace every required automated row of the approved handoff to passing evidence: pure subject/Round rules; progression; currency/purchases/completion; Legendary checkout; setup/Goals/Trophies; celebrations; saves/isolation; typed voice/selected builds; and offline browser journeys.
+- [x] Keep independently specified synthetic migration expectations, real production Trophy/shelf coverage, all four real-module pairings and ordered/failed persistence checks. Do not substitute controller tests for browser composition, round-trip-generated expectations for fixtures, or prototype success for production tests.
+- [x] Review the candidate against project standards and the approved design. Record failures or missing evidence as blockers rather than proceeding with unproved replacements or presenting the pipeline as release sign-off.
+- [x] Identify the exact candidate commit/build and provide its reproducible isolated test setup and comparison cases for ticket 18. No production deployment, real-save migration or human approval is performed by this ticket.
 
 **Out of scope:** Replacing human iPad acceptance, deploying another app, altering curriculum/content, changing real player storage or auto-accepting release because CI is green.
+
+## Comments
+
+**2026-10-15, Claude:** Automated gates complete. This is not release sign-off; ticket 18 still gates production. The evidence trace, candidate fingerprints, reproduction steps and ticket 18 comparison cases are in [acceptance.md](../acceptance.md).
+
+`check:offline` (`tools/offline-check.ts`) now runs six journeys in fresh synthetic Chromium profiles against private copies of the candidate outputs:
+- The real money app warms its precache, which must match the build exactly. Offline, it plays recorded audio to its end, including Count's joined amounts with the light following the choice being read. It covers manual and automatic help, Round completion, interruption on leaving, a Bolt purchase, a Legendary checkout, reload and relaunch.
+- The three pairing builds play their journeys offline.
+- The money app runs online with service workers blocked.
+- Three updates arrive, one during each of a Round, its celebration and a checkout. None of them reloads the page, and the next launch shows the latest version.
+
+Every journey fails on browser errors, failed loads or external requests. A temporary reload-on-update mutation made the update journey fail mid-Round.
+
+Shared real-UI moves moved from the baseline runner to `tools/baseline/play.ts`. The voice observer now follows reloads. The pairing journey runs offline and pins its clock: its Trophy dates were hard-coded to the day it was written. `tools/discovery.test.ts` fails CI if a test file falls outside the root suite or the explicit pairing script.
+
+`/code-review` against `63c5698`:
+- **Standards:** no hard violations. I took the duplication, naming and shadowing smells (shared watcher and playback check, `VoiceEvent`, `instrument`, named id offset and pairing day). Bolt purchase steps repeated across two journeys, preview-close duplication and a typed pairing-name union were left as minor.
+- **Spec:** I fixed updates during the show and checkout, the highlight order, pairing problem-watching from before warming, a hard-coded balance and the precache-versus-selection trace wording. The candidate hash is recorded after commit, since a commit cannot contain its own hash.
+
+Final run, Node `22.23.2`:
+- Both typechecks passed.
+- The root suite passed 789 tests across 41 files, and the pairing tests 30.
+- All builds passed.
+- 51/51 baseline journeys passed.
+- `check:offline` first failed one journey on a race in the test's own voice event timing. After the fix it passed 6/6 on two consecutive full runs.
+
+No automated blocker remains. The recorded limits (headless Chromium only, simulated update discovery, the existing 1024×768 Home-button overflow, the Pages workflow running fewer gates than CI) are in acceptance.md for ticket 18. Nothing was deployed, and no real save or human approval was touched.
