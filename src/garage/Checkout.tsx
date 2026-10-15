@@ -5,7 +5,7 @@
 import { useState } from 'preact/hooks';
 import { sBad } from '../audio/sfx';
 import type { RoundApi } from '../modes/mode';
-import { PayCounter } from '../modes/pay/PayCounter';
+import { CheckoutCounter } from '../modes/pay/PayCounter';
 import type { Level } from '../modes/ids';
 import { fmt, LEVEL_MONEY } from '../money/money';
 import { Ask } from '../round/Ask';
@@ -33,7 +33,7 @@ export function Checkout({ slot, level, onPaid, onClose }: { slot: SlotId; level
           <button class="x" aria-label="Close" onClick={() => { voice.cancel(); onClose(); }}>✕</button>
           <div class="game">
             <Ask text={`${modName(slot, LEGENDARY)} costs ${fmt(cents)}`} speech={speech} />
-            <PayCounter price={cents} bank={bank} icon={<PartIcon slot={slot} rung={LEGENDARY} />} peekMoney={bank} speech={speech} api={api} onPaid={c => { voice.cancel(); onPaid(c, level); }} />
+            <CheckoutCounter price={cents} bank={bank} icon={<PartIcon slot={slot} rung={LEGENDARY} />} peekMoney={bank} speech={speech} api={api} onPaid={c => { voice.cancel(); onPaid(c, level); }} />
           </div>
         </div>
       </div>

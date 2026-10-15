@@ -32,5 +32,5 @@ export function checkPayInput(p: { price: number }, tray: readonly MoneyKey[], e
   return { kind: 'incorrect', explain: (teach, signal) => explain(result, teach, signal) };
 }
 
-export const paySession = (level: Level, read: () => ModeProgress, explain: PaymentExplanation, prompt: Effect) =>
-  session(level, read, makePay, (p: PayProblem) => p, (p, tray: readonly MoneyKey[]) => checkPayInput(p, tray, explain, prompt));
+export const paySession = (level: Level, read: () => ModeProgress, explain: (problem: PayProblem, ...args: Parameters<PaymentExplanation>) => Promise<void>, prompt: Effect) =>
+  session(level, read, makePay, (p: PayProblem) => p, (p, tray: readonly MoneyKey[]) => checkPayInput(p, tray, (result, teach, signal) => explain(p, result, teach, signal), prompt));

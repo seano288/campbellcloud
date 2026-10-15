@@ -1,6 +1,7 @@
 // The shared interface every Game Mode plugs into. Home tiles and the unlock chain are built from MODES,
 // so adding a mode means adding a module and a list entry.
 import type { ComponentType } from 'preact';
+import type { ProblemViewProps } from '../learning/session';
 import type { Rng } from '../game/rng';
 import type { MoneyKey } from '../money/money';
 import type { Phrase } from '../voice/phrases';
@@ -21,9 +22,7 @@ export interface RoundApi {
   busy: boolean;
 }
 
-export interface ModeViewProps<P> { problem: P; level: Level; api: RoundApi }
-
-export interface GameMode<P = unknown, A = unknown, ViewProps = ModeViewProps<P>> {
+export interface GameMode<P = unknown, A = unknown> {
   id: ModeId;
   name: ModeName;
   icon: string;
@@ -41,5 +40,5 @@ export interface GameMode<P = unknown, A = unknown, ViewProps = ModeViewProps<P>
   /** The same problem again, shuffled, for when it comes back after a miss. */
   replay(problem: P, rng: Rng): P;
   checkAnswer(problem: P, answer: A): boolean;
-  View: ComponentType<ViewProps>;
+  View: ComponentType<ProblemViewProps<P, A> & { level: Level }>;
 }

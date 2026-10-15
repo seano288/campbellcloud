@@ -44,7 +44,7 @@ it('treats an empty Pay tray as a prompt, not a miss, and defers wrong-payment t
   if (short.kind !== 'incorrect') throw new Error('Expected incorrect verdict');
   const signal = new AbortController().signal;
   await short.explain(false, signal);
-  expect(explain).toHaveBeenCalledWith({ kind: 'short', by: 5 }, false, signal);
+  expect(explain).toHaveBeenCalledWith(problem, { kind: 'short', by: 5 }, false, signal);
   expect(state).toEqual(freshLearning());
   expect(session.replay(problem, () => 0.5)).toEqual(problem);
 });

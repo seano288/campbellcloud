@@ -43,6 +43,15 @@ export function createMoneyVoice<B>(controls: PlaybackControls<B>) {
 const voice = createMoneyVoice(recordedAudio);
 export const createVoiceScope = voice.scope;
 
+export function createVoiceTask(parent: AbortSignal) {
+  let current: VoiceScope | null = null;
+  const cancel = () => current?.cancel();
+  return {
+    cancel,
+    start() { cancel(); return current = createVoiceScope(parent); },
+  };
+}
+
 /** The `light` key of the item being read, so its button can light up. */
 export const speaking = voice.speaking;
 

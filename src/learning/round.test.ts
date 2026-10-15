@@ -2,6 +2,10 @@ import { afterEach, beforeEach, expect, it, vi } from 'vitest';
 import { nonMoneySession } from './nonMoney.fixture';
 import { createRound } from './round';
 import type { LearningSession, RoundResult, SolvedProblem } from './session';
+import { seeded } from '../game/rng';
+import { countSession, paySession } from '../modes/session';
+import { freshLearning } from '../modes/state';
+import { helpPayCoins } from '../modes/pay/pay';
 
 beforeEach(() => vi.useFakeTimers());
 afterEach(() => vi.useRealTimers());
@@ -335,4 +339,33 @@ it('reports completion only once when its terminal callback immediately leaves',
   expect(terminal).toHaveBeenCalledOnce();
   expect(terminal.mock.calls[0]![0].status).toBe('completed');
   expect(controller.display.value.phase).toBe('completed');
+});
+
+it.each([
+  { mode: 'count', failure: 'throw' }, { mode: 'count', failure: 'reject' },
+  { mode: 'pay', failure: 'throw' }, { mode: 'pay', failure: 'reject' },
+] as const)('releases a $mode explanation $failure through the shared thinking lifecycle without losing its miss', async ({ mode, failure }) => {
+  const learning = freshLearning(), solved = vi.fn(), interrupt = vi.fn();
+  const explain = () => {
+    if (failure === 'throw') throw new Error('Explanation failed');
+    return Promise.reject(new Error('Explanation failed'));
+  };
+  async function exercise<P, A>(session: LearningSession<P, A>, wrong: (p: P) => A, right: (p: P) => A) {
+    const controller = createRound({ roundId: mode, session, rng: seeded(11), interrupt, solved, terminal: vi.fn() });
+    const { actions, problem } = controller.display.value.current;
+    expect(actions.submit(wrong(problem))).toBe('incorrect');
+    expect(controller.display.value.phase).toBe('explaining');
+    actions.help(async () => {});
+    expect(actions.submit(right(problem))).toBe('ignored');
+    await vi.advanceTimersByTimeAsync(0);
+    expect(controller.display.value.phase).toBe('thinking');
+    await vi.advanceTimersByTimeAsync(1499);
+    expect(actions.submit(right(problem))).toBe('ignored');
+    await vi.advanceTimersByTimeAsync(1);
+    expect(actions.submit(right(problem))).toBe('correct');
+    expect(solved).toHaveBeenCalledExactlyOnceWith(mode, { index: 1, outcome: 'missed', misses: 1, helped: true, replay: false });
+    controller.leave();
+  }
+  if (mode === 'count') await exercise(countSession(1, () => learning.modes.count, explain), p => p.choices.find(c => c !== p.total)!, p => p.total);
+  else await exercise(paySession(1, () => learning.modes.pay, explain, async () => {}), () => ['p'] as const, p => helpPayCoins(p.price, p.bank));
 });

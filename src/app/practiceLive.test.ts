@@ -1,6 +1,8 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { freshSave, type Save } from '../save/migrate';
 import { MONEY_SAVE_KEY } from './save';
+import { helpPayCoins } from '../modes/pay/pay';
+import type { Round } from '../round/round';
 
 let stored: string;
 const write = vi.fn((_key: string, text: string) => { stored = text; });
@@ -31,20 +33,91 @@ async function launch() {
 
 const snapshot = (): Save => JSON.parse(stored);
 
+function learnRound(app: Awaited<ReturnType<typeof launch>>) {
+  const r = app.round.value;
+  if (!r || r.mode !== 'learn') throw new Error('Expected Learn');
+  return r;
+}
+
+function moneyRound(app: Awaited<ReturnType<typeof launch>>) {
+  const r = app.round.value;
+  if (!r || r.mode === 'learn') throw new Error('Expected Count or Pay');
+  return r;
+}
+
+function solveMoney(r: Exclude<Round, { mode: 'learn' }>) {
+  return r.mode === 'count'
+    ? r.shared.current.actions.submit(r.shared.current.problem.total)
+    : r.shared.current.actions.submit(helpPayCoins(r.shared.current.problem.price, r.shared.current.problem.bank));
+}
+
+function missMoney(r: Exclude<Round, { mode: 'learn' }>) {
+  if (r.mode === 'pay') return r.shared.current.actions.submit(['p']);
+  const current = r.shared.current;
+  return current.actions.submit(current.problem.choices.find(c => c !== current.problem.total)!);
+}
+
+function seedMoney(mode: 'count' | 'pay', progress: Partial<Save['modes']['count']> = {}) {
+  const initial = freshSave();
+  stored = JSON.stringify({
+    ...initial, body: 'pickup', currentStreak: 7, bestStreak: 7,
+    modes: { ...initial.modes, [mode]: { ...initial.modes[mode], opened: true, ...progress } },
+  });
+}
+
 describe('live practice coordination', () => {
-  it('publishes Learn with bound subject actions from its first display, without a legacy writer', async () => {
+  it('runs Pay through its subject checker, prompting for an empty tray without marking a miss or help', async () => {
+    const app = await launch();
+    app.startRound('pay');
+    const r = app.round.value!;
+    expect(r.shared?.phase).toBe('answering');
+    if (r.mode !== 'pay' || !r.shared) throw new Error('Expected shared Pay');
+    const { actions, problem } = r.shared.current;
+    expect(actions.submit([])).toBe('not-an-answer');
+    expect(actions.busy).toBe(false);
+    expect(app.game.value.currentStreak).toBe(7);
+    expect(app.game.value.modes.pay.window).toEqual([]);
+    expect(actions.submit(helpPayCoins(problem.price, problem.bank))).toBe('correct');
+    expect(app.round.value?.shared?.results).toEqual([{ index: 1, outcome: 'clean', misses: 0, helped: false, replay: false }]);
+    app.leaveRound();
+    await vi.advanceTimersByTimeAsync(5000);
+    expect(snapshot().modes.pay.window).toEqual(['clean']);
+    expect(snapshot()).toMatchObject({ bolts: 0, roundsFinished: 0 });
+  });
+
+  it('runs Count through bound subject actions and commits its answer before the success delay', async () => {
+    const app = await launch();
+    app.startRound('count');
+    const r = app.round.value!;
+    expect(r.shared?.phase).toBe('answering');
+    if (r.mode !== 'count' || !r.shared) throw new Error('Expected shared Count');
+    const current = r.shared.current;
+    expect(current.actions.submit(current.problem.total)).toBe('correct');
+    expect(app.game.value.modes.count.window).toEqual(['clean']);
+    expect(app.game.value.modes.learn.window).toEqual([]);
+    expect(app.game.value).toMatchObject({ currentStreak: 8, bolts: 0, roundsFinished: 0 });
+    expect(app.round.value?.shared?.phase).toBe('success');
+    app.leaveRound();
+    await vi.advanceTimersByTimeAsync(5000);
+    expect(snapshot().modes.count.window).toEqual(['clean']);
+    expect(snapshot()).toMatchObject({ bolts: 0, roundsFinished: 0 });
+  });
+
+  it('accepts a bound Learn answer from the first published display exactly once', async () => {
     const app = await launch();
     let attempted = false;
     const stop = app.round.subscribe(r => {
-      if (!r || attempted) return;
+      if (!r || r.mode !== 'learn' || attempted) return;
       attempted = true;
-      app.correct(r.roundId, r.key);
-      app.helped(r.roundId, r.key);
+      const current = r.shared.current;
+      current.actions.submit(current.problem.target);
+      current.actions.submit(current.problem.target);
+      current.actions.help(async () => {});
     });
     app.startRound('learn');
-    expect(app.round.value?.shared?.phase).toBe('answering');
-    expect(app.game.value.modes.learn.window).toEqual([]);
-    expect(app.game.value.currentStreak).toBe(7);
+    expect(app.round.value?.shared?.phase).toBe('success');
+    expect(app.game.value.modes.learn.window).toEqual(['clean']);
+    expect(app.game.value.currentStreak).toBe(8);
     stop();
     app.leaveRound();
   });
@@ -52,7 +125,7 @@ describe('live practice coordination', () => {
   it.each(['explaining', 'success'])('keeps accepted answer progress when navigation reacts to %s', async phase => {
     const app = await launch();
     app.startRound('learn');
-    const current = app.round.value!.shared!.current;
+    const current = learnRound(app).shared.current;
     const stop = app.round.subscribe(r => {
       if (r?.shared?.phase === phase) app.leaveRound();
     });
@@ -71,7 +144,7 @@ describe('live practice coordination', () => {
       if (r?.shared?.phase === 'completed') app.leaveRound();
     });
     for (let index = 0; index < 5; index++) {
-      const current = app.round.value!.shared!.current;
+      const current = learnRound(app).shared.current;
       current.actions.submit(current.problem.target);
       if (index < 4) await vi.advanceTimersByTimeAsync(1500);
     }
@@ -90,7 +163,7 @@ describe('live practice coordination', () => {
     const app = await launch();
     app.startRound('learn');
     for (let index = 0; index < 5; index++) {
-      const r = app.round.value!, current = r.shared!.current;
+      const r = learnRound(app), current = r.shared.current;
       expect(r.level).toBe(1);
       expect(['p', 'n', 'd']).toContain(current.problem.target);
       expect('choices' in current.problem ? current.problem.choices : current.problem.options).not.toContain('q');
@@ -138,7 +211,7 @@ describe('live practice coordination', () => {
     } });
     const app = await launch();
     app.startRound('learn');
-    const first = app.round.value!.shared!.current;
+    const first = learnRound(app).shared.current;
     first.actions.submit(first.problem.target === 'p' ? 'n' : 'p');
     expect(app.game.value.currentStreak).toBe(0);
     expect(app.game.value.modes.learn.window).toHaveLength(4);
@@ -146,7 +219,7 @@ describe('live practice coordination', () => {
     first.actions.submit(first.problem.target);
     expect(app.round.value?.shared?.results).toEqual([{ index: 1, outcome: 'missed', misses: 1, helped: false, replay: false }]);
     await vi.advanceTimersByTimeAsync(1500);
-    const second = app.round.value!.shared!.current;
+    const second = learnRound(app).shared.current;
     second.actions.submit(second.problem.target === 'p' ? 'n' : 'p');
     await vi.advanceTimersByTimeAsync(1500);
     second.actions.submit(second.problem.target);
@@ -161,12 +234,8 @@ describe('live practice coordination', () => {
     const app = await launch();
     app.startRound('learn');
     for (let index = 0; index < 5; index++) {
-      const r = app.round.value!;
+      const r = learnRound(app);
       const current = r.shared!.current;
-      const before = app.player.state.value;
-      app.correct(r.roundId, r.key);
-      app.helped(r.roundId, r.key);
-      expect(app.player.state.value).toBe(before);
       current.actions.submit(current.problem.target);
       current.actions.submit(current.problem.target);
       current.actions.help(async () => {});
@@ -206,7 +275,7 @@ describe('live practice coordination', () => {
     const random = vi.spyOn(Math, 'random').mockReturnValue(0.2);
     const app = await launch();
     app.startRound('learn');
-    const first = app.round.value!.shared!.current;
+    const first = learnRound(app).shared.current;
     first.actions.submit(first.problem.target === 'p' ? 'n' : 'p');
     await vi.advanceTimersByTimeAsync(0);
     const oldRequests = [...pending];
@@ -214,7 +283,7 @@ describe('live practice coordination', () => {
     app.leaveRound();
     random.mockReturnValue(0.6);
     app.startRound('learn');
-    const replacement = app.round.value!.shared!.current;
+    const replacement = learnRound(app).shared.current;
     replacement.actions.submit(replacement.problem.target === 'p' ? 'n' : 'p');
     const before = app.player.state.value;
     for (const reject of oldRequests) reject(new Error('Old audio unavailable'));
@@ -230,7 +299,7 @@ describe('live practice coordination', () => {
   it('ignores solved and help callbacks from a replaced Round', async () => {
     const app = await launch();
     app.startRound('learn');
-    const first = app.round.value!;
+    const first = learnRound(app);
     const oldCorrect = () => first.shared!.current.actions.submit(first.shared!.current.problem.target);
     const oldHelp = () => first.shared!.current.actions.help(async () => {});
     app.startRound('learn');
@@ -245,5 +314,159 @@ describe('live practice coordination', () => {
     await vi.advanceTimersByTimeAsync(2000);
     expect(write).not.toHaveBeenCalled();
     expect(snapshot()).toMatchObject({ currentStreak: 7, bolts: 0, roundsFinished: 0 });
+  });
+
+  describe.each(['count', 'pay'] as const)('%s shared Rounds', mode => {
+    it.each([{ clean: 5, bolts: 6 }, { clean: 2, bolts: 3 }, { clean: 0, bolts: 1 }])('credits $bolts Bolts for $clean clean answers exactly once', async ({ clean, bolts }) => {
+      seedMoney(mode);
+      const app = await launch();
+      app.startRound(mode);
+      for (let index = 0; index < 5; index++) {
+        const r = moneyRound(app);
+        if (index >= clean) r.shared.current.actions.help(async () => {});
+        expect(solveMoney(r)).toBe('correct');
+        expect(solveMoney(r)).toBe('ignored');
+        if (index < 4) await vi.advanceTimersByTimeAsync(1500);
+      }
+      expect(app.game.value).toMatchObject({ bolts: 0, roundsFinished: 0 });
+      await vi.advanceTimersByTimeAsync(900);
+      expect(app.game.value).toMatchObject({ bolts, roundsFinished: 1, daysPlayed: 1 });
+      expect(app.game.value.modes[mode].window).toEqual([...Array(clean).fill('clean'), ...Array(5 - clean).fill('helped')]);
+      expect(app.game.value.modes[mode === 'count' ? 'pay' : 'count'].window).toEqual([]);
+      expect(app.game.value.trophies).toEqual(clean === 5 ? {
+        'streak:5': '2026-10-14', 'streak:10': '2026-10-14', perfect: '2026-10-14',
+      } : { 'streak:5': '2026-10-14' });
+      const before = app.player.state.value;
+      moneyRound(app).shared.current.actions.help(async () => { throw new Error('stale help'); });
+      expect(solveMoney(moneyRound(app))).toBe('ignored');
+      app.leaveRound();
+      await vi.advanceTimersByTimeAsync(5000);
+      expect(app.player.state.value).toBe(before);
+      expect(snapshot()).toMatchObject({ bolts, roundsFinished: 1 });
+    });
+
+    it('keeps five answers but earns nothing when leaving during the final delay', async () => {
+      seedMoney(mode);
+      const app = await launch();
+      app.startRound(mode);
+      for (let index = 0; index < 5; index++) {
+        solveMoney(moneyRound(app));
+        if (index < 4) await vi.advanceTimersByTimeAsync(1500);
+      }
+      const old = moneyRound(app);
+      await vi.advanceTimersByTimeAsync(899);
+      app.leaveRound();
+      app.startRound(mode);
+      expect(solveMoney(old)).toBe('ignored');
+      await vi.advanceTimersByTimeAsync(5000);
+      expect(moneyRound(app).shared.answered).toBe(0);
+      expect(snapshot().modes[mode].window).toEqual(Array(5).fill('clean'));
+      expect(snapshot()).toMatchObject({ bolts: 0, roundsFinished: 0, daysPlayed: 0, trophies: {} });
+      app.leaveRound();
+    });
+
+    it.each([1, 3] as const)('captures Level %i generation while saving a Level increase or star', async level => {
+      seedMoney(mode, { level, window: Array(7).fill('clean'), fresh: true });
+      const app = await launch();
+      app.startRound(mode);
+      expect(app.game.value.modes[mode].fresh).toBe(false);
+      for (let index = 0; index < 5; index++) {
+        const r = moneyRound(app);
+        expect(r.level).toBe(level);
+        if (level === 1) {
+          if (r.mode === 'count') expect(r.shared.current.problem.pile.every(k => ['d', 'n', 'p'].includes(k))).toBe(true);
+          else {
+            expect(r.shared.current.problem.price).toBeLessThanOrEqual(25);
+            expect(r.shared.current.problem.bank).toEqual(['d', 'n', 'p']);
+          }
+        }
+        solveMoney(r);
+        expect(app.game.value.modes[mode]).toMatchObject(level === 1 ? { level: 2, introPending: true } : { level: 3, starred: true });
+        if (index < 4) await vi.advanceTimersByTimeAsync(1500);
+      }
+      await vi.advanceTimersByTimeAsync(900);
+      expect(app.game.value.trophies).toHaveProperty(`${mode}:${level === 1 ? 2 : 'star'}`, '2026-10-14');
+      if (mode === 'count' && level === 1) expect(app.game.value.modes.pay).toMatchObject({ opened: true, fresh: true });
+      app.leaveRound();
+    });
+
+    it('scopes introduction acknowledgement to its active Round and leaves pending state intact', async () => {
+      seedMoney(mode, { level: 2, introPending: true });
+      const app = await launch();
+      app.startRound(mode);
+      const old = moneyRound(app).shared.introduction!;
+      expect(solveMoney(moneyRound(app))).toBe('ignored');
+      app.startRound(mode);
+      old.acknowledge();
+      expect(old.signal.aborted).toBe(true);
+      expect(app.game.value.modes[mode].introPending).toBe(true);
+      const current = moneyRound(app).shared.introduction!;
+      current.acknowledge();
+      current.acknowledge();
+      expect(app.game.value.modes[mode].introPending).toBe(false);
+      expect(moneyRound(app).shared.phase).toBe('answering');
+      app.leaveRound();
+    });
+
+    it('uses current Mastery for early help and replays a miss after an intervening answer with fresh actions', async () => {
+      seedMoney(mode, { window: Array(4).fill('missed') });
+      const app = await launch();
+      app.startRound(mode);
+      const first = moneyRound(app);
+      expect(missMoney(first)).toBe('incorrect');
+      expect(solveMoney(first)).toBe('ignored');
+      expect(app.game.value.currentStreak).toBe(0);
+      expect(app.game.value.modes[mode].window).toHaveLength(4);
+      await vi.advanceTimersByTimeAsync(1500);
+      expect(solveMoney(first)).toBe('correct');
+      expect(moneyRound(app).shared.results).toEqual([{ index: 1, outcome: 'missed', misses: 1, helped: false, replay: false }]);
+      await vi.advanceTimersByTimeAsync(1500);
+      const second = moneyRound(app);
+      expect(missMoney(second)).toBe('incorrect');
+      await vi.advanceTimersByTimeAsync(10000);
+      expect(solveMoney(second)).toBe('correct');
+      expect(moneyRound(app).shared.results.at(-1)).toEqual({ index: 2, outcome: 'missed', misses: 1, helped: true, replay: false });
+      await vi.advanceTimersByTimeAsync(1500);
+      const replay = moneyRound(app);
+      if (replay.mode === 'count' && first.mode === 'count') {
+        expect(replay.shared.current.problem.pile).toEqual(first.shared.current.problem.pile);
+        expect(replay.shared.current.problem.total).toBe(first.shared.current.problem.total);
+        expect([...replay.shared.current.problem.choices].sort()).toEqual([...first.shared.current.problem.choices].sort());
+      } else expect(replay.shared.current.problem).toEqual(first.shared.current.problem);
+      expect(replay.shared.current.actions).not.toBe(first.shared.current.actions);
+      expect(solveMoney(first)).toBe('ignored');
+      expect(solveMoney(replay)).toBe('correct');
+      expect(moneyRound(app).shared.results.at(-1)).toEqual({ index: 3, outcome: 'clean', misses: 0, helped: false, replay: true });
+      app.leaveRound();
+      await vi.advanceTimersByTimeAsync(5000);
+      expect(snapshot().modes[mode].window).toEqual(['missed', 'missed', 'missed', 'missed', 'missed', 'missed', 'clean']);
+      expect(snapshot()).toMatchObject({ bolts: 0, roundsFinished: 0 });
+    });
+
+    it('cancels held explanations and ignores stale answers and help after replacement', async () => {
+      seedMoney(mode);
+      const requests: ((error: Error) => void)[] = [];
+      vi.stubGlobal('fetch', () => new Promise((_resolve, reject) => { requests.push(reject); }));
+      const app = await launch();
+      app.startRound(mode);
+      const first = moneyRound(app);
+      missMoney(first);
+      await vi.advanceTimersByTimeAsync(0);
+      const oldRequests = [...requests];
+      expect(oldRequests.length).toBeGreaterThan(0);
+      app.startRound(mode === 'count' ? 'pay' : 'count');
+      missMoney(moneyRound(app));
+      const before = app.player.state.value;
+      for (const reject of oldRequests) reject(new Error('Old recording unavailable'));
+      first.shared.current.actions.help(async () => { throw new Error('stale help'); });
+      await vi.advanceTimersByTimeAsync(5000);
+      expect(first.shared.current.signal.aborted).toBe(true);
+      expect(solveMoney(first)).toBe('ignored');
+      expect(solveMoney(moneyRound(app))).toBe('ignored');
+      expect(moneyRound(app).shared.phase).toBe('explaining');
+      expect(app.player.state.value).toBe(before);
+      expect(snapshot()).toMatchObject({ bolts: 0, roundsFinished: 0, currentStreak: 0 });
+      app.leaveRound();
+    });
   });
 });

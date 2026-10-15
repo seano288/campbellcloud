@@ -3,14 +3,15 @@
 import type { ComponentChildren } from 'preact';
 import { useState } from 'preact/hooks';
 import { sClink } from '../../audio/sfx';
+import type { ProblemActions } from '../../learning/session';
 import { biggestFirst, fmt, MONEY, total, type MoneyKey } from '../../money/money';
 import { PeekCard } from '../../round/PeekCard';
 import { Money } from '../../ui/Money';
-import { toast } from '../../ui/toast';
-import { useVoice, useVoiceTask } from '../../voice/context';
+import { useVoice, useVoiceScope } from '../../voice/context';
 import type { Item } from '../../voice/say';
 import type { RoundApi } from '../mode';
-import { checkPay, helpPayCoins } from './pay';
+import { checkPayInput } from '../session';
+import { explainPay, helpPay, payment, promptPay } from './feedback';
 
 const MAX_TRAY = 12; // Help me pay needs at most 8
 
@@ -22,68 +23,67 @@ export interface PayCounterProps {
   /** The money 👀 shows, and what's said again after it. */
   peekMoney: readonly MoneyKey[];
   speech: Item[];
+  actions: ProblemActions<readonly MoneyKey[]>;
+  signal: AbortSignal;
+}
+
+export interface CheckoutCounterProps extends Omit<PayCounterProps, 'actions' | 'signal'> {
   api: RoundApi;
   /** Told what was in the tray when he paid exactly, before api.correct(). */
   onPaid?: (cents: number) => void;
 }
 
-export function PayCounter({ price, bank, icon, peekMoney, speech, api, onPaid }: PayCounterProps) {
+export function CheckoutCounter({ api, onPaid, ...props }: CheckoutCounterProps) {
+  const voice = useVoiceScope();
+  const actions: ProblemActions<readonly MoneyKey[]> = {
+    get busy() { return api.busy || !voice.active; },
+    submit(tray) {
+      if (actions.busy) return 'ignored';
+      const verdict = checkPayInput(props, tray, (result, teach, signal) => explainPay(props, result, teach, signal), promptPay);
+      if (verdict.kind === 'correct') { onPaid?.(total(tray)); api.correct(); }
+      if (verdict.kind === 'incorrect') api.miss(teach => verdict.explain(teach, voice.signal));
+      if (verdict.kind === 'not-an-answer') void verdict.prompt?.(voice.signal);
+      return verdict.kind;
+    },
+    help(run) { if (voice.active) { api.helped(); void run(voice.signal); } },
+  };
+  return <PayCounter {...props} actions={actions} signal={voice.signal} />;
+}
+
+export function PayCounter({ price, bank, icon, peekMoney, speech, actions, signal }: PayCounterProps) {
   const voice = useVoice(), { say } = voice;
-  const [tray, setTray] = useState<MoneyKey[]>([]); // in the order he tapped them in
+  const { tray } = payment(signal); // in the order he tapped them in
   const [peek, setPeek] = useState(false);
   const [done, setDone] = useState(false);
-  const run = useVoiceTask(); // bumped to stop a Help me pay in progress
+  const run = payment(signal).run; // bumped to stop a Help me pay in progress
 
-  const paid = total(tray);
+  const paid = total(tray.value);
   const sayTotal = (t: MoneyKey[]) => (t.length ? say({ cents: total(t) }) : Promise.resolve());
 
   function put(k: MoneyKey) {
-    if (!voice.active || api.busy || done || tray.length >= MAX_TRAY) return;
+    if (!voice.active || signal.aborted || actions.busy || done || tray.value.length >= MAX_TRAY) return;
     run.cancel();
-    const t = [...tray, k];
-    setTray(t);
+    const t = [...tray.value, k];
+    tray.value = t;
     sClink();
     void sayTotal(t);
   }
-  function takeBack(i = tray.length - 1) {
-    if (!voice.active || api.busy || done || i < 0) return;
+  function takeBack(i = tray.value.length - 1) {
+    if (!voice.active || signal.aborted || actions.busy || done || i < 0) return;
     run.cancel();
-    const t = tray.filter((_, j) => j !== i);
-    setTray(t);
+    const t = tray.value.filter((_, j) => j !== i);
+    tray.value = t;
     void sayTotal(t);
   }
 
-  async function helpPay(task = run.start()) {
-    if (!task.active) return;
-    api.helped();
-    setTray([]);
-    const t: MoneyKey[] = [];
-    for (const k of helpPayCoins(price, bank)) {
-      if (!task.active) return;
-      t.push(k);
-      setTray([...t]);
-      sClink();
-      await task.say({ cents: total(t) });
-      await task.wait(250);
-    }
-  }
-
   function check() {
-    if (!voice.active || api.busy || done) return;
-    const r = checkPay({ price }, tray);
-    if (r.kind === 'paid') { run.cancel(); voice.cancel(); setDone(true); onPaid?.(paid); return api.correct(); }
-    if (r.kind === 'empty') return void toast(voice, 'Tap some money first!', 'Tap some money first!'); // not an answer, so not a miss
-    api.miss(async teach => {
-      const task = run.start();
-      const said = r.kind === 'short'
-        ? toast(task, `Almost! You need ${fmt(r.by)} more.`, 'Almost!', 'You need', { cents: r.by }, 'more')
-        : toast(task, `Too much! Take back ${fmt(r.by)}.`, 'Too much!', 'Take back', { cents: r.by });
-      await said;
-      if (teach && task.active) await helpPay(task);
-    });
+    if (!voice.active || signal.aborted || done) return;
+    const verdict = actions.submit([...tray.value]);
+    if (verdict === 'correct') setDone(true);
+    if (verdict === 'not-an-answer') return; // not an answer, so not a miss
   }
 
-  const shown = tray.map((k, i) => ({ k, i })).sort((a, b) => biggestFirst(a.k, b.k));
+  const shown = tray.value.map((k, i) => ({ k, i })).sort((a, b) => biggestFirst(a.k, b.k));
 
   return (
     <>
@@ -101,11 +101,11 @@ export function PayCounter({ price, bank, icon, peekMoney, speech, api, onPaid }
         <button class={`big-btn go ${done ? 'right' : ''}`} aria-label="Pay" onClick={check}><span class="e">✅</span></button>
       </div>
       <div class="helpers">
-        <button class="help-btn" onClick={() => void helpPay()}>🔎 Help me pay</button>
+        <button class="help-btn" onClick={() => actions.help(signal => helpPay({ price, bank }, signal))}>🔎 Help me pay</button>
         <button class="help-btn" aria-label="Take one back" onClick={() => takeBack()}>↩</button>
-        <button class="help-btn" aria-label="Show me all the money" onClick={() => { run.cancel(); api.helped(); setPeek(true); }}>👀</button>
+        <button class="help-btn" aria-label="Show me all the money" onClick={() => actions.help(async () => { run.cancel(); setPeek(true); })}>👀</button>
       </div>
-      {peek && <PeekCard money={peekMoney} onDone={() => { setPeek(false); void say(...speech); }} />}
+      {peek && <PeekCard money={peekMoney} onDone={() => { if (voice.active && !signal.aborted) { setPeek(false); void say(...speech); } }} />}
     </>
   );
 }

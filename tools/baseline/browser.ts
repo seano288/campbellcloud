@@ -1,7 +1,9 @@
 import assert from 'node:assert/strict';
 import { setTimeout as sleep } from 'node:timers/promises';
+import { fileURLToPath } from 'node:url';
+import preact from '@preact/preset-vite';
 import { chromium, type Page } from 'playwright';
-import { preview } from 'vite';
+import { build, preview } from 'vite';
 import type { Save } from '../../src/save/migrate';
 import { CLIPS } from '../../src/voice/voice.gen';
 import { FRESH_EXPECTED, JOURNEY_SAVES, NOW, PROGRESSED_EXPECTED, STORAGE_KEY, TODAY } from './saves';
@@ -51,6 +53,7 @@ const denominations = [
 ];
 const centsOf = (text: string) => Math.round(Number(text.replace(/[^0-9.]/g, '')) * (text.includes('$') ? 100 : 1));
 const modeName = { learn: 'Learn the Coins', count: 'Count the Cash', pay: 'Pay the Shop' };
+let explanationFixture = '';
 
 async function correctChoice(page: Page, mode: 'learn' | 'count') {
   const captions = await page.locator('main .pile .cap').allTextContents();
@@ -301,6 +304,155 @@ journey('Learn cancels a held explanation and detached answer before the replace
     await page.unrouteAll({ behavior: 'wait' });
   }
 });
+
+journey('Count shared teaching locks ignored choices and replays with fresh controls', JOURNEY_SAVES.practice, async page => {
+  await button(page, 'Start').click();
+  await button(page, 'Count the Cash').click();
+  const original = await learnTask(page);
+  const right = await correctChoice(page, 'count'), correct = await right.innerText();
+  const wrong = await page.locator('main .choice').all();
+  let firstWrong = '';
+  for (const choice of wrong) {
+    const text = await choice.innerText();
+    if (text !== correct) { firstWrong = text; await choice.click(); break; }
+  }
+  await page.locator('main.thinking').waitFor();
+  await right.click();
+  for (const choice of wrong) {
+    const text = await choice.innerText();
+    if (text !== correct && text !== firstWrong) {
+      await choice.click();
+      assert.equal(await choice.isDisabled(), false);
+      break;
+    }
+  }
+  assert.equal(await page.locator('main .right').count(), 0);
+  assert.equal(await page.locator('main .wrong').count(), 1);
+  assert.deepEqual((await saved(page)).modes.count.window, []);
+  await page.locator('main.thinking').waitFor({ state: 'hidden' });
+  await missChoice(page, 'count');
+  assert.equal(await page.locator('main .slot.lit').count(), await page.locator('main .slot').count());
+  await solve(page, 'count');
+  await solve(page, 'count');
+  assert.deepEqual(await learnTask(page), original);
+  assert.equal(await page.locator('main .wrong, main .slot.lit').count(), 0);
+  await solve(page, 'count');
+  assert.deepEqual((await saved(page)).modes.count.window, ['missed', 'clean', 'clean']);
+  await button(page, 'Home').click();
+  assert.equal((await saved(page)).bolts, 0);
+});
+
+journey('Pay shared short and over teaching retains controls and replays an empty tray', JOURNEY_SAVES.practice, async page => {
+  await button(page, 'Start').click();
+  await button(page, 'Pay the Shop').click();
+  const original = { item: await page.locator('main .ask h2').innerText(), price: await page.locator('.price').innerText() };
+  await page.locator('.bank').getByRole('button', { name: 'Penny', exact: true }).click();
+  await button(page, 'Pay').click();
+  await page.locator('main.thinking').waitFor();
+  await page.getByText(/^Almost! You need/).waitFor();
+  await button(page, 'Pay').click();
+  await page.locator('.bank').getByRole('button', { name: 'Dime', exact: true }).click();
+  assert.equal(await page.locator('.paidrow b').innerText(), '1¢');
+  assert.equal(await page.locator('main .right').count(), 0);
+  assert.deepEqual((await saved(page)).modes.pay.window, []);
+  await page.locator('main.thinking').waitFor({ state: 'hidden' });
+  await button(page, 'Take one back').click();
+  await fillPayment(page);
+  await page.locator('.bank').getByRole('button', { name: 'Penny', exact: true }).click();
+  await button(page, 'Pay').click();
+  await page.getByText(/^Too much! Take back/).waitFor();
+  await page.locator('main.thinking').waitFor({ state: 'hidden', timeout: 30000 });
+  assert.equal(await page.locator('.paidrow b').innerText(), original.price);
+  assert.deepEqual((await saved(page)).modes.pay.window, []);
+  await button(page, 'Pay').click();
+  await page.locator('main .right').waitFor();
+  await page.locator('main .right').waitFor({ state: 'hidden' });
+  await solve(page, 'pay');
+  assert.equal(await page.locator('main .ask h2').innerText(), original.item);
+  assert.equal(await page.locator('.price').innerText(), original.price);
+  assert.equal(await page.locator('.paidrow b').innerText(), '0¢');
+  await solve(page, 'pay');
+  assert.deepEqual((await saved(page)).modes.pay.window, ['missed', 'clean', 'clean']);
+  await button(page, 'Home').click();
+  assert.equal((await saved(page)).bolts, 0);
+});
+
+for (const mode of ['count', 'pay'] as const) {
+  for (const failure of ['throw', 'reject'] as const) journey(`${modeName[mode]} shared explanation failure ${failure} releases the real controls for retry`, JOURNEY_SAVES.practice, async page => {
+    await page.route('**/explanation-failure?*', route => route.fulfill({
+      contentType: 'text/html',
+      body: '<div id="fixture"></div><output id="explanation-failure"></output>',
+    }));
+    await page.goto(`http://127.0.0.1:4318/explanation-failure?mode=${mode}&failure=${failure}`);
+    await page.addScriptTag({ content: explanationFixture });
+    if (mode === 'pay') await page.locator('.bank').getByRole('button', { name: 'Penny', exact: true }).click();
+    if (mode === 'count') {
+      const answer = await (await correctChoice(page, mode)).innerText();
+      for (const choice of await page.locator('main .choice').all()) {
+        if (await choice.innerText() !== answer) { await choice.click(); break; }
+      }
+    } else await button(page, 'Pay').click();
+    await page.locator('main.thinking').waitFor();
+    assert.equal(await page.locator('#explanation-failure').innerText(), failure);
+    assert.deepEqual((await saved(page)).modes[mode].window, []);
+    assert.equal((await saved(page)).currentStreak, 0);
+    await page.locator('main.thinking').waitFor({ state: 'hidden' });
+    if (mode === 'pay') await button(page, 'Take one back').click();
+    await solve(page, mode);
+    assert.deepEqual((await saved(page)).modes[mode].window, ['missed']);
+    await button(page, 'Home').click();
+    assert.equal((await saved(page)).roundsFinished, 0);
+    assert.equal((await saved(page)).bolts, 0);
+  });
+
+  journey(`${modeName[mode]} shared cancellation leaves held teaching and detached controls behind`, JOURNEY_SAVES.practice, async page => {
+    const events = await observeRecordedVoice(page);
+    let release!: () => void;
+    const held = new Promise<void>(resolve => { release = resolve; });
+    let requested = false;
+    const clip = mode === 'count' ? 'Not quite!' : 'Almost!';
+    await page.route(`**/voice/${CLIPS[clip]}`, async route => { requested = true; await held; await route.continue(); });
+    try {
+      await button(page, 'Start').click();
+      await button(page, modeName[mode]).click();
+      const oldAnswer = await (mode === 'count' ? await correctChoice(page, mode) : button(page, 'Pay')).elementHandle();
+      const oldHelp = await page.getByRole('button', { name: mode === 'count' ? /Help me count/ : /Help me pay/ }).elementHandle();
+      assert.ok(oldAnswer && oldHelp);
+      if (mode === 'count') {
+        const correct = await (await correctChoice(page, mode)).innerText();
+        for (const choice of await page.locator('main .choice').all()) {
+          if (await choice.innerText() !== correct) { await choice.click(); break; }
+        }
+      } else {
+        await page.locator('.bank').getByRole('button', { name: 'Penny', exact: true }).click();
+        await button(page, 'Pay').click();
+      }
+      await page.locator('main.thinking').waitFor();
+      await waitForAssertion(async () => assert.equal(requested, true));
+      await page.getByRole('button', { name: mode === 'count' ? /Help me count/ : /Help me pay/ }).click();
+      const state = await saved(page);
+      await button(page, 'Home').click();
+      assert.equal(await page.locator('.toast.show').count(), 0);
+      const starts = events.filter(e => e.kind === 'start').length;
+      await button(page, modeName[mode]).click();
+      await waitForAssertion(async () => assert.ok(events.filter(e => e.kind === 'start').length > starts));
+      const replacement = events.filter(e => e.kind === 'start').at(-1)!;
+      await oldAnswer.evaluate(element => { if (element instanceof HTMLElement) element.click(); });
+      await oldHelp.evaluate(element => { if (element instanceof HTMLElement) element.click(); });
+      release();
+      await waitForAssertion(async () => assert.ok(events.some(e => e.kind === 'end' && e.id === replacement.id)));
+      await sleep(3500);
+      assert.equal(events.some(e => e.kind === 'stop' && e.id >= replacement.id), false);
+      assert.equal(await page.locator('main.thinking, main .right, main .wrong, main .slot.lit, .tray .money-btn').count(), 0);
+      assert.deepEqual(await saved(page), state);
+      await solve(page, mode);
+      assert.deepEqual((await saved(page)).modes[mode].window, ['clean']);
+    } finally {
+      release();
+      await page.unrouteAll({ behavior: 'wait' });
+    }
+  });
+}
 
 journey('Count peeks and counting help break the streak and earn only clean-answer Bolts', {
   ...JOURNEY_SAVES.practice,
@@ -673,6 +825,20 @@ journey('Scoped recorded voice cancels pending checkout teaching before a replac
 
 const selected = journeys.filter(j => !process.argv[2] || j.name.includes(process.argv[2]));
 assert.ok(selected.length, 'No matching baseline journey');
+if (selected.some(j => j.name.includes('shared explanation failure'))) {
+  const built = await build({
+    configFile: false, plugins: [preact()], logLevel: 'silent',
+    build: {
+      write: false, assetsInlineLimit: Infinity,
+      lib: { entry: fileURLToPath(new URL('./explanationFailure.tsx', import.meta.url)), name: 'ExplanationFailure', formats: ['iife'] },
+    },
+  });
+  const output = Array.isArray(built) ? built[0] : built;
+  if (!output || !('output' in output)) throw new Error('No explanation fixture build');
+  const chunk = output.output.find(file => file.type === 'chunk');
+  if (!chunk || chunk.type !== 'chunk') throw new Error('No explanation fixture script');
+  explanationFixture = chunk.code;
+}
 const server = await preview({ preview: { host: '127.0.0.1', port: 4318, strictPort: true }, logLevel: 'silent' });
 let browser;
 try {

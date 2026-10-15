@@ -5,7 +5,7 @@ import { countMode } from './count/mode';
 import { learnMode } from './learn/mode';
 import { payMode } from './pay/mode';
 
-export const MODES: readonly GameMode<any, any, any>[] = [learnMode, countMode, payMode];
+export const MODES: readonly GameMode<any, any>[] = [learnMode, countMode, payMode];
 
 export function modeById(id: ModeId) {
   const m = MODES.find(m => m.id === id);

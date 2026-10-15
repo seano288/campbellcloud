@@ -1,6 +1,6 @@
 import { createContext, type ComponentChildren } from 'preact';
 import { useContext, useLayoutEffect, useMemo } from 'preact/hooks';
-import { createVoiceScope, type VoiceScope } from './say';
+import { createVoiceScope, createVoiceTask, type VoiceScope } from './say';
 
 export const VoiceContext = createContext<VoiceScope | null>(null);
 
@@ -19,14 +19,7 @@ export function useVoiceScope(lifetime?: AbortSignal) {
 
 export function useVoiceTask() {
   const parent = useVoiceScope();
-  return useMemo(() => {
-    let current: VoiceScope | null = null;
-    const cancel = () => current?.cancel();
-    return {
-      cancel,
-      start() { cancel(); return current = createVoiceScope(parent.signal); },
-    };
-  }, [parent]);
+  return useMemo(() => createVoiceTask(parent.signal), [parent]);
 }
 
 export function VoiceBoundary({ children, active = true, signal }: { children: ComponentChildren; active?: boolean; signal?: AbortSignal }) {
