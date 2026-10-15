@@ -45,10 +45,15 @@ export function countAnswer(save: Save, outcome: Outcome): Save {
   return withTrophies(save, count(trophiesFromSave(save), outcome));
 }
 
-export function finishRound(save: Save, round: readonly Outcome[], day: string): { save: Save; earned: TrophyStep[] } {
+export function completeTrophies(state: TrophyState<StepId>, learning: LearningState, round: readonly Outcome[], day: string) {
   const steps = TROPHIES.flatMap(t => t.steps);
-  const done = finish(trophiesFromSave(save), round, day, steps.map(s => ruleFor(s, save.modes)));
-  return { save: withTrophies(save, done.state), earned: steps.filter(s => done.earned.includes(stepId(s))) };
+  const done = finish(state, round, day, steps.map(s => ruleFor(s, learning.modes)));
+  return { state: done.state, earned: steps.filter(s => done.earned.includes(stepId(s))) };
+}
+
+export function finishRound(save: Save, round: readonly Outcome[], day: string): { save: Save; earned: TrophyStep[] } {
+  const done = completeTrophies(trophiesFromSave(save), { modes: save.modes, lastMode: save.lastMode }, round, day);
+  return { save: withTrophies(save, done.state), earned: done.earned };
 }
 
 /** The Learning trophies an older save already proves: the Levels and stars it reached. */

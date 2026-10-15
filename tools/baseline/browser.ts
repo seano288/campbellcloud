@@ -294,6 +294,33 @@ journey('Leaving Count after solved answers and a miss keeps progress but earns 
   assert.deepEqual(await saved(page), state);
 });
 
+journey('Leaving during the final success delay keeps five answers but no completion earnings', { ...FRESH_EXPECTED, body: 'pickup' }, async page => {
+  await button(page, 'Start').click();
+  await button(page, 'Learn the Coins').click();
+  for (let i = 0; i < 4; i++) await solve(page, 'learn');
+  await page.clock.install({ time: new Date(NOW) });
+  await page.clock.pauseAt(new Date(Date.parse(NOW) + 1000));
+  await (await correctChoice(page, 'learn')).click();
+  await page.locator('main .right').first().waitFor();
+  await page.clock.runFor(899);
+  const answered = await saved(page);
+  assert.deepEqual(answered.modes.learn.window, ['clean', 'clean', 'clean', 'clean', 'clean']);
+  assert.equal(answered.currentStreak, 5);
+  assert.equal(answered.bolts, 0);
+  assert.equal(answered.roundsFinished, 0);
+  await button(page, 'Home').click();
+  await page.clock.runFor(5000);
+  await page.locator('.home').waitFor();
+  assert.equal(await page.locator('.reward').count(), 0);
+  assert.deepEqual(await saved(page), answered);
+  assert.deepEqual(answered.trophies, {});
+  assert.equal(answered.daysPlayed, 0);
+  await page.reload();
+  await button(page, 'Start').click();
+  await page.locator('.home').waitFor();
+  assert.deepEqual(await saved(page), answered);
+});
+
 journey('Pay empty tray, help and explicit payment do not invent a clean answer', JOURNEY_SAVES.practice, async page => {
   await button(page, 'Start').click();
   await button(page, 'Pay the Shop').click();

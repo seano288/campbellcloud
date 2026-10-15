@@ -6,28 +6,24 @@ import { signal } from '@preact/signals';
 import { sBad, sGood } from '../audio/sfx';
 import { screen } from '../app/nav';
 import { pick } from '../game/rng';
-import { game, update } from '../game/store';
-import { garageFromSave } from '../app/garage';
-import { currencyFromSave, withCurrency } from '../app/currency';
-import { credit } from '../currency/currency';
-import { becameAffordable } from '../garage/economy';
-import { applySolved, learningFromSave, withLearning } from '../app/practice';
-import type { Outcome } from '../learning/session';
+import { game, player } from '../game/store';
+import { createPractice } from '../app/practice';
+import type { Outcome, SolvedProblem } from '../learning/session';
 import type { Level, ModeId } from '../modes/ids';
 import type { LearningChange } from '../modes/learning';
 import { modeById } from '../modes/modes';
 import { struggling } from '../modes/progress';
-import { acknowledgeIntro, selectPractice } from '../modes/state';
-import { countAnswer, finishRound } from '../app/trophies';
-import { dayOf, type TrophyStep } from '../trophies/trophies';
+import type { TrophyStep } from '../trophies/trophies';
 import { toast } from '../ui/toast';
 import { CHEERS } from '../voice/phrases';
 import { hush } from '../voice/say';
-import { boltsFor, ROUND_LENGTH, takeAgain, teachNow, THINK_MS, type Again } from './rules';
+import { ROUND_LENGTH, takeAgain, teachNow, THINK_MS, type Again } from './rules';
 
 export type RoundEvent = LearningChange | { kind: 'trophy'; step: TrophyStep };
 
 export interface Round {
+  roundId: string;
+  solved: SolvedProblem[];
   mode: ModeId;
   level: Level;
   /** The introduction card for the mode's new money comes before the first problem. */
@@ -56,33 +52,34 @@ export interface Round {
 }
 
 export const round = signal<Round | null>(null);
+const practice = createPractice(player);
 
 let token = 0; // bumped when a Round starts or is left, so its timers stop touching it
 const later = (ms: number, fn: () => void) => { const t = token; setTimeout(() => t === token && fn(), ms); };
 const set = (patch: Partial<Round>) => { if (round.value) round.value = { ...round.value, ...patch }; };
 
 export function startRound(mode: ModeId) {
-  token++;
-  hush();
-  const m = game.value.modes[mode];
-  update(s => withLearning(s, selectPractice(learningFromSave(s), mode)));
+  leaveRound();
+  const started = practice.start(mode);
+  if (started.kind !== 'accepted') return;
   round.value = {
-    mode, level: m.level, intro: m.introPending, results: [], problem: modeById(mode).makeProblem(m.level, Math.random), again: false, queue: [],
+    roundId: started.roundId, solved: [], mode, level: started.level, intro: started.intro, results: [], problem: modeById(mode).makeProblem(started.level, Math.random), again: false, queue: [],
     key: 0, firstTry: true, helped: false, misses: 0, busy: false, thinking: false, events: [], ended: false, earned: 0, canBuild: false,
   };
   screen.value = 'round';
 }
 
 /** He's seen the introduction card: on to the first problem. */
-export function introDone() {
-  const r = round.value;
-  if (!r) return;
-  update(s => withLearning(s, acknowledgeIntro(learningFromSave(s), r.mode)));
-  set({ intro: false });
+export function introDone(roundId: string) {
+  if (round.value?.roundId !== roundId) return;
+  const result = practice.acknowledge(roundId);
+  if (result.kind === 'accepted' && round.value?.roundId === roundId) set({ intro: false });
 }
 
 export function leaveRound() {
   token++;
+  const r = round.value;
+  if (r && !r.ended) practice.terminal({ roundId: r.roundId, status: 'abandoned', results: r.solved });
   hush();
   round.value = null;
 }
@@ -95,57 +92,54 @@ function nextProblem() {
   set({ problem, again: !!back, queue: back ? back.rest : r.queue, key: r.key + 1, firstTry: true, helped: false, misses: 0, busy: false, thinking: false });
 }
 
-function record(r: Round, outcome: Outcome): RoundEvent[] {
-  let changes: LearningChange[] = [];
-  update(s => {
-    const next = applySolved(s, r.mode, { index: r.results.length + 1, outcome, misses: r.misses, helped: r.helped, replay: r.again });
-    changes = next.changes;
-    return next.save;
-  });
-  return changes;
+function activeProblem(roundId: string, key: number) {
+  const r = round.value;
+  return r?.roundId === roundId && r.key === key && !r.intro && !r.busy && !r.ended ? r : null;
 }
 
-export function correct() {
-  const r = round.value;
-  if (!r || r.busy || r.thinking) return;
+export function correct(roundId: string, key: number) {
+  const r = activeProblem(roundId, key);
+  if (!r || r.thinking) return;
   const outcome: Outcome = !r.firstTry ? 'missed' : r.helped ? 'helped' : 'clean';
-  const events = [...r.events, ...record(r, outcome)];
+  const fact: SolvedProblem = { index: r.results.length + 1, outcome, misses: r.misses, helped: r.helped, replay: r.again };
+  const committed = practice.solve(roundId, fact);
+  if (committed.kind !== 'accepted' || round.value?.roundId !== roundId) return;
+  const events = [...r.events, ...committed.changes];
   const results = [...r.results, outcome];
   const queue = outcome === 'missed' && !r.again ? [...r.queue, { problem: r.problem, after: results.length }] : r.queue;
-  set({ results, queue, busy: true, events });
+  set({ results, solved: [...r.solved, fact], queue, busy: true, events });
   sGood();
-  if (results.length >= ROUND_LENGTH) return later(900, endRound);
+  if (results.length >= ROUND_LENGTH) return later(900, () => endRound(roundId));
   if (outcome === 'clean') { const c = pick(Math.random, CHEERS); void toast(c, c); }
   later(1500, nextProblem);
 }
 
 /** A wrong answer. `explain` says what went wrong, teaching the answer when `teach` is set; taps wait until it's done. */
-export function miss(explain: (teach: boolean) => Promise<unknown>) {
-  const r = round.value;
-  if (!r || r.busy || r.thinking) return;
-  const misses = r.misses + 1, key = r.key;
+export function miss(roundId: string, key: number, explain: (teach: boolean) => Promise<unknown>) {
+  const r = activeProblem(roundId, key);
+  if (!r || r.thinking) return;
+  const committed = practice.interrupt(roundId, key + 1, 'missed'); // the streak breaks now, even if he leaves before answering
+  if (committed.kind !== 'accepted' || round.value?.roundId !== roundId) return;
+  const misses = r.misses + 1;
   set({ firstTry: false, misses, thinking: true });
-  update(s => countAnswer(s, 'missed')); // the streak breaks now, even if he leaves before answering
   sBad();
-  void explain(teachNow(misses, isStruggling(r.mode))).then(() => later(THINK_MS, () => { if (round.value?.key === key) set({ thinking: false }); }));
-}
-
-export function helped() {
-  set({ helped: true });
-  update(s => countAnswer(s, 'helped'));
-}
-
-function endRound() {
-  const r = round.value!, reward = garageFromSave(game.value), before = game.value.bolts;
-  const earned = boltsFor(r.results);
-  let trophies: TrophyStep[] = [];
-  update(s => {
-    const currency = credit(currencyFromSave(s), earned);
-    if (currency.kind === 'rejected') throw new Error(currency.reason);
-    const done = finishRound(s, r.results, dayOf(new Date()));
-    trophies = done.earned;
-    return withCurrency(done.save, currency.state);
+  void explain(teachNow(misses, isStruggling(r.mode))).then(() => {
+    if (!activeProblem(roundId, key)) return;
+    later(THINK_MS, () => { if (activeProblem(roundId, key)) set({ thinking: false }); });
   });
-  const events = [...r.events, ...trophies.map(step => ({ kind: 'trophy', step }) as const)];
-  set({ ended: true, earned, canBuild: becameAffordable(reward, before, game.value.bolts), events });
+}
+
+export function helped(roundId: string, key: number) {
+  if (!activeProblem(roundId, key)) return;
+  const committed = practice.interrupt(roundId, key + 1, 'helped');
+  if (committed.kind === 'accepted' && round.value?.roundId === roundId) set({ helped: true });
+}
+
+function endRound(roundId: string) {
+  const r = round.value;
+  if (!r || r.roundId !== roundId || r.ended) return;
+  const done = practice.terminal({ roundId, status: 'completed', results: r.solved });
+  if (done.kind !== 'accepted' || round.value?.roundId !== roundId) return;
+  const events = [...r.events, ...done.trophies.map(step => ({ kind: 'trophy', step }) as const)];
+  set({ ended: true, earned: done.earned, canBuild: done.canBuild, events });
 }
