@@ -1,6 +1,8 @@
 // A Body's side profile with two wheels, flat, for the first-launch picker, the Body switcher and the Goal bar.
-import type { BodyId } from './catalog';
+import { colourById, type BodyId, type Fit } from './catalog';
 import { BODIES, parsePath } from './three/bodies';
+
+export const truckColor = (fit: Fit) => fit.paint === 0 ? colourById(fit.colour).hex : ['', '#1e7bff', '#ff6a00', '#c04dff', '#d4a017'][fit.paint]!;
 
 export function BodyArt({ body, color = '#e63946' }: { body: BodyId; color?: string }) {
   const B = BODIES[body], d = parsePath(B.path).map(p => 'M' + p.map(q => q.join(',')).join(' L') + ' Z').join(' ');

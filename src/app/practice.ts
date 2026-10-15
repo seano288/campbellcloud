@@ -1,6 +1,6 @@
 import type { Outcome, RoundResult, SolvedProblem } from '../learning/session';
 import { earn, type EarningsPolicy } from '../currency/currency';
-import { becameAffordable } from '../garage/economy';
+import { garageCues } from './garageEconomy';
 import { boltsFor, ROUND_LENGTH } from '../round/rules';
 import { dayOf, type TrophyStep } from '../trophies/trophies';
 import type { ModeId } from '../modes/ids';
@@ -73,20 +73,22 @@ export function createPractice(
       const solved = current.results[i]!;
       return r.index === solved.index && r.outcome === solved.outcome && r.misses === solved.misses && r.helped === solved.helped && r.replay === solved.replay;
     })) return { kind: 'rejected', reason: 'rejected' } as const;
-    let earned = 0, canBuild = false;
+    let earned = 0, canBuild = false, beforeBalance = 0, afterBalance = 0;
     let trophies: TrophyStep[] = [];
     const result = store.commit(state => {
       if (!active || active.roundId !== fact.roundId || active.terminal || active.results.length !== ROUND_LENGTH || fact.status !== 'completed') return null;
       const currency = earn(state.currency, { ...fact, status: 'completed' }, earnings);
       if (currency.kind === 'rejected') return null;
       const done = completeTrophies(state.trophies, state.learning, fact.results.map(r => r.outcome), today());
-      canBuild = becameAffordable(state.garage, state.currency.balance, currency.state.balance);
+      beforeBalance = state.currency.balance;
+      afterBalance = currency.state.balance;
+      canBuild = garageCues.becameAffordable(state.garage, beforeBalance, afterBalance);
       earned = currency.amount;
       trophies = done.earned;
       active.terminal = true;
       return { ...state, currency: currency.state, trophies: done.state };
     });
-    return result.kind === 'accepted' ? { ...result, earned, trophies, canBuild } : result;
+    return result.kind === 'accepted' ? { ...result, earned, trophies, canBuild, beforeBalance, afterBalance } : result;
   }
 
   return { start, acknowledge, interrupt, solve, terminal };

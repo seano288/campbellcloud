@@ -1,5 +1,4 @@
 import type { ComponentChildren } from 'preact';
-import { game } from '../game/store';
 import type { Outcome } from '../learning/session';
 
 export function Bolt({ size }: { size: number }) {
@@ -11,7 +10,7 @@ export function Bolt({ size }: { size: number }) {
   );
 }
 
-export function BoltPile({ count = game.value.bolts }: { count?: number }) {
+export function BoltPile({ count }: { count: number }) {
   return <div class="pilebox" aria-label={`${count} Bolts`}><Bolt size={34} /><span>{count}</span></div>;
 }
 

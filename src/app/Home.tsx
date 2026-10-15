@@ -1,12 +1,12 @@
 import { useEffect } from 'preact/hooks';
+import type { ComponentChildren } from 'preact';
 import { sBad } from '../audio/sfx';
-import { truckColor } from '../garage/garage';
-import { GoalBar } from '../garage/GoalBar';
 import { game } from '../game/store';
 import type { ModeId } from '../modes/ids';
 import { MODES } from '../modes/modes';
 import { startRound } from '../round/round';
-import { BoltPile, LevelDots, TruckArt } from '../ui/bits';
+import { LevelDots } from '../ui/bits';
+import type { RewardPresentation } from '../rewards/presentation';
 import { useVoice } from '../voice/context';
 import type { VoiceScope } from '../voice/say';
 import { screen } from './nav';
@@ -18,7 +18,7 @@ function tapMode(id: ModeId, voice: VoiceScope) {
   startRound(id);
 }
 
-export function Home() {
+export function Home({ reward, status }: { reward: RewardPresentation; status: ComponentChildren }) {
   const voice = useVoice(), { sayMore } = voice;
   const s = game.value;
   useEffect(() => { // a newly opened mode says so again until he taps it
@@ -29,14 +29,10 @@ export function Home() {
     <div class="screen home-screen">
       <header class="home-head">
         <h1>Monster Truck Money</h1>
-        <GoalBar />
-        <BoltPile />
+        {status}
       </header>
       <div class="home">
-        <button class="tile t-garage" aria-label="Garage" onClick={() => (screen.value = 'garage')}>
-          <TruckArt color={truckColor()} />
-          <span class="nm">🔧 Garage</span>
-        </button>
+        <reward.Entry onOpen={() => { screen.value = 'garage'; }} />
         {MODES.map(({ id, name, icon }) => {
           const m = s.modes[id];
           return (

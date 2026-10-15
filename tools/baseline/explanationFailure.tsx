@@ -1,7 +1,7 @@
 import { render } from 'preact';
 import { screenVoice } from '../../src/app/nav';
 import { loadGame } from '../../src/game/store';
-import { RoundScreen } from '../../src/round/RoundScreen';
+import { MoneyRound } from '../../src/app/MoneyRound';
 import { startRound } from '../../src/round/round';
 import { VoiceContext } from '../../src/voice/context';
 
@@ -16,5 +16,5 @@ const explain = (): Promise<void> => {
 
 void loadGame().then(() => {
   startRound(mode, { count: explain, pay: explain });
-  render(<VoiceContext.Provider value={screenVoice.value}><RoundScreen /></VoiceContext.Provider>, document.getElementById('fixture')!);
+  render(<VoiceContext.Provider value={screenVoice.value}><MoneyRound status={null} hasAffordable={false} /></VoiceContext.Provider>, document.getElementById('fixture')!);
 });

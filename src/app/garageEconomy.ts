@@ -3,11 +3,13 @@
 // Legendary, which takes an exact payment in money at his Level's price. Level and Game Mode never lock anything.
 import { debit } from '../currency/currency';
 import { type Buyable } from '../garage/catalog';
-import { affordable as affordableItems, boltsNeeded as needed, forBolts, type BoltItem, type GaragePricingContext } from '../garage/economy';
+import { affordable as affordableItems, becameAffordable, boltsNeeded as needed, forBolts, hasAffordable, type BoltItem, type GaragePricingContext } from '../garage/economy';
 import { proposeLegendary, proposePurchase } from '../garage/purchases';
 import { freshGarage, type GarageInventory, type GarageState } from '../garage/state';
+import type { RewardCues } from '../rewards/presentation';
 
 export { builtEverything, forBolts, goalOf, isLocked, nextLegendary, priceOf, waitingOn } from '../garage/economy';
+export const garageCues = { hasAffordable, becameAffordable } satisfies RewardCues<GarageInventory>;
 export interface Wallet extends GarageInventory, Partial<Pick<GarageState, 'body' | 'fitted'>> { bolts: number }
 
 /** How he pays: Bolts, or money tapped into the Pay the Shop tray (its total, in cents) at his Pay the Shop Level. */

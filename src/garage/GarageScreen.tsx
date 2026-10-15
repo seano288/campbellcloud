@@ -6,6 +6,7 @@
 // hotspot steps away while the sheet is open, and every hotspot does while he picks, so none covers the number.
 // The Paint sheet has a row of Colour swatches under its Mods.
 import { useEffect, useRef, useState } from 'preact/hooks';
+import type { ComponentChildren, ComponentType } from 'preact';
 import type { LegendaryCheckout } from '../app/checkout';
 import { screen } from '../app/nav';
 import { ENGINES, HORNS, sClink, sNope } from '../audio/sfx';
@@ -15,7 +16,6 @@ import type { Commit } from '../save/store';
 import type { MoneyState } from '../app/save';
 import { fmt } from '../money/money';
 import { startRound } from '../round/round';
-import { TrophyShelf } from '../trophies/TrophyShelf';
 import { Bolt, BoltPile, IconButton } from '../ui/bits';
 import { numberLine } from '../voice/phrases';
 import { useVoice } from '../voice/context';
@@ -29,12 +29,11 @@ import {
   canAfford, canAffordBody, canAffordColour, currentBody, currentFit, goal, gotLine, isUnlocked, legendaryCheckout, legendaryPrice, needLines, owns, ownsColour, setDoorNumber, slotHasAffordable,
   stepBody, tapBody, tapColour, tapMod, waitingFor, waitLines,
 } from './garage';
-import { GoalBar } from './GoalBar';
 import { PartIcon } from './icons';
 import { ShowOff } from './show/ShowOff';
 import { GarageStage, spreadHotspots } from './three/stage';
 
-export function GarageScreen() {
+export function GarageScreen({ goal: goalView, Shelf }: { goal: ComponentChildren; Shelf: ComponentType<{ onClose(): void }> }) {
   const voice = useVoice(), { say } = voice;
   const celebration = useRef<VoiceScope | null>(null);
   const canvas = useRef<HTMLCanvasElement>(null), stageEl = useRef<HTMLDivElement>(null);
@@ -73,6 +72,7 @@ export function GarageScreen() {
   useEffect(() => () => checkout?.close(), [checkout]);
 
   function openSheet(slot: SlotId) {
+    if (!voice.active) return;
     setSheet(slot); setPicking(false);
     stage?.focus(slot);
     if (slot === 'horn') HORNS[f.horn]!();
@@ -80,10 +80,11 @@ export function GarageScreen() {
     if (slot === 'exhaust') stage?.puff();
     void say(slotById(slot).name);
   }
-  function closeSheet() { celebration.current?.cancel(); setSheet(null); setPicking(false); stage?.focus(null); }
+  function closeSheet() { if (voice.active) { celebration.current?.cancel(); setSheet(null); setPicking(false); stage?.focus(null); } }
 
-  function openPicker() { setPicking(true); void say(numberLine(f.doorNumber)); }
+  function openPicker() { if (voice.active) { setPicking(true); void say(numberLine(f.doorNumber)); } }
   function turn(wheel: Wheel, dir: 1 | -1) {
+    if (!voice.active) return;
     const n = turnWheel(f.doorNumber, wheel, dir);
     setDoorNumber(n);
     sClink();
@@ -105,6 +106,7 @@ export function GarageScreen() {
   }
 
   function tap(slot: SlotId, rung: Rung) {
+    if (!voice.active) return;
     const result = tapMod(slot, rung);
     if (result.kind === 'rejected') return;
     if (slot === 'engine' && result.kind !== 'unlocked') { ENGINES[rung]!(); stage?.puff(); } // he hears an Engine before he buys it
@@ -127,6 +129,7 @@ export function GarageScreen() {
   }
 
   function tapSwatch(c: ColourId) {
+    if (!voice.active) return;
     const result = tapColour(c), name = colourById(c).name;
     if (result.kind === 'rejected') return;
     if (result.kind === 'fitted') { sClink(); void say(name); return; }
@@ -137,11 +140,13 @@ export function GarageScreen() {
   }
 
   function paid(slot: SlotId, result: Extract<Commit<MoneyState>, { kind: 'accepted' }>) {
+    if (!voice.active) return;
     setCheckout(null);
     if (stage) block(celebrateUnlock(stage, stageEl.current!, slot, LEGENDARY, currentFit(result.state), gotLine(modId(slot, LEGENDARY)), showVoice()));
   }
 
   function tapBodyChip(b: BodyId) {
+    if (!voice.active) return;
     const result = tapBody(b);
     if (result.kind === 'rejected') return;
     if (result.kind === 'switched') void say(BODY_NAMES[b]);
@@ -150,27 +155,29 @@ export function GarageScreen() {
   }
 
   function startShow() {
+    if (!voice.active) return;
     closeSheet();
     setShowing(true);
     stage?.show(true);
   }
   function endShow() {
+    if (!voice.active) return;
     setShowing(false);
     stage?.show(false);
   }
 
-  const bodyStep = (d: 1 | -1) => { stepBody(d); void say(BODY_NAMES[currentBody()]); };
+  const bodyStep = (d: 1 | -1) => { if (voice.active) { stepBody(d); void say(BODY_NAMES[currentBody()]); } };
 
   return (
     <div class={`screen garage-screen ${sheet ? 'open' : ''} ${showing ? 'showing' : ''}`}>
       <header class="garage-hud">
         <BoltPile count={game.value.bolts} />
-        <GoalBar />
+        {goalView}
         <div class="spacer" />
-        <IconButton label="Trophies" class="trophies" onClick={() => { closeSheet(); setShelf(true); }}>🏆</IconButton>
+        <IconButton label="Trophies" class="trophies" onClick={() => { if (voice.active) { closeSheet(); setShelf(true); } }}>🏆</IconButton>
         <IconButton label="Show Off" class="show" onClick={startShow}>📸</IconButton>
-        <IconButton label="Home" onClick={() => (screen.value = 'home')}>🏠</IconButton>
-        <IconButton label="Play" class="go" onClick={() => startRound(game.value.lastMode)}>▶</IconButton>
+        <IconButton label="Home" onClick={() => { if (voice.active) screen.value = 'home'; }}>🏠</IconButton>
+        <IconButton label="Play" class="go" onClick={() => { if (voice.active) startRound(game.value.lastMode); }}>▶</IconButton>
       </header>
       <div class="garage-stage" ref={stageEl}>
         <canvas ref={canvas} />
@@ -265,7 +272,7 @@ export function GarageScreen() {
           )}
         </div>
       )}
-      {shelf && <TrophyShelf onClose={() => setShelf(false)} />}
+      {shelf && <Shelf onClose={() => setShelf(false)} />}
       {checkout && <Checkout key={checkout.id} checkout={checkout} onClose={() => setCheckout(current => current === checkout ? null : current)} />}
       {blocked && <div class="blocker" />}
     </div>

@@ -80,6 +80,17 @@ async function solvedPractice(app: Awaited<ReturnType<typeof practiceApp>>, outc
 }
 
 describe('practice commits', () => {
+  it('captures completion balances and new affordability separately from current reward navigation cues', async () => {
+    const initial = { ...freshSave(), bolts: 5 };
+    const app = await practiceApp(initial, { earnings: () => 1 });
+    const fact = await solvedPractice(app);
+    const done = app.practice.terminal(fact);
+    expect(done).toMatchObject({ kind: 'accepted', earned: 1, beforeBalance: 5, afterBalance: 6, canBuild: false });
+    if (done.kind !== 'accepted') throw new Error('Expected completion');
+    app.store.commit(state => ({ ...state, currency: { balance: 0 } }));
+    expect(done).toMatchObject({ beforeBalance: 5, afterBalance: 6, canBuild: false });
+  });
+
   it('accepts abandonment when the final answer publication is ahead of the scheduler result snapshot', async () => {
     const app = await practiceApp();
     const started = app.practice.start('learn');

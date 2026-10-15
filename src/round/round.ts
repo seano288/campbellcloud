@@ -51,6 +51,8 @@ interface RoundState {
   events: RoundEvent[];
   ended: boolean;
   earned: number;
+  beforeBalance: number;
+  afterBalance: number;
   /** The Bolts from this Round made a new Mod affordable. */
   canBuild: boolean;
 }
@@ -96,7 +98,7 @@ export function startRound(mode: ModeId, explanations: {
     round.value = {
       ...subject(controller.display.peek()), voice,
       roundId: started.roundId, level: started.level, intro: started.intro, results: [],
-      key: 0, busy: false, thinking: false, events: [], ended: false, earned: 0, canBuild: false,
+      key: 0, busy: false, thinking: false, events: [], ended: false, earned: 0, canBuild: false, beforeBalance: 0, afterBalance: 0,
     };
     stopShared = controller.display.subscribe(display => {
       if (round.value?.roundId !== display.roundId) return;
@@ -129,5 +131,5 @@ function endRound(fact: RoundResult) {
   const done = practice.terminal(fact);
   if (done.kind !== 'accepted' || round.value?.roundId !== roundId) return;
   const events = [...r.events, ...done.trophies.map(step => ({ kind: 'trophy', step }) as const)];
-  set({ ended: true, earned: done.earned, canBuild: done.canBuild, events });
+  set({ ended: true, earned: done.earned, canBuild: done.canBuild, events, beforeBalance: done.beforeBalance, afterBalance: done.afterBalance });
 }

@@ -1,13 +1,13 @@
 import assert from 'node:assert/strict';
 import { setTimeout as sleep } from 'node:timers/promises';
-import { fileURLToPath } from 'node:url';
-import preact from '@preact/preset-vite';
 import { chromium, type Page } from 'playwright';
-import { build, preview } from 'vite';
+import { preview } from 'vite';
 import type { Save } from '../../src/save/migrate';
 import { CLIPS } from '../../src/voice/voice.gen';
 import { FRESH_EXPECTED, JOURNEY_SAVES, NOW, PROGRESSED_EXPECTED, STORAGE_KEY, TODAY } from './saves';
 import { observeRecordedVoice } from './voice';
+import { fixtureScript } from './fixture';
+import { presentationJourneys } from './presentationJourneys';
 
 const journeys: { name: string; seed: unknown; run: (page: Page) => Promise<void> }[] = [];
 const journey = (name: string, seed: unknown, run: (page: Page) => Promise<void>) => { journeys.push({ name, seed, run }); };
@@ -116,6 +116,28 @@ journey('fresh setup previews without saving and confirms a starter', null, asyn
   await button(page, 'Start').click();
   await page.locator('.home').waitFor();
   assert.equal((await saved(page)).body, 'bigfoot');
+});
+
+journey('Garage presentation rejects detached fitting and navigation controls', JOURNEY_SAVES.garage, async page => {
+  await button(page, 'Start').click();
+  await button(page, 'Garage').click();
+  const oldBody = await button(page, 'Next truck').elementHandle();
+  const oldHome = await button(page, 'Home').elementHandle();
+  const oldPlay = await button(page, 'Play').elementHandle();
+  assert.ok(oldBody && oldHome && oldPlay);
+  await button(page, 'Home').click();
+  await button(page, 'Learn the Coins').click();
+  const before = await saved(page);
+  await oldBody.evaluate(element => element.dispatchEvent(new MouseEvent('click')));
+  assert.deepEqual(await saved(page), before);
+  await oldHome.evaluate(element => element.dispatchEvent(new MouseEvent('click')));
+  assert.equal(await page.locator('.round-screen').isVisible(), true);
+  const oldAnswer = await (await correctChoice(page, 'learn')).elementHandle();
+  assert.ok(oldAnswer);
+  await oldPlay.evaluate(element => element.dispatchEvent(new MouseEvent('click')));
+  await oldAnswer.click();
+  await page.locator('main .right').first().waitFor();
+  assert.equal((await saved(page)).modes.learn.window.length, before.modes.learn.window.length + 1);
 });
 
 journey('Learn progression, combined celebrations, Trophies and next-Round introduction', JOURNEY_SAVES.milestones, async page => {
@@ -932,26 +954,12 @@ journey('Legendary Level 1 help edits, peek and navigation cancel teaching witho
   assert.deepEqual(await saved(page), before);
 });
 
+journeys.push(...presentationJourneys);
 const selected = journeys.filter(j => !process.argv[2] || j.name.includes(process.argv[2]));
 assert.ok(selected.length, 'No matching baseline journey');
 
-async function fixtureScript(entry: string) {
-  const built = await build({
-    configFile: false, plugins: [preact()], logLevel: 'silent',
-    build: {
-      write: false, assetsInlineLimit: Infinity,
-      lib: { entry: fileURLToPath(new URL(entry, import.meta.url)), name: 'BaselineFixture', formats: ['iife'] },
-    },
-  });
-  const output = Array.isArray(built) ? built[0] : built;
-  if (!output || !('output' in output)) throw new Error(`No fixture build for ${entry}`);
-  const chunk = output.output.find(file => file.type === 'chunk');
-  if (!chunk || chunk.type !== 'chunk') throw new Error(`No fixture script for ${entry}`);
-  return chunk.code;
-}
-
-if (selected.some(j => j.name.includes('shared explanation failure'))) explanationFixture = await fixtureScript('./explanationFailure.tsx');
-if (selected.some(j => j.name.includes('scoped explanation failure'))) checkoutFixture = await fixtureScript('./checkoutFailure.tsx');
+if (selected.some(j => j.name.includes('shared explanation failure'))) explanationFixture = await fixtureScript(new URL('./explanationFailure.tsx', import.meta.url));
+if (selected.some(j => j.name.includes('scoped explanation failure'))) checkoutFixture = await fixtureScript(new URL('./checkoutFailure.tsx', import.meta.url));
 const server = await preview({ preview: { host: '127.0.0.1', port: 4318, strictPort: true }, logLevel: 'silent' });
 let browser;
 try {

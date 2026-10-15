@@ -1,11 +1,10 @@
 // The 🏆 shelf in the Garage: one plank each for Learning, Skill and Sticking with it. Earned trophies shine;
 // the rest are grey silhouettes. Tapping one reads its name, or the hint for what earns it (or its next step).
 import { useEffect } from 'preact/hooks';
-import { game } from '../game/store';
 import { trophyHint, trophyName } from '../voice/phrases';
 import { useVoiceScope } from '../voice/context';
 import { speaking, type Part } from '../voice/say';
-import { earnedCount, TROPHIES, type Trophy } from './trophies';
+import { earnedCount, TROPHIES, type Earned, type Trophy } from './trophies';
 import { cupColor, TrophyArt } from './TrophyArt';
 
 const KINDS = ['learning', 'skill', 'sticking'] as const;
@@ -16,17 +15,17 @@ function lines(t: Trophy, n: number): Part[] {
   return next ? [trophyName(t.steps[n - 1]!), trophyHint(next)] : [trophyName(t.steps[n - 1]!)];
 }
 
-export function TrophyShelf({ onClose }: { onClose: () => void }) {
+export function TrophyShelf({ earned, onClose }: { earned: Earned; onClose: () => void }) {
   const voice = useVoiceScope(), { say } = voice;
   useEffect(() => { void say('Trophies!'); }, []);
   return (
     <div class="shelf">
-      <div class="shelfhead"><span>🏆</span><button class="x" aria-label="Close" onClick={() => { voice.cancel(); onClose(); }}>✕</button></div>
+      <div class="shelfhead"><span>🏆</span><button class="x" aria-label="Close" onClick={() => { if (voice.active) { voice.cancel(); onClose(); } }}>✕</button></div>
       <div class="planks">
         {KINDS.map(kind => (
           <div key={kind} class="plank">
             {TROPHIES.filter(t => t.kind === kind).map(t => {
-              const n = earnedCount(t, game.value.trophies), shown = t.steps[Math.max(n - 1, 0)]!;
+              const n = earnedCount(t, earned), shown = t.steps[Math.max(n - 1, 0)]!;
               return (
                 <button key={t.id} class={`shelf-trophy ${n ? 'earned' : ''} ${speaking.value === t.id ? 'speaking' : ''}`}
                   aria-label={n ? trophyName(shown) : trophyHint(shown)} onClick={() => void say({ parts: lines(t, n), light: t.id })}>

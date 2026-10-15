@@ -23,7 +23,7 @@ export function IntroCard({ money, onGo, signal }: { money: readonly MoneyKey[];
             </button>
           ))}
         </div>
-        <button class="big-btn go" aria-label="Play" onClick={() => { voice.cancel(); onGo(); }}><span class="e">▶</span></button>
+        <button class="big-btn go" aria-label="Play" onClick={() => { if (voice.active) { voice.cancel(); onGo(); } }}><span class="e">▶</span></button>
       </div>
     </div>
   );

@@ -3,11 +3,11 @@ import { game, player } from '../game/store';
 import { needBolts, type Phrase } from '../voice/phrases';
 import type { Item } from '../voice/say';
 import {
-  bodyItem, BODY_IDS, BOUGHT_COLOURS, buyableName, colourById, colourItem, defaultFit, FREE_COLOUR, isLegendary, isModItem, isStarter, LEGENDARY, modId, modName, parseMod,
+  bodyItem, BODY_IDS, BOUGHT_COLOURS, buyableName, colourItem, defaultFit, FREE_COLOUR, isLegendary, isModItem, isStarter, LEGENDARY, modId, modName, parseMod,
   BOLT_RUNGS, type BodyId, type BoughtColour, type Buyable, type BuyRung, type ColourId, type Fit, type ModId, type Rung, type SlotId,
 } from '../garage/catalog';
 import type { Level } from '../modes/ids';
-import { affordable, boltsNeeded, forBolts, goalOf, nextLegendary as nextLegendaryOf, priceOf, waitingOn } from './garageEconomy';
+import { affordable, boltsNeeded, forBolts, goalOf, priceOf, waitingOn } from './garageEconomy';
 import { affordable as affordableItems, type BoltItem } from '../garage/economy';
 import { chooseBody as selectBody, fitColour as applyColour, fitMod, selectGoal, setDoorNumber as numberBody, type GarageState } from '../garage/state';
 import type { Save } from '../save/migrate';
@@ -16,6 +16,7 @@ import { proposePurchase } from '../garage/purchases';
 import type { Commit } from '../save/store';
 import { createGaragePurchases } from './purchases';
 import { createLegendaryCheckout, moneyLegendaryPolicy } from './checkout';
+import { truckColor as colorOfFit } from '../garage/BodyArt';
 
 export { garageFromSave } from './save';
 export const withGarage = (save: Save, state: GarageState): Save => ({
@@ -34,8 +35,7 @@ export const legendaryPrice = (slot: SlotId, level = payLevel()) => priceOf(modI
 
 /** His Truck's paint as one flat colour, for the 2D Truck on Home and the celebration road: Plain shows his Colour. */
 export function truckColor() {
-  const f = currentFit();
-  return f.paint === 0 ? colourById(f.colour).hex : ['', '#1e7bff', '#ff6a00', '#c04dff', '#d4a017'][f.paint]!;
+  return colorOfFit(currentFit());
 }
 
 export const owns = (b: BodyId) => game.value.ownedBodies.includes(b);
@@ -139,14 +139,4 @@ export const costLines = (slot: SlotId, level = payLevel()): Item[] => [`${modNa
 export function waitLines(slot: SlotId, top: ModId): Phrase[] {
   const { rung } = parseMod(top);
   return [modName(slot, LEGENDARY), `Get ${modName(slot, rung)} first!` as Phrase];
-}
-
-export const nextLegendary = () => nextLegendaryOf(garageFromSave(game.value), payLevel());
-
-/** What tapping the Goal bar says. */
-export function goalLines(): Item[] {
-  const g = goal();
-  if (!g) { const l = nextLegendary(); return l ? costLines(l) : ['You built everything!']; }
-  if (boltsNeeded(game.value, g) > 0) return needLines(g);
-  return [`You can get ${buyableName(g)}!` as Phrase];
 }

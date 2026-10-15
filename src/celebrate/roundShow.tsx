@@ -4,7 +4,7 @@ import { render } from 'preact';
 import { sBigFanfare, sChime, sClink, sCrunch, sDrumroll, sEngine, sFanfare, sHonk, sThud, sWhoosh } from '../audio/sfx';
 import { modeById } from '../modes/modes';
 import { eventLines, smallestFirst } from '../round/events';
-import type { Round, RoundEvent } from '../round/round';
+import type { RoundEvent } from '../round/round';
 import { trophyOf } from '../trophies/trophies';
 import { cupColor, TrophyArt } from '../trophies/TrophyArt';
 import { Money } from '../ui/Money';
@@ -25,6 +25,12 @@ export interface ShowStage {
   /** Show a line as it's spoken. */
   line(p: readonly Phrase[]): void;
   alive(): boolean;
+}
+
+export interface RoundShowFacts {
+  readonly earned: number;
+  readonly events: readonly RoundEvent[];
+  readonly canBuild: boolean;
 }
 
 function prop(st: ShowStage, css: string): HTMLDivElement {
@@ -144,7 +150,7 @@ async function trophy(st: ShowStage, e: Extract<RoundEvent, { kind: 'trophy' }>)
 }
 
 /** Plays every moment of the Round, smallest first. Resolves when the last one is done. */
-export async function playRoundShow(st: ShowStage, r: Round, bolts: number) {
+export async function playRoundShow(st: ShowStage, r: RoundShowFacts, bolts: number) {
   if (!st.alive()) return;
   await roundDone(st, bolts, r.earned);
   for (const e of smallestFirst(r.events)) {

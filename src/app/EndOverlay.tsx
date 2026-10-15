@@ -1,19 +1,21 @@
 // End of a Round: the Truck show plays every moment, then 🔧 Garage, ▶ Play again and 🏠 wake up.
 // No tap is taken until every moment has played.
 import { useEffect, useRef, useState } from 'preact/hooks';
-import { screen } from '../app/nav';
-import { playRoundShow } from '../celebrate/roundShow';
-import { affordableCount, truckColor } from '../garage/garage';
-import { game } from '../game/store';
+import { playRoundShow, type RoundShowFacts } from '../celebrate/roundShow';
 import { Bolt, IconButton, TruckArt } from '../ui/bits';
 import type { Phrase } from '../voice/phrases';
 import { useVoiceScope } from '../voice/context';
-import { leaveRound, round, startRound } from './round';
 
-export function EndOverlay() {
+export function EndOverlay({ result: r, hasAffordable, color, onGarage, onAgain, onHome }: {
+  result: RoundShowFacts & { readonly beforeBalance: number; readonly afterBalance: number };
+  hasAffordable: boolean;
+  color: string;
+  onGarage(): void;
+  onAgain(): void;
+  onHome(): void;
+}) {
   const voice = useVoiceScope();
-  const r = round.value!;
-  const [pile, setPile] = useState(game.value.bolts - r.earned);
+  const [pile, setPile] = useState(r.beforeBalance);
   const [bump, setBump] = useState(false);
   const [lines, setLines] = useState<Phrase[]>([]);
   const [awake, setAwake] = useState(false);
@@ -27,7 +29,7 @@ export function EndOverlay() {
       bump: n => { setPile(n); setBump(true); setTimeout(() => setBump(false), 150); },
       line: p => setLines(ls => [...ls, ...p]),
       alive: () => alive && voice.active,
-    }, r, game.value.bolts).then(() => { if (alive && voice.active) setAwake(true); });
+    }, r, r.afterBalance).then(() => { if (alive && voice.active) setAwake(true); });
     return () => { alive = false; voice.cancel(); };
   }, []);
 
@@ -39,16 +41,16 @@ export function EndOverlay() {
       <div class="moment" ref={els.moment}>
         <div class="road" />
         <div class="ctruck" ref={els.truck}>
-          <TruckArt color={truckColor()} />
+          <TruckArt color={color} />
           <div class="load" ref={els.load}>{Array.from({ length: r.earned }, (_, i) => <Bolt key={i} size={r.earned > 3 ? 17 : 34} />)}</div>
         </div>
       </div>
       <div class="lines">{lines.map((l, i) => <div key={i}>{l}</div>)}</div>
       <div class={`btns ${awake ? '' : 'asleep'}`}>
-        <button class={`big-btn garage ${awake && affordableCount() > 0 ? 'pulse' : ''}`} aria-label="Garage" onClick={go(() => { leaveRound(); screen.value = 'garage'; })}><span class="e">🔧</span></button>
-        <button class="big-btn go" aria-label="Play again" onClick={go(() => startRound(r.mode))}><span class="e">▶</span></button>
+        <button class={`big-btn garage ${awake && hasAffordable ? 'pulse' : ''}`} aria-label="Garage" onClick={go(onGarage)}><span class="e">🔧</span></button>
+        <button class="big-btn go" aria-label="Play again" onClick={go(onAgain)}><span class="e">▶</span></button>
       </div>
-      <IconButton label="Home" class={awake ? '' : 'asleep'} onClick={go(() => { leaveRound(); screen.value = 'home'; })}>🏠</IconButton>
+      <IconButton label="Home" class={awake ? '' : 'asleep'} onClick={go(onHome)}>🏠</IconButton>
     </div>
   );
 }
