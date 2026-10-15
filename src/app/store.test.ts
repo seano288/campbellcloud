@@ -28,8 +28,8 @@ describe('live money save composition', () => {
     const unsubscribe = player.state.subscribe(published);
     published.mockClear();
     chooseBody('bigfoot');
-    expect(tapMod('tires', 4)).toBe('fitted');
-    expect(tapColour('teal')).toBe('fitted');
+    expect(tapMod('tires', 4).kind).toBe('fitted');
+    expect(tapColour('teal').kind).toBe('fitted');
     setDoorNumber(64);
     chooseBody('jeep');
     expect(game.value.fitted.jeep).toEqual(PROGRESSED_EXPECTED.fitted.jeep);

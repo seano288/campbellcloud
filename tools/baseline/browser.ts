@@ -352,6 +352,43 @@ async function openSheet(page: Page, name: string) {
   await page.locator('.sheet').waitFor();
 }
 
+journey('Bolt purchase commits once before celebration and reload renders the fitted Mod without replaying it', {
+  ...FRESH_EXPECTED, body: 'pickup', bolts: 16, goal: 'tires:2',
+}, async page => {
+  await button(page, 'Start').click();
+  await button(page, 'Garage').click();
+  await openSheet(page, 'Tires');
+  assert.match(await button(page, 'Giant').getAttribute('class') ?? '', /afford/);
+  await page.evaluate(key => {
+    const write = Storage.prototype.setItem;
+    Storage.prototype.setItem = function (name, value) {
+      if (this === localStorage && name === key) {
+        const snapshots = JSON.parse(sessionStorage.getItem('purchase-snapshots') ?? '[]');
+        snapshots.push(JSON.parse(value));
+        write.call(sessionStorage, 'purchase-snapshots', JSON.stringify(snapshots));
+      }
+      write.call(this, name, value);
+    };
+  }, STORAGE_KEY);
+  await button(page, 'Giant').click();
+  await page.locator('.blocker').waitFor();
+  const expected: Save = {
+    ...FRESH_EXPECTED, body: 'pickup', bolts: 1, unlocked: ['tires:2'], goal: null,
+    fitted: { ...FRESH_EXPECTED.fitted, pickup: { ...FRESH_EXPECTED.fitted.pickup, tires: 2 } },
+  };
+  assert.deepEqual(await page.evaluate(() => JSON.parse(sessionStorage.getItem('purchase-snapshots') ?? '[]')), [expected]);
+  assert.deepEqual(await saved(page), expected);
+  assert.equal(await page.locator('.garage-hud .pilebox > span').innerText(), '1');
+  await page.reload();
+  await button(page, 'Start').click();
+  await button(page, 'Garage').click();
+  await openSheet(page, 'Tires');
+  assert.match(await button(page, 'Giant').getAttribute('class') ?? '', /fitted/);
+  assert.equal(await page.locator('.blocker').count(), 0);
+  assert.deepEqual(await saved(page), expected);
+  assert.deepEqual(await page.evaluate(() => JSON.parse(sessionStorage.getItem('purchase-snapshots') ?? '[]')), [expected]);
+});
+
 journey('Garage purchases, free fits, Body memory, Door Numbers and each selected Goal kind', JOURNEY_SAVES.garage, async page => {
   await button(page, 'Start').click();
   await button(page, 'Garage').click();

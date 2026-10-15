@@ -96,16 +96,17 @@ export function GarageScreen() {
 
   function tap(slot: SlotId, rung: Rung) {
     const result = tapMod(slot, rung);
-    if (slot === 'engine' && result !== 'unlocked') { ENGINES[rung]!(); stage?.puff(); } // he hears an Engine before he buys it
-    if (result === 'fitted') {
+    if (result.kind === 'rejected') return;
+    if (slot === 'engine' && result.kind !== 'unlocked') { ENGINES[rung]!(); stage?.puff(); } // he hears an Engine before he buys it
+    if (result.kind === 'fitted') {
       if (slot === 'horn') HORNS[rung]!();
       else if (slot !== 'engine') { sClink(); void say(modName(slot, rung)); }
-    } else if (result === 'unlocked') {
+    } else if (result.kind === 'unlocked') {
       const r = rung as 1 | 2 | 3;
-      if (stage) block(celebrateUnlock(stage, stageEl.current!, slot, r, currentFit(), gotLine(modId(slot, r))));
-    } else if (result === 'checkout') {
+      if (stage) block(celebrateUnlock(stage, stageEl.current!, slot, r, currentFit(result.state), gotLine(modId(slot, r))));
+    } else if (result.kind === 'checkout') {
       setCheckout(slot);
-    } else if (result === 'waiting') {
+    } else if (result.kind === 'waiting') {
       nope(`${slot}:${rung}`);
       void say(...waitLines(slot, waitingFor(slot)!));
     } else {
@@ -116,9 +117,10 @@ export function GarageScreen() {
 
   function tapSwatch(c: ColourId) {
     const result = tapColour(c), name = colourById(c).name;
-    if (result === 'fitted') { sClink(); void say(name); return; }
+    if (result.kind === 'rejected') return;
+    if (result.kind === 'fitted') { sClink(); void say(name); return; }
     const item = colourItem(c as BoughtColour);
-    if (result === 'unlocked') { if (stage) block(celebrateUnlock(stage, stageEl.current!, 'paint', 1, currentFit(), gotLine(item))); return; }
+    if (result.kind === 'unlocked') { if (stage) block(celebrateUnlock(stage, stageEl.current!, 'paint', 1, currentFit(result.state), gotLine(item))); return; }
     nope(item);
     void say(...needLines(item));
   }
@@ -131,8 +133,9 @@ export function GarageScreen() {
 
   function tapBodyChip(b: BodyId) {
     const result = tapBody(b);
-    if (result === 'switched') void say(BODY_NAMES[b]);
-    else if (result === 'bought') { if (!isStarter(b) && stage) block(celebrateBody(stage, stageEl.current!, currentFit(), gotLine(bodyItem(b)))); }
+    if (result.kind === 'rejected') return;
+    if (result.kind === 'switched') void say(BODY_NAMES[b]);
+    else if (result.kind === 'bought') { if (!isStarter(b) && stage) block(celebrateBody(stage, stageEl.current!, currentFit(result.state), gotLine(bodyItem(b)))); }
     else { nope(`body:${b}`); if (!isStarter(b)) void say(...needLines(bodyItem(b))); }
   }
 

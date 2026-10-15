@@ -11,7 +11,10 @@ import { affordable, boltsNeeded, forBolts, goalOf, nextLegendary as nextLegenda
 import { affordable as affordableItems, type BoltItem } from '../garage/economy';
 import { chooseBody as selectBody, fitColour as applyColour, fitMod, selectGoal, setDoorNumber as numberBody, type GarageState } from '../garage/state';
 import type { Save } from '../save/migrate';
-import { garageFromSave } from './save';
+import { garageFromSave, type MoneyState } from './save';
+import { proposePurchase } from '../garage/purchases';
+import type { Commit } from '../save/store';
+import { createGaragePurchases } from './purchases';
 
 export { garageFromSave } from './save';
 export const withGarage = (save: Save, state: GarageState): Save => ({
@@ -21,7 +24,7 @@ export const withGarage = (save: Save, state: GarageState): Save => ({
 const updateGarage = (change: (state: GarageState) => GarageState) => player.commit(state => ({ ...state, garage: change(state.garage) }));
 
 export const currentBody = (): BodyId => game.value.body ?? 'pickup';
-export const currentFit = (): Fit => game.value.fitted[currentBody()] ?? defaultFit();
+export const currentFit = (state = player.state.value): Fit => state.garage.fitted[state.garage.body ?? 'pickup'] ?? defaultFit();
 
 /** His Pay the Shop Level, which sets what a Legendary costs. */
 export const payLevel = (): Level => game.value.modes.pay.level;
@@ -67,23 +70,27 @@ export const waitingFor = (slot: SlotId) => waitingOn(garageFromSave(game.value)
 export const affordableCount = () => affordable(game.value).length;
 export const goal = () => goalOf(garageFromSave(game.value));
 
-export type TapResult = 'fitted' | 'unlocked' | 'goal' | 'checkout' | 'waiting';
+export const buyWithBolts = createGaragePurchases(player, { proposePurchase });
+
+type TapCommit<K extends string> =
+  | { kind: K; state: MoneyState; saved: Promise<boolean> }
+  | Extract<Commit<MoneyState>, { kind: 'rejected' }>;
+
+const tapResult = <K extends string>(kind: K, result: Commit<MoneyState>): TapCommit<K> =>
+  result.kind === 'accepted' ? { ...result, kind } : result;
+
+export type TapResult = TapCommit<'fitted' | 'unlocked' | 'goal'> | { kind: 'checkout' } | { kind: 'waiting' };
 
 /**
  * Tapping a Mod tile: an owned Mod is fitted; an affordable one is unlocked and fitted in one tap; a locked one
  * becomes the Goal. A locked Legendary opens the checkout, or waits until the top Rung in its Slot is unlocked.
  */
 export function tapMod(slot: SlotId, rung: Rung): TapResult {
-  if (isUnlocked(slot, rung)) { fit(slot, rung); return 'fitted'; }
+  if (isUnlocked(slot, rung)) return tapResult('fitted', fit(slot, rung));
   const mod = modId(slot, rung as BuyRung);
-  if (isLegendary(mod)) return waitingFor(slot) ? 'waiting' : 'checkout';
-  if (canAfford(slot, rung)) {
-    update(s => unlock(s, mod, { kind: 'bolts' }));
-    fit(slot, rung);
-    return 'unlocked';
-  }
-  update(s => withGarage(s, selectGoal(garageFromSave(s), mod)));
-  return 'goal';
+  if (isLegendary(mod)) return { kind: waitingFor(slot) ? 'waiting' : 'checkout' };
+  if (canAfford(slot, rung)) return tapResult('unlocked', buyWithBolts(mod));
+  return tapResult('goal', updateGarage(state => selectGoal(state, mod)));
 }
 
 export const ownsColour = (c: ColourId) => c === FREE_COLOUR || game.value.colours.includes(c);
@@ -95,16 +102,11 @@ function fitColour(c: ColourId) {
 }
 
 /** Tapping a Colour swatch: an owned one is fitted; an affordable one is bought and fitted; a locked one becomes the Goal. */
-export function tapColour(c: ColourId): Exclude<TapResult, 'checkout' | 'waiting'> {
-  if (ownsColour(c)) { fitColour(c); return 'fitted'; }
+export function tapColour(c: ColourId): TapCommit<'fitted' | 'unlocked' | 'goal'> {
+  if (ownsColour(c)) return tapResult('fitted', fitColour(c));
   const item = colourItem(c as BoughtColour);
-  if (canBuyWithBolts(item)) {
-    update(s => unlock(s, item, { kind: 'bolts' }));
-    fitColour(c);
-    return 'unlocked';
-  }
-  update(s => withGarage(s, selectGoal(garageFromSave(s), item)));
-  return 'goal';
+  if (canBuyWithBolts(item)) return tapResult('unlocked', buyWithBolts(item));
+  return tapResult('goal', updateGarage(state => selectGoal(state, item)));
 }
 
 /** He paid exactly for a Legendary at the checkout, at the Level its price was set for: it's his, and fitted. */
@@ -113,21 +115,14 @@ export function buyLegendary(slot: SlotId, cents: number, level: Level) {
   fit(slot, LEGENDARY);
 }
 
-export type BodyTapResult = 'switched' | 'bought' | 'goal';
+export type BodyTapResult = TapCommit<'switched' | 'bought' | 'goal'>;
 
 /** Tapping a Body in the switcher: an owned one is driven; an affordable one is bought and driven; a locked one becomes the Goal. */
 export function tapBody(b: BodyId): BodyTapResult {
-  if (owns(b) || isStarter(b)) { chooseBody(b); return 'switched'; }
+  if (owns(b) || isStarter(b)) return tapResult('switched', chooseBody(b));
   const item = bodyItem(b);
-  if (canBuyWithBolts(item)) {
-    update(s => {
-      const bought = unlock(s, item, { kind: 'bolts' });
-      return withGarage(bought, selectBody(garageFromSave(bought), b));
-    });
-    return 'bought';
-  }
-  update(s => withGarage(s, selectGoal(garageFromSave(s), item)));
-  return 'goal';
+  if (canBuyWithBolts(item)) return tapResult('bought', buyWithBolts(item));
+  return tapResult('goal', updateGarage(state => selectGoal(state, item)));
 }
 
 /** "Chunky. You need 2 more Bolts." */
