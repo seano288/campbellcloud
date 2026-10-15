@@ -18,10 +18,10 @@ export const boltsFor = (results: readonly Outcome[]) => results.filter(o => o =
 export const teachNow = (misses: number, struggling: boolean) => struggling || misses >= TEACH_ON_MISS;
 
 /** A missed problem waiting to come back; `after` is how many answers there were once it was answered. */
-export interface Again { problem: unknown; after: number }
+export interface Again<P = unknown> { problem: P; after: number }
 
 /** The missed problem to ask again, once at least one other problem has come between. */
-export function takeAgain(queue: readonly Again[], answered: number): { problem: unknown; rest: Again[] } | null {
+export function takeAgain<P>(queue: readonly Again<P>[], answered: number): { problem: P; rest: Again<P>[] } | null {
   const i = queue.findIndex(a => answered > a.after);
   if (i < 0) return null;
   return { problem: queue[i]!.problem, rest: queue.filter((_, j) => j !== i) };

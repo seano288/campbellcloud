@@ -10,9 +10,9 @@ export function useVoice() {
   return voice;
 }
 
-export function useVoiceScope() {
+export function useVoiceScope(lifetime?: AbortSignal) {
   const parent = useVoice();
-  const voice = useMemo(() => createVoiceScope(parent.signal), [parent]);
+  const voice = useMemo(() => createVoiceScope(lifetime ?? parent.signal), [parent, lifetime]);
   useLayoutEffect(() => voice.cancel, [voice]);
   return voice;
 }
@@ -29,8 +29,8 @@ export function useVoiceTask() {
   }, [parent]);
 }
 
-export function VoiceBoundary({ children, active = true }: { children: ComponentChildren; active?: boolean }) {
-  const voice = useVoiceScope();
+export function VoiceBoundary({ children, active = true, signal }: { children: ComponentChildren; active?: boolean; signal?: AbortSignal }) {
+  const voice = useVoiceScope(signal);
   useLayoutEffect(() => { if (!active) voice.cancel(); }, [voice, active]);
   return <VoiceContext.Provider value={voice}>{children}</VoiceContext.Provider>;
 }

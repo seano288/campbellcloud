@@ -2,15 +2,22 @@
 import { signal } from '@preact/signals';
 import type { Item, VoiceScope } from '../voice/say';
 
-const shown = signal<{ text: string; id: number } | null>(null);
-let timer: ReturnType<typeof setTimeout> | undefined;
+const shown = signal<{ text: string } | null>(null);
+let dismiss = () => {};
 
 export function toast(voice: VoiceScope, text: string, ...speech: Item[]): Promise<void> {
   if (!voice.active) return Promise.resolve();
-  const id = (shown.value?.id ?? 0) + 1;
-  shown.value = { text, id };
-  clearTimeout(timer);
-  timer = setTimeout(() => { if (shown.value?.id === id) shown.value = null; }, 1800);
+  dismiss();
+  const message = { text };
+  const clear = () => {
+    clearTimeout(timer);
+    voice.signal.removeEventListener('abort', clear);
+    if (shown.peek() === message) shown.value = null;
+  };
+  const timer = setTimeout(clear, 1800);
+  dismiss = clear;
+  voice.signal.addEventListener('abort', clear, { once: true });
+  shown.value = message;
   return voice.say(...speech);
 }
 

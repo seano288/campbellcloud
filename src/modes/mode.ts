@@ -23,7 +23,7 @@ export interface RoundApi {
 
 export interface ModeViewProps<P> { problem: P; level: Level; api: RoundApi }
 
-export interface GameMode<P = unknown, A = unknown> {
+export interface GameMode<P = unknown, A = unknown, ViewProps = ModeViewProps<P>> {
   id: ModeId;
   name: ModeName;
   icon: string;
@@ -41,5 +41,5 @@ export interface GameMode<P = unknown, A = unknown> {
   /** The same problem again, shuffled, for when it comes back after a miss. */
   replay(problem: P, rng: Rng): P;
   checkAnswer(problem: P, answer: A): boolean;
-  View: ComponentType<ModeViewProps<P>>;
+  View: ComponentType<ViewProps>;
 }

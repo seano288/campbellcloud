@@ -9,6 +9,11 @@ import { pick } from '../game/rng';
 import { game, player } from '../game/store';
 import { createPractice } from '../app/practice';
 import type { Outcome, SolvedProblem } from '../learning/session';
+import { createRound, type RoundDisplay } from '../learning/round';
+import type { MoneyKey } from '../money/money';
+import { explainLearn } from '../modes/learn/feedback';
+import type { LearnProblem } from '../modes/learn/learn';
+import { learnSession } from '../modes/session';
 import type { Level, ModeId } from '../modes/ids';
 import type { LearningChange } from '../modes/learning';
 import { modeById } from '../modes/modes';
@@ -22,6 +27,7 @@ import { ROUND_LENGTH, takeAgain, teachNow, THINK_MS, type Again } from './rules
 export type RoundEvent = LearningChange | { kind: 'trophy'; step: TrophyStep };
 
 export interface Round {
+  shared: RoundDisplay<LearnProblem, MoneyKey> | null;
   voice: VoiceScope;
   roundId: string;
   solved: SolvedProblem[];
@@ -54,6 +60,8 @@ export interface Round {
 
 export const round = signal<Round | null>(null);
 const practice = createPractice(player);
+let sharedRound: ReturnType<typeof createRound<LearnProblem, MoneyKey>> | null = null;
+let stopShared = () => {};
 
 let token = 0; // bumped when a Round starts or is left, so its timers stop touching it
 const later = (ms: number, fn: () => void) => { const t = token; setTimeout(() => t === token && fn(), ms); };
@@ -64,16 +72,47 @@ export function startRound(mode: ModeId) {
   const started = practice.start(mode);
   if (started.kind !== 'accepted') return;
   screen.value = 'round';
+  const voice = createVoiceScope(screenVoice.peek().signal);
+  if (mode === 'learn') sharedRound = createRound({
+    roundId: started.roundId, session: learnSession(started.level, () => player.state.peek().learning.modes.learn, explainLearn),
+    rng: Math.random, signal: voice.signal,
+    introduction: started.intro ? { acknowledge: () => { practice.acknowledge(started.roundId); } } : undefined,
+    interrupt: fact => { practice.interrupt(fact.roundId, fact.index, fact.outcome); },
+    solved: (roundId, fact) => {
+      const committed = practice.solve(roundId, fact);
+      if (committed.kind === 'accepted' && round.value?.roundId === roundId) set({ events: [...round.value.events, ...committed.changes] });
+    },
+    terminal: fact => { if (fact.status === 'abandoned') practice.terminal(fact); else endRound(fact.roundId); },
+    effects: {
+      incorrect: async () => { sBad(); },
+      correct: async (fact, signal) => {
+        sGood();
+        if (fact.index === ROUND_LENGTH || fact.outcome !== 'clean') return;
+        const cheer = pick(Math.random, CHEERS), voice = createVoiceScope(signal);
+        await toast(voice, cheer, cheer);
+      },
+    },
+  });
   round.value = {
-    voice: createVoiceScope(screenVoice.peek().signal),
-    roundId: started.roundId, solved: [], mode, level: started.level, intro: started.intro, results: [], problem: modeById(mode).makeProblem(started.level, Math.random), again: false, queue: [],
+    shared: sharedRound?.display.peek() ?? null, voice,
+    roundId: started.roundId, solved: [], mode, level: started.level, intro: started.intro, results: [], problem: sharedRound?.display.peek().current.problem ?? modeById(mode).makeProblem(started.level, Math.random), again: false, queue: [],
     key: 0, firstTry: true, helped: false, misses: 0, busy: false, thinking: false, events: [], ended: false, earned: 0, canBuild: false,
   };
+  if (sharedRound) stopShared = sharedRound.display.subscribe(display => {
+    if (round.value?.roundId !== display.roundId) return;
+    set({
+      shared: display, intro: display.phase === 'introduction', problem: display.current.problem, key: display.current.id,
+      results: display.results.map(r => r.outcome), solved: [...display.results],
+      thinking: display.phase === 'explaining' || display.phase === 'thinking',
+      busy: display.phase === 'success' || display.phase === 'completed' || display.phase === 'abandoned',
+    });
+  });
 }
 
 /** He's seen the introduction card: on to the first problem. */
 export function introDone(roundId: string) {
   if (round.value?.roundId !== roundId) return;
+  if (sharedRound) { sharedRound.display.peek().introduction?.acknowledge(); return; }
   const result = practice.acknowledge(roundId);
   if (result.kind === 'accepted' && round.value?.roundId === roundId) set({ intro: false });
 }
@@ -81,7 +120,10 @@ export function introDone(roundId: string) {
 export function leaveRound() {
   token++;
   const r = round.value;
-  if (r && !r.ended) practice.terminal({ roundId: r.roundId, status: 'abandoned', results: r.solved });
+  if (sharedRound) sharedRound.leave();
+  else if (r && !r.ended) practice.terminal({ roundId: r.roundId, status: 'abandoned', results: r.solved });
+  stopShared();
+  sharedRound = null;
   r?.voice.cancel();
   round.value = null;
 }
@@ -96,7 +138,7 @@ function nextProblem() {
 
 function activeProblem(roundId: string, key: number) {
   const r = round.value;
-  return r?.roundId === roundId && r.key === key && !r.intro && !r.busy && !r.ended ? r : null;
+  return r?.roundId === roundId && !r.shared && r.key === key && !r.intro && !r.busy && !r.ended ? r : null;
 }
 
 export function correct(roundId: string, key: number) {

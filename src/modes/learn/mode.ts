@@ -1,11 +1,12 @@
 import { LEVEL_MONEY } from '../../money/money';
+import type { ProblemViewProps } from '../../learning/session';
 import { LEARN_PHRASES } from '../../voice/phrases';
 import { OPENS_AFTER } from '../chain';
 import type { GameMode } from '../mode';
 import { checkLearn, makeLearn, replayLearn, type LearnProblem } from './learn';
 import { LearnView } from './LearnView';
 
-export const learnMode: GameMode<LearnProblem, Parameters<typeof checkLearn>[1]> = {
+export const learnMode: GameMode<LearnProblem, Parameters<typeof checkLearn>[1], ProblemViewProps<LearnProblem, Parameters<typeof checkLearn>[1]>> = {
   id: 'learn',
   name: 'Learn the Coins',
   icon: '🪙',

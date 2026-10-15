@@ -21,18 +21,24 @@ export interface ProblemActions<A> {
   help(run: Effect): void;
 }
 
+export interface ProblemViewProps<P, A> {
+  problem: P;
+  actions: ProblemActions<A>;
+  signal: AbortSignal;
+}
+
 export interface SolvedProblem {
-  index: number;
-  outcome: Outcome;
-  misses: number;
-  helped: boolean;
-  replay: boolean;
+  readonly index: number;
+  readonly outcome: Outcome;
+  readonly misses: number;
+  readonly helped: boolean;
+  readonly replay: boolean;
 }
 
 export interface RoundResult {
-  roundId: string;
-  status: 'completed' | 'abandoned';
-  results: readonly SolvedProblem[];
+  readonly roundId: string;
+  readonly status: 'completed' | 'abandoned';
+  readonly results: readonly SolvedProblem[];
 }
 
 export type Progression<S, C, F> = (state: S, context: C, result: SolvedProblem) => { state: S; changes: F[] };

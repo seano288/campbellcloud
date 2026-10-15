@@ -6,8 +6,8 @@ import { moneyIs } from '../voice/phrases';
 import { useVoiceScope } from '../voice/context';
 import { speaking } from '../voice/say';
 
-export function IntroCard({ money, onGo }: { money: readonly MoneyKey[]; onGo: () => void }) {
-  const voice = useVoiceScope(), { say } = voice;
+export function IntroCard({ money, onGo, signal }: { money: readonly MoneyKey[]; onGo: () => void; signal?: AbortSignal }) {
+  const voice = useVoiceScope(signal), { say } = voice;
   useEffect(() => {
     void say('Look!', 'New money!', ...money.map(k => ({ parts: [`This is a ${MONEY[k].name}.`, `It is worth ${MONEY[k].value}.`] as const, light: k })));
   }, []);

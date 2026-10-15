@@ -1,6 +1,7 @@
 import { screen } from '../app/nav';
 import { GoalBar } from '../garage/GoalBar';
 import { modeById } from '../modes/modes';
+import { LearnView } from '../modes/learn/LearnView';
 import { BoltPile, IconButton, Stars } from '../ui/bits';
 import { VoiceBoundary, VoiceContext } from '../voice/context';
 import { EndOverlay } from './EndOverlay';
@@ -27,9 +28,13 @@ export function RoundScreen() {
           <BoltPile />
         </div>
         <main class={`card ${r.thinking ? 'thinking' : ''}`}>
-          {!r.intro && <VoiceBoundary key={`${r.roundId}:${r.key}`} active={!r.busy}><View problem={r.problem} level={r.level} api={api} /></VoiceBoundary>}
+          {!r.intro && <VoiceBoundary key={`${r.roundId}:${r.key}`} active={!r.busy} signal={r.shared?.current.signal}>
+            {r.shared
+              ? <LearnView problem={r.shared.current.problem} actions={r.shared.current.actions} signal={r.shared.current.signal} />
+              : <View problem={r.problem} level={r.level} api={api} />}
+          </VoiceBoundary>}
         </main>
-        {r.intro && r.level > 1 && <IntroCard money={mode.introMoney[r.level as 2 | 3]} onGo={() => introDone(r.roundId)} />}
+        {r.intro && r.level > 1 && <IntroCard money={mode.introMoney[r.level as 2 | 3]} signal={r.shared?.introduction?.signal} onGo={r.shared?.introduction?.acknowledge ?? (() => introDone(r.roundId))} />}
         {r.ended && <EndOverlay />}
       </div>
     </VoiceContext.Provider>

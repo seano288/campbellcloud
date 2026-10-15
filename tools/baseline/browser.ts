@@ -260,6 +260,48 @@ journey('Learn wrong answers teach, retry and replay the same task with fresh ch
   await finishShow(page);
 });
 
+journey('Learn cancels a held explanation and detached answer before the replacement prompt', { ...FRESH_EXPECTED, body: 'pickup', currentStreak: 3, bestStreak: 3 }, async page => {
+  const events = await observeRecordedVoice(page);
+  let release!: () => void;
+  const held = new Promise<void>(resolve => { release = resolve; });
+  let requested = false;
+  await page.route(`**/voice/${CLIPS['Try again!']}`, async route => { requested = true; await held; await route.continue(); });
+  try {
+    await button(page, 'Start').click();
+    await page.evaluate(() => { Math.random = () => 0.5; });
+    await button(page, 'Learn the Coins').click();
+    const right = await correctChoice(page, 'learn'), oldAnswer = await right.elementHandle();
+    assert.ok(oldAnswer);
+    const answer = await right.innerText();
+    for (const choice of await page.locator('main .choice').all()) {
+      if (await choice.innerText() !== answer) { await choice.click(); break; }
+    }
+    await page.locator('main.thinking').waitFor();
+    await waitForAssertion(async () => assert.equal(requested, true));
+    const state = await saved(page);
+    assert.equal(state.currentStreak, 0);
+    assert.deepEqual(state.modes.learn.window, []);
+    await button(page, 'Home').click();
+    assert.equal(await page.locator('.toast.show').count(), 0, 'The old explanation must disappear when its problem ends');
+    await button(page, 'Learn the Coins').click();
+    await page.locator('main .choice.speaking').first().waitFor();
+    const replacement = events.filter(e => e.kind === 'start').at(-1)!;
+    await oldAnswer.evaluate(element => { if (element instanceof HTMLElement) element.click(); });
+    release();
+    await waitForAssertion(async () => assert.ok(events.some(e => e.kind === 'end' && e.id === replacement.id)));
+    await sleep(3500);
+    assert.equal(await page.locator('main.thinking, main .wrong, main .nope, main .hint, main .right').count(), 0);
+    assert.equal(events.some(e => e.kind === 'stop' && e.id >= replacement.id), false);
+    assert.deepEqual(await saved(page), state);
+    await solve(page, 'learn');
+    assert.deepEqual((await saved(page)).modes.learn.window, ['clean']);
+    assert.equal((await saved(page)).bolts, 0);
+  } finally {
+    release();
+    await page.unrouteAll({ behavior: 'wait' });
+  }
+});
+
 journey('Count peeks and counting help break the streak and earn only clean-answer Bolts', {
   ...JOURNEY_SAVES.practice,
   modes: {
