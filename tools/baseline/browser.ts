@@ -54,6 +54,7 @@ const denominations = [
 const centsOf = (text: string) => Math.round(Number(text.replace(/[^0-9.]/g, '')) * (text.includes('$') ? 100 : 1));
 const modeName = { learn: 'Learn the Coins', count: 'Count the Cash', pay: 'Pay the Shop' };
 let explanationFixture = '';
+let checkoutFixture = '';
 
 async function correctChoice(page: Page, mode: 'learn' | 'count') {
   const captions = await page.locator('main .pile .cap').allTextContents();
@@ -823,22 +824,134 @@ journey('Scoped recorded voice cancels pending checkout teaching before a replac
   }
 });
 
+for (const failure of ['throw', 'reject', 'late-resolve', 'late-reject'] as const) {
+  journey(`Legendary scoped explanation failure ${failure} leaves real controls usable and replacement work isolated`, JOURNEY_SAVES['checkout-2'], async page => {
+    await page.route('**/checkout-failure?*', route => route.fulfill({
+      contentType: 'text/html',
+      body: '<div id="fixture"></div><output id="explanation-failure"></output><output id="checkout-paid"></output>',
+    }));
+    await page.goto(`http://127.0.0.1:4318/checkout-failure?failure=${failure}`);
+    await page.addScriptTag({ content: checkoutFixture });
+    const before = await saved(page);
+    await page.locator('.bank').getByRole('button', { name: 'Penny', exact: true }).click();
+    await button(page, 'Pay').click();
+    assert.equal(await page.locator('#explanation-failure').innerText(), failure);
+    assert.equal(await page.locator('main.thinking').count(), 0);
+    assert.deepEqual(await saved(page), before);
+    if (failure.startsWith('late')) {
+      await button(page, 'Pay').click();
+      const oldPay = await button(page, 'Pay').elementHandle();
+      const oldHelp = await page.getByRole('button', { name: /Help me pay/ }).elementHandle();
+      assert.ok(oldPay && oldHelp);
+      await button(page, 'Replace checkout').click();
+      await button(page, 'Release teaching').click();
+      await oldPay.evaluate(element => element.dispatchEvent(new MouseEvent('click', { bubbles: true })));
+      await oldHelp.evaluate(element => element.dispatchEvent(new MouseEvent('click', { bubbles: true })));
+      await sleep(2000);
+      assert.equal(await page.locator('.paidrow b').innerText(), '0¢');
+      assert.deepEqual(await saved(page), before);
+    } else {
+      await button(page, 'Take one back').click();
+      assert.equal(await page.locator('.paidrow b').innerText(), '0¢');
+    }
+    await button(page, 'Use context 3').click();
+    const changed = await saved(page);
+    assert.equal(changed.modes.pay.level, 3);
+    assert.equal(await page.locator('.price').innerText(), '$1.10');
+    assert.equal(await page.locator('.bank').getByRole('button', { name: '$5 Bill', exact: true }).count(), 0);
+    await page.getByRole('button', { name: /Help me pay/ }).click();
+    await waitForAssertion(async () => assert.equal(await page.locator('.paidrow b').innerText(), '$1.10'), 30000);
+    assert.deepEqual(await saved(page), changed);
+    assert.equal(await page.locator('#checkout-paid').innerText(), '');
+    await button(page, 'Pay').click();
+    await waitForAssertion(async () => assert.equal(await page.locator('#checkout-paid').innerText(), 'completed'));
+    assert.deepEqual(await saved(page), {
+      ...changed, unlocked: [...changed.unlocked, 'tires:4'],
+      fitted: { ...changed.fitted, [changed.body!]: { ...changed.fitted[changed.body!], tires: 4 } },
+    });
+  });
+}
+
+journey('Legendary Level 1 help edits, peek and navigation cancel teaching without a practice gate', {
+  ...JOURNEY_SAVES['checkout-2'],
+  modes: { ...JOURNEY_SAVES['checkout-2'].modes, pay: { ...FRESH_EXPECTED.modes.pay, opened: false, window: ['missed', 'missed', 'missed'] } },
+}, async page => {
+  const events = await observeRecordedVoice(page);
+  await button(page, 'Start').click();
+  await button(page, 'Garage').click();
+  await openSheet(page, 'Tires');
+  await button(page, 'Monster Treads').click();
+  const before = await saved(page);
+  assert.equal(await page.locator('.price').innerText(), '35¢');
+  assert.deepEqual(await page.locator('.bank button').allTextContents().then(names => names.map(text => text.trim())), [
+    'Dime · 10¢', 'Nickel · 5¢', 'Penny · 1¢',
+  ]);
+  await page.locator('.bank').getByRole('button', { name: 'Penny', exact: true }).click();
+  await button(page, 'Pay').click();
+  await page.getByText('Almost! You need 34¢ more.', { exact: true }).waitFor();
+  await sleep(2500);
+  assert.equal(await page.locator('.paidrow b').innerText(), '1¢');
+  await page.getByRole('button', { name: /Help me pay/ }).click();
+  await waitForAssertion(async () => assert.ok(await button(page, 'Take back Dime').count()));
+  await page.locator('.bank').getByRole('button', { name: 'Penny', exact: true }).click();
+  const edited = await page.locator('.paidrow b').innerText();
+  await sleep(2000);
+  assert.equal(await page.locator('.paidrow b').innerText(), edited);
+  await page.getByRole('button', { name: /Help me pay/ }).click();
+  const beforePeek = events.at(-1)?.id ?? 0;
+  await button(page, 'Show me all the money').click();
+  assert.equal(await page.locator('.intro-money button').count(), 3);
+  await waitForAssertion(async () => assert.ok(events.some(event =>
+    event.kind === 'start' && event.id > beforePeek && event.audible && event.running &&
+    events.some(end => end.kind === 'end' && end.id === event.id) &&
+    !events.some(stop => stop.kind === 'stop' && stop.id === event.id),
+  )));
+  await Promise.all([
+    page.locator('.intro-money .speaking').waitFor(),
+    page.locator('.intro-money').getByRole('button', { name: 'Nickel', exact: true }).click(),
+  ]);
+  await button(page, 'Done').click();
+  const peeked = await page.locator('.paidrow b').innerText();
+  await sleep(2000);
+  assert.equal(await page.locator('.paidrow b').innerText(), peeked);
+  assert.deepEqual(await saved(page), before);
+  const oldPay = await button(page, 'Pay').elementHandle();
+  const oldHelp = await page.getByRole('button', { name: /Help me pay/ }).elementHandle();
+  assert.ok(oldPay && oldHelp);
+  await button(page, 'Home').dispatchEvent('click');
+  await page.locator('.home').waitFor();
+  const starts = events.filter(event => event.kind === 'start').length;
+  await oldPay.evaluate(element => element.dispatchEvent(new MouseEvent('click', { bubbles: true })));
+  await oldHelp.evaluate(element => element.dispatchEvent(new MouseEvent('click', { bubbles: true })));
+  await sleep(2000);
+  assert.equal(events.filter(event => event.kind === 'start').length, starts);
+  await button(page, 'Garage').click();
+  await openSheet(page, 'Tires');
+  await button(page, 'Monster Treads').click();
+  assert.equal(await page.locator('.paidrow b').innerText(), '0¢');
+  assert.deepEqual(await saved(page), before);
+});
+
 const selected = journeys.filter(j => !process.argv[2] || j.name.includes(process.argv[2]));
 assert.ok(selected.length, 'No matching baseline journey');
-if (selected.some(j => j.name.includes('shared explanation failure'))) {
+
+async function fixtureScript(entry: string) {
   const built = await build({
     configFile: false, plugins: [preact()], logLevel: 'silent',
     build: {
       write: false, assetsInlineLimit: Infinity,
-      lib: { entry: fileURLToPath(new URL('./explanationFailure.tsx', import.meta.url)), name: 'ExplanationFailure', formats: ['iife'] },
+      lib: { entry: fileURLToPath(new URL(entry, import.meta.url)), name: 'BaselineFixture', formats: ['iife'] },
     },
   });
   const output = Array.isArray(built) ? built[0] : built;
-  if (!output || !('output' in output)) throw new Error('No explanation fixture build');
+  if (!output || !('output' in output)) throw new Error(`No fixture build for ${entry}`);
   const chunk = output.output.find(file => file.type === 'chunk');
-  if (!chunk || chunk.type !== 'chunk') throw new Error('No explanation fixture script');
-  explanationFixture = chunk.code;
+  if (!chunk || chunk.type !== 'chunk') throw new Error(`No fixture script for ${entry}`);
+  return chunk.code;
 }
+
+if (selected.some(j => j.name.includes('shared explanation failure'))) explanationFixture = await fixtureScript('./explanationFailure.tsx');
+if (selected.some(j => j.name.includes('scoped explanation failure'))) checkoutFixture = await fixtureScript('./checkoutFailure.tsx');
 const server = await preview({ preview: { host: '127.0.0.1', port: 4318, strictPort: true }, logLevel: 'silent' });
 let browser;
 try {

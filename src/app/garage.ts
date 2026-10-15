@@ -15,7 +15,7 @@ import { garageFromSave, type MoneyState } from './save';
 import { proposePurchase } from '../garage/purchases';
 import type { Commit } from '../save/store';
 import { createGaragePurchases } from './purchases';
-import { createLegendaryCheckout } from './checkout';
+import { createLegendaryCheckout, moneyLegendaryPolicy } from './checkout';
 
 export { garageFromSave } from './save';
 export const withGarage = (save: Save, state: GarageState): Save => ({
@@ -111,7 +111,7 @@ export function tapColour(c: ColourId): TapCommit<'fitted' | 'unlocked' | 'goal'
 }
 
 /** He paid exactly for a Legendary at the checkout, at the Level its price was set for: it's his, and fitted. */
-export const legendaryCheckout = createLegendaryCheckout(player);
+export const legendaryCheckout = createLegendaryCheckout(player, moneyLegendaryPolicy);
 
 export type BodyTapResult = TapCommit<'switched' | 'bought' | 'goal'>;
 

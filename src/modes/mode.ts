@@ -7,21 +7,6 @@ import type { MoneyKey } from '../money/money';
 import type { Phrase } from '../voice/phrases';
 import type { Level, ModeId, ModeName } from './ids';
 
-/** What a mode's screen can tell the Round. */
-export interface RoundApi {
-  /** He got this problem right. */
-  correct(): void;
-  /**
-   * A wrong answer. `explain` says what went wrong and returns once it's said; when `teach` is set it also shows
-   * him the answer (help steps in). Taps are held until then, and a moment longer.
-   */
-  miss(explain: (teach: boolean) => Promise<unknown>): void;
-  /** He used help (or help ran by itself), so this problem doesn't count toward Mastery. */
-  helped(): void;
-  /** Taps are ignored while the Round moves on. */
-  busy: boolean;
-}
-
 export interface GameMode<P = unknown, A = unknown> {
   id: ModeId;
   name: ModeName;

@@ -11,7 +11,8 @@ import { screen } from '../app/nav';
 import { ENGINES, HORNS, sClink, sNope } from '../audio/sfx';
 import { celebrateBody, celebrateUnlock } from '../celebrate/garageShow';
 import { game } from '../game/store';
-import type { Level } from '../modes/ids';
+import type { Commit } from '../save/store';
+import type { MoneyState } from '../app/save';
 import { fmt } from '../money/money';
 import { startRound } from '../round/round';
 import { TrophyShelf } from '../trophies/TrophyShelf';
@@ -20,7 +21,7 @@ import { numberLine } from '../voice/phrases';
 import { useVoice } from '../voice/context';
 import { createVoiceScope, type VoiceScope } from '../voice/say';
 import { BodyArt } from './BodyArt';
-import { bodyItem, BODY_IDS, BODY_NAMES, colourById, colourItem, COLOURS, FREE_COLOUR, isStarter, LEGENDARY, modId, modName, parseMod, RUNGS, SLOTS, slotById, TOP, type BodyId, type BoughtColour, type ColourId, type Rung, type SlotId } from './catalog';
+import { bodyItem, BODY_IDS, BODY_NAMES, colourById, colourItem, COLOURS, FREE_COLOUR, isStarter, LEGENDARY, modId, modName, RUNGS, SLOTS, slotById, TOP, type BodyId, type BoughtColour, type ColourId, type Rung, type SlotId } from './catalog';
 import { Checkout } from './Checkout';
 import { digits, turnWheel, type Wheel } from './doorNumber';
 import { PRICES } from './economy';
@@ -114,7 +115,7 @@ export function GarageScreen() {
       const r = rung as 1 | 2 | 3;
       if (stage) block(celebrateUnlock(stage, stageEl.current!, slot, r, currentFit(result.state), gotLine(modId(slot, r)), showVoice()));
     } else if (result.kind === 'checkout') {
-      const opened = legendaryCheckout.open(modId(slot, LEGENDARY));
+      const opened = legendaryCheckout.open(modId(slot, LEGENDARY), voice.signal, result => paid(slot, result));
       if (opened.kind === 'ready') { celebration.current?.cancel(); setCheckout(opened.checkout); }
     } else if (result.kind === 'waiting') {
       nope(`${slot}:${rung}`);
@@ -135,12 +136,9 @@ export function GarageScreen() {
     void say(...needLines(item));
   }
 
-  function paid(checkout: LegendaryCheckout, cents: number, level: Level) {
-    const result = checkout.pay(cents, level);
-    if (result.kind !== 'accepted') return;
-    const { slot } = parseMod(checkout.item);
-    setCheckout(current => current === checkout ? null : current);
-    if (stage) block(celebrateUnlock(stage, stageEl.current!, slot, LEGENDARY, currentFit(result.state), gotLine(checkout.item), showVoice()));
+  function paid(slot: SlotId, result: Extract<Commit<MoneyState>, { kind: 'accepted' }>) {
+    setCheckout(null);
+    if (stage) block(celebrateUnlock(stage, stageEl.current!, slot, LEGENDARY, currentFit(result.state), gotLine(modId(slot, LEGENDARY)), showVoice()));
   }
 
   function tapBodyChip(b: BodyId) {
@@ -268,7 +266,7 @@ export function GarageScreen() {
         </div>
       )}
       {shelf && <TrophyShelf onClose={() => setShelf(false)} />}
-      {checkout && <Checkout key={checkout.id} slot={parseMod(checkout.item).slot} level={checkout.context} onPaid={(cents, level) => paid(checkout, cents, level)} onClose={() => { checkout.close(); setCheckout(current => current === checkout ? null : current); }} />}
+      {checkout && <Checkout key={checkout.id} checkout={checkout} onClose={() => setCheckout(current => current === checkout ? null : current)} />}
       {blocked && <div class="blocker" />}
     </div>
   );

@@ -3,15 +3,13 @@
 import type { ComponentChildren } from 'preact';
 import { useState } from 'preact/hooks';
 import { sClink } from '../../audio/sfx';
-import type { ProblemActions } from '../../learning/session';
 import { biggestFirst, fmt, MONEY, total, type MoneyKey } from '../../money/money';
 import { PeekCard } from '../../round/PeekCard';
 import { Money } from '../../ui/Money';
-import { useVoice, useVoiceScope } from '../../voice/context';
+import { useVoice } from '../../voice/context';
 import type { Item } from '../../voice/say';
-import type { RoundApi } from '../mode';
-import { checkPayInput } from '../session';
-import { explainPay, helpPay, payment, promptPay } from './feedback';
+import { helpPay, payment } from './feedback';
+import type { PaymentActions } from './payment';
 
 const MAX_TRAY = 12; // Help me pay needs at most 8
 
@@ -23,31 +21,8 @@ export interface PayCounterProps {
   /** The money 👀 shows, and what's said again after it. */
   peekMoney: readonly MoneyKey[];
   speech: Item[];
-  actions: ProblemActions<readonly MoneyKey[]>;
+  actions: PaymentActions;
   signal: AbortSignal;
-}
-
-export interface CheckoutCounterProps extends Omit<PayCounterProps, 'actions' | 'signal'> {
-  api: RoundApi;
-  /** Told what was in the tray when he paid exactly, before api.correct(). */
-  onPaid?: (cents: number) => void;
-}
-
-export function CheckoutCounter({ api, onPaid, ...props }: CheckoutCounterProps) {
-  const voice = useVoiceScope();
-  const actions: ProblemActions<readonly MoneyKey[]> = {
-    get busy() { return api.busy || !voice.active; },
-    submit(tray) {
-      if (actions.busy) return 'ignored';
-      const verdict = checkPayInput(props, tray, (result, teach, signal) => explainPay(props, result, teach, signal), promptPay);
-      if (verdict.kind === 'correct') { onPaid?.(total(tray)); api.correct(); }
-      if (verdict.kind === 'incorrect') api.miss(teach => verdict.explain(teach, voice.signal));
-      if (verdict.kind === 'not-an-answer') void verdict.prompt?.(voice.signal);
-      return verdict.kind;
-    },
-    help(run) { if (voice.active) { api.helped(); void run(voice.signal); } },
-  };
-  return <PayCounter {...props} actions={actions} signal={voice.signal} />;
 }
 
 export function PayCounter({ price, bank, icon, peekMoney, speech, actions, signal }: PayCounterProps) {
