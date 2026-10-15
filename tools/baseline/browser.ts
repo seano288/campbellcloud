@@ -17,6 +17,23 @@ async function saved(page: Page): Promise<Save> {
   }, STORAGE_KEY);
 }
 
+async function recordPurchaseSnapshots(page: Page) {
+  await page.evaluate(key => {
+    const write = Storage.prototype.setItem;
+    Storage.prototype.setItem = function (name, value) {
+      if (this === localStorage && name === key) {
+        const snapshots = JSON.parse(sessionStorage.getItem('purchase-snapshots') ?? '[]');
+        snapshots.push(JSON.parse(value));
+        write.call(sessionStorage, 'purchase-snapshots', JSON.stringify(snapshots));
+      }
+      write.call(this, name, value);
+    };
+  }, STORAGE_KEY);
+}
+
+const purchaseSnapshots = (page: Page): Promise<Save[]> =>
+  page.evaluate(() => JSON.parse(sessionStorage.getItem('purchase-snapshots') ?? '[]'));
+
 async function waitForAssertion(check: () => Promise<void>, timeout = 15000) {
   const until = Date.now() + timeout;
   for (;;) {
@@ -386,24 +403,14 @@ journey('Bolt purchase commits once before celebration and reload renders the fi
   await button(page, 'Garage').click();
   await openSheet(page, 'Tires');
   assert.match(await button(page, 'Giant').getAttribute('class') ?? '', /afford/);
-  await page.evaluate(key => {
-    const write = Storage.prototype.setItem;
-    Storage.prototype.setItem = function (name, value) {
-      if (this === localStorage && name === key) {
-        const snapshots = JSON.parse(sessionStorage.getItem('purchase-snapshots') ?? '[]');
-        snapshots.push(JSON.parse(value));
-        write.call(sessionStorage, 'purchase-snapshots', JSON.stringify(snapshots));
-      }
-      write.call(this, name, value);
-    };
-  }, STORAGE_KEY);
+  await recordPurchaseSnapshots(page);
   await button(page, 'Giant').click();
   await page.locator('.blocker').waitFor();
   const expected: Save = {
     ...FRESH_EXPECTED, body: 'pickup', bolts: 1, unlocked: ['tires:2'], goal: null,
     fitted: { ...FRESH_EXPECTED.fitted, pickup: { ...FRESH_EXPECTED.fitted.pickup, tires: 2 } },
   };
-  assert.deepEqual(await page.evaluate(() => JSON.parse(sessionStorage.getItem('purchase-snapshots') ?? '[]')), [expected]);
+  assert.deepEqual(await purchaseSnapshots(page), [expected]);
   assert.deepEqual(await saved(page), expected);
   assert.equal(await page.locator('.garage-hud .pilebox > span').innerText(), '1');
   await page.reload();
@@ -413,7 +420,7 @@ journey('Bolt purchase commits once before celebration and reload renders the fi
   assert.match(await button(page, 'Giant').getAttribute('class') ?? '', /fitted/);
   assert.equal(await page.locator('.blocker').count(), 0);
   assert.deepEqual(await saved(page), expected);
-  assert.deepEqual(await page.evaluate(() => JSON.parse(sessionStorage.getItem('purchase-snapshots') ?? '[]')), [expected]);
+  assert.deepEqual(await purchaseSnapshots(page), [expected]);
 });
 
 journey('Garage purchases, free fits, Body memory, Door Numbers and each selected Goal kind', JOURNEY_SAVES.garage, async page => {
@@ -511,22 +518,40 @@ for (const level of [2, 3] as const) {
     await waitForAssertion(async () => assert.equal(await page.locator('.paidrow b').innerText(), level === 2 ? '$1.10' : '$8.80'), 30000);
     assert.deepEqual(await saved(page), before);
     if (level === 3) assert.equal(await button(page, 'Take back $5 Bill').count(), 1);
+    const latePay = await button(page, 'Pay').elementHandle();
+    assert.ok(latePay);
     await page.locator('.checkout').getByRole('button', { name: 'Close', exact: true }).click();
     await button(page, item).click();
+    await latePay.evaluate(element => { if (element instanceof HTMLElement) element.click(); });
+    assert.equal(await page.locator('.checkout').count(), 1);
     assert.equal(await page.locator('.paidrow b').innerText(), '0¢');
+    assert.deepEqual(await saved(page), before);
+    assert.equal(await page.locator('.blocker').count(), 0);
     await page.getByRole('button', { name: /Help me pay/ }).click();
     await waitForAssertion(async () => assert.equal(await page.locator('.paidrow b').innerText(), level === 2 ? '$1.10' : '$8.80'), 30000);
     assert.deepEqual(await saved(page), before);
+    await recordPurchaseSnapshots(page);
     await button(page, 'Pay').click();
     await page.locator('.checkout').waitFor({ state: 'hidden' });
     const slot = level === 2 ? 'tires' : 'horn';
     const after = await saved(page);
-    assert.deepEqual(after, {
+    const expected: Save = {
       ...before, unlocked: [...before.unlocked, `${slot}:4`],
       fitted: { ...before.fitted, pickup: { ...before.fitted.pickup, [slot]: 4 } },
-    });
+    };
+    assert.deepEqual(after, expected);
+    assert.deepEqual(await purchaseSnapshots(page), [expected]);
     await page.locator('.blocker').waitFor({ state: 'hidden' });
     assert.match(await button(page, item).getAttribute('class') ?? '', /fitted/);
+    await page.reload();
+    await button(page, 'Start').click();
+    await button(page, 'Garage').click();
+    await openSheet(page, level === 2 ? 'Tires' : 'Horn');
+    assert.match(await button(page, item).getAttribute('class') ?? '', /fitted/);
+    assert.equal(await page.locator('.checkout').count(), 0);
+    assert.equal(await page.locator('.blocker').count(), 0);
+    assert.deepEqual(await saved(page), expected);
+    assert.deepEqual(await purchaseSnapshots(page), [expected]);
   });
 }
 

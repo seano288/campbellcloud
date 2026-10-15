@@ -6,6 +6,7 @@
 // hotspot steps away while the sheet is open, and every hotspot does while he picks, so none covers the number.
 // The Paint sheet has a row of Colour swatches under its Mods.
 import { useEffect, useRef, useState } from 'preact/hooks';
+import type { LegendaryCheckout } from '../app/checkout';
 import { screen } from '../app/nav';
 import { ENGINES, HORNS, sClink, sNope } from '../audio/sfx';
 import { celebrateBody, celebrateUnlock } from '../celebrate/garageShow';
@@ -18,12 +19,12 @@ import { Bolt, BoltPile, IconButton } from '../ui/bits';
 import { numberLine } from '../voice/phrases';
 import { say } from '../voice/say';
 import { BodyArt } from './BodyArt';
-import { bodyItem, BODY_IDS, BODY_NAMES, colourById, colourItem, COLOURS, FREE_COLOUR, isStarter, LEGENDARY, modId, modName, RUNGS, SLOTS, slotById, TOP, type BodyId, type BoughtColour, type ColourId, type Rung, type SlotId } from './catalog';
+import { bodyItem, BODY_IDS, BODY_NAMES, colourById, colourItem, COLOURS, FREE_COLOUR, isStarter, LEGENDARY, modId, modName, parseMod, RUNGS, SLOTS, slotById, TOP, type BodyId, type BoughtColour, type ColourId, type Rung, type SlotId } from './catalog';
 import { Checkout } from './Checkout';
 import { digits, turnWheel, type Wheel } from './doorNumber';
 import { PRICES } from './economy';
 import {
-  buyLegendary, canAfford, canAffordBody, canAffordColour, currentBody, currentFit, goal, gotLine, isUnlocked, legendaryPrice, needLines, owns, ownsColour, setDoorNumber, slotHasAffordable,
+  canAfford, canAffordBody, canAffordColour, currentBody, currentFit, goal, gotLine, isUnlocked, legendaryCheckout, legendaryPrice, needLines, owns, ownsColour, setDoorNumber, slotHasAffordable,
   stepBody, tapBody, tapColour, tapMod, waitingFor, waitLines,
 } from './garage';
 import { GoalBar } from './GoalBar';
@@ -38,7 +39,7 @@ export function GarageScreen() {
   const [stage, setStage] = useState<GarageStage | null>(null);
   const [sheet, setSheet] = useState<SlotId | null>(null);
   const [picking, setPicking] = useState(false);
-  const [checkout, setCheckout] = useState<SlotId | null>(null);
+  const [checkout, setCheckout] = useState<LegendaryCheckout | null>(null);
   const [showing, setShowing] = useState(false);
   const [shelf, setShelf] = useState(false);
   const [wiggle, setWiggle] = useState<string | null>(null);
@@ -65,6 +66,7 @@ export function GarageScreen() {
 
   useEffect(() => { stage?.setTruck(body, f); }, [stage, body, JSON.stringify(f)]);
   useEffect(() => { strip.current?.querySelector('.on')?.scrollIntoView({ inline: 'center', block: 'nearest', behavior: 'smooth' }); }, [body, showing]);
+  useEffect(() => () => checkout?.close(), [checkout]);
 
   function openSheet(slot: SlotId) {
     setSheet(slot); setPicking(false);
@@ -105,7 +107,8 @@ export function GarageScreen() {
       const r = rung as 1 | 2 | 3;
       if (stage) block(celebrateUnlock(stage, stageEl.current!, slot, r, currentFit(result.state), gotLine(modId(slot, r))));
     } else if (result.kind === 'checkout') {
-      setCheckout(slot);
+      const opened = legendaryCheckout.open(modId(slot, LEGENDARY));
+      if (opened.kind === 'ready') setCheckout(opened.checkout);
     } else if (result.kind === 'waiting') {
       nope(`${slot}:${rung}`);
       void say(...waitLines(slot, waitingFor(slot)!));
@@ -125,10 +128,12 @@ export function GarageScreen() {
     void say(...needLines(item));
   }
 
-  function paid(slot: SlotId, cents: number, level: Level) {
-    buyLegendary(slot, cents, level);
-    setCheckout(null);
-    if (stage) block(celebrateUnlock(stage, stageEl.current!, slot, LEGENDARY, currentFit(), gotLine(modId(slot, LEGENDARY))));
+  function paid(checkout: LegendaryCheckout, cents: number, level: Level) {
+    const result = checkout.pay(cents, level);
+    if (result.kind !== 'accepted') return;
+    const { slot } = parseMod(checkout.item);
+    setCheckout(current => current === checkout ? null : current);
+    if (stage) block(celebrateUnlock(stage, stageEl.current!, slot, LEGENDARY, currentFit(result.state), gotLine(checkout.item)));
   }
 
   function tapBodyChip(b: BodyId) {
@@ -256,7 +261,7 @@ export function GarageScreen() {
         </div>
       )}
       {shelf && <TrophyShelf onClose={() => setShelf(false)} />}
-      {checkout && <Checkout slot={checkout} onPaid={(cents, level) => paid(checkout, cents, level)} onClose={() => setCheckout(null)} />}
+      {checkout && <Checkout key={checkout.id} slot={parseMod(checkout.item).slot} level={checkout.context} onPaid={(cents, level) => paid(checkout, cents, level)} onClose={() => { checkout.close(); setCheckout(current => current === checkout ? null : current); }} />}
       {blocked && <div class="blocker" />}
     </div>
   );

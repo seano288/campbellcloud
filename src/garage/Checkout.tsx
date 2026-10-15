@@ -11,13 +11,12 @@ import { fmt, LEVEL_MONEY } from '../money/money';
 import { Ask } from '../round/Ask';
 import { TEACH_ON_MISS } from '../round/rules';
 import { LEGENDARY, modName, type SlotId } from './catalog';
-import { costLines, legendaryPrice, payLevel } from './garage';
+import { costLines, legendaryPrice } from './garage';
 import { PartIcon } from './icons';
 
 /** onPaid gets the tray's total and the Level it was priced at, which unlock() checks against the price. */
-export function Checkout({ slot, onPaid, onClose }: { slot: SlotId; onPaid: (cents: number, level: Level) => void; onClose: () => void }) {
+export function Checkout({ slot, level, onPaid, onClose }: { slot: SlotId; level: Level; onPaid: (cents: number, level: Level) => void; onClose: () => void }) {
   const [misses, setMisses] = useState(0);
-  const [level] = useState(payLevel);
   const cents = legendaryPrice(slot, level), speech = costLines(slot, level), bank = LEVEL_MONEY[level];
   const api: RoundApi = {
     correct: () => {},

@@ -3,7 +3,7 @@ import { FRESH_EXPECTED, STORAGE_KEY } from '../../tools/baseline/saves';
 import type { Save } from '../save/migrate';
 import { moneySave, type MoneyState } from './save';
 
-describe('live Bolt purchase coordination', () => {
+describe('live Garage purchase coordination', () => {
   let values: Map<string, string>;
   const write = vi.fn<(key: string, text: string) => void>();
 
@@ -28,6 +28,44 @@ describe('live Bolt purchase coordination', () => {
     await store.loadGame();
     return { ...store, ...actions };
   }
+
+  it('routes live Legendary payment through one commit and leaves owned Legendary fitting free', async () => {
+    const initial: Save = {
+      ...FRESH_EXPECTED, body: 'pickup', bolts: 16, unlocked: ['tires:3'], goal: 'paint:2',
+      modes: { ...FRESH_EXPECTED.modes, pay: { ...FRESH_EXPECTED.modes.pay, level: 2 } },
+      currentStreak: 7, bestStreak: 7,
+    };
+    const app = await launch(initial);
+    expect(app.tapMod('tires', 4)).toEqual({ kind: 'checkout' });
+    const opened = app.legendaryCheckout.open('tires:4');
+    if (opened.kind !== 'ready') throw new Error('Expected eligible checkout');
+    const publications: MoneyState[] = [];
+    const unsubscribe = app.player.state.subscribe(state => publications.push(state));
+    publications.length = 0;
+    const result = opened.checkout.pay(110, 2);
+    if (result.kind !== 'accepted') throw new Error('Expected committed Legendary');
+    const expected: Save = {
+      ...initial, unlocked: ['tires:3', 'tires:4'],
+      fitted: { ...initial.fitted, pickup: { ...initial.fitted.pickup, tires: 4 } },
+    };
+    expect(publications.map(moneySave.encode)).toEqual([expected]);
+    expect(opened.checkout.status).toBe('completed');
+    expect(await result.saved).toBe(true);
+    expect(write).toHaveBeenCalledTimes(1);
+    expect(JSON.parse(values.get(STORAGE_KEY)!)).toEqual(expected);
+    for (const rung of [0, 4] as const) {
+      const free = app.tapMod('tires', rung);
+      if (free.kind !== 'fitted') throw new Error('Expected free fit');
+      expect(await free.saved).toBe(true);
+      expect(app.game.value).toEqual({ ...expected, fitted: { ...expected.fitted, pickup: { ...expected.fitted.pickup, tires: rung } } });
+    }
+    write.mockClear();
+    expect(opened.checkout.pay(110, 2).kind).toBe('rejected');
+    expect(app.legendaryCheckout.open('tires:4')).toEqual({ kind: 'rejected', reason: 'already-owned' });
+    await Promise.resolve();
+    expect(write).not.toHaveBeenCalled();
+    unsubscribe();
+  });
 
   it('rejects direct purchases of owned items without refitting, switching or clearing another Goal', async () => {
     const initial: Save = {

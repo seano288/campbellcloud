@@ -1,5 +1,5 @@
 // Garage actions on the saved game: choosing and buying Bodies, fitting and unlocking Mods and Colours, and the Goal.
-import { game, player, update } from '../game/store';
+import { game, player } from '../game/store';
 import { needBolts, type Phrase } from '../voice/phrases';
 import type { Item } from '../voice/say';
 import {
@@ -7,7 +7,7 @@ import {
   BOLT_RUNGS, type BodyId, type BoughtColour, type Buyable, type BuyRung, type ColourId, type Fit, type ModId, type Rung, type SlotId,
 } from '../garage/catalog';
 import type { Level } from '../modes/ids';
-import { affordable, boltsNeeded, forBolts, goalOf, nextLegendary as nextLegendaryOf, priceOf, unlock, waitingOn } from './garageEconomy';
+import { affordable, boltsNeeded, forBolts, goalOf, nextLegendary as nextLegendaryOf, priceOf, waitingOn } from './garageEconomy';
 import { affordable as affordableItems, type BoltItem } from '../garage/economy';
 import { chooseBody as selectBody, fitColour as applyColour, fitMod, selectGoal, setDoorNumber as numberBody, type GarageState } from '../garage/state';
 import type { Save } from '../save/migrate';
@@ -15,6 +15,7 @@ import { garageFromSave, type MoneyState } from './save';
 import { proposePurchase } from '../garage/purchases';
 import type { Commit } from '../save/store';
 import { createGaragePurchases } from './purchases';
+import { createLegendaryCheckout } from './checkout';
 
 export { garageFromSave } from './save';
 export const withGarage = (save: Save, state: GarageState): Save => ({
@@ -110,10 +111,7 @@ export function tapColour(c: ColourId): TapCommit<'fitted' | 'unlocked' | 'goal'
 }
 
 /** He paid exactly for a Legendary at the checkout, at the Level its price was set for: it's his, and fitted. */
-export function buyLegendary(slot: SlotId, cents: number, level: Level) {
-  update(s => unlock(s, modId(slot, LEGENDARY), { kind: 'cash', cents, level }));
-  fit(slot, LEGENDARY);
-}
+export const legendaryCheckout = createLegendaryCheckout(player);
 
 export type BodyTapResult = TapCommit<'switched' | 'bought' | 'goal'>;
 
