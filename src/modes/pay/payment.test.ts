@@ -2,6 +2,7 @@ import { afterEach, beforeEach, expect, it, vi } from 'vitest';
 import { CLIPS } from '../../voice/voice.gen';
 import { explainPay, helpPay, promptPay } from './feedback';
 import { createPaymentChallenge } from './payment';
+import '../../app/selectedVoice';
 
 const recorded = vi.hoisted(() => {
   const played: string[] = [];

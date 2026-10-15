@@ -1,6 +1,8 @@
+import '../../src/app/selectedVoice';
 import { render } from 'preact';
 import { useEffect, useState } from 'preact/hooks';
-import { createLegendaryCheckout, moneyLegendaryPolicy, type LegendaryCheckout } from '../../src/app/checkout';
+import { createLegendaryCheckout, type LegendaryCheckout } from '../../src/app/checkout';
+import { moneyLegendaryPolicy } from '../../src/app/moneyCheckout';
 import { screenVoice } from '../../src/app/nav';
 import { loadGame, player } from '../../src/game/store';
 import { Checkout } from '../../src/garage/Checkout';

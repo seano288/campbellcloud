@@ -1,3 +1,4 @@
+import '../../src/app/selectedVoice';
 import { render } from 'preact';
 import { screenVoice } from '../../src/app/nav';
 import { loadGame } from '../../src/game/store';

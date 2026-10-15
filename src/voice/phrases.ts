@@ -8,7 +8,8 @@ import { allAmountPieces } from './amount';
 
 export { CHEERS, earnedBolts } from '../app/presentationPhrases';
 export { MAX_PRICE, needBolts, numberLine } from '../garage/phrases';
-export { LEARN_PHRASES, PAY_PHRASES, COUNT_PHRASES, LOCKED_HINTS, moneyIs } from '../modes/phrases';
+export { LEARN_PHRASES, PAY_PHRASES, COUNT_PHRASES, LOCKED_HINTS } from '../modes/phrases';
+export { moneyIs } from '../money/phrases';
 export { trophyName, trophyHint, earnedTrophy, type TrophyName } from '../trophies/phrases';
 
 export const PHRASES = [...new Set([...SUBJECT_PHRASES, ...PRESENTATION_PHRASES, ...GARAGE_PHRASES, ...TROPHY_PHRASES, ...allAmountPieces()])];

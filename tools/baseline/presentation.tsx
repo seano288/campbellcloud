@@ -10,6 +10,7 @@ import { CLIPS } from '../../src/voice/voice.gen';
 import { ALL_MODS, BODY_IDS, BOUGHT_COLOURS, isLegendary } from '../../src/garage/catalog';
 import { TrophyShelf } from '../../src/trophies/TrophyShelf';
 import { freshSave } from '../../src/save/migrate';
+import { moneyEntry } from '../../src/app/entrySelection';
 
 const store = createStore({
   key: 'presentation-fixture', adapter: moneySave,
@@ -23,7 +24,7 @@ const playback = createMoneyVoice({
     spoken.value = [...spoken.peek(), Object.entries(CLIPS).find(([, clip]) => clip === file)![0]];
     return { done: Promise.resolve(), stop() {} };
   },
-});
+}, moneyEntry.voice);
 const lifetime = signal(playback.scope());
 
 function Fixture() {

@@ -1,3 +1,4 @@
+import '../../src/app/selectedVoice';
 import { render } from 'preact';
 import { useState } from 'preact/hooks';
 import { createPractice } from '../../src/app/practice';

@@ -2,7 +2,7 @@ import { sBad } from '../../audio/sfx';
 import type { MoneyKey } from '../../money/money';
 import { total } from '../../money/money';
 import { explainPay, payment, promptPay } from './feedback';
-import { checkPay, type PayProblem } from './pay';
+import { checkPay, type MoneyPayment } from '../../money/payment';
 
 export interface PaymentActions {
   readonly busy: boolean;
@@ -11,7 +11,7 @@ export interface PaymentActions {
 }
 
 export function createPaymentChallenge(
-  problem: Pick<PayProblem, 'price' | 'bank'>,
+  problem: MoneyPayment,
   lifetime: AbortSignal,
   accept: (cents: number) => boolean,
   effects = { explain: explainPay, prompt: promptPay },

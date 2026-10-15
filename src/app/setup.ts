@@ -1,9 +1,8 @@
 import { isStarter, type BodyId } from '../garage/catalog';
-import { chooseBody } from '../garage/state';
+import { chooseBody, type GarageState } from '../garage/state';
 import type { createStore } from '../save/store';
-import type { MoneyState } from './save';
 
-export function createGarageSetup(store: Pick<ReturnType<typeof createStore<MoneyState>>, 'commit'>) {
+export function createGarageSetup<State extends { garage: GarageState }>(store: Pick<ReturnType<typeof createStore<State>>, 'commit'>) {
   let active: AbortController | undefined;
   let sequence = 0;
   return {

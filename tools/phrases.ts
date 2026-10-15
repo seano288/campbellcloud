@@ -8,6 +8,7 @@ const collections = {
   trophies: async () => (await import('../src/trophies/phrases')).TROPHY_PHRASES,
   presentation: async () => (await import('../src/app/presentationPhrases')).PRESENTATION_PHRASES,
   payment: async () => (await import('../src/modes/pay/phrases')).PAYMENT_PHRASES,
+  inspection: async () => (await import('../src/money/phrases')).MONEY_INSPECTION_PHRASES,
   amounts: async () => (await import('../src/voice/amount')).allAmountPieces(),
 };
 if (!name || !Object.hasOwn(collections, name)) throw new Error(`Select --collection ${Object.keys(collections).join('|')}`);

@@ -1,7 +1,7 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { freshSave, type Save } from '../save/migrate';
 import { MONEY_SAVE_KEY } from './save';
-import { helpPayCoins } from '../modes/pay/pay';
+import { helpPayCoins } from '../money/payment';
 import type { Round } from '../round/round';
 
 let stored: string;
@@ -25,6 +25,7 @@ afterEach(() => {
 });
 
 async function launch() {
+  await import('./selectedVoice');
   const store = await import('../game/store');
   const scheduler = await import('../round/round');
   await store.loadGame();

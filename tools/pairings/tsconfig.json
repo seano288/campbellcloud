@@ -1,0 +1,14 @@
+{
+  "extends": "../../tsconfig.json",
+  "include": [],
+  "files": [
+    "clockRepeatEntry.tsx",
+    "clockGarageEntry.tsx",
+    "moneyRepeatEntry.tsx",
+    "builds.ts",
+    "build.ts",
+    "pairings.test.ts",
+    "builds.test.ts",
+    "dependencies.test.ts"
+  ]
+}

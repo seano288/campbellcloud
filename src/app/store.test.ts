@@ -50,10 +50,10 @@ describe('live money save composition', () => {
     expect(write).toHaveBeenCalledTimes(6);
   });
 
-  it('keeps compatibility updates on the same aggregate and writes each update only once', async () => {
-    const { game, player, loadGame, update } = await import('../game/store');
+  it('keeps module-state updates on the same aggregate and writes each update only once', async () => {
+    const { game, player, loadGame } = await import('../game/store');
     await loadGame();
-    const accepted = update(save => ({ ...save, bolts: 47, lastMode: 'count' }));
+    const accepted = player.commit(state => ({ ...state, currency: { balance: 47 }, learning: { ...state.learning, lastMode: 'count' } }));
     if (accepted.kind !== 'accepted') throw new Error('Expected accepted update');
     expect(await accepted.saved).toBe(true);
     expect(player.state.value.currency.balance).toBe(47);

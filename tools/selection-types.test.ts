@@ -9,6 +9,10 @@ const imports = `
 import { defineCollection } from '${root}/src/voice/collection';
 import { createPlayback } from '${root}/src/voice/playback';
 import { createMoneyVoice } from '${root}/src/voice/say';
+import { moneyEntry } from '${root}/src/app/entrySelection';
+import { moneyRepeatEntry } from '${root}/tools/pairings/moneyRepeatSelection';
+import { clockGarageEntry } from '${root}/tools/pairings/clockGarageSelection';
+import { clockRepeatEntry } from '${root}/tools/pairings/clockRepeatSelection';
 import { staticBuild } from '${root}/tools/static-build';
 import { fixtureEntry } from '${root}/tools/fixtures/entry';
 const controls = { load: async (file: string) => file, play: (_: string) => ({ done: Promise.resolve(), stop() {} }) };
@@ -18,7 +22,12 @@ const selected = defineCollection('clock', ['Tick'], { Tick: 'tick.mp3' });
 describe('selected voice typechecking', () => {
   it.each([
     ['selected phrase', `createPlayback({ ...selected, ...controls }).scope().say('Tick');`, null],
-    ['real selected money views', `createMoneyVoice(controls).scope().say('Garage!', '42!', 'You earned 6 Bolts!', { cents: 225 });`, null],
+    ['real selected money views', `createMoneyVoice(controls, moneyEntry.voice).scope().say('Garage!', '42!', 'You earned 6 Bolts!', { cents: 225 });`, null],
+    ['money without Garage', `createMoneyVoice(controls, moneyRepeatEntry.voice).scope().say('What is this called?', { cents: 225 });`, null],
+    ['Garage without money curriculum', `createMoneyVoice(controls, clockGarageEntry.voice).scope().say('Garage!', '42!', { cents: 110 });`, null],
+    ['non-money without Garage', `createPlayback({ ...clockRepeatEntry.voice, ...controls }).scope().say('Try again!');`, null],
+    ['unselected Garage phrase at the money facade', `createMoneyVoice(controls, moneyRepeatEntry.voice).scope().say('Garage!');`, 'Garage!'],
+    ['unselected subject phrase at the checkout facade', `createMoneyVoice(controls, clockGarageEntry.voice).scope().say('What is this called?');`, 'What is this called?'],
     ['selected build manifest', `staticBuild({ entry: fixtureEntry, outDir: 'unused', voice: { root: 'unused', collection: fixtureEntry.voice }, assets: [], branding: { title: '', shortName: '', background: '', theme: '', icon: { svg: () => '', background: '' } } });`, null],
     ['unselected phrase', `createPlayback({ ...selected, ...controls }).scope().say('Garage!');`, 'Garage!'],
     ['missing mapping', `defineCollection('clock', ['Tick', 'Tock'], { Tick: 'tick.mp3' });`, 'Tock'],

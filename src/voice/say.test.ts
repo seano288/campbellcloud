@@ -1,6 +1,7 @@
 import { describe, expect, expectTypeOf, it } from 'vitest';
 import { createMoneyVoice, type Item } from './say';
 import { CLIPS } from './voice.gen';
+import { moneyEntry } from '../app/entrySelection';
 
 describe('money recorded voice', () => {
   it('expands amounts into recorded typed pieces while retaining group highlighting', async () => {
@@ -11,7 +12,7 @@ describe('money recorded voice', () => {
         played.push({ file, light: voice.speaking.value });
         return { done: Promise.resolve(), stop() {} };
       },
-    });
+    }, moneyEntry.voice);
     await voice.scope().say('It costs', { parts: [{ cents: 225 }], light: 'price' }, { cents: 101 }, { cents: 0 });
     expect(played).toEqual([
       { file: CLIPS['It costs'], light: null },
@@ -29,7 +30,7 @@ describe('money recorded voice', () => {
     const voice = createMoneyVoice({
       load: async file => file,
       play(file) { played.push(file); return { done: Promise.resolve(), stop() {} }; },
-    });
+    }, moneyEntry.voice);
     const old = voice.scope(), next = voice.scope();
     const first = old.say({ cents: 100 });
     const appended = old.sayMore({ cents: 25 });

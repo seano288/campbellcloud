@@ -1,4 +1,4 @@
-import '@fontsource/bungee/latin-400.css';
+import './selectedVoice';
 import '@fontsource/nunito/latin-800.css';
 import '@fontsource/nunito/latin-900.css';
 import '../styles.css';

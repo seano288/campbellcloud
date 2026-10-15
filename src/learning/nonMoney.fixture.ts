@@ -1,6 +1,6 @@
 import type { LearningSession, Progression } from './session';
 
-type ClockProblem = { hour: 3; minute: 0 };
+export type ClockProblem = { hour: 3; minute: 0 };
 
 export const nonMoneySession = (): LearningSession<ClockProblem, string> => ({
   makeProblem: () => ({ hour: 3, minute: 0 }),

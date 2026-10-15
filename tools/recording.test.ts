@@ -9,6 +9,24 @@ const root = resolve(import.meta.dirname, '..');
 const run = (args: string[]) => spawnSync('python3', ['tools/make_voice.py', ...args], { cwd: root, encoding: 'utf8' });
 
 describe('selected phrase recording', () => {
+  it('exports checkout money-inspection recordings without selecting the money curriculum', () => {
+    const dir = mkdtempSync(resolve(tmpdir(), 'inspection-recording-'));
+    try {
+      for (const file of ['7b6e7a1a8c7f.mp3', '2a8aebbda640.mp3', 'fa9aaca7ecc1.mp3', 'ee89b09f4825.mp3', '2b1085709dad.mp3', 'd39d60469925.mp3']) {
+        writeFileSync(resolve(dir, file), 'EXISTING_SHARED_RECORDING');
+      }
+      const index = resolve(dir, 'inspection.ts');
+      const result = run(['--collection', 'inspection', '--out', dir, '--index', index, '--index-only']);
+      expect(result.status, result.stderr).toBe(0);
+      const mapping = readFileSync(index, 'utf8');
+      expect(mapping).toContain('"Penny is 1¢."');
+      expect(mapping).toContain('"$5 Bill is $5."');
+      expect(mapping).not.toMatch(/Garage|What is this called|Buy the|Trophies/);
+    } finally {
+      rmSync(dir, { recursive: true, force: true });
+    }
+  }, 10000);
+
   it('exports only selected phrases and confines stale cleanup to its owned output', () => {
     const dir = mkdtempSync(resolve(tmpdir(), 'recording-'));
     try {

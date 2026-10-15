@@ -3,7 +3,8 @@ import type { MoneyKey } from '../money/money';
 import { checkCount, makeCount, replayCount, type CountProblem } from './count/count';
 import type { Level } from './ids';
 import { checkLearn, makeLearn, replayLearn, type LearnProblem } from './learn/learn';
-import { checkPay, makePay, type PayCheck, type PayProblem } from './pay/pay';
+import { makePay, type PayProblem } from './pay/pay';
+import { checkPay, type PayCheck } from '../money/payment';
 import { struggling } from './progress';
 import type { ModeProgress } from './state';
 

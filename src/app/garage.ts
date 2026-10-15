@@ -11,7 +11,6 @@ import type { Level } from '../modes/ids';
 import { affordable, boltsNeeded, forBolts, goalOf, priceOf, waitingOn } from './garageEconomy';
 import { affordable as affordableItems, type BoltItem } from '../garage/economy';
 import { chooseBody as selectBody, fitColour as applyColour, fitMod, selectGoal, setDoorNumber as numberBody, type GarageState } from '../garage/state';
-import type { Save } from '../save/migrate';
 import { garageFromSave, type MoneyState } from './save';
 import { proposePurchase } from '../garage/purchases';
 import type { Commit } from '../save/store';
@@ -20,9 +19,6 @@ import { moneyApp } from './money';
 import { truckColor as colorOfFit } from '../garage/BodyArt';
 
 export { garageFromSave } from './save';
-export const withGarage = (save: Save, state: GarageState): Save => ({
-  ...save, body: state.body, ownedBodies: state.ownedBodies, fitted: state.fitted, unlocked: state.unlocked, colours: state.colours, goal: state.goal,
-});
 
 const updateGarage = (change: (state: GarageState) => GarageState) => player.commit(state => ({ ...state, garage: change(state.garage) }));
 

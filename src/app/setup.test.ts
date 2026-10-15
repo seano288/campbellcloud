@@ -65,7 +65,7 @@ it('keeps setup active after a calculation failure so confirmation can be retrie
   const store = createStore({ key: 'setup-test', adapter: moneySave, backing: { read: () => null, write() {} } });
   await store.load();
   let fail = true, visits = 0;
-  const setup = createGarageSetup({
+  const setup = createGarageSetup<typeof store.state.value>({
     commit: propose => store.commit(state => {
       if (fail) throw new Error('Calculation failed');
       return propose(state);

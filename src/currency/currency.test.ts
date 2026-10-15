@@ -1,6 +1,6 @@
 import { expect, it } from 'vitest';
 import { debit, earn, type CompletedRound } from './currency';
-import { boltEarnings } from '../app/currency';
+import { moneyEarnings } from '../app/moneyPractice';
 
 const completed: CompletedRound = {
   roundId: 'non-money-round', status: 'completed',
@@ -18,7 +18,7 @@ it.each([{ clean: 5, amount: 6 }, { clean: 2, amount: 3 }, { clean: 0, amount: 1
   const round: CompletedRound = {
     ...completed, results: completed.results.map((r, i) => ({ ...r, outcome: i < clean ? 'clean' : i % 2 ? 'helped' : 'missed', replay: i === 0 })),
   };
-  expect(earn({ balance: 10 }, round, boltEarnings)).toEqual({ kind: 'accepted', state: { balance: 10 + amount }, amount });
+      expect(earn({ balance: 10 }, round, moneyEarnings)).toEqual({ kind: 'accepted', state: { balance: 10 + amount }, amount });
 });
 
 it('leaves state untouched if the supplied earnings policy fails', () => {

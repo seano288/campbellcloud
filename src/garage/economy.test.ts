@@ -1,10 +1,12 @@
 import { describe, expect, it } from 'vitest';
 import { LEVELS, type Level } from '../modes/ids';
-import { helpPayCoins } from '../modes/pay/pay';
+import { helpPayCoins } from '../money/payment';
 import { LEVEL_MONEY, MONEY, total } from '../money/money';
 import { amountPieces } from '../voice/amount';
 import { ALL_MODS, BODY_IDS, bodyItem, BOUGHT_BODIES, BOUGHT_COLOURS, colourItem, COLOURS, isLegendary, LEGENDARY, modId, SLOTS } from './catalog';
-import { affordable, forBolts, boltsNeeded, builtEverything, goalOf, nextLegendary, priceOf, unlock, waitingOn, type Wallet } from '../app/garageEconomy';
+import { affordable, forBolts, boltsNeeded, builtEverything, goalOf, nextLegendary, priceOf, waitingOn, type Wallet } from '../app/garageEconomy';
+import { proposeLegendary, proposePurchase } from './purchases';
+import { freshGarage, type GarageState } from './state';
 
 const wallet = (over: Partial<Wallet> = {}): Wallet => ({ bolts: 0, unlocked: [], ownedBodies: ['pickup', 'bigfoot', 'dragster'], colours: [], goal: null, ...over });
 
@@ -79,64 +81,63 @@ describe('prices', () => {
 });
 
 describe('unlock', () => {
-  const BOLTS = { kind: 'bolts' } as const;
-  const cash = (cents: number, level: Level) => ({ kind: 'cash', cents, level }) as const;
+  const garage = (patch: Partial<GarageState> = {}): GarageState => ({ ...freshGarage(), ...patch });
 
-  it('spends the Bolts and unlocks the Mod', () => {
-    const w = unlock(wallet({ bolts: 16 }), 'tires:2', BOLTS);
-    expect(w.bolts).toBe(1);
-    expect(w.unlocked).toEqual(['tires:2']);
+  it('proposes the Bolt cost and unlocks the Mod', () => {
+    const proposal = proposePurchase(garage(), 'tires:2', 16);
+    expect(proposal).toMatchObject({ kind: 'ready', cost: 15, state: { unlocked: ['tires:2'] } });
   });
 
   it('refuses a Mod he cannot afford', () => {
-    expect(() => unlock(wallet({ bolts: 8 }), 'tires:2', BOLTS)).toThrow();
+    expect(proposePurchase(garage(), 'tires:2', 8)).toEqual({ kind: 'rejected', reason: 'insufficient-funds' });
   });
 
   it('refuses a Mod that is already unlocked', () => {
-    expect(() => unlock(wallet({ bolts: 20, unlocked: ['tires:2'] }), 'tires:2', BOLTS)).toThrow();
+    expect(proposePurchase(garage({ unlocked: ['tires:2'] }), 'tires:2', 20)).toEqual({ kind: 'rejected', reason: 'already-owned' });
   });
 
   it('clears the Goal once it is unlocked', () => {
-    expect(unlock(wallet({ bolts: 30, goal: 'horn:3' }), 'horn:3', BOLTS).goal).toBeNull();
-    expect(unlock(wallet({ bolts: 30, goal: 'horn:3' }), 'horn:1', BOLTS).goal).toBe('horn:3');
+    expect(proposePurchase(garage({ goal: 'horn:3' }), 'horn:3', 30)).toMatchObject({ kind: 'ready', state: { goal: null } });
+    expect(proposePurchase(garage({ goal: 'horn:3' }), 'horn:1', 30)).toMatchObject({ kind: 'ready', state: { goal: 'horn:3' } });
   });
 
   it('buys a Body with Bolts', () => {
-    const w = unlock(wallet({ bolts: 35, goal: 'body:schoolbus' }), 'body:schoolbus', BOLTS);
-    expect(w.bolts).toBe(5);
-    expect(w.ownedBodies).toEqual(['pickup', 'bigfoot', 'dragster', 'schoolbus']);
-    expect(w.unlocked).toEqual([]);
-    expect(w.goal).toBeNull();
-    expect(() => unlock(w, 'body:schoolbus', BOLTS)).toThrow();
-    expect(() => unlock(wallet({ bolts: 29 }), 'body:schoolbus', BOLTS)).toThrow();
+    const result = proposePurchase(garage({ goal: 'body:schoolbus' }), 'body:schoolbus', 35);
+    if (result.kind !== 'ready') throw new Error('Expected Body proposal');
+    expect(result.cost).toBe(30);
+    expect(result.state.ownedBodies).toEqual(['pickup', 'bigfoot', 'dragster', 'schoolbus']);
+    expect(result.state.unlocked).toEqual([]);
+    expect(result.state.goal).toBeNull();
+    expect(proposePurchase(result.state, 'body:schoolbus', 35)).toEqual({ kind: 'rejected', reason: 'already-owned' });
+    expect(proposePurchase(garage(), 'body:schoolbus', 29)).toEqual({ kind: 'rejected', reason: 'insufficient-funds' });
   });
 
   it('unlocks a Legendary only for the exact money, once the top Rung is unlocked', () => {
-    const ready = wallet({ bolts: 99, unlocked: ['tires:3'] });
-    const w = unlock(ready, 'tires:4', cash(110, 2));
-    expect(w.unlocked).toEqual(['tires:3', 'tires:4']);
-    expect(w.bolts).toBe(99); // money, not Bolts
-    expect(() => unlock(ready, 'tires:4', cash(105, 2))).toThrow();
-    expect(() => unlock(ready, 'tires:4', cash(115, 2))).toThrow();
-    expect(() => unlock(ready, 'tires:4', BOLTS)).toThrow();
-    expect(() => unlock(wallet({ unlocked: ['tires:1', 'tires:2'] }), 'tires:4', cash(110, 2))).toThrow();
+    const ready = garage({ unlocked: ['tires:3'] });
+    const proposal = proposeLegendary(ready, 'tires:4', 2, 110);
+    expect(proposal).toMatchObject({ kind: 'ready', state: { unlocked: ['tires:3', 'tires:4'] } });
+    expect(proposal).not.toHaveProperty('cost'); // money, not Bolts
+    expect(proposeLegendary(ready, 'tires:4', 2, 105)).toEqual({ kind: 'rejected', reason: 'invalid-payment' });
+    expect(proposeLegendary(ready, 'tires:4', 2, 115)).toEqual({ kind: 'rejected', reason: 'invalid-payment' });
+    expect(proposePurchase(ready, 'tires:4', 99)).toEqual({ kind: 'rejected', reason: 'cash-required' });
+    expect(proposeLegendary(garage({ unlocked: ['tires:1', 'tires:2'] }), 'tires:4', 2, 110)).toEqual({ kind: 'rejected', reason: 'waiting' });
   });
 
   it('unlocks a Legendary for exactly its price at his Level, at every Level', () => {
-    const ready = wallet({ unlocked: ['horn:3'] });
+    const ready = garage({ unlocked: ['horn:3'] });
     for (const level of LEVELS) {
       const cents = priceOf('horn:4', level).cents!;
-      expect(unlock(ready, 'horn:4', cash(cents, level)).unlocked).toContain('horn:4');
-      for (const other of LEVELS.filter(l => l !== level)) expect(() => unlock(ready, 'horn:4', cash(priceOf('horn:4', other).cents!, level))).toThrow();
+      expect(proposeLegendary(ready, 'horn:4', level, cents)).toMatchObject({ kind: 'ready', state: { unlocked: ['horn:3', 'horn:4'] } });
+      for (const other of LEVELS.filter(l => l !== level)) expect(proposeLegendary(ready, 'horn:4', level, priceOf('horn:4', other).cents!)).toEqual({ kind: 'rejected', reason: 'invalid-payment' });
     }
   });
 
   it('never needs Level 3 to buy a Legendary', () => {
-    expect(unlock(wallet({ unlocked: ['lights:3'] }), 'lights:4', cash(priceOf('lights:4', 1).cents!, 1)).unlocked).toContain('lights:4');
+    expect(proposeLegendary(garage({ unlocked: ['lights:3'] }), 'lights:4', 1, 75)).toMatchObject({ kind: 'ready', state: { unlocked: ['lights:3', 'lights:4'] } });
   });
 
   it('never takes money for a Bolt Mod', () => {
-    expect(() => unlock(wallet({ bolts: 99 }), 'tires:1', cash(3, 1))).toThrow();
+    expect(Reflect.apply(proposeLegendary, undefined, [garage(), 'tires:1', 1, 3])).toEqual({ kind: 'rejected', reason: 'invalid-item' });
   });
 });
 
@@ -229,7 +230,6 @@ describe('the next Legendary', () => {
 });
 
 describe('Colours', () => {
-  const BOLTS = { kind: 'bolts' } as const;
   const everything = { unlocked: [...ALL_MODS], ownedBodies: BODY_IDS };
 
   it('has 12, and Red is free', () => {
@@ -243,15 +243,16 @@ describe('Colours', () => {
     expect(BOUGHT_COLOURS.reduce((n, c) => n + priceOf(colourItem(c)).bolts!, 0)).toBe(33);
   });
 
-  it('is bought with Bolts through unlock, once', () => {
-    const w = unlock(wallet({ bolts: 5, goal: 'colour:teal' }), 'colour:teal', BOLTS);
-    expect(w.bolts).toBe(2);
-    expect(w.colours).toEqual(['teal']);
-    expect(w.unlocked).toEqual([]);
-    expect(w.goal).toBeNull();
-    expect(() => unlock(w, 'colour:teal', BOLTS)).toThrow();
-    expect(() => unlock(wallet({ bolts: 2 }), 'colour:pink', BOLTS)).toThrow();
-    expect(() => unlock(wallet({ bolts: 9 }), 'colour:pink', { kind: 'cash', cents: 3, level: 1 })).toThrow();
+  it('is proposed for Bolts once, never for practice money', () => {
+    const result = proposePurchase({ ...freshGarage(), goal: 'colour:teal' }, 'colour:teal', 5);
+    if (result.kind !== 'ready') throw new Error('Expected Colour proposal');
+    expect(result.cost).toBe(3);
+    expect(result.state.colours).toEqual(['teal']);
+    expect(result.state.unlocked).toEqual([]);
+    expect(result.state.goal).toBeNull();
+    expect(proposePurchase(result.state, 'colour:teal', 5)).toEqual({ kind: 'rejected', reason: 'already-owned' });
+    expect(proposePurchase(freshGarage(), 'colour:pink', 2)).toEqual({ kind: 'rejected', reason: 'insufficient-funds' });
+    expect(Reflect.apply(proposeLegendary, undefined, [freshGarage(), 'colour:pink', 1, 3])).toEqual({ kind: 'rejected', reason: 'invalid-item' });
   });
 
   it('is skipped by the Goal unless he chose one', () => {

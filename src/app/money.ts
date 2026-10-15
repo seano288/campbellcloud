@@ -1,7 +1,8 @@
 import { player, loadGame } from '../game/store';
 import { countSession, learnSession, paySession } from '../modes/session';
 import { countAnswer } from '../trophies/rules';
-import { createLegendaryCheckout, moneyLegendaryPolicy } from './checkout';
+import { createLegendaryCheckout } from './checkout';
+import { moneyLegendaryPolicy } from './moneyCheckout';
 import { createPractice, moneyEarnings } from './practice';
 import { completeTrophies } from './trophies';
 

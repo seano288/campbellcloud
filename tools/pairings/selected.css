@@ -1,0 +1,10 @@
+:root { font-family: Nunito, sans-serif; color: #172d35; background: #e8f1ee; --pairing-fixture: 1; }
+button { min-height: 48px; margin: 8px; padding: 10px 18px; font: inherit; cursor: pointer; }
+.pairing-app { max-width: 850px; margin: auto; }
+.body-art, .truck { width: 180px; }
+.bank, .tray, .bodies { display: flex; flex-wrap: wrap; }
+.money, .coin { max-width: 90px; max-height: 90px; }
+.modal { position: fixed; inset: 0; overflow: auto; background: #e8f1ee; padding: 24px; }
+.goalchip { display: flex; align-items: center; }
+.gi { width: 40px; }
+.shelf svg { width: 40px; height: 40px; }

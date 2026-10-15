@@ -1,17 +1,25 @@
 import { describe, expect, it } from 'vitest';
-import { freshSave, type Outcome, type Save } from '../save/migrate';
-import { countAnswer, finishRound, reached } from '../app/trophies';
-import { dayOf, earnedCount, stepId, TROPHIES, type TrophyStep } from './trophies';
+import type { Outcome } from '../learning/session';
+import { freshLearning, type ModeProgress } from '../modes/state';
+import { completeTrophies, reached } from '../app/trophies';
+import { countAnswer, freshTrophies } from './rules';
+import { dayOf, earnedCount, stepId, TROPHIES, type StepId, type TrophyStep } from './trophies';
 
 const clean5: Outcome[] = ['clean', 'clean', 'clean', 'clean', 'clean'];
-const withMode = (s: Save, mode: 'learn' | 'count' | 'pay', patch: Partial<Save['modes']['learn']>): Save =>
+const freshProgress = () => ({ ...freshLearning(), ...freshTrophies<StepId>() });
+type Progress = ReturnType<typeof freshProgress>;
+const withMode = (s: Progress, mode: 'learn' | 'count' | 'pay', patch: Partial<ModeProgress>): Progress =>
   ({ ...s, modes: { ...s.modes, [mode]: { ...s.modes[mode], ...patch } } });
-const answers = (s: Save, outcomes: Outcome[]) => outcomes.reduce(countAnswer, s);
+const answers = (s: Progress, outcomes: Outcome[]) => outcomes.reduce((state, outcome) => ({ ...state, ...countAnswer(state, outcome) }), s);
 const ids = (steps: TrophyStep[]) => steps.map(stepId);
+const complete = (state: Progress, round: Outcome[], day: string) => {
+  const done = completeTrophies(state, state, round, day);
+  return { state: { ...state, ...done.state }, earned: done.earned };
+};
 
 describe('the trophy checks', () => {
   it('Learning: Level 2, Level 3 and the star in each Game Mode', () => {
-    const s = withMode(freshSave(), 'count', { level: 3, starred: true });
+    const s = withMode(freshProgress(), 'count', { level: 3, starred: true });
     expect(reached({ kind: 'level', mode: 'count', level: 2 }, s, null)).toBe(true);
     expect(reached({ kind: 'level', mode: 'count', level: 3 }, s, null)).toBe(true);
     expect(reached({ kind: 'star', mode: 'count' }, s, null)).toBe(true);
@@ -20,21 +28,21 @@ describe('the trophy checks', () => {
   });
 
   it('Skill: the best streak of first-try answers', () => {
-    const s = { ...freshSave(), bestStreak: 10 };
+    const s = { ...freshProgress(), bestStreak: 10 };
     expect(reached({ kind: 'streak', n: 5 }, s, null)).toBe(true);
     expect(reached({ kind: 'streak', n: 10 }, s, null)).toBe(true);
     expect(reached({ kind: 'streak', n: 20 }, s, null)).toBe(false);
   });
 
   it('Skill: a perfect Round is every answer right on the first try without help', () => {
-    expect(reached({ kind: 'perfect' }, freshSave(), clean5)).toBe(true);
-    expect(reached({ kind: 'perfect' }, freshSave(), ['clean', 'clean', 'helped', 'clean', 'clean'])).toBe(false);
-    expect(reached({ kind: 'perfect' }, freshSave(), ['clean', 'missed', 'clean', 'clean', 'clean', 'clean'])).toBe(false);
-    expect(reached({ kind: 'perfect' }, freshSave(), null)).toBe(false);
+    expect(reached({ kind: 'perfect' }, freshProgress(), clean5)).toBe(true);
+    expect(reached({ kind: 'perfect' }, freshProgress(), ['clean', 'clean', 'helped', 'clean', 'clean'])).toBe(false);
+    expect(reached({ kind: 'perfect' }, freshProgress(), ['clean', 'missed', 'clean', 'clean', 'clean', 'clean'])).toBe(false);
+    expect(reached({ kind: 'perfect' }, freshProgress(), null)).toBe(false);
   });
 
   it('Sticking with it: Rounds finished and days played', () => {
-    const s = { ...freshSave(), roundsFinished: 25, daysPlayed: 5 };
+    const s = { ...freshProgress(), roundsFinished: 25, daysPlayed: 5 };
     expect(reached({ kind: 'rounds', n: 25 }, s, null)).toBe(true);
     expect(reached({ kind: 'rounds', n: 50 }, s, null)).toBe(false);
     expect(reached({ kind: 'days', n: 5 }, s, null)).toBe(true);
@@ -61,20 +69,20 @@ describe('the trophy checks', () => {
 
 describe('streak counting', () => {
   it('counts first-try answers in a row and keeps the best', () => {
-    const s = answers(freshSave(), ['clean', 'clean', 'clean', 'missed', 'clean']);
+    const s = answers(freshProgress(), ['clean', 'clean', 'clean', 'missed', 'clean']);
     expect(s.currentStreak).toBe(1);
     expect(s.bestStreak).toBe(3);
   });
 
   it('an answer with help breaks the streak', () => {
-    const s = answers(freshSave(), ['clean', 'clean', 'helped']);
+    const s = answers(freshProgress(), ['clean', 'clean', 'helped']);
     expect(s.currentStreak).toBe(0);
     expect(s.bestStreak).toBe(2);
   });
 
   it('carries across Rounds', () => {
-    let s = answers(freshSave(), clean5);
-    s = finishRound(s, clean5, '2026-09-01').save;
+    let s = answers(freshProgress(), clean5);
+    s = complete(s, clean5, '2026-09-01').state;
     s = answers(s, clean5);
     expect(s.currentStreak).toBe(10);
     expect(s.bestStreak).toBe(10);
@@ -83,33 +91,33 @@ describe('streak counting', () => {
 
 describe('finishing a Round', () => {
   it('counts the Round and the day, once per day', () => {
-    let s = finishRound(freshSave(), [], '2026-09-01').save;
-    s = finishRound(s, [], '2026-09-01').save;
+    let s = complete(freshProgress(), [], '2026-09-01').state;
+    s = complete(s, [], '2026-09-01').state;
     expect(s.roundsFinished).toBe(2);
     expect(s.daysPlayed).toBe(1);
-    s = finishRound(s, [], '2026-09-02').save;
+    s = complete(s, [], '2026-09-02').state;
     expect(s.daysPlayed).toBe(2);
     expect(s.lastDay).toBe('2026-09-02');
   });
 
   it('earns each new trophy once, with the day it was earned', () => {
-    const s = answers(withMode(freshSave(), 'learn', { level: 2 }), clean5);
-    const first = finishRound(s, clean5, '2026-09-01');
+    const s = answers(withMode(freshProgress(), 'learn', { level: 2 }), clean5);
+    const first = complete(s, clean5, '2026-09-01');
     expect(ids(first.earned)).toEqual(['learn:2', 'streak:5', 'perfect']);
-    expect(first.save.trophies).toEqual({ 'learn:2': '2026-09-01', 'streak:5': '2026-09-01', perfect: '2026-09-01' });
-    const again = finishRound(answers(first.save, clean5), clean5, '2026-09-02');
+    expect(first.state.earned).toEqual({ 'learn:2': '2026-09-01', 'streak:5': '2026-09-01', perfect: '2026-09-01' });
+    const again = complete(answers(first.state, clean5), clean5, '2026-09-02');
     expect(ids(again.earned)).toEqual(['streak:10']);
-    expect(again.save.trophies.perfect).toBe('2026-09-01');
+    expect(again.state.earned.perfect).toBe('2026-09-01');
   });
 
   it('earns the 10 Rounds trophy on the 10th Round', () => {
-    const s = { ...freshSave(), roundsFinished: 9 };
-    expect(ids(finishRound(s, [], '2026-09-01').earned)).toEqual(['rounds:10']);
+    const s = { ...freshProgress(), roundsFinished: 9 };
+    expect(ids(complete(s, [], '2026-09-01').earned)).toEqual(['rounds:10']);
   });
 
   it('never takes a trophy away', () => {
-    const s = { ...freshSave(), trophies: { 'streak:5': '2026-09-01' }, bestStreak: 0 };
-    expect(finishRound(s, [], '2026-09-02').save.trophies).toEqual({ 'streak:5': '2026-09-01' });
+    const s = { ...freshProgress(), earned: { 'streak:5': '2026-09-01' }, bestStreak: 0 };
+    expect(complete(s, [], '2026-09-02').state.earned).toEqual({ 'streak:5': '2026-09-01' });
   });
 });
 

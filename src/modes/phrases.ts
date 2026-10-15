@@ -1,4 +1,5 @@
-import { MONEY, MONEY_NAMES, MONEY_VALUES, type MoneyKey, type MoneyName, type MoneyValue } from '../money/money';
+import { MONEY_NAMES, MONEY_VALUES, type MoneyName, type MoneyValue } from '../money/money';
+import type { NameValue } from '../money/phrases';
 import { MODE_NAMES, type ModeName } from './ids';
 import { SHOP_ITEMS, type ShopItem } from './pay/pay';
 import { PAYMENT_PHRASES } from './pay/phrases';
@@ -9,16 +10,12 @@ const LEARN = [
   'Try again!', 'The dime is small, but it is worth more!', 'Tap a coin to hear its name.',
 ] as const;
 
-// "{money} is {value}." only for the right pairs
-type NameValue = { [I in keyof typeof MONEY_NAMES & `${number}`]: `${(typeof MONEY_NAMES)[I]} is ${(typeof MONEY_VALUES)[I]}.` }[keyof typeof MONEY_NAMES & `${number}`];
 type MoneyPhrase = `Tap the ${MoneyName}!` | `${MoneyName}?` | `${MoneyValue}?` | `That's a ${MoneyName}.` | `Find the ${MoneyName}!` | NameValue;
 const moneyPhrases = (): MoneyPhrase[] =>
   MONEY_NAMES.flatMap((m, i) => {
     const v = MONEY_VALUES[i]!;
     return [`Tap the ${m}!`, `${m}?`, `${v}?`, `That's a ${m}.`, `Find the ${m}!`, `${m} is ${v}.` as NameValue] as const;
   });
-/** "Quarter is 25¢." */
-export const moneyIs = (k: MoneyKey) => `${MONEY[k].name} is ${MONEY[k].value}.` as NameValue;
 
 // ---------- Rounds ----------
 const ROUNDS = [

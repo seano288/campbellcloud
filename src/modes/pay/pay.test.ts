@@ -1,7 +1,8 @@
 import { describe, expect, it } from 'vitest';
 import { seeded } from '../../game/rng';
 import type { Level } from '../ids';
-import { checkPay, helpPayCoins, makePay, SHOP_ITEMS } from './pay';
+import { makePay, SHOP_ITEMS } from './pay';
+import { checkPay, helpPayCoins } from '../../money/payment';
 
 const many = (level: Level, n = 400) => { const rng = seeded(level * 7); return Array.from({ length: n }, () => makePay(level, rng)); };
 

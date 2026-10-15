@@ -5,7 +5,7 @@ import type { LearningSession, RoundResult, SolvedProblem } from './session';
 import { seeded } from '../game/rng';
 import { countSession, paySession } from '../modes/session';
 import { freshLearning } from '../modes/state';
-import { helpPayCoins } from '../modes/pay/pay';
+import { helpPayCoins } from '../money/payment';
 
 beforeEach(() => vi.useFakeTimers());
 afterEach(() => vi.useRealTimers());

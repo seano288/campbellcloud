@@ -6,7 +6,8 @@ import { createPaymentChallenge } from '../modes/pay/payment';
 import { helpPay, promptPay } from '../modes/pay/feedback';
 import type { Save } from '../save/migrate';
 import { createStore } from '../save/store';
-import { createLegendaryCheckout, moneyLegendaryPolicy } from './checkout';
+import { createLegendaryCheckout } from './checkout';
+import { moneyLegendaryPolicy } from './moneyCheckout';
 import { MONEY_SAVE_KEY, moneySave, type MoneyState } from './save';
 
 const eligible: Save = {

@@ -15,8 +15,11 @@ jobs:
           cache: npm
       - run: npm ci
       - run: npx tsc --noEmit
-      - run: npx vitest run
-      - run: npx vite build
+      - run: npm run typecheck:pairings
       - run: npx playwright install --with-deps chromium
+      - run: npx vitest run
+      - run: npm run test:pairings
+      - run: npx vite build
+      - run: npm run build:pairings
       - run: npm run check:offline
       - run: npm run check:baseline

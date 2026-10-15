@@ -1,7 +1,7 @@
 import type { Outcome } from '../learning/session';
 import type { LearningState } from '../modes/state';
 import type { Save } from '../save/migrate';
-import { countAnswer as count, finishRound as finish, freshTrophies, readTrophies, reached as ruleReached, type TrophyRule, type TrophyState } from '../trophies/rules';
+import { finishRound as finish, freshTrophies, readTrophies, reached as ruleReached, type TrophyRule, type TrophyState } from '../trophies/rules';
 import { STEP_IDS, stepId, TROPHIES, type Earned, type StepId, type TrophyStep } from '../trophies/trophies';
 
 export const trophiesFromSave = (save: Save): TrophyState<StepId> => ({
@@ -13,8 +13,6 @@ export const trophyFields = (state: TrophyState<StepId>) => ({
   trophies: state.earned, currentStreak: state.currentStreak, bestStreak: state.bestStreak,
   roundsFinished: state.roundsFinished, daysPlayed: state.daysPlayed, lastDay: state.lastDay,
 });
-
-export const withTrophies = (save: Save, state: TrophyState<StepId>): Save => ({ ...save, ...trophyFields(state) });
 
 export const readTrophyFields = (raw: Record<string, unknown>) => trophyFields(readTrophies({
   earned: raw.trophies, currentStreak: raw.currentStreak, bestStreak: raw.bestStreak,
@@ -41,19 +39,10 @@ export function reached(s: TrophyStep, progress: Progress, round: readonly Outco
   return ruleReached(ruleFor(s, progress.modes), { ...freshTrophies<StepId>(), ...progress }, round);
 }
 
-export function countAnswer(save: Save, outcome: Outcome): Save {
-  return withTrophies(save, count(trophiesFromSave(save), outcome));
-}
-
 export function completeTrophies(state: TrophyState<StepId>, learning: LearningState, round: readonly Outcome[], day: string) {
   const steps = TROPHIES.flatMap(t => t.steps);
   const done = finish(state, round, day, steps.map(s => ruleFor(s, learning.modes)));
   return { state: done.state, earned: steps.filter(s => done.earned.includes(stepId(s))) };
-}
-
-export function finishRound(save: Save, round: readonly Outcome[], day: string): { save: Save; earned: TrophyStep[] } {
-  const done = completeTrophies(trophiesFromSave(save), { modes: save.modes, lastMode: save.lastMode }, round, day);
-  return { save: withTrophies(save, done.state), earned: done.earned };
 }
 
 /** The Learning trophies an older save already proves: the Levels and stars it reached. */

@@ -4,24 +4,15 @@ import { LEVEL_MONEY, type MoneyKey } from '../money/money';
 import { createPaymentChallenge, type PaymentActions } from '../modes/pay/payment';
 import type { Commit, createStore } from '../save/store';
 import { createVoiceScope } from '../voice/say';
-import type { MoneyState } from './save';
+import type { GarageState } from '../garage/state';
 
-export interface LegendaryPolicy {
+export interface LegendaryPolicy<State> {
   kind: 'exact-practice-money';
-  context(state: MoneyState): { pricing: GaragePricingContext; bank: readonly MoneyKey[] };
+  context(state: State): { pricing: GaragePricingContext; bank: readonly MoneyKey[] };
   payment: typeof createPaymentChallenge;
 }
 
-export const moneyLegendaryPolicy: LegendaryPolicy = {
-  kind: 'exact-practice-money',
-  context: state => {
-    const pricing = state.learning.modes.pay.level;
-    return { pricing, bank: LEVEL_MONEY[pricing] };
-  },
-  payment: createPaymentChallenge,
-};
-
-export interface LegendaryCheckout {
+export interface LegendaryCheckout<State = { garage: GarageState }> {
   readonly id: string;
   readonly item: LegendaryId;
   readonly context: GaragePricingContext;
@@ -30,17 +21,17 @@ export interface LegendaryCheckout {
   readonly signal: AbortSignal;
   readonly actions: PaymentActions;
   readonly status: 'active' | 'closed' | 'replaced' | 'completed';
-  pay(cents: number, context: GaragePricingContext): Commit<MoneyState>;
+  pay(cents: number, context: GaragePricingContext): Commit<State>;
   close(): void;
 }
 
-export function createLegendaryCheckout(
-  store: Pick<ReturnType<typeof createStore<MoneyState>>, 'state' | 'ready' | 'commit'>,
-  policy: LegendaryPolicy,
+export function createLegendaryCheckout<State extends { garage: GarageState }>(
+  store: Pick<ReturnType<typeof createStore<State>>, 'state' | 'ready' | 'commit'>,
+  policy: LegendaryPolicy<NoInfer<State>>,
   garage = { requestLegendary, proposeLegendary },
 ) {
   if (policy?.kind !== 'exact-practice-money' || typeof policy.context !== 'function' || typeof policy.payment !== 'function') throw new Error('Legendary checkout requires an exact-practice-money policy and payment capability');
-  function capture(state: MoneyState) {
+  function capture(state: State) {
     const context = policy.context(state);
     const expected = context && LEVEL_MONEY[context.pricing];
     if (!expected || !Array.isArray(context.bank) || context.bank.length !== expected.length || expected.some((key, i) => key !== context.bank[i])) {
@@ -52,7 +43,7 @@ export function createLegendaryCheckout(
   let sequence = 0;
   let active: { status: LegendaryCheckout['status']; end(status: LegendaryCheckout['status']): void } | undefined;
 
-  function open(item: LegendaryId, lifetime?: AbortSignal, paid?: (result: Extract<Commit<MoneyState>, { kind: 'accepted' }>) => void) {
+  function open(item: LegendaryId, lifetime?: AbortSignal, paid?: (result: Extract<Commit<State>, { kind: 'accepted' }>) => void) {
     if (!store.ready.peek()) return { kind: 'rejected', reason: 'not-ready' } as const;
     if (lifetime?.aborted) return { kind: 'rejected', reason: 'closed' } as const;
     const state = store.state.peek(), { context, bank } = capture(state);
@@ -75,7 +66,7 @@ export function createLegendaryCheckout(
       paid?.(result);
       return true;
     });
-    const checkout: LegendaryCheckout = {
+    const checkout: LegendaryCheckout<State> = {
       id: `checkout-${++sequence}`, item: request.item, context, cents: request.cents, bank, signal: voice.signal,
       actions: payment.actions,
       get status() { return session.status; },

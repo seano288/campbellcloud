@@ -1,3 +1,4 @@
+import '@fontsource/bungee/latin-400.css';
 import { useLayoutEffect, useMemo } from 'preact/hooks';
 import { BodyPicker } from '../garage/BodyPicker';
 import { truckColor } from '../garage/BodyArt';
@@ -7,12 +8,12 @@ import type { RewardPresentation } from '../rewards/presentation';
 import type { createStore } from '../save/store';
 import { TruckArt } from '../ui/bits';
 import { VoiceBoundary, useVoice } from '../voice/context';
-import type { MoneyState } from './save';
+import type { GarageState } from '../garage/state';
 import { createGarageSetup } from './setup';
 
-export function createGaragePresentation(
-  store: Pick<ReturnType<typeof createStore<MoneyState>>, 'state' | 'commit'>,
-  { context }: { context(state: MoneyState): GaragePricingContext },
+export function createGaragePresentation<State extends { garage: GarageState }>(
+  store: Pick<ReturnType<typeof createStore<State>>, 'state' | 'commit'>,
+  { context }: { context(state: State): GaragePricingContext },
 ): RewardPresentation {
   const setup = createGarageSetup(store);
   function Setup({ onDone, signal }: { onDone(): void; signal: AbortSignal }) {

@@ -1,3 +1,4 @@
+import '../../src/app/selectedVoice';
 import { celebrateUnlock } from '../../src/celebrate/garageShow';
 import { createGaragePurchases } from '../../src/app/purchases';
 import { moneySave } from '../../src/app/save';
