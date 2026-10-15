@@ -6,10 +6,14 @@ import { ENGINES, HORNS, sBigFanfare, sCheer, sBoing, sChime, sFanfare, sSiren, 
 import { LEGENDARY, type BuyRung, type Fit, type SlotId } from '../garage/catalog';
 import { MOVES, type GarageStage, type Move } from '../garage/three/stage';
 import type { Phrase } from '../voice/phrases';
-import { say, sayMore } from '../voice/say';
+import type { VoiceScope } from '../voice/say';
 import { confetti, firework, shake, sparks } from './effects';
 
 const KIND: Record<BuyRung, Move> = { 1: 'hop', 2: 'jump', 3: 'mega', 4: 'mega' };
+
+function after(voice: VoiceScope, ms: number, run: () => void) {
+  void voice.wait(ms).then(() => { if (voice.active) run(); });
+}
 
 /** The Truck jumps, and a fitted Siren wails. */
 function play(stage: GarageStage, kind: Move, fit: Fit) {
@@ -18,51 +22,51 @@ function play(stage: GarageStage, kind: Move, fit: Fit) {
 }
 
 /** Plays the unlock moment with the Truck's fit (the new Mod on), revving its Engine, and returns how long taps are blocked for (the length of the jump). */
-export function celebrateUnlock(stage: GarageStage, stageEl: HTMLElement, slot: SlotId, rung: BuyRung, fit: Fit, got: Phrase): number {
+export function celebrateUnlock(stage: GarageStage, stageEl: HTMLElement, slot: SlotId, rung: BuyRung, fit: Fit, got: Phrase, voice: VoiceScope): number {
   const kind = KIND[rung], ms = MOVES[kind].dur, engine = fit.engine;
   const burst = () => { const r = stageEl.getBoundingClientRect(); sparks(stage.truckPoint(), { w: r.width, h: r.height }); };
   play(stage, kind, fit);
-  if (slot === 'horn') setTimeout(() => HORNS[rung]!(), ms); // on landing
+  if (slot === 'horn') after(voice, ms, () => HORNS[rung]!()); // on landing
   if (rung === 1) {
     sBoing(); sChime(); burst();
     if (slot === 'engine') ENGINES[engine]!();
-    void say(got);
+    void voice.say(got);
     return ms;
   }
-  if (rung >= 3) void say('Wow!');
+  if (rung >= 3) void voice.say('Wow!');
   ENGINES[engine]!();
-  setTimeout(() => sWhoosh(0.6), 250);
-  setTimeout(() => {
+  after(voice, 250, () => sWhoosh(0.6));
+  after(voice, ms - 150, () => {
     burst();
-    if (rung === 2) { sFanfare(); void say(got); return; }
-    setTimeout(burst, 200);
+    if (rung === 2) { sFanfare(); void voice.say(got); return; }
+    after(voice, 200, burst);
     sThud(); sBigFanfare(); shake(stageEl);
-    if (rung === 4) return finale(got);
-    [0, 300, 650].forEach(t => setTimeout(() => firework(), t));
-    void sayMore(got, "That's the best one!");
-  }, ms - 150);
+    if (rung === 4) return finale(got, voice);
+    [0, 300, 650].forEach(t => after(voice, t, () => firework()));
+    void voice.sayMore(got, "That's the best one!");
+  });
   return ms;
 }
 
 /** The end of the biggest moments: a crowd cheer, a run of fireworks and a lot of confetti. */
-function finale(got: Phrase) {
-  [0, 250, 500, 800, 1100, 1400].forEach(t => setTimeout(() => firework(), t));
+function finale(got: Phrase, voice: VoiceScope) {
+  [0, 250, 500, 800, 1100, 1400].forEach(t => after(voice, t, () => firework()));
   confetti(140); sCheer();
-  void sayMore(got);
+  void voice.sayMore(got);
 }
 
 /** He bought a new Body: "Wow!", the big jump, a crowd cheer, fireworks and confetti. Returns how long taps are blocked. */
-export function celebrateBody(stage: GarageStage, stageEl: HTMLElement, fit: Fit, got: Phrase): number {
+export function celebrateBody(stage: GarageStage, stageEl: HTMLElement, fit: Fit, got: Phrase, voice: VoiceScope): number {
   const ms = MOVES.mega.dur;
-  void say('Wow!');
+  void voice.say('Wow!');
   play(stage, 'mega', fit);
   ENGINES[fit.engine]!();
-  setTimeout(() => sWhoosh(0.6), 250);
-  setTimeout(() => {
+  after(voice, 250, () => sWhoosh(0.6));
+  after(voice, ms - 150, () => {
     const r = stageEl.getBoundingClientRect();
     sparks(stage.truckPoint(), { w: r.width, h: r.height });
     sThud(); sBigFanfare(); shake(stageEl);
-    finale(got);
-  }, ms - 150);
+    finale(got, voice);
+  });
   return ms;
 }

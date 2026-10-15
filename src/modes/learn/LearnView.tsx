@@ -4,6 +4,7 @@ import { Ask } from '../../round/Ask';
 import { Money } from '../../ui/Money';
 import { toast } from '../../ui/toast';
 import { moneyIs, type Phrase } from '../../voice/phrases';
+import { useVoice } from '../../voice/context';
 import { speaking, type Item } from '../../voice/say';
 import type { ModeViewProps } from '../mode';
 import { checkLearn, dimeTip, type LearnProblem } from './learn';
@@ -13,6 +14,7 @@ const PROMPT = {
 } as const;
 
 export function LearnView({ problem: p, api }: ModeViewProps<LearnProblem>) {
+  const voice = useVoice();
   const [wrong, setWrong] = useState<MoneyKey[]>([]);
   const [done, setDone] = useState(false);
   const [hint, setHint] = useState(false); // struggle help: show every name and value, and point at the answer
@@ -23,17 +25,17 @@ export function LearnView({ problem: p, api }: ModeViewProps<LearnProblem>) {
   const speech: Item[] = [prompt, ...('choices' in p ? p.choices.map(k => ({ parts: [choiceLine(k)], light: k })) : [])];
 
   function tap(k: MoneyKey) {
-    if (api.busy || done || wrong.includes(k)) return;
-    if (checkLearn(p, k)) { setDone(true); return api.correct(); }
+    if (!voice.active || api.busy || done || wrong.includes(k)) return;
+    if (checkLearn(p, k)) { voice.cancel(); setDone(true); return api.correct(); }
     setWrong([...wrong, k]);
     api.miss(teach => {
       if (teach) { api.helped(); setHint(true); }
       const t = MONEY[p.target], m = MONEY[k];
-      if ('choices' in p) return toast('Try again!', 'Try again!');
-      if (p.kind === 'find') return toast(`That's a ${m.name}. Find the ${t.name}!`, `That's a ${m.name}.`, `Find the ${t.name}!`);
+      if ('choices' in p) return toast(voice, 'Try again!', 'Try again!');
+      if (p.kind === 'find') return toast(voice, `That's a ${m.name}. Find the ${t.name}!`, `That's a ${m.name}.`, `Find the ${t.name}!`);
       const lines: Phrase[] = [moneyIs(p.target), moneyIs(k)];
       if (dimeTip(k, p.target)) lines.push('The dime is small, but it is worth more!');
-      return toast(lines.join(' '), ...lines);
+      return toast(voice, lines.join(' '), ...lines);
     });
   }
 

@@ -4,7 +4,7 @@
 // opened mode, star or new trophy is celebrated at the end.
 import { signal } from '@preact/signals';
 import { sBad, sGood } from '../audio/sfx';
-import { screen } from '../app/nav';
+import { screen, screenVoice } from '../app/nav';
 import { pick } from '../game/rng';
 import { game, player } from '../game/store';
 import { createPractice } from '../app/practice';
@@ -16,12 +16,13 @@ import { struggling } from '../modes/progress';
 import type { TrophyStep } from '../trophies/trophies';
 import { toast } from '../ui/toast';
 import { CHEERS } from '../voice/phrases';
-import { hush } from '../voice/say';
+import { createVoiceScope, type VoiceScope } from '../voice/say';
 import { ROUND_LENGTH, takeAgain, teachNow, THINK_MS, type Again } from './rules';
 
 export type RoundEvent = LearningChange | { kind: 'trophy'; step: TrophyStep };
 
 export interface Round {
+  voice: VoiceScope;
   roundId: string;
   solved: SolvedProblem[];
   mode: ModeId;
@@ -62,11 +63,12 @@ export function startRound(mode: ModeId) {
   leaveRound();
   const started = practice.start(mode);
   if (started.kind !== 'accepted') return;
+  screen.value = 'round';
   round.value = {
+    voice: createVoiceScope(screenVoice.peek().signal),
     roundId: started.roundId, solved: [], mode, level: started.level, intro: started.intro, results: [], problem: modeById(mode).makeProblem(started.level, Math.random), again: false, queue: [],
     key: 0, firstTry: true, helped: false, misses: 0, busy: false, thinking: false, events: [], ended: false, earned: 0, canBuild: false,
   };
-  screen.value = 'round';
 }
 
 /** He's seen the introduction card: on to the first problem. */
@@ -80,7 +82,7 @@ export function leaveRound() {
   token++;
   const r = round.value;
   if (r && !r.ended) practice.terminal({ roundId: r.roundId, status: 'abandoned', results: r.solved });
-  hush();
+  r?.voice.cancel();
   round.value = null;
 }
 
@@ -110,7 +112,7 @@ export function correct(roundId: string, key: number) {
   set({ results, solved: [...r.solved, fact], queue, busy: true, events });
   sGood();
   if (results.length >= ROUND_LENGTH) return later(900, () => endRound(roundId));
-  if (outcome === 'clean') { const c = pick(Math.random, CHEERS); void toast(c, c); }
+  if (outcome === 'clean') { const c = pick(Math.random, CHEERS); void toast(r.voice, c, c); }
   later(1500, nextProblem);
 }
 

@@ -3,9 +3,11 @@ import { useEffect } from 'preact/hooks';
 import { MONEY, type MoneyKey } from '../money/money';
 import { Money } from '../ui/Money';
 import { moneyIs } from '../voice/phrases';
-import { say, speaking } from '../voice/say';
+import { useVoiceScope } from '../voice/context';
+import { speaking } from '../voice/say';
 
 export function IntroCard({ money, onGo }: { money: readonly MoneyKey[]; onGo: () => void }) {
+  const voice = useVoiceScope(), { say } = voice;
   useEffect(() => {
     void say('Look!', 'New money!', ...money.map(k => ({ parts: [`This is a ${MONEY[k].name}.`, `It is worth ${MONEY[k].value}.`] as const, light: k })));
   }, []);
@@ -21,7 +23,7 @@ export function IntroCard({ money, onGo }: { money: readonly MoneyKey[]; onGo: (
             </button>
           ))}
         </div>
-        <button class="big-btn go" aria-label="Play" onClick={onGo}><span class="e">▶</span></button>
+        <button class="big-btn go" aria-label="Play" onClick={() => { voice.cancel(); onGo(); }}><span class="e">▶</span></button>
       </div>
     </div>
   );

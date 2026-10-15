@@ -3,9 +3,11 @@ import { useEffect } from 'preact/hooks';
 import { MONEY, type MoneyKey } from '../money/money';
 import { Money } from '../ui/Money';
 import { moneyIs } from '../voice/phrases';
-import { say, speaking } from '../voice/say';
+import { useVoiceScope } from '../voice/context';
+import { speaking } from '../voice/say';
 
 export function PeekCard({ money, onDone }: { money: readonly MoneyKey[]; onDone: () => void }) {
+  const voice = useVoiceScope(), { say } = voice;
   useEffect(() => { void say('Tap a coin to hear its name.'); }, []);
   return (
     <div class="modal">
@@ -17,7 +19,7 @@ export function PeekCard({ money, onDone }: { money: readonly MoneyKey[]; onDone
             </button>
           ))}
         </div>
-        <button class="big-btn go" aria-label="Done" onClick={onDone}><span class="e">👍</span></button>
+        <button class="big-btn go" aria-label="Done" onClick={() => { voice.cancel(); onDone(); }}><span class="e">👍</span></button>
       </div>
     </div>
   );

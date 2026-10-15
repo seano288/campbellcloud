@@ -3,7 +3,8 @@
 import { useEffect } from 'preact/hooks';
 import { game } from '../game/store';
 import { trophyHint, trophyName } from '../voice/phrases';
-import { say, speaking, type Part } from '../voice/say';
+import { useVoiceScope } from '../voice/context';
+import { speaking, type Part } from '../voice/say';
 import { earnedCount, TROPHIES, type Trophy } from './trophies';
 import { cupColor, TrophyArt } from './TrophyArt';
 
@@ -16,10 +17,11 @@ function lines(t: Trophy, n: number): Part[] {
 }
 
 export function TrophyShelf({ onClose }: { onClose: () => void }) {
+  const voice = useVoiceScope(), { say } = voice;
   useEffect(() => { void say('Trophies!'); }, []);
   return (
     <div class="shelf">
-      <div class="shelfhead"><span>🏆</span><button class="x" aria-label="Close" onClick={onClose}>✕</button></div>
+      <div class="shelfhead"><span>🏆</span><button class="x" aria-label="Close" onClick={() => { voice.cancel(); onClose(); }}>✕</button></div>
       <div class="planks">
         {KINDS.map(kind => (
           <div key={kind} class="plank">

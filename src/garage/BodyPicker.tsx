@@ -1,12 +1,13 @@
 // First launch only: he chooses his Truck's Body from the starters. Each is spoken when tapped; ▶ keeps it.
 import { useState } from 'preact/hooks';
 import { screen } from '../app/nav';
-import { say } from '../voice/say';
+import { useVoice } from '../voice/context';
 import { BodyArt } from './BodyArt';
 import { BODY_NAMES, STARTER_BODIES, type BodyId } from './catalog';
 import { chooseBody } from './garage';
 
 export function BodyPicker() {
+  const { say } = useVoice();
   const [pick, setPick] = useState<BodyId | null>(null);
   return (
     <div class="screen picker-screen">

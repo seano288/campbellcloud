@@ -1,16 +1,17 @@
 // A short line shown at the top and spoken at the same time.
 import { signal } from '@preact/signals';
-import { say, type Item } from '../voice/say';
+import type { Item, VoiceScope } from '../voice/say';
 
 const shown = signal<{ text: string; id: number } | null>(null);
 let timer: ReturnType<typeof setTimeout> | undefined;
 
-export function toast(text: string, ...speech: Item[]): Promise<void> {
+export function toast(voice: VoiceScope, text: string, ...speech: Item[]): Promise<void> {
+  if (!voice.active) return Promise.resolve();
   const id = (shown.value?.id ?? 0) + 1;
   shown.value = { text, id };
   clearTimeout(timer);
   timer = setTimeout(() => { if (shown.value?.id === id) shown.value = null; }, 1800);
-  return say(...speech);
+  return voice.say(...speech);
 }
 
 export function Toast() {

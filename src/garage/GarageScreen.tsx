@@ -17,7 +17,8 @@ import { startRound } from '../round/round';
 import { TrophyShelf } from '../trophies/TrophyShelf';
 import { Bolt, BoltPile, IconButton } from '../ui/bits';
 import { numberLine } from '../voice/phrases';
-import { say } from '../voice/say';
+import { useVoice } from '../voice/context';
+import { createVoiceScope, type VoiceScope } from '../voice/say';
 import { BodyArt } from './BodyArt';
 import { bodyItem, BODY_IDS, BODY_NAMES, colourById, colourItem, COLOURS, FREE_COLOUR, isStarter, LEGENDARY, modId, modName, parseMod, RUNGS, SLOTS, slotById, TOP, type BodyId, type BoughtColour, type ColourId, type Rung, type SlotId } from './catalog';
 import { Checkout } from './Checkout';
@@ -33,6 +34,8 @@ import { ShowOff } from './show/ShowOff';
 import { GarageStage, spreadHotspots } from './three/stage';
 
 export function GarageScreen() {
+  const voice = useVoice(), { say } = voice;
+  const celebration = useRef<VoiceScope | null>(null);
   const canvas = useRef<HTMLCanvasElement>(null), stageEl = useRef<HTMLDivElement>(null);
   const strip = useRef<HTMLDivElement>(null);
   const hots = useRef<Partial<Record<SlotId, HTMLButtonElement | null>>>({});
@@ -76,7 +79,7 @@ export function GarageScreen() {
     if (slot === 'exhaust') stage?.puff();
     void say(slotById(slot).name);
   }
-  function closeSheet() { setSheet(null); setPicking(false); stage?.focus(null); }
+  function closeSheet() { celebration.current?.cancel(); setSheet(null); setPicking(false); stage?.focus(null); }
 
   function openPicker() { setPicking(true); void say(numberLine(f.doorNumber)); }
   function turn(wheel: Wheel, dir: 1 | -1) {
@@ -89,6 +92,10 @@ export function GarageScreen() {
   function block(ms: number) {
     setBlocked(true);
     setTimeout(() => setBlocked(false), ms);
+  }
+  function showVoice() {
+    celebration.current?.cancel();
+    return celebration.current = createVoiceScope(voice.signal);
   }
   function nope(key: string) {
     sNope();
@@ -105,10 +112,10 @@ export function GarageScreen() {
       else if (slot !== 'engine') { sClink(); void say(modName(slot, rung)); }
     } else if (result.kind === 'unlocked') {
       const r = rung as 1 | 2 | 3;
-      if (stage) block(celebrateUnlock(stage, stageEl.current!, slot, r, currentFit(result.state), gotLine(modId(slot, r))));
+      if (stage) block(celebrateUnlock(stage, stageEl.current!, slot, r, currentFit(result.state), gotLine(modId(slot, r)), showVoice()));
     } else if (result.kind === 'checkout') {
       const opened = legendaryCheckout.open(modId(slot, LEGENDARY));
-      if (opened.kind === 'ready') setCheckout(opened.checkout);
+      if (opened.kind === 'ready') { celebration.current?.cancel(); setCheckout(opened.checkout); }
     } else if (result.kind === 'waiting') {
       nope(`${slot}:${rung}`);
       void say(...waitLines(slot, waitingFor(slot)!));
@@ -123,7 +130,7 @@ export function GarageScreen() {
     if (result.kind === 'rejected') return;
     if (result.kind === 'fitted') { sClink(); void say(name); return; }
     const item = colourItem(c as BoughtColour);
-    if (result.kind === 'unlocked') { if (stage) block(celebrateUnlock(stage, stageEl.current!, 'paint', 1, currentFit(result.state), gotLine(item))); return; }
+    if (result.kind === 'unlocked') { if (stage) block(celebrateUnlock(stage, stageEl.current!, 'paint', 1, currentFit(result.state), gotLine(item), showVoice())); return; }
     nope(item);
     void say(...needLines(item));
   }
@@ -133,14 +140,14 @@ export function GarageScreen() {
     if (result.kind !== 'accepted') return;
     const { slot } = parseMod(checkout.item);
     setCheckout(current => current === checkout ? null : current);
-    if (stage) block(celebrateUnlock(stage, stageEl.current!, slot, LEGENDARY, currentFit(result.state), gotLine(checkout.item)));
+    if (stage) block(celebrateUnlock(stage, stageEl.current!, slot, LEGENDARY, currentFit(result.state), gotLine(checkout.item), showVoice()));
   }
 
   function tapBodyChip(b: BodyId) {
     const result = tapBody(b);
     if (result.kind === 'rejected') return;
     if (result.kind === 'switched') void say(BODY_NAMES[b]);
-    else if (result.kind === 'bought') { if (!isStarter(b) && stage) block(celebrateBody(stage, stageEl.current!, currentFit(result.state), gotLine(bodyItem(b)))); }
+    else if (result.kind === 'bought') { if (!isStarter(b) && stage) block(celebrateBody(stage, stageEl.current!, currentFit(result.state), gotLine(bodyItem(b)), showVoice())); }
     else { nope(`body:${b}`); if (!isStarter(b)) void say(...needLines(bodyItem(b))); }
   }
 

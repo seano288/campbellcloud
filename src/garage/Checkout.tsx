@@ -10,12 +10,14 @@ import type { Level } from '../modes/ids';
 import { fmt, LEVEL_MONEY } from '../money/money';
 import { Ask } from '../round/Ask';
 import { TEACH_ON_MISS } from '../round/rules';
+import { useVoiceScope, VoiceContext } from '../voice/context';
 import { LEGENDARY, modName, type SlotId } from './catalog';
 import { costLines, legendaryPrice } from './garage';
 import { PartIcon } from './icons';
 
 /** onPaid gets the tray's total and the Level it was priced at, which unlock() checks against the price. */
 export function Checkout({ slot, level, onPaid, onClose }: { slot: SlotId; level: Level; onPaid: (cents: number, level: Level) => void; onClose: () => void }) {
+  const voice = useVoiceScope();
   const [misses, setMisses] = useState(0);
   const cents = legendaryPrice(slot, level), speech = costLines(slot, level), bank = LEVEL_MONEY[level];
   const api: RoundApi = {
@@ -25,14 +27,16 @@ export function Checkout({ slot, level, onPaid, onClose }: { slot: SlotId; level
     busy: false,
   };
   return (
-    <div class="modal checkout">
-      <div class="modal-card checkout-card">
-        <button class="x" aria-label="Close" onClick={onClose}>✕</button>
-        <div class="game">
-          <Ask text={`${modName(slot, LEGENDARY)} costs ${fmt(cents)}`} speech={speech} />
-          <PayCounter price={cents} bank={bank} icon={<PartIcon slot={slot} rung={LEGENDARY} />} peekMoney={bank} speech={speech} api={api} onPaid={c => onPaid(c, level)} />
+    <VoiceContext.Provider value={voice}>
+      <div class="modal checkout">
+        <div class="modal-card checkout-card">
+          <button class="x" aria-label="Close" onClick={() => { voice.cancel(); onClose(); }}>✕</button>
+          <div class="game">
+            <Ask text={`${modName(slot, LEGENDARY)} costs ${fmt(cents)}`} speech={speech} />
+            <PayCounter price={cents} bank={bank} icon={<PartIcon slot={slot} rung={LEGENDARY} />} peekMoney={bank} speech={speech} api={api} onPaid={c => { voice.cancel(); onPaid(c, level); }} />
+          </div>
         </div>
       </div>
-    </div>
+    </VoiceContext.Provider>
   );
 }

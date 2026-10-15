@@ -2,7 +2,7 @@
 // bought with Bolts is his, it shows the next Legendary and its price in money at his Pay the Shop Level.
 import { game } from '../game/store';
 import { fmt } from '../money/money';
-import { say } from '../voice/say';
+import { useVoice } from '../voice/context';
 import { BodyArt } from './BodyArt';
 import { bodyOf, colourById, colourOf, isBodyItem, isColourItem, LEGENDARY, parseMod } from './catalog';
 import { priceOf } from './economy';
@@ -10,6 +10,7 @@ import { goal, goalLines, legendaryPrice, nextLegendary } from './garage';
 import { PartIcon } from './icons';
 
 export function GoalBar() {
+  const { say } = useVoice();
   const g = goal(), bolts = game.value.bolts, tap = () => void say(...goalLines());
   if (!g) {
     const l = nextLegendary();

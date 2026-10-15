@@ -7,9 +7,11 @@ import { affordableCount, truckColor } from '../garage/garage';
 import { game } from '../game/store';
 import { Bolt, IconButton, TruckArt } from '../ui/bits';
 import type { Phrase } from '../voice/phrases';
+import { useVoiceScope } from '../voice/context';
 import { leaveRound, round, startRound } from './round';
 
 export function EndOverlay() {
+  const voice = useVoiceScope();
   const r = round.value!;
   const [pile, setPile] = useState(game.value.bolts - r.earned);
   const [bump, setBump] = useState(false);
@@ -20,15 +22,16 @@ export function EndOverlay() {
   useEffect(() => {
     let alive = true;
     void playRoundShow({
+      voice,
       reward: els.reward.current!, moment: els.moment.current!, truck: els.truck.current!, load: els.load.current!, pile: els.pile.current!,
       bump: n => { setPile(n); setBump(true); setTimeout(() => setBump(false), 150); },
       line: p => setLines(ls => [...ls, ...p]),
-      alive: () => alive,
-    }, r, game.value.bolts).then(() => { if (alive) setAwake(true); });
-    return () => { alive = false; };
+      alive: () => alive && voice.active,
+    }, r, game.value.bolts).then(() => { if (alive && voice.active) setAwake(true); });
+    return () => { alive = false; voice.cancel(); };
   }, []);
 
-  const go = (fn: () => void) => () => { if (awake) fn(); };
+  const go = (fn: () => void) => () => { if (awake && voice.active) fn(); };
   return (
     <div class="reward" ref={els.reward}>
       <h2>Round done!</h2>

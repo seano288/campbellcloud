@@ -3,7 +3,9 @@ import { setTimeout as sleep } from 'node:timers/promises';
 import { chromium, type Page } from 'playwright';
 import { preview } from 'vite';
 import type { Save } from '../../src/save/migrate';
+import { CLIPS } from '../../src/voice/voice.gen';
 import { FRESH_EXPECTED, JOURNEY_SAVES, NOW, PROGRESSED_EXPECTED, STORAGE_KEY, TODAY } from './saves';
+import { observeRecordedVoice } from './voice';
 
 const journeys: { name: string; seed: unknown; run: (page: Page) => Promise<void> }[] = [];
 const journey = (name: string, seed: unknown, run: (page: Page) => Promise<void>) => { journeys.push({ name, seed, run }); };
@@ -554,6 +556,78 @@ for (const level of [2, 3] as const) {
     assert.deepEqual(await purchaseSnapshots(page), [expected]);
   });
 }
+
+journey('Scoped recorded voice appends, interrupts, highlights and leaves counting help behind', {
+  ...JOURNEY_SAVES.practice,
+  modes: { ...JOURNEY_SAVES.practice.modes, count: { ...JOURNEY_SAVES.practice.modes.count, fresh: true } },
+}, async page => {
+  const events = await observeRecordedVoice(page);
+  await button(page, 'Start').click();
+  await waitForAssertion(async () => assert.equal(events.filter(e => e.kind === 'start').length, 2));
+  const opening = events.filter(e => e.kind === 'start');
+  assert.ok(opening.every(e => e.running && e.audible && e.duration > 0.1));
+  assert.ok(events.some(e => e.kind === 'end' && e.id === opening[0]!.id));
+  assert.equal(events.some(e => e.kind === 'stop'), false);
+  await button(page, 'Count the Cash').click();
+  await page.locator('main .choice.speaking').first().waitFor();
+  const prompted = events.filter(e => e.kind === 'start').at(-1)!;
+  await button(page, 'Say it again').click();
+  await waitForAssertion(async () => assert.ok(events.some(e => e.kind === 'stop' && e.id === prompted.id)));
+  await button(page, 'Show me all the money').click();
+  await page.locator('.modal').getByRole('button', { name: 'Dime', exact: true }).click();
+  await page.locator('.modal .speaking').waitFor();
+  await button(page, 'Done').click();
+  await page.locator('main .choice.speaking').first().waitFor();
+  await page.getByRole('button', { name: /Help me count/ }).click();
+  await page.locator('main .slot.lit').first().waitFor();
+  await button(page, 'Home').click();
+  const state = await saved(page);
+  assert.deepEqual(state.modes.count.window, []);
+  assert.equal(state.roundsFinished, 0);
+  assert.equal(state.bolts, 0);
+  const starts = events.filter(e => e.kind === 'start').length;
+  await button(page, 'Garage').click();
+  await waitForAssertion(async () => assert.ok(events.filter(e => e.kind === 'start').length > starts));
+  await sleep(2500);
+  assert.equal(events.filter(e => e.kind === 'start').length, starts + 1);
+  assert.equal(await page.locator('.speaking').count(), 0);
+  assert.deepEqual(await saved(page), state);
+});
+
+journey('Scoped recorded voice cancels pending checkout teaching before a replacement prompt', JOURNEY_SAVES['checkout-2'], async page => {
+  const events = await observeRecordedVoice(page);
+  let release!: () => void;
+  const held = new Promise<void>(resolve => { release = resolve; });
+  let requested = false;
+  await page.route(`**/voice/${CLIPS['Almost!']}`, async route => { requested = true; await held; await route.continue(); });
+  try {
+    await button(page, 'Start').click();
+    await button(page, 'Garage').click();
+    await openSheet(page, 'Tires');
+    await button(page, 'Monster Treads').click();
+    const state = await saved(page);
+    await page.locator('.bank').getByRole('button', { name: 'Penny', exact: true }).click();
+    await button(page, 'Pay').click();
+    await waitForAssertion(async () => assert.equal(requested, true));
+    await button(page, 'Pay').click();
+    await page.locator('.checkout').getByRole('button', { name: 'Close', exact: true }).click();
+    const starts = events.filter(e => e.kind === 'start').length;
+    await button(page, 'Monster Treads').click();
+    await waitForAssertion(async () => assert.ok(events.filter(e => e.kind === 'start').length > starts));
+    const replacement = events.filter(e => e.kind === 'start').at(-1)!;
+    release();
+    await waitForAssertion(async () => assert.ok(events.some(e => e.kind === 'end' && e.id === replacement.id)));
+    await sleep(3500);
+    assert.equal(await page.locator('.paidrow b').innerText(), '0¢');
+    assert.equal(events.some(e => e.kind === 'stop' && e.id >= replacement.id), false);
+    assert.equal(events.filter(e => e.kind === 'start' && e.id >= replacement.id).length, 3);
+    assert.deepEqual(await saved(page), state);
+    assert.equal(await page.locator('.blocker').count(), 0);
+  } finally {
+    release();
+    await page.unrouteAll({ behavior: 'wait' });
+  }
+});
 
 const selected = journeys.filter(j => !process.argv[2] || j.name.includes(process.argv[2]));
 assert.ok(selected.length, 'No matching baseline journey');

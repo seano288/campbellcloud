@@ -10,10 +10,11 @@ import { cupColor, TrophyArt } from '../trophies/TrophyArt';
 import { Money } from '../ui/Money';
 import type { Phrase } from '../voice/phrases';
 import { earnedBolts } from '../voice/phrases';
-import { say, sayMore } from '../voice/say';
-import { animate, confetti, firework, flyBolt, shake, shatter, sleep } from './effects';
+import type { VoiceScope } from '../voice/say';
+import { animate, confetti, firework, flyBolt, shake, shatter } from './effects';
 
 export interface ShowStage {
+  voice: VoiceScope;
   reward: HTMLElement;
   moment: HTMLElement;
   truck: HTMLElement;
@@ -35,8 +36,9 @@ function prop(st: ShowStage, css: string): HTMLDivElement {
 }
 
 function speak(st: ShowStage, lines: Phrase[]) {
+  if (!st.alive()) return;
   st.line(lines);
-  void sayMore(...lines);
+  void st.voice.sayMore(...lines);
 }
 
 /** Round done (~2.3 s): the Truck drives in with the Bolts he earned in its bed, and they fly onto the pile with a clink each. */
@@ -45,14 +47,15 @@ async function roundDone(st: ShowStage, bolts: number, earned: number) {
   await animate(st.truck, [{ transform: 'translateX(-80vw)' }, { transform: 'translateX(0)' }], 900, 'cubic-bezier(.2,.8,.3,1)');
   if (!st.alive()) return;
   await animate(st.truck, [{ transform: 'rotate(0)' }, { transform: 'rotate(4deg)' }, { transform: 'rotate(0)' }], 250); // stop and rock
+  if (!st.alive()) return;
   sFanfare();
   const line = earnedBolts(earned);
   st.line([line]);
-  void say(line);
+  void st.voice.say(line);
   const loaded = [...st.load.children].map(b => b.getBoundingClientRect());
   st.load.style.visibility = 'hidden';
   let n = bolts - earned;
-  await Promise.all(loaded.map((b, i) => sleep(i * 200)
+  await Promise.all(loaded.map((b, i) => st.voice.wait(i * 200)
     .then(() => (st.alive() ? flyBolt({ x: b.left + b.width / 2, y: b.top + b.height / 2 }, st.pile) : undefined))
     .then(() => { if (st.alive()) { sClink(); st.bump(++n); } })));
 }
@@ -65,11 +68,12 @@ async function levelUp(st: ShowStage, e: Extract<RoundEvent, { kind: 'levelUp' }
   sHonk(); sEngine(1);
   speak(st, eventLines(e));
   const wheelie = animate(st.truck, [{ transform: 'rotate(0)' }, { transform: 'rotate(-28deg)', offset: 0.3 }, { transform: 'rotate(-24deg)', offset: 0.75 }, { transform: 'rotate(0)' }], 1500);
-  await sleep(350);
+  await st.voice.wait(350);
+  if (!st.alive()) return;
   void animate(sign, [{ transform: 'scale(0)' }, { transform: 'scale(1.2)' }, { transform: 'scale(1)' }], 400);
   sChime(); confetti(40);
   await wheelie;
-  await sleep(300);
+  await st.voice.wait(300);
   render(null, sign);
   sign.remove();
 }
@@ -79,6 +83,7 @@ async function modeOpens(st: ShowStage, e: Extract<RoundEvent, { kind: 'open' }>
   const p = prop(st, 'right:6%');
   p.innerHTML = `${modeById(e.mode).icon}<span style="position:absolute;left:30%;top:-40%">🔒</span>`;
   await animate(p, [{ transform: 'scale(0)' }, { transform: 'scale(1)' }], 300);
+  if (!st.alive()) return;
   const dx = p.getBoundingClientRect().left - st.truck.getBoundingClientRect().left - 20;
   sEngine(0.8);
   await animate(st.truck, [{ transform: 'translate(0,0)' }, { transform: `translate(${dx * 0.6}px,-90px) rotate(-10deg)`, offset: 0.6 }, { transform: `translate(${dx}px,-30px)` }], 800, 'ease-in');
@@ -90,7 +95,8 @@ async function modeOpens(st: ShowStage, e: Extract<RoundEvent, { kind: 'open' }>
   speak(st, eventLines(e));
   confetti(50);
   await animate(st.truck, [{ transform: `translate(${dx}px,-30px)` }, { transform: `translate(${dx}px,-60px)` }, { transform: `translate(${dx}px,-30px)` }], 300);
-  await sleep(600);
+  await st.voice.wait(600);
+  if (!st.alive()) return;
   await animate(st.truck, [{ transform: `translate(${dx}px,-30px)` }, { transform: 'translate(0,0)' }], 600);
   p.remove();
 }
@@ -102,6 +108,7 @@ async function star(st: ShowStage, e: RoundEvent) {
   ramp.innerHTML = `<svg width="${110 * u}" viewBox="0 0 110 50"><path d="M0 50 L110 50 L110 0 Z" fill="#ffd23f" stroke="#000" stroke-width="4"/></svg>`;
   sEngine(1.4);
   await animate(st.truck, [{ transform: 'translateX(0)' }, { transform: 'translateX(-30vw)' }], 500);
+  if (!st.alive()) return;
   sDrumroll(0.9);
   await animate(st.truck, [{ transform: 'translateX(-30vw)' }, { transform: 'translateX(10vw)' }], 900, 'ease-in');
   if (!st.alive()) return;
@@ -112,10 +119,11 @@ async function star(st: ShowStage, e: RoundEvent) {
   speak(st, eventLines(e));
   [0, 350, 700, 1100].forEach(ms => setTimeout(() => st.alive() && firework(), ms));
   await animate(st.truck, [{ transform: 'translate(10vw,0) rotate(0)' }, { transform: 'translate(22vw,-42vh) rotate(-200deg)', offset: 0.5 }, { transform: 'translate(34vw,0) rotate(-360deg)' }], 1300, 'linear');
+  if (!st.alive()) return;
   sThud(); shake(st.reward); confetti(120);
   await animate(st.truck, [{ transform: 'translate(34vw,0)' }, { transform: 'translate(0,0)' }], 700);
   ramp.remove();
-  await sleep(600);
+  await st.voice.wait(600);
   big.remove();
 }
 
@@ -130,21 +138,24 @@ async function trophy(st: ShowStage, e: Extract<RoundEvent, { kind: 'trophy' }>)
   sChime(); confetti(40);
   speak(st, eventLines(e));
   await animate(st.truck, [{ transform: 'translateY(0)' }, { transform: 'translateY(-40px)' }, { transform: 'translateY(0)' }], 450);
-  await sleep(950);
+  await st.voice.wait(950);
   render(null, cup);
   cup.remove();
 }
 
 /** Plays every moment of the Round, smallest first. Resolves when the last one is done. */
 export async function playRoundShow(st: ShowStage, r: Round, bolts: number) {
+  if (!st.alive()) return;
   await roundDone(st, bolts, r.earned);
   for (const e of smallestFirst(r.events)) {
     if (!st.alive()) return;
-    await sleep(250);
+    await st.voice.wait(250);
+    if (!st.alive()) return;
     if (e.kind === 'levelUp') await levelUp(st, e);
     else if (e.kind === 'open') await modeOpens(st, e);
     else if (e.kind === 'trophy') await trophy(st, e);
     else await star(st, e);
+    if (!st.alive()) return;
     st.truck.style.transform = '';
   }
   if (st.alive() && r.canBuild) { speak(st, ['You can build something new!']); sHonk(); }
