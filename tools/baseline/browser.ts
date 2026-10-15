@@ -8,6 +8,7 @@ import { FRESH_EXPECTED, JOURNEY_SAVES, NOW, PROGRESSED_EXPECTED, STORAGE_KEY, T
 import { observeRecordedVoice } from './voice';
 import { fixtureScript } from './fixture';
 import { presentationJourneys } from './presentationJourneys';
+import { celebrationJourneys } from './celebrationJourneys';
 
 const journeys: { name: string; seed: unknown; run: (page: Page) => Promise<void> }[] = [];
 const journey = (name: string, seed: unknown, run: (page: Page) => Promise<void>) => { journeys.push({ name, seed, run }); };
@@ -955,6 +956,7 @@ journey('Legendary Level 1 help edits, peek and navigation cancel teaching witho
 });
 
 journeys.push(...presentationJourneys);
+journeys.push(...celebrationJourneys);
 const selected = journeys.filter(j => !process.argv[2] || j.name.includes(process.argv[2]));
 assert.ok(selected.length, 'No matching baseline journey');
 

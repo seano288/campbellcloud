@@ -132,6 +132,8 @@ export class Exhaust {
     for (const name of ['position', 'size', 'alpha', 'tint']) g.getAttribute(name).needsUpdate = true;
   }
 
+  clear() { this.age.fill(Infinity); this.step(0); }
+
   dispose() { this.points.geometry.dispose(); (this.points.material as THREE.Material).dispose(); }
 
   /** A free particle, or the oldest one when all CAP are in the air. */

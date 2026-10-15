@@ -1,6 +1,28 @@
 // Sound effects, all made in code with Web Audio. No sound files.
 import { audio } from './context';
 
+let soundLifetime: AbortSignal | undefined;
+
+export const soundFor = (signal?: AbortSignal) => <A extends unknown[]>(effect: (...args: A) => void, ...args: A) => {
+  if (signal?.aborted) return;
+  const previous = soundLifetime;
+  soundLifetime = signal;
+  try { effect(...args); }
+  finally { soundLifetime = previous; }
+};
+
+function ownSound(source: AudioScheduledSourceNode, cancelled?: () => void) {
+  const signal = soundLifetime;
+  if (!signal) return;
+  const release = () => { signal.removeEventListener('abort', stop); source.removeEventListener('ended', release); };
+  const stop = () => { release(); try { source.stop(); } catch {} cancelled?.(); };
+  if (signal.aborted) stop();
+  else {
+    signal.addEventListener('abort', stop, { once: true });
+    source.addEventListener('ended', release, { once: true });
+  }
+}
+
 export function tone(f: number, dur: number, type: OscillatorType = 'sine', when = 0, vol = 0.15, slide?: number) {
   try {
     const c = audio(), t = c.currentTime + when, o = c.createOscillator(), g = c.createGain();
@@ -12,6 +34,7 @@ export function tone(f: number, dur: number, type: OscillatorType = 'sine', when
     o.connect(g).connect(c.destination);
     o.start(t);
     o.stop(t + dur + 0.05);
+    ownSound(o);
   } catch { /* no audio: play on silently */ }
 }
 
@@ -29,6 +52,7 @@ export function noise({ dur, vol = 0.25, type = 'lowpass', f = 800, f2, when = 0
     else { g.gain.setValueAtTime(vol, t); g.gain.exponentialRampToValueAtTime(0.001, t + dur); }
     s.connect(fl).connect(g).connect(c.destination);
     s.start(t);
+    ownSound(s);
   } catch { /* no audio */ }
 }
 
@@ -59,6 +83,7 @@ export const ENGINES: readonly (() => void)[] = [
 ];
 /** The Siren Roof Topper: a wail that rises and falls twice. A wail already going isn't doubled up. */
 let sirenUntil = 0;
+let siren: OscillatorNode | null = null;
 export function sSiren() {
   try {
     const c = audio(), t = c.currentTime;
@@ -75,6 +100,8 @@ export function sSiren() {
     o.connect(g).connect(c.destination);
     o.start(t);
     o.stop(t + 1.85);
+    siren = o;
+    ownSound(o, () => { if (siren === o) { siren = null; sirenUntil = 0; } });
   } catch { /* no audio */ }
 }
 export const sNope = () => tone(220, 0.22, 'square', 0, 0.08, 160);

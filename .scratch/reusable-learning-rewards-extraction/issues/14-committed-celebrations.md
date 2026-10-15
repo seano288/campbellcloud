@@ -12,14 +12,28 @@
 
 **Design basis:** Reusable learning, currency, and rewards design decision 05, Presentation composition, with committed results from 02-04, save rules from 06 and required evidence from 08. This slice can proceed independently of ticket 13 after the checkout stage is complete.
 
-- [ ] Shared sequencing runs only ordered supplied moments under an active lifetime and returns finished/cancelled/failed. It imports no concrete subject identifiers, Garage stage/art, currency rules, phrase catalogue or aggregate save.
-- [ ] App assembly creates show plans from already committed earnings, captured pre/post balances, subject changes, earned Trophy steps and the reward's newly-affordable fact. A displayed Bolt count animates without writing the currency balance.
-- [ ] Preserve the money show's full order: Bolts first; Level/open-mode events in existing stable relative order; stars; Trophies; then newly-affordable announcement when applicable. Retain every applicable moment, existing animations, phrases and pacing rather than picking a single largest event.
-- [ ] Normal Home/Garage/Play again navigation remains gated until all moments finish. Existing purchase celebrations run only after their committed result. Use reward-owned current-affordability rules for post-show cues without requiring ticket 13's new presentation factory.
-- [ ] The screen owns lifetime and the sequencer supplies a run-scoped signal. Cancellation between/within moments stops later work and cleans up speech, animations, timers, temporary art and highlighting. Moments observe cancellation before effects after an await.
-- [ ] Synchronous throws and rejected moments stop/clean up the run and report failure. Failure releases navigation only for the still-active screen, never navigates a replacement screen or pretends unplayed moments finished.
-- [ ] Late effects/resolutions/rejections cannot alter a newer show's art, audio, highlighting or controls. Cleanup of an old show cannot hush a newer one.
-- [ ] Re-showing, cancelling or failing presentation never credits currency, buys/fits items, awards Trophies, rolls back committed state or retries the original domain action. Leaving before completion still follows Round abandonment rules rather than inventing a show.
-- [ ] Red-green tests at the approved sequencing and committed-presentation seams use observable moments/effects and controlled time. Exercise combined events, navigation gates, cancellation, failures and late work through live money presentation, not private timers/guards. Focused tests/typechecking pass and existing CI gates remain green.
+- [x] Shared sequencing runs only ordered supplied moments under an active lifetime and returns finished/cancelled/failed. It imports no concrete subject identifiers, Garage stage/art, currency rules, phrase catalogue or aggregate save.
+- [x] App assembly creates show plans from already committed earnings, captured pre/post balances, subject changes, earned Trophy steps and the reward's newly-affordable fact. A displayed Bolt count animates without writing the currency balance.
+- [x] Preserve the money show's full order: Bolts first; Level/open-mode events in existing stable relative order; stars; Trophies; then newly-affordable announcement when applicable. Retain every applicable moment, existing animations, phrases and pacing rather than picking a single largest event.
+- [x] Normal Home/Garage/Play again navigation remains gated until all moments finish. Existing purchase celebrations run only after their committed result. Use reward-owned current-affordability rules for post-show cues without requiring ticket 13's new presentation factory.
+- [x] The screen owns lifetime and the sequencer supplies a run-scoped signal. Cancellation between/within moments stops later work and cleans up speech, animations, timers, temporary art and highlighting. Moments observe cancellation before effects after an await.
+- [x] Synchronous throws and rejected moments stop/clean up the run and report failure. Failure releases navigation only for the still-active screen, never navigates a replacement screen or pretends unplayed moments finished.
+- [x] Late effects/resolutions/rejections cannot alter a newer show's art, audio, highlighting or controls. Cleanup of an old show cannot hush a newer one.
+- [x] Re-showing, cancelling or failing presentation never credits currency, buys/fits items, awards Trophies, rolls back committed state or retries the original domain action. Leaving before completion still follows Round abandonment rules rather than inventing a show.
+- [x] Red-green tests at the approved sequencing and committed-presentation seams use observable moments/effects and controlled time. Exercise combined events, navigation gates, cancellation, failures and late work through live money presentation, not private timers/guards. Focused tests/typechecking pass and existing CI gates remain green.
 
 **Out of scope:** Celebration redesign, timing changes, alternate reward art, new earnings/Trophy rules, retrying failed purchases or edits to real saves.
+
+## Comments
+
+**2026-10-15, Devin:** Completed. Shared `playMoments` runs supplied moments with a run-scoped cancellation signal and finished/cancelled/failed results. The money plan retains Bolt delivery, stable progression order, stars, every earned Trophy and the captured newly-affordable announcement. The displayed pile uses committed balances without changing currency. Normal navigation waits for queued speech and the final announcement; failure releases only the active screen's controls without completing unplayed moments.
+
+Round and purchase effects now own their speech, generated audio, animations, particle art and timers. Cancellation cleans up those resources, including the current Truck after a committed fit rebuild. Late work cannot enable replacement controls or clear newer highlighting. Purchases still commit before celebrating and block input only for the existing jump duration. Presentation never retries an action or changes saved progress.
+
+Red-green coverage at the approved seams includes sequencing, cancellation within/between moments, throws/rejections, combined live money events, pending final speech, stale resolutions/rejections, replacement highlighting, purchase failures and rebuilt-Truck cleanup. The Truck regression observes its public hit-test silhouette against independently rebuilt resting art, not private meshes or guards.
+
+Independent `/code-review` Standards and Spec reviewers compared staged work against starting commit `dc4ab1bdc5a904e3652874f9a49c8d410a1fb9b9`. Their findings led to a behavior-based audio assertion, shared Garage choreography, the final speech gate and mesh-replacement cleanup. Both reviewers rechecked the fixes and reported no remaining findings.
+
+Final verification used Node `22.23.2`. Focused tests and typechecking passed repeatedly. The full root suite ran once at the end and passed all 727 tests across 32 files. The final production build, all five offline smoke checks and all 51 browser journeys passed. Browser fixtures build only in memory. The offline clip check verifies a precached response, not audible playback.
+
+No dependencies, recordings, prices, earning/Trophy rules, save schema/key, real player saves or deployment changed. The pre-existing untracked `.claude/` directory was untouched. Human iPad release acceptance remains issue 18.

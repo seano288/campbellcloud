@@ -18,7 +18,7 @@ import { fmt } from '../money/money';
 import { startRound } from '../round/round';
 import { Bolt, BoltPile, IconButton } from '../ui/bits';
 import { numberLine } from '../voice/phrases';
-import { useVoice } from '../voice/context';
+import { useVoiceScope } from '../voice/context';
 import { createVoiceScope, type VoiceScope } from '../voice/say';
 import { BodyArt } from './BodyArt';
 import { bodyItem, BODY_IDS, BODY_NAMES, colourById, colourItem, COLOURS, FREE_COLOUR, isStarter, LEGENDARY, modId, modName, RUNGS, SLOTS, slotById, TOP, type BodyId, type BoughtColour, type ColourId, type Rung, type SlotId } from './catalog';
@@ -34,7 +34,7 @@ import { ShowOff } from './show/ShowOff';
 import { GarageStage, spreadHotspots } from './three/stage';
 
 export function GarageScreen({ goal: goalView, Shelf }: { goal: ComponentChildren; Shelf: ComponentType<{ onClose(): void }> }) {
-  const voice = useVoice(), { say } = voice;
+  const voice = useVoiceScope(), { say } = voice;
   const celebration = useRef<VoiceScope | null>(null);
   const canvas = useRef<HTMLCanvasElement>(null), stageEl = useRef<HTMLDivElement>(null);
   const strip = useRef<HTMLDivElement>(null);
@@ -92,8 +92,9 @@ export function GarageScreen({ goal: goalView, Shelf }: { goal: ComponentChildre
   }
 
   function block(ms: number) {
+    const show = celebration.current!;
     setBlocked(true);
-    setTimeout(() => setBlocked(false), ms);
+    void show.wait(ms).then(() => { if (voice.active && celebration.current === show) setBlocked(false); });
   }
   function showVoice() {
     celebration.current?.cancel();

@@ -23,14 +23,17 @@ export function EndOverlay({ result: r, hasAffordable, color, onGarage, onAgain,
 
   useEffect(() => {
     let alive = true;
+    let bumpTimer: ReturnType<typeof setTimeout>;
     void playRoundShow({
       voice,
       reward: els.reward.current!, moment: els.moment.current!, truck: els.truck.current!, load: els.load.current!, pile: els.pile.current!,
-      bump: n => { setPile(n); setBump(true); setTimeout(() => setBump(false), 150); },
+      bump: n => { setPile(n); setBump(true); clearTimeout(bumpTimer); bumpTimer = setTimeout(() => { if (alive && voice.active) setBump(false); }, 150); },
       line: p => setLines(ls => [...ls, ...p]),
       alive: () => alive && voice.active,
-    }, r, r.afterBalance).then(() => { if (alive && voice.active) setAwake(true); });
-    return () => { alive = false; voice.cancel(); };
+    }, r, r.afterBalance).then(result => {
+      if (result !== 'cancelled' && alive && voice.active) { clearTimeout(bumpTimer); setBump(false); setAwake(true); }
+    });
+    return () => { alive = false; clearTimeout(bumpTimer); voice.cancel(); };
   }, []);
 
   const go = (fn: () => void) => () => { if (awake && voice.active) fn(); };

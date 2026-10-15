@@ -51,6 +51,7 @@ export class GarageStage {
   private lastTouch = performance.now();
   private off = { x: 0, y: 0 };
   private move: { kind: Move; t0: number } | null = null;
+  private stopMove = () => {};
   private snapAt = -Infinity;
   /** Puffs asked for since the last frame, sent out once the Truck is where it will be drawn. */
   private puffs: number[] = [];
@@ -140,7 +141,27 @@ export class GarageStage {
   }
 
   /** Play one of the Truck's jumps. The Exhaust puffs as it takes off, and keeps puffing through a jump. */
-  play(kind: Move) { this.move = { kind, t0: performance.now() }; this.puff(PUFF[kind]); }
+  play(kind: Move, signal?: AbortSignal) {
+    if (signal?.aborted) return;
+    this.stopMove();
+    this.move = { kind, t0: performance.now() };
+    this.puff(PUFF[kind]);
+    if (!signal) return;
+    const cancel = () => {
+      signal.removeEventListener('abort', cancel);
+      if (this.stopMove !== cancel) return;
+      this.stopMove = () => {};
+      this.move = null;
+      this.puffs = [];
+      if (this.truck) {
+        this.truck.group.rotation.set(0, 0, 0);
+        this.truck.group.position.y = 0;
+        this.truck.exhaust.clear();
+      }
+    };
+    this.stopMove = cancel;
+    signal.addEventListener('abort', cancel, { once: true });
+  }
 
   /** A puff from the Exhaust, 0-1 strong. */
   puff(strength: number = PUFF.rev) { this.puffs.push(strength); }
@@ -174,6 +195,7 @@ export class GarageStage {
   }
 
   dispose() {
+    this.stopMove();
     cancelAnimationFrame(this.raf);
     this.resizeObs.disconnect();
     this.controls.dispose();
