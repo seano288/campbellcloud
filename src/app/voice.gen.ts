@@ -1,0 +1,15 @@
+export const CLIPS = {
+  "Let's go!": "ed6d7756584f.mp3",
+  "VROOM! Great job!": "5d8ec1ab50f0.mp3",
+  "Monster move!": "9ef772daf410.mp3",
+  "You got it!": "44934a531c0e.mp3",
+  "Truck-tastic!": "aa32af006737.mp3",
+  "Crushing it!": "c0194829e280.mp3",
+  "Awesome counting!": "06769cb7c395.mp3",
+  "You earned 1 Bolt!": "a542f94faa57.mp3",
+  "You earned 2 Bolts!": "06bab4a5eeed.mp3",
+  "You earned 3 Bolts!": "8a2f6ab76a9f.mp3",
+  "You earned 4 Bolts!": "899ecdc18c63.mp3",
+  "You earned 5 Bolts!": "002677cc6ab2.mp3",
+  "You earned 6 Bolts!": "18f20d66b2ad.mp3",
+} as const;

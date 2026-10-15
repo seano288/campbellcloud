@@ -9,7 +9,7 @@ import { trophyOf } from '../trophies/trophies';
 import { cupColor, TrophyArt } from '../trophies/TrophyArt';
 import { Money } from '../ui/Money';
 import type { Phrase } from '../voice/phrases';
-import { earnedBolts } from '../voice/phrases';
+import { earnedBolts } from '../app/presentationPhrases';
 import { createVoiceScope, type VoiceScope } from '../voice/say';
 import { effectsFor } from './effects';
 import { playMoments, type Moment } from './sequence';

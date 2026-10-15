@@ -2,9 +2,10 @@
 // sayMore() adds to it. Money amounts are joined from pieces: say('It costs', { cents: 225 }).
 import { recordedAudio } from '../audio/recorded';
 import { amountPieces } from './amount';
-import { PHRASES, type Phrase } from './phrases';
+import type { Phrase } from './phrases';
+import { moneyEntry } from '../app/entrySelection';
+import type { VoiceCollection } from './collection';
 import { createPlayback, type PlaybackControls, type PlaybackItem, type PlaybackScope } from './playback';
-import { CLIPS } from './voice.gen';
 
 export type Part = Phrase | { cents: number };
 /** A part, or several parts read while an element is lit (the element checks `speaking.value === light`). */
@@ -23,8 +24,8 @@ export type VoiceScope = Omit<PlaybackScope<Phrase>, 'say' | 'sayMore' | 'hush'>
   sayMore(...items: Item[]): Promise<void>;
 };
 
-export function createMoneyVoice<B>(controls: PlaybackControls<B>) {
-  const playback = createPlayback({ phrases: PHRASES, clips: CLIPS, ...controls });
+export function createMoneyVoice<B>(controls: PlaybackControls<B>, collection: VoiceCollection<Phrase> = moneyEntry.voice) {
+  const playback = createPlayback({ ...collection, ...controls });
   return {
     speaking: playback.speaking,
     preload: playback.preload,

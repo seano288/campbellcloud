@@ -7,7 +7,7 @@ import { sBad, sGood } from '../audio/sfx';
 import { screen, screenVoice } from '../app/nav';
 import { pick } from '../game/rng';
 import { player } from '../game/store';
-import { createPractice } from '../app/practice';
+import { moneyApp } from '../app/money';
 import type { LearningSession, Outcome, RoundResult } from '../learning/session';
 import { createRound, type RoundDisplay } from '../learning/round';
 import type { MoneyKey } from '../money/money';
@@ -17,12 +17,12 @@ import type { CountProblem } from '../modes/count/count';
 import { explainCount } from '../modes/count/feedback';
 import type { PayProblem } from '../modes/pay/pay';
 import { explainPay, promptPay } from '../modes/pay/feedback';
-import { countSession, learnSession, paySession } from '../modes/session';
+import type { countSession, paySession } from '../modes/session';
 import type { Level, ModeId } from '../modes/ids';
 import type { LearningChange } from '../modes/learning';
 import type { TrophyStep } from '../trophies/trophies';
 import { toast } from '../ui/toast';
-import { CHEERS } from '../voice/phrases';
+import { CHEERS } from '../app/presentationPhrases';
 import { createVoiceScope, type VoiceScope } from '../voice/say';
 import { ROUND_LENGTH } from './rules';
 
@@ -58,7 +58,7 @@ interface RoundState {
 }
 
 export const round = signal<Round | null>(null);
-const practice = createPractice(player);
+const practice = moneyApp.practice;
 let sharedRound: { leave(): void } | null = null;
 let stopShared = () => {};
 
@@ -110,9 +110,9 @@ export function startRound(mode: ModeId, explanations: {
       };
     });
   };
-  if (mode === 'learn') return startShared(learnSession(started.level, () => player.state.peek().learning.modes.learn, explainLearn), shared => ({ mode, shared }));
-  if (mode === 'count') return startShared(countSession(started.level, () => player.state.peek().learning.modes.count, explanations.count ?? explainCount), shared => ({ mode, shared }));
-  startShared(paySession(started.level, () => player.state.peek().learning.modes.pay, explanations.pay ?? explainPay, promptPay), shared => ({ mode, shared }));
+  if (mode === 'learn') return startShared(moneyApp.subject.learn(started.level, () => player.state.peek().learning.modes.learn, explainLearn), shared => ({ mode, shared }));
+  if (mode === 'count') return startShared(moneyApp.subject.count(started.level, () => player.state.peek().learning.modes.count, explanations.count ?? explainCount), shared => ({ mode, shared }));
+  startShared(moneyApp.subject.pay(started.level, () => player.state.peek().learning.modes.pay, explanations.pay ?? explainPay, promptPay), shared => ({ mode, shared }));
 }
 
 export function leaveRound() {

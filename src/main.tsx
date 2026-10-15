@@ -1,11 +1,8 @@
-import '@fontsource/bungee/latin-400.css';
-import '@fontsource/nunito/latin-800.css';
-import '@fontsource/nunito/latin-900.css';
-import './styles.css';
-import { render } from 'preact';
-import { App } from './app/App';
-import { loadGame } from './game/store';
+import { render, type ComponentType } from 'preact';
 import { registerServiceWorker } from './pwa';
 
-void loadGame().then(() => render(<App />, document.getElementById('app')!));
-registerServiceWorker();
+export async function mountApp(App: ComponentType, load: () => Promise<unknown>) {
+  registerServiceWorker();
+  await load();
+  render(<App />, document.getElementById('app')!);
+}

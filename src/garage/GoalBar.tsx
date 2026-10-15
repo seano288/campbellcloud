@@ -3,7 +3,8 @@
 import { fmt } from '../money/money';
 import { useVoice } from '../voice/context';
 import { BodyArt } from './BodyArt';
-import { needBolts, type Phrase } from '../voice/phrases';
+import { needBolts } from './phrases';
+import type { Phrase } from '../voice/phrases';
 import type { Item } from '../voice/say';
 import { bodyOf, buyableName, colourById, colourOf, isBodyItem, isColourItem, LEGENDARY, modId, modName, parseMod } from './catalog';
 import { boltsNeeded, goalOf, nextLegendary, priceOf, type GaragePricingContext } from './economy';

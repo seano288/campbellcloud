@@ -1,6 +1,7 @@
 // What each end-of-Round moment says, and the order they play in: smallest first.
 import { modeById } from '../modes/modes';
-import { earnedTrophy, type Phrase } from '../voice/phrases';
+import { earnedTrophy } from '../trophies/phrases';
+import type { Phrase } from '../voice/phrases';
 import type { RoundEvent } from './round';
 
 /** Trophies come last: each one sums up something that just happened. */

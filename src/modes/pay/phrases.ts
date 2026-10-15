@@ -1,0 +1,1 @@
+export const PAYMENT_PHRASES = ['It costs', 'Tap some money first!', 'Almost!', 'You need', 'more', 'Too much!', 'Take back', 'Tap a coin to hear its name.'] as const;

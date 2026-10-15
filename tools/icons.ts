@@ -2,7 +2,11 @@
 // Every PNG is a full square with no alpha channel, because iOS masks the icon itself.
 import sharp from 'sharp';
 import type { Plugin } from 'vite';
-import { iconSvg } from '../src/icon/icon';
+
+export interface IconArtwork {
+  svg(scale: number): string;
+  background: string;
+}
 
 export const ICONS = [
   { file: 'apple-touch-icon.png', size: 180, scale: 1 },
@@ -11,15 +15,15 @@ export const ICONS = [
   { file: 'icon-maskable-512.png', size: 512, scale: 0.8 },
 ] as const;
 
-export const renderIcon = (size: number, scale: number) =>
-  sharp(Buffer.from(iconSvg(scale)), { density: (72 * size) / 512 }).resize(size, size).flatten({ background: '#ffd23f' }).removeAlpha().png().toBuffer();
+export const renderIcon = (artwork: IconArtwork, size: number, scale: number) =>
+  sharp(Buffer.from(artwork.svg(scale)), { density: (72 * size) / 512 }).resize(size, size).flatten({ background: artwork.background }).removeAlpha().png().toBuffer();
 
-export function homeScreenIcons(): Plugin {
+export function homeScreenIcons(artwork: IconArtwork): Plugin {
   return {
     name: 'home-screen-icons',
     apply: 'build',
     async generateBundle() {
-      for (const { file, size, scale } of ICONS) this.emitFile({ type: 'asset', fileName: file, source: await renderIcon(size, scale) });
+      for (const { file, size, scale } of ICONS) this.emitFile({ type: 'asset', fileName: file, source: await renderIcon(artwork, size, scale) });
     },
   };
 }

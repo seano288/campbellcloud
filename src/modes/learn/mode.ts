@@ -1,5 +1,5 @@
 import { LEVEL_MONEY } from '../../money/money';
-import { LEARN_PHRASES } from '../../voice/phrases';
+import { LEARN_PHRASES } from '../phrases';
 import { OPENS_AFTER } from '../chain';
 import type { GameMode } from '../mode';
 import { checkLearn, makeLearn, replayLearn, type LearnProblem } from './learn';

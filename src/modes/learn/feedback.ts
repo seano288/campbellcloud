@@ -1,7 +1,8 @@
 import { signal, type Signal } from '@preact/signals';
 import { MONEY, type MoneyKey } from '../../money/money';
 import { toast } from '../../ui/toast';
-import { moneyIs, type Phrase } from '../../voice/phrases';
+import { moneyIs } from '../phrases';
+import type { Phrase } from '../../voice/phrases';
 import { createVoiceScope } from '../../voice/say';
 import { dimeTip, type LearnProblem } from './learn';
 

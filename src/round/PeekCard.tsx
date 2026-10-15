@@ -2,7 +2,7 @@
 import { useEffect } from 'preact/hooks';
 import { MONEY, type MoneyKey } from '../money/money';
 import { Money } from '../ui/Money';
-import { moneyIs } from '../voice/phrases';
+import { moneyIs } from '../modes/phrases';
 import { useVoiceScope } from '../voice/context';
 import { speaking } from '../voice/say';
 

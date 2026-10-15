@@ -1,7 +1,7 @@
 // The 🏆 shelf in the Garage: one plank each for Learning, Skill and Sticking with it. Earned trophies shine;
 // the rest are grey silhouettes. Tapping one reads its name, or the hint for what earns it (or its next step).
 import { useEffect } from 'preact/hooks';
-import { trophyHint, trophyName } from '../voice/phrases';
+import { trophyHint, trophyName } from './phrases';
 import { useVoiceScope } from '../voice/context';
 import { speaking, type Part } from '../voice/say';
 import { earnedCount, TROPHIES, type Earned, type Trophy } from './trophies';

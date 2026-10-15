@@ -1,6 +1,7 @@
 // Garage actions on the saved game: choosing and buying Bodies, fitting and unlocking Mods and Colours, and the Goal.
 import { game, player } from '../game/store';
-import { needBolts, type Phrase } from '../voice/phrases';
+import { needBolts } from '../garage/phrases';
+import type { Phrase } from '../voice/phrases';
 import type { Item } from '../voice/say';
 import {
   bodyItem, BODY_IDS, BOUGHT_COLOURS, buyableName, colourItem, defaultFit, FREE_COLOUR, isLegendary, isModItem, isStarter, LEGENDARY, modId, modName, parseMod,
@@ -15,7 +16,7 @@ import { garageFromSave, type MoneyState } from './save';
 import { proposePurchase } from '../garage/purchases';
 import type { Commit } from '../save/store';
 import { createGaragePurchases } from './purchases';
-import { createLegendaryCheckout, moneyLegendaryPolicy } from './checkout';
+import { moneyApp } from './money';
 import { truckColor as colorOfFit } from '../garage/BodyArt';
 
 export { garageFromSave } from './save';
@@ -111,7 +112,7 @@ export function tapColour(c: ColourId): TapCommit<'fitted' | 'unlocked' | 'goal'
 }
 
 /** He paid exactly for a Legendary at the checkout, at the Level its price was set for: it's his, and fitted. */
-export const legendaryCheckout = createLegendaryCheckout(player, moneyLegendaryPolicy);
+export const legendaryCheckout = moneyApp.checkout;
 
 export type BodyTapResult = TapCommit<'switched' | 'bought' | 'goal'>;
 

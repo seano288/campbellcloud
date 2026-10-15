@@ -13,10 +13,12 @@ import type { createStore } from '../save/store';
 import type { MoneyState } from './save';
 
 export const learningFromSave = (save: Save): LearningState => ({ modes: save.modes, lastMode: save.lastMode });
+export const moneyEarnings: EarningsPolicy = result => boltsFor(result.results.map(result => result.outcome));
 
 export function createPractice(
   store: Pick<ReturnType<typeof createStore<MoneyState>>, 'commit'>,
-  { today = () => dayOf(new Date()), earnings = result => boltsFor(result.results.map(r => r.outcome)) }: { today?: () => string; earnings?: EarningsPolicy } = {},
+  { today = () => dayOf(new Date()), earnings = moneyEarnings, trophies: evaluateTrophies = completeTrophies, streak = countStreak }:
+    { today?: () => string; earnings?: EarningsPolicy; trophies?: typeof completeTrophies; streak?: typeof countStreak } = {},
 ) {
   let sequence = 0;
   let active: { roundId: string; mode: ModeId; intro: boolean; results: SolvedProblem[]; terminal: boolean } | undefined;
@@ -46,7 +48,7 @@ export function createPractice(
   const accepts = (roundId: string, index: number) => active?.roundId === roundId && !active.terminal && !active.intro && index <= ROUND_LENGTH && index === active.results.length + 1;
 
   function interrupt(roundId: string, index: number, outcome: Exclude<Outcome, 'clean'>) {
-    return store.commit(state => accepts(roundId, index) ? { ...state, trophies: countStreak(state.trophies, outcome) } : null);
+    return store.commit(state => accepts(roundId, index) ? { ...state, trophies: streak(state.trophies, outcome) } : null);
   }
 
   function solve(roundId: string, fact: SolvedProblem) {
@@ -54,7 +56,7 @@ export function createPractice(
     const result = store.commit(state => {
       if (!active || !accepts(roundId, fact.index)) return null;
       const next = recordSolved(state.learning, active.mode, fact);
-      const trophies = countStreak(state.trophies, fact.outcome);
+      const trophies = streak(state.trophies, fact.outcome);
       changes = next.changes;
       active.results.push({ ...fact });
       return { ...state, learning: next.state, trophies };
@@ -79,7 +81,7 @@ export function createPractice(
       if (!active || active.roundId !== fact.roundId || active.terminal || active.results.length !== ROUND_LENGTH || fact.status !== 'completed') return null;
       const currency = earn(state.currency, { ...fact, status: 'completed' }, earnings);
       if (currency.kind === 'rejected') return null;
-      const done = completeTrophies(state.trophies, state.learning, fact.results.map(r => r.outcome), today());
+      const done = evaluateTrophies(state.trophies, state.learning, fact.results.map(r => r.outcome), today());
       beforeBalance = state.currency.balance;
       afterBalance = currency.state.balance;
       canBuild = garageCues.becameAffordable(state.garage, beforeBalance, afterBalance);

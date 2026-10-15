@@ -1,5 +1,5 @@
 import { LEVEL_MONEY } from '../../money/money';
-import { PAY_PHRASES } from '../../voice/phrases';
+import { PAY_PHRASES } from '../phrases';
 import { OPENS_AFTER } from '../chain';
 import type { GameMode } from '../mode';
 import { checkPay, makePay, type PayProblem } from './pay';

@@ -17,7 +17,7 @@ import type { MoneyState } from '../app/save';
 import { fmt } from '../money/money';
 import { startRound } from '../round/round';
 import { Bolt, BoltPile, IconButton } from '../ui/bits';
-import { numberLine } from '../voice/phrases';
+import { numberLine } from './phrases';
 import { useVoiceScope } from '../voice/context';
 import { createVoiceScope, type VoiceScope } from '../voice/say';
 import { BodyArt } from './BodyArt';

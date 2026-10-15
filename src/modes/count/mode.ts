@@ -1,5 +1,5 @@
 import { LEVEL_MONEY } from '../../money/money';
-import { COUNT_PHRASES } from '../../voice/phrases';
+import { COUNT_PHRASES } from '../phrases';
 import { OPENS_AFTER } from '../chain';
 import type { GameMode } from '../mode';
 import { checkCount, makeCount, replayCount, type CountProblem } from './count';
