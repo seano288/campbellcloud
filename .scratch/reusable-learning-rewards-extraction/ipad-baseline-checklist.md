@@ -10,7 +10,7 @@ Prepared for [final ticket 18](issues/18-ipad-release-acceptance.md), not perfor
 | Date and local timezone | Not recorded |
 | Baseline source commit | `4b392c9f274a95d420424c43f3a571f5240dcb18` |
 | Baseline build artifact identity | Match the fingerprints in `baseline.md`; record any difference |
-| Final candidate commit/build from ticket 17 | Not yet available |
+| Final candidate commit/build from ticket 17 | `e4c7692cc95f547e750f5bc60a4987144df6f526`; fingerprints in [acceptance.md](acceptance.md) |
 | iPad model | Not recorded |
 | iPadOS and Safari versions | Not recorded |
 | Isolated HTTPS test origin | Not recorded |

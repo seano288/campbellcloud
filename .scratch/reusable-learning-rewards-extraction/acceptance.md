@@ -8,7 +8,7 @@ The authoritative evidence requirements are in [decision 08](../reusable-learnin
 
 | Field | Value |
 | --- | --- |
-| Candidate source commit | The commit that adds this file, titled "Verify offline journeys and final automated gates", on `main`. Its parent is `63c5698` (issue 16). Record its full hash from `git log` in the ticket 18 checklist. |
+| Candidate source commit | `e4c7692cc95f547e750f5bc60a4987144df6f526`, "Verify offline journeys and final automated gates", on `main`. Its parent is `63c5698` (issue 16). Later commits that only edit `.scratch/` documents leave the candidate unchanged. |
 | Retained baseline commit | `4b392c9f274a95d420424c43f3a571f5240dcb18` |
 | Toolchain | Node `22.23.2` from `.nvmrc`, Chromium `153.0.8010.12` from the locked Playwright |
 | Production output | `dist/`: 143 transformed modules, 629 precached entries (8571.08 KiB) |
