@@ -121,6 +121,10 @@ export async function finishShow(page: Page) {
 
 export async function openSheet(page: Page, name: string) {
   if (await page.locator('.sheet').count()) await page.locator('.sheet').getByRole('button', { name: 'Close', exact: true }).click();
-  await page.locator(`.hot[aria-label="${name}"]:not(.hidden)`).click();
+  // Hotspots follow the Truck every frame, and after 12 s idle the Truck slowly spins, so on a slow runner a hotspot is
+  // never still long enough for Playwright's stability check. Tap the visible button directly instead.
+  const hot = page.locator(`.hot[aria-label="${name}"]:not(.hidden)`);
+  await hot.waitFor();
+  await hot.dispatchEvent('click');
   await page.locator('.sheet').waitFor();
 }
