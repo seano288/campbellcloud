@@ -2,6 +2,7 @@
 
   python3 -m venv .venv && .venv/bin/pip install edge-tts
   .venv/bin/python tools/make_voice.py --collection money --out public/voice --index src/voice/voice.gen.ts
+  .venv/bin/python tools/make_voice.py --collection time-flies --out public/time-flies-voice --index src/time-flies/voice.gen.ts
 
 Select phrases through tools/phrases.ts and write recordings and a typed index to explicit locations.
 Only missing clips are recorded. Cleanup touches only the selected directory, whose .voice-collection
@@ -17,7 +18,10 @@ ROOT = Path(__file__).resolve().parent.parent
 
 def speakable(s):
     for a, b in [('$1 Bill', 'one dollar bill'), ('$5 Bill', 'five dollar bill'), ('$1', 'one dollar'), ('$5', 'five dollars'),
-                 ('VROOM', 'Vroom'), ('Truck-tastic', 'Truck tastic')]:
+                 ('VROOM', 'Vroom'), ('Truck-tastic', 'Truck tastic'),
+                 # Time Flies: aircraft names said the way pilots say them
+                 ('F/A-18', 'F A 18'), ('F-117', 'F one seventeen'), ('Lightning II', 'Lightning Two'), ('SR-71', 'S R 71'),
+                 ('F4U', 'F 4 U')]:
         s = s.replace(a, b)
     return re.sub(r'(\d+)¢', lambda m: 'one cent' if m[1] == '1' else f'{m[1]} cents', s)
 

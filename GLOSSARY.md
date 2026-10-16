@@ -38,3 +38,26 @@ _Avoid_: paint (Paint is the Slot), color
 
 **Trophy**: A reward earned by playing well: reaching a Level or a star, a streak of answers right on the first try, a perfect Round, or sticking with it (Rounds finished, days played). A Trophy is never bought and never lost. It isn't a Mod, it isn't bought with Bolts and it earns none. A counting Trophy upgrades in place, bronze to silver to gold and on, rather than taking a new spot. Trophies stand on the Trophy Shelf in the Garage, on three planks: Learning, Skill and Sticking with it. Earned ones shine and the rest are grey silhouettes.
 _Avoid_: badge, achievement, award
+
+## Time Flies
+
+Time Flies reuses the terms above where they mean the same thing (Round, Level, Mastery, Bolt, Slot, Mod, Rung, Goal,
+Trophy). These are its own:
+
+**Game Modes (Time Flies)**: Find the Clock (hear a time, tap the clock that shows it), Read the Clock (one clock, pick its
+time from three read aloud) and Set the Clock (drag the hands). Each opens when the one before reaches Level 2. In every
+Game Mode, Level 1 is whole hours, Level 2 quarter hours and Level 3 every five minutes.
+
+**Aircraft**: one of the 14 planes in the Hangar, Time Flies' Body. Three starters (P-51 Mustang, F-16 Falcon, F/A-18
+Super Hornet) are his from the start; the rest cost 30 Bolts.
+_Avoid_: jet (the P-51, P-38 and Corsair have propellers), Body
+
+**Hangar**: where he builds his Aircraft, Time Flies' Garage.
+
+**Time Lock**: the vault that holds every Legendary in Time Flies. Once a Slot's top Rung is his, tapping its Legendary
+asks him to set the clock to a time; the vault opens when he does. A Legendary is never bought with Bolts.
+
+**Take Off**: the Hangar's stage moment, Time Flies' Show Off: the Aircraft flies through the sky with its Smoke and
+Engine, and does a trick when tapped.
+
+**Tail Number**: Time Flies' Door Number, painted on the fins.

@@ -20,6 +20,7 @@ jobs:
       - run: npx vitest run
       - run: npm run test:pairings
       - run: npx vite build
+      - run: npm run build:site
       - run: npm run build:pairings
       - run: npm run check:offline
       - run: npm run check:baseline

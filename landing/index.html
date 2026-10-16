@@ -1,0 +1,36 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Campbell Cloud</title>
+<meta name="theme-color" content="#1b3a63">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Campbell Cloud">
+<link rel="apple-touch-icon" href="./apple-touch-icon.png">
+<link rel="manifest" href="./manifest.webmanifest">
+<style>
+*{box-sizing:border-box}
+html,body{margin:0;height:100%;background:radial-gradient(circle at 50% 0%,#4aa3ec,#1b3a63 70%);font-family:"Arial Rounded MT Bold","Nunito",system-ui,sans-serif;color:#fff;-webkit-tap-highlight-color:transparent;user-select:none;-webkit-user-select:none}
+main{min-height:100%;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4vmin;padding:calc(16px + env(safe-area-inset-top)) 16px calc(16px + env(safe-area-inset-bottom))}
+h1{margin:0;font-size:clamp(28px,6vmin,56px);letter-spacing:.02em;text-shadow:0 4px 0 #0005}
+.games{display:flex;flex-wrap:wrap;gap:5vmin;justify-content:center;width:100%}
+a.game{display:flex;flex-direction:column;align-items:center;gap:12px;text-decoration:none;color:#fff;width:min(42vmin,340px)}
+a.game .art{width:100%;aspect-ratio:1;border-radius:22%;overflow:hidden;border:6px solid #000;box-shadow:0 10px 0 #0008;transition:transform .15s}
+a.game:active .art{transform:translateY(6px) scale(.97);box-shadow:0 4px 0 #0008}
+a.game .art svg{width:100%;height:100%;display:block}
+a.game span{font-size:clamp(20px,4.2vmin,36px);font-weight:900;text-shadow:0 3px 0 #0006;text-align:center}
+.cloud{font-size:clamp(40px,10vmin,90px);line-height:1}
+</style>
+</head>
+<body>
+<main>
+<div class="cloud">☁️</div>
+<h1>Campbell Cloud</h1>
+<div class="games">%GAMES%</div>
+</main>
+<script type="module" src="./landing.ts"></script>
+</body>
+</html>

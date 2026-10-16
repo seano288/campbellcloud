@@ -112,7 +112,7 @@ export function staticBuild<const P extends string>(selection: StaticSelection<P
           ],
         },
         workbox: {
-          globPatterns: ['**/*.{js,css,html,png,jpg,svg,webp,mp3,woff,woff2}'],
+          globPatterns: ['**/*.{js,css,html,png,jpg,svg,webp,mp3,woff,woff2,hdr}'],
           cleanupOutdatedCaches: true,
           // the new version takes over in the background; the page isn't reloaded, so it shows on the next launch
           skipWaiting: true,

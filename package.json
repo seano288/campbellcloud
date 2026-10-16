@@ -14,7 +14,9 @@
     "build:pairings": "tsx tools/pairings/build.ts",
     "check:offline": "tsx tools/offline-check.ts",
     "check:baseline": "tsx tools/baseline/browser.ts",
-    "baseline:save": "tsx tools/baseline/export-save.ts"
+    "baseline:save": "tsx tools/baseline/export-save.ts",
+    "build:site": "tsx tools/site-build.ts",
+    "dev:time-flies": "vite --config vite.time-flies.config.ts"
   },
   "dependencies": {
     "@fontsource/bungee": "^5.3.0",
