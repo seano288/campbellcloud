@@ -128,3 +128,22 @@ export async function openSheet(page: Page, name: string) {
   await hot.dispatchEvent('click');
   await page.locator('.sheet').waitFor();
 }
+
+/**
+ * Watches for the celebration blocker before a tap that starts one. The blocker is only up for an unlock jump (about a
+ * second), so on a slow runner polling for it can miss it entirely; an observer set up first can't. Call the returned
+ * function after the tap to wait until it has been seen.
+ */
+export async function watchBlocker(page: Page) {
+  await page.evaluate(() => {
+    const w = window as unknown as { blockerSeen?: boolean };
+    w.blockerSeen = !!document.querySelector('.blocker');
+    if (w.blockerSeen) return;
+    new MutationObserver((_, observer) => {
+      if (!document.querySelector('.blocker')) return;
+      w.blockerSeen = true;
+      observer.disconnect();
+    }).observe(document.body, { childList: true, subtree: true });
+  });
+  return () => page.waitForFunction(() => (window as unknown as { blockerSeen?: boolean }).blockerSeen === true, null, { timeout: 30000 });
+}

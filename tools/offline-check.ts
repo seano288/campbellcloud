@@ -11,7 +11,7 @@ import { chromium, type Browser, type BrowserContext, type Page } from 'playwrig
 import { preview } from 'vite';
 import type { Save } from '../src/save/migrate';
 import { JOURNEY_SAVES, NOW, STORAGE_KEY } from './baseline/saves';
-import { button, fillPayment, finishShow, missChoice, openSheet, saved, solve, waitForAssertion, watch } from './baseline/play';
+import { button, fillPayment, finishShow, missChoice, openSheet, saved, solve, waitForAssertion, watch, watchBlocker } from './baseline/play';
 import { observeRecordedVoice, playedToEnd, type VoiceEvent } from './baseline/voice';
 import { playPairing } from './pairings/browser';
 
@@ -164,8 +164,9 @@ journey('money app practises, teaches, earns, buys, checks out, saves and plays 
     // A Bolt purchase commits balance, ownership and fit together.
     await button(page, 'Garage').click();
     await openSheet(page, 'Tires');
+    const blocked = await watchBlocker(page);
     await button(page, 'Giant').click();
-    await page.locator('.blocker').waitFor();
+    await blocked();
     await page.locator('.blocker').waitFor({ state: 'hidden', timeout: 30000 });
     const bought: Save = {
       ...completed, bolts: completed.bolts - 15, unlocked: [...completed.unlocked, 'tires:2'],
@@ -251,8 +252,9 @@ journey('money app starts, practises, buys and plays recorded audio online with 
     assert.deepEqual(practised.modes.count.window, ['clean']);
     await button(page, 'Garage').click();
     await openSheet(page, 'Tires');
+    const blocked = await watchBlocker(page);
     await button(page, 'Giant').click();
-    await page.locator('.blocker').waitFor();
+    await blocked();
     await page.locator('.blocker').waitFor({ state: 'hidden', timeout: 30000 });
     assert.deepEqual(await saved(page), {
       ...practised, bolts: practised.bolts - 15, unlocked: [...practised.unlocked, 'tires:2'],

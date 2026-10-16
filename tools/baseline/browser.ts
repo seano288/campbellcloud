@@ -6,7 +6,7 @@ import type { Save } from '../../src/save/migrate';
 import { CLIPS } from '../../src/voice/voice.gen';
 import { FRESH_EXPECTED, JOURNEY_SAVES, NOW, PROGRESSED_EXPECTED, STORAGE_KEY, TODAY } from './saves';
 import { observeRecordedVoice } from './voice';
-import { button, correctChoice, fillPayment, finishShow, missChoice, modeName, openSheet, purchaseSnapshots, recordPurchaseSnapshots, saved, solve, waitForAssertion } from './play';
+import { button, correctChoice, fillPayment, finishShow, missChoice, modeName, openSheet, purchaseSnapshots, recordPurchaseSnapshots, saved, solve, waitForAssertion, watchBlocker } from './play';
 import { fixtureScript } from './fixture';
 import { presentationJourneys } from './presentationJourneys';
 import { celebrationJourneys } from './celebrationJourneys';
@@ -521,8 +521,9 @@ journey('Bolt purchase commits once before celebration and reload renders the fi
   await openSheet(page, 'Tires');
   assert.match(await button(page, 'Giant').getAttribute('class') ?? '', /afford/);
   await recordPurchaseSnapshots(page);
+  const blocked = await watchBlocker(page);
   await button(page, 'Giant').click();
-  await page.locator('.blocker').waitFor();
+  await blocked();
   const expected: Save = {
     ...FRESH_EXPECTED, body: 'pickup', bolts: 1, unlocked: ['tires:2'], goal: null,
     fitted: { ...FRESH_EXPECTED.fitted, pickup: { ...FRESH_EXPECTED.fitted.pickup, tires: 2 } },
