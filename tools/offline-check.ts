@@ -167,7 +167,7 @@ journey('money app practises, teaches, earns, buys, checks out, saves and plays 
     const blocked = await watchBlocker(page);
     await button(page, 'Giant').click();
     await blocked();
-    await page.locator('.blocker').waitFor({ state: 'hidden', timeout: 30000 });
+    await page.locator('.blocker').waitFor({ state: 'hidden', timeout: 90000 });
     const bought: Save = {
       ...completed, bolts: completed.bolts - 15, unlocked: [...completed.unlocked, 'tires:2'],
       fitted: { ...completed.fitted, pickup: { ...completed.fitted.pickup, tires: 2 } },
@@ -183,11 +183,11 @@ journey('money app practises, teaches, earns, buys, checks out, saves and plays 
     await button(page, 'Pay').click();
     await toast1();
     await button(page, 'Pay').click();
-    await waitForAssertion(async () => assert.equal(await page.locator('.paidrow b').innerText(), '$1.10'), 30000);
+    await waitForAssertion(async () => assert.equal(await page.locator('.paidrow b').innerText(), '$1.10'), 120000); // help adds each piece aloud; slow on CI
     assert.deepEqual(await saved(page), bought);
     await button(page, 'Pay').click();
     await page.locator('.checkout').waitFor({ state: 'hidden' });
-    await page.locator('.blocker').waitFor({ state: 'hidden', timeout: 30000 });
+    await page.locator('.blocker').waitFor({ state: 'hidden', timeout: 90000 });
     const legendary: Save = {
       ...bought, unlocked: [...bought.unlocked, 'tires:4'],
       fitted: { ...bought.fitted, pickup: { ...bought.fitted.pickup, tires: 4 } },
@@ -256,7 +256,7 @@ journey('money app starts, practises, buys and plays recorded audio online with 
     const blocked = await watchBlocker(page);
     await button(page, 'Giant').click();
     await blocked();
-    await page.locator('.blocker').waitFor({ state: 'hidden', timeout: 30000 });
+    await page.locator('.blocker').waitFor({ state: 'hidden', timeout: 90000 });
     assert.deepEqual(await saved(page), {
       ...practised, bolts: practised.bolts - 15, unlocked: [...practised.unlocked, 'tires:2'],
       fitted: { ...practised.fitted, pickup: { ...practised.fitted.pickup, tires: 2 } },

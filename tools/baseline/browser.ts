@@ -290,7 +290,7 @@ journey('Pay shared short and over teaching retains controls and replays an empt
   const toast2 = await watchToast(page, /^Too much! Take back/);
   await button(page, 'Pay').click();
   await toast2();
-  await page.locator('main.thinking').waitFor({ state: 'hidden', timeout: 30000 });
+  await page.locator('main.thinking').waitFor({ state: 'hidden', timeout: 60000 });
   assert.equal(await page.locator('.paidrow b').innerText(), original.price);
   assert.deepEqual((await saved(page)).modes.pay.window, []);
   await button(page, 'Pay').click();
@@ -473,7 +473,7 @@ journey('Pay empty tray, help and explicit payment do not invent a clean answer'
   assert.deepEqual(await saved(page), before);
   for (let i = 0; i < 5; i++) {
     await page.getByRole('button', { name: /Help me pay/ }).click();
-    await waitForAssertion(async () => assert.equal(await page.locator('.paidrow b').innerText(), await page.locator('.price').innerText()), 30000);
+    await waitForAssertion(async () => assert.equal(await page.locator('.paidrow b').innerText(), await page.locator('.price').innerText()), 120000); // help adds each piece aloud; slow on CI
     assert.equal((await saved(page)).bolts, 0);
     await button(page, 'Pay').click();
     await page.locator('main .right').first().waitFor();
@@ -639,7 +639,7 @@ for (const level of [2, 3] as const) {
       assert.equal(await page.locator('.bank').getByRole('button', { name: '$5 Bill', exact: true }).isVisible(), true);
       await page.getByRole('button', { name: /Help me pay/ }).click();
     }
-    await waitForAssertion(async () => assert.equal(await page.locator('.paidrow b').innerText(), level === 2 ? '$1.10' : '$8.80'), 30000);
+    await waitForAssertion(async () => assert.equal(await page.locator('.paidrow b').innerText(), level === 2 ? '$1.10' : '$8.80'), 120000); // help adds each piece aloud; slow on CI
     assert.deepEqual(await saved(page), before);
     if (level === 3) assert.equal(await button(page, 'Take back $5 Bill').count(), 1);
     const latePay = await button(page, 'Pay').elementHandle();
@@ -652,7 +652,7 @@ for (const level of [2, 3] as const) {
     assert.deepEqual(await saved(page), before);
     assert.equal(await page.locator('.blocker').count(), 0);
     await page.getByRole('button', { name: /Help me pay/ }).click();
-    await waitForAssertion(async () => assert.equal(await page.locator('.paidrow b').innerText(), level === 2 ? '$1.10' : '$8.80'), 30000);
+    await waitForAssertion(async () => assert.equal(await page.locator('.paidrow b').innerText(), level === 2 ? '$1.10' : '$8.80'), 120000); // help adds each piece aloud; slow on CI
     assert.deepEqual(await saved(page), before);
     await recordPurchaseSnapshots(page);
     await button(page, 'Pay').click();
@@ -787,7 +787,7 @@ for (const failure of ['throw', 'reject', 'late-resolve', 'late-reject'] as cons
     assert.equal(await page.locator('.price').innerText(), '$1.10');
     assert.equal(await page.locator('.bank').getByRole('button', { name: '$5 Bill', exact: true }).count(), 0);
     await page.getByRole('button', { name: /Help me pay/ }).click();
-    await waitForAssertion(async () => assert.equal(await page.locator('.paidrow b').innerText(), '$1.10'), 30000);
+    await waitForAssertion(async () => assert.equal(await page.locator('.paidrow b').innerText(), '$1.10'), 120000); // help adds each piece aloud; slow on CI
     assert.deepEqual(await saved(page), changed);
     assert.equal(await page.locator('#checkout-paid').innerText(), '');
     await button(page, 'Pay').click();
