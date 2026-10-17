@@ -885,7 +885,7 @@ try {
         Math.random = () => { random = (1664525 * random + 1013904223) >>> 0; return random / 4294967296; };
       }, { seed, key: STORAGE_KEY });
       const page = await context.newPage();
-      page.setDefaultTimeout(15000);
+      page.setDefaultTimeout(60000); // the Garage renders 3D in software on CI, so even a tap can wait seconds for a frame
       const errors: string[] = [];
       page.on('pageerror', error => errors.push(error.message));
       await page.clock.setFixedTime(new Date(NOW));

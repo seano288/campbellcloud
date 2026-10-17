@@ -48,7 +48,7 @@ async function profile(browser: Browser, seed: Save | null, serviceWorkers: 'all
 
 async function newPage(context: BrowserContext) {
   const page = await context.newPage();
-  page.setDefaultTimeout(15000);
+  page.setDefaultTimeout(60000); // the Garage renders 3D in software on CI, so even a tap can wait seconds for a frame
   await page.clock.setFixedTime(new Date(NOW));
   return page;
 }

@@ -46,7 +46,7 @@ export async function recordPurchaseSnapshots(page: Page) {
 export const purchaseSnapshots = (page: Page): Promise<Save[]> =>
   page.evaluate(() => JSON.parse(sessionStorage.getItem('purchase-snapshots') ?? '[]'));
 
-export async function waitForAssertion(check: () => Promise<void>, timeout = 15000) {
+export async function waitForAssertion(check: () => Promise<void>, timeout = 60000) {
   const until = Date.now() + timeout;
   for (;;) {
     try { await check(); return; }
