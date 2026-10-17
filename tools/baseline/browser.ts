@@ -6,7 +6,7 @@ import type { Save } from '../../src/save/migrate';
 import { CLIPS } from '../../src/voice/voice.gen';
 import { FRESH_EXPECTED, JOURNEY_SAVES, NOW, PROGRESSED_EXPECTED, STORAGE_KEY, TODAY } from './saves';
 import { observeRecordedVoice } from './voice';
-import { button, correctChoice, fillPayment, finishShow, missChoice, modeName, openSheet, purchaseSnapshots, recordPurchaseSnapshots, saved, solve, waitForAssertion, watchBlocker } from './play';
+import { button, correctChoice, fillPayment, finishShow, missChoice, modeName, openSheet, purchaseSnapshots, recordPurchaseSnapshots, saved, solve, waitForAssertion, watchBlocker, watchToast } from './play';
 import { fixtureScript } from './fixture';
 import { presentationJourneys } from './presentationJourneys';
 import { celebrationJourneys } from './celebrationJourneys';
@@ -274,9 +274,10 @@ journey('Pay shared short and over teaching retains controls and replays an empt
   await button(page, 'Pay the Shop').click();
   const original = { item: await page.locator('main .ask h2').innerText(), price: await page.locator('.price').innerText() };
   await page.locator('.bank').getByRole('button', { name: 'Penny', exact: true }).click();
+  const toast1 = await watchToast(page, /^Almost! You need/);
   await button(page, 'Pay').click();
   await page.locator('main.thinking').waitFor();
-  await page.getByText(/^Almost! You need/).waitFor();
+  await toast1();
   await button(page, 'Pay').click();
   await page.locator('.bank').getByRole('button', { name: 'Dime', exact: true }).click();
   assert.equal(await page.locator('.paidrow b').innerText(), '1¢');
@@ -286,8 +287,9 @@ journey('Pay shared short and over teaching retains controls and replays an empt
   await button(page, 'Take one back').click();
   await fillPayment(page);
   await page.locator('.bank').getByRole('button', { name: 'Penny', exact: true }).click();
+  const toast2 = await watchToast(page, /^Too much! Take back/);
   await button(page, 'Pay').click();
-  await page.getByText(/^Too much! Take back/).waitFor();
+  await toast2();
   await page.locator('main.thinking').waitFor({ state: 'hidden', timeout: 30000 });
   assert.equal(await page.locator('.paidrow b').innerText(), original.price);
   assert.deepEqual((await saved(page)).modes.pay.window, []);
@@ -465,8 +467,9 @@ journey('Pay empty tray, help and explicit payment do not invent a clean answer'
   await button(page, 'Start').click();
   await button(page, 'Pay the Shop').click();
   const before = await saved(page);
+  const toast3 = await watchToast(page, 'Tap some money first!');
   await button(page, 'Pay').click();
-  await page.getByText('Tap some money first!', { exact: true }).waitFor();
+  await toast3();
   assert.deepEqual(await saved(page), before);
   for (let i = 0; i < 5; i++) {
     await page.getByRole('button', { name: /Help me pay/ }).click();
@@ -620,15 +623,18 @@ for (const level of [2, 3] as const) {
     assert.equal(await page.locator('.price').innerText(), level === 2 ? '$1.10' : '$8.80');
     const before = await saved(page);
     if (level === 2) {
+      const toast4 = await watchToast(page, 'Tap some money first!');
       await button(page, 'Pay').click();
-      await page.getByText('Tap some money first!', { exact: true }).waitFor();
+      await toast4();
       for (let i = 0; i < 4; i++) await page.locator('.bank').getByRole('button', { name: 'Quarter', exact: true }).click();
+      const toast5 = await watchToast(page, 'Almost! You need 10¢ more.');
       await button(page, 'Pay').click();
-      await page.getByText('Almost! You need 10¢ more.', { exact: true }).waitFor();
+      await toast5();
       await page.locator('.bank').getByRole('button', { name: 'Dime', exact: true }).click();
       await page.locator('.bank').getByRole('button', { name: 'Dime', exact: true }).click();
+      const toast6 = await watchToast(page, 'Too much! Take back 10¢.');
       await button(page, 'Pay').click();
-      await page.getByText('Too much! Take back 10¢.', { exact: true }).waitFor();
+      await toast6();
     } else {
       assert.equal(await page.locator('.bank').getByRole('button', { name: '$5 Bill', exact: true }).isVisible(), true);
       await page.getByRole('button', { name: /Help me pay/ }).click();
@@ -808,8 +814,9 @@ journey('Legendary Level 1 help edits, peek and navigation cancel teaching witho
     'Dime · 10¢', 'Nickel · 5¢', 'Penny · 1¢',
   ]);
   await page.locator('.bank').getByRole('button', { name: 'Penny', exact: true }).click();
+  const toast7 = await watchToast(page, 'Almost! You need 34¢ more.');
   await button(page, 'Pay').click();
-  await page.getByText('Almost! You need 34¢ more.', { exact: true }).waitFor();
+  await toast7();
   await sleep(2500);
   assert.equal(await page.locator('.paidrow b').innerText(), '1¢');
   await page.getByRole('button', { name: /Help me pay/ }).click();

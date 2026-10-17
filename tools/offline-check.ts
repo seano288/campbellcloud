@@ -11,7 +11,7 @@ import { chromium, type Browser, type BrowserContext, type Page } from 'playwrig
 import { preview } from 'vite';
 import type { Save } from '../src/save/migrate';
 import { JOURNEY_SAVES, NOW, STORAGE_KEY } from './baseline/saves';
-import { button, fillPayment, finishShow, missChoice, openSheet, saved, solve, waitForAssertion, watch, watchBlocker } from './baseline/play';
+import { button, fillPayment, finishShow, missChoice, openSheet, saved, solve, waitForAssertion, watch, watchBlocker, watchToast } from './baseline/play';
 import { observeRecordedVoice, playedToEnd, type VoiceEvent } from './baseline/voice';
 import { playPairing } from './pairings/browser';
 
@@ -179,8 +179,9 @@ journey('money app practises, teaches, earns, buys, checks out, saves and plays 
     await page.locator('.checkout').waitFor();
     assert.equal(await page.locator('.price').innerText(), '$1.10');
     await page.locator('.bank').getByRole('button', { name: 'Penny', exact: true }).click();
+    const toast1 = await watchToast(page, 'Almost! You need $1.09 more.');
     await button(page, 'Pay').click();
-    await page.getByText('Almost! You need $1.09 more.', { exact: true }).waitFor();
+    await toast1();
     await button(page, 'Pay').click();
     await waitForAssertion(async () => assert.equal(await page.locator('.paidrow b').innerText(), '$1.10'), 30000);
     assert.deepEqual(await saved(page), bought);

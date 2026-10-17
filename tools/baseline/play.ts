@@ -109,7 +109,8 @@ export async function missChoice(page: Page, mode: 'learn' | 'count') {
     if ((await choice.getAttribute('aria-label') ?? await choice.innerText()) === answer) continue;
     await choice.click();
     await page.locator('main.thinking').waitFor();
-    await page.locator('main.thinking').waitFor({ state: 'hidden' });
+    // teaching counts every piece aloud, and the pile is random, so a big one can take well over 15 s
+    await page.locator('main.thinking').waitFor({ state: 'hidden', timeout: 60000 });
     return;
   }
   throw new Error('No unused wrong choice');
@@ -146,4 +147,25 @@ export async function watchBlocker(page: Page) {
     }).observe(document.body, { childList: true, subtree: true });
   });
   return () => page.waitForFunction(() => (window as unknown as { blockerSeen?: boolean }).blockerSeen === true, null, { timeout: 30000 });
+}
+
+/**
+ * Watches for a toast before the tap that shows it. A toast is only up for 1.8 s, so on a slow runner polling for its
+ * text can miss it; an observer set up first can't. Call the returned function after the tap to wait until it was shown.
+ */
+export async function watchToast(page: Page, text: string | RegExp) {
+  const id = `toast${Math.random().toString(36).slice(2)}`;
+  const wanted = typeof text === 'string' ? { exact: text } : { source: text.source, flags: text.flags };
+  await page.evaluate(({ id, wanted }) => {
+    const seen = window as unknown as Record<string, boolean>;
+    seen[id] = false;
+    // no named helpers in here: tsx's keepNames wraps them in __name(), which doesn't exist in the page
+    const pattern = 'exact' in wanted ? null : new RegExp(wanted.source!, wanted.flags);
+    const observer = new MutationObserver(() => {
+      const text = document.querySelector('.toast.show')?.textContent ?? null;
+      if (text !== null && (pattern ? pattern.test(text) : text === wanted.exact)) { seen[id] = true; observer.disconnect(); }
+    });
+    observer.observe(document.body, { childList: true, subtree: true, characterData: true, attributes: true, attributeFilter: ['class'] });
+  }, { id, wanted });
+  return () => page.waitForFunction(id => (window as unknown as Record<string, boolean>)[id] === true, id, { timeout: 30000 });
 }
