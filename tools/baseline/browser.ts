@@ -739,6 +739,9 @@ journey('Scoped recorded voice cancels pending checkout teaching before a replac
     const replacement = events.filter(e => e.kind === 'start').at(-1)!;
     release();
     await waitForAssertion(async () => assert.ok(events.some(e => e.kind === 'end' && e.id === replacement.id)));
+    // the replacement prompt is three clips; a slow runner may still be on the second, so wait for the third to start,
+    // then give it time to show that nothing more starts or stops
+    await waitForAssertion(async () => assert.ok(events.filter(e => e.kind === 'start' && e.id >= replacement.id).length >= 3));
     await sleep(3500);
     assert.equal(await page.locator('.paidrow b').innerText(), '0¢');
     assert.equal(events.some(e => e.kind === 'stop' && e.id >= replacement.id), false);
