@@ -13,8 +13,8 @@ const art = () => `
   <circle cx="236" cy="270" r="170" fill="#3b424c" stroke="#111" stroke-width="12"/>
   <circle cx="236" cy="270" r="146" fill="#fbfaf4" stroke="#111" stroke-width="8"/>
   ${ticks()}
-  <line x1="236" y1="270" x2="236" y2="168" stroke="#e2352b" stroke-width="16" stroke-linecap="round"/>
-  <line x1="236" y1="270" x2="300" y2="300" stroke="#1f5fd1" stroke-width="22" stroke-linecap="round"/>
+  <line x1="236" y1="270" x2="236" y2="168" stroke="#1f5fd1" stroke-width="16" stroke-linecap="round"/>
+  <line x1="236" y1="270" x2="300" y2="300" stroke="#e2352b" stroke-width="22" stroke-linecap="round"/>
   <circle cx="236" cy="270" r="16" fill="#2a2f36"/>
   <g transform="translate(372 132) rotate(35)" stroke="#111" stroke-width="8" stroke-linejoin="round">
     <path d="M0 -92 C14 -70 16 -40 16 -10 L92 34 L92 52 L16 34 L14 70 L40 90 L40 102 L0 92 L-40 102 L-40 90 L-14 70 L-16 34 L-92 52 L-92 34 L-16 -10 C-16 -40 -14 -70 0 -92 Z" fill="#d6dde4"/>

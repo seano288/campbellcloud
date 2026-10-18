@@ -1,5 +1,5 @@
 // The analog clock, styled like a cockpit instrument: a gunmetal bezel with four screws around a white dial. The short
-// hour hand is blue and the long minute hand is red, so "the short hand" and "the long hand" are easy to find. A Lesson
+// hour hand is red and the long minute hand is blue, so "the short hand" and "the long hand" are easy to find. A Lesson
 // lights up the hand and numbers being talked about and counts the fives round the bezel. When `onTurn` is given, he can
 // drag either hand; they are geared together like a real clock.
 import { useRef } from 'preact/hooks';
@@ -100,10 +100,10 @@ export function ClockFace({ minutes, lesson, minuteLabels, glide = true, onTurn,
       })}
       <path d="M-9 30 L0 25 L9 30 L1.5 27.5 L1.5 34 L4 36 L-4 36 L-1.5 34 L-1.5 27.5 Z" fill="#9aa3ad" opacity=".7" />
       <g style={handStyle(hourDeg)} filter={hand === 'hour' ? 'url(#cf-glow)' : 'url(#cf-shadow)'}>
-        <path d="M-6.5 12 L-6 -38 Q0 -52 6 -38 L6.5 12 Z" fill="#1f5fd1" stroke={hand === 'hour' ? '#ffd23f' : '#0b2a66'} stroke-width={hand === 'hour' ? 4 : 2} stroke-linejoin="round" />
+        <path d="M-6.5 12 L-6 -38 Q0 -52 6 -38 L6.5 12 Z" fill="#e2352b" stroke={hand === 'hour' ? '#ffd23f' : '#6e120c'} stroke-width={hand === 'hour' ? 4 : 2} stroke-linejoin="round" />
       </g>
       <g style={handStyle(minuteDeg)} filter={hand === 'minute' ? 'url(#cf-glow)' : 'url(#cf-shadow)'}>
-        <path d="M-4 16 L-3.2 -70 L0 -82 L3.2 -70 L4 16 Z" fill="#e2352b" stroke={hand === 'minute' ? '#ffd23f' : '#6e120c'} stroke-width={hand === 'minute' ? 4 : 1.6} stroke-linejoin="round" />
+        <path d="M-4 16 L-3.2 -70 L0 -82 L3.2 -70 L4 16 Z" fill="#1f5fd1" stroke={hand === 'minute' ? '#ffd23f' : '#0b2a66'} stroke-width={hand === 'minute' ? 4 : 1.6} stroke-linejoin="round" />
       </g>
       <circle r="8" fill="#2a2f36" stroke="#000" stroke-width="2" />
       <circle r="3" fill="#c9ced6" />
