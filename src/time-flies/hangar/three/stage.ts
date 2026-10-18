@@ -1,16 +1,20 @@
 // The Hangar stage. The Aircraft stands on the floor of a real hangar: a CC0 photo (HDRI) lights it and, projected onto
 // a ground dome, surrounds it, with soft shadows from the ceiling lights and Neutral tone mapping so paint keeps its true
 // colour. He orbits it with a finger; opening a Slot swings the camera to that part, and hotspots follow the parts.
-// Take Off swaps the hangar for open sky: the gear comes up, the engines light, clouds and smoke stream past, and a tap
-// does a roll or a loop (or fires the Legendary fireworks).
+// Take Off swaps the hangar for an airfield under open sky: the Aircraft rolls down the runway, lifts off and tucks its
+// gear up, and the field falls away as it climbs into the clouds. Up there a tap does a roll or a loop (or fires the
+// Legendary fireworks), and it can fire its guns and launch what hangs under its wings. Landing flies it back down: gear
+// down, a flare, a squeak of tyres and a rollout to a stop. The Aircraft holds still throughout; the world moves past.
 import * as THREE from 'three';
 import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
 import { HDRLoader } from 'three/addons/loaders/HDRLoader.js';
 import { GroundedSkybox } from 'three/addons/objects/GroundedSkybox.js';
 import type { Fit, SlotId } from '../catalog';
-import { Smoke, smokeColors } from './effects';
+import { Airfield } from './airfield';
+import { glow, Smoke, smokeColors } from './effects';
 import { buildJet, type BuiltJet } from './jet';
 import type { JetSpec } from './spec';
+import { Weapons, type FireResult } from './weapons';
 
 export interface HotspotPlace { x: number; y: number; visible: boolean }
 
@@ -24,6 +28,16 @@ const HANGAR_EYE = 9;
 const ease = (k: number) => (k < 0.5 ? 4 * k * k * k : 1 - Math.pow(-2 * k + 2, 3) / 2);
 export const TRICKS = ['roll', 'loop', 'roll2'] as const;
 export type Trick = (typeof TRICKS)[number];
+/** Parked in the hangar; rolling and climbing; up in the clouds; coming down; rolling out on the runway. */
+export type FlightPhase = 'parked' | 'takeoff' | 'air' | 'landing' | 'rollout';
+/** Moments in a flight for the sounds and words: the gear moving, reaching the clouds, wheels down, stopped, a bang. */
+export type FlightEvent = 'gear' | 'air' | 'touchdown' | 'stopped' | 'boom';
+/** Height above the runway up in the clouds (m), how fast the air streams past there (m/s), and the timings (s). */
+const CRUISE = 120, AIR_SPEED = 60, ROLL_AT = 0.6, LIFTOFF_AT = 3.6, CLIMB_FOR = 5, GEAR_UP_AT = 4.3, DESCEND_FOR = 6, ROLLOUT_FOR = 3.2;
+/** Nose up on the runway, and in the flare. */
+const ROTATE = 0.17, FLARE = 0.11, GUN_RATE = 22;
+const clamp01 = (k: number) => Math.min(Math.max(k, 0), 1);
+const smooth = (k: number, a: number, b: number) => THREE.MathUtils.smoothstep(k, a, b);
 
 interface Tween { t0: number; dur: number; from: THREE.Spherical; to: THREE.Spherical; target0: THREE.Vector3; target1: THREE.Vector3 }
 
@@ -52,12 +66,27 @@ export class HangarStage {
   private shadowFloor: THREE.Mesh;
   private smoke = new Smoke();
   private clouds: THREE.Sprite[] = [];
-  private bursts: { points: THREE.Points; vel: Float32Array; t: number }[] = [];
+  private cloudLayer = new THREE.Group();
+  private field = new Airfield();
+  private weapons = new Weapons();
+  private phase: FlightPhase = 'parked';
+  private phaseT0 = 0;
+  private altitude = 0;
+  private speed = 0;
+  private bob = 0;
+  private gearUp = false;
+  private landQueued = false;
+  private landed: (() => void) | null = null;
+  private gunning = false;
+  private gunDue = 0;
+  private muzzles: THREE.Sprite[] = [];
+  /** Where the main wheels touch, along the Aircraft: it rotates about them on the runway. */
+  private mainX = 0;
   private tween: Tween | null = null;
+  private afterTween: (() => void) | null = null;
   private throttle = 0;
   private throttleUntil = 0;
   private flying = false;
-  private flyT = 0;
   private trick: { kind: Trick; t0: number } | null = null;
   private raf = 0;
   private last = performance.now();
@@ -66,6 +95,7 @@ export class HangarStage {
   private puffUntil = 0;
   private hotFrame = 0;
   onHotspots: ((places: Record<SlotId, HotspotPlace>) => void) | null = null;
+  onFlight: ((e: FlightEvent) => void) | null = null;
 
   constructor(canvas: HTMLCanvasElement, private host: HTMLElement) {
     const r = (this.renderer = new THREE.WebGLRenderer({ canvas, antialias: true, powerPreference: 'high-performance' }));
@@ -94,7 +124,9 @@ export class HangarStage {
     this.hangar.add(this.shadowFloor);
     this.scene.add(this.hangar, this.sky);
     this.sky.visible = false;
-    this.scene.add(this.smoke.points);
+    this.sky.add(this.cloudLayer, this.field.group);
+    this.scene.add(this.smoke.points, this.weapons.group);
+    this.weapons.onBoom = () => this.onFlight?.('boom');
 
     const c = (this.controls = new OrbitControls(this.camera, canvas));
     c.enableDamping = true; c.dampingFactor = 0.08; c.enablePan = false;
@@ -150,13 +182,17 @@ export class HangarStage {
       grad.addColorStop(0, 'rgba(255,255,255,.85)'); grad.addColorStop(1, 'rgba(255,255,255,0)');
       g.fillStyle = grad; g.fillRect(0, 0, 128, 128);
     }
+    g.globalCompositeOperation = 'destination-in'; // soften to nothing before the canvas edge, so no cloud has a straight side
+    const edge = g.createRadialGradient(64, 64, 40, 64, 64, 64);
+    edge.addColorStop(0, '#fff'); edge.addColorStop(1, 'rgba(255,255,255,0)');
+    g.fillStyle = edge; g.fillRect(0, 0, 128, 128);
     const tex = new THREE.CanvasTexture(c);
     for (let i = 0; i < 26; i++) {
       const s = new THREE.Sprite(new THREE.SpriteMaterial({ map: tex, transparent: true, depthWrite: false, opacity: 0.7, fog: false }));
       const k = 10 + Math.random() * 30;
       s.scale.set(k * 1.8, k, 1);
       s.position.set(-150 + Math.random() * 300, -40 + Math.random() * 60, (Math.random() < 0.5 ? -1 : 1) * (45 + Math.random() * 110));
-      this.sky.add(s);
+      this.cloudLayer.add(s);
       this.clouds.push(s);
     }
   }
@@ -167,11 +203,14 @@ export class HangarStage {
     this.touch();
     if (this.spec === spec && this.jet) { this.jet.dress(fit); this.fit = fit; return; }
     const keepView = !!this.jet;
+    this.weapons.clear();
     if (this.jet) { this.scene.remove(this.jet.root); this.jet.dispose(); }
     this.spec = spec; this.fit = fit;
     this.jet = buildJet(spec, fit);
     this.jet.root.traverse(o => { if (o instanceof THREE.Mesh) o.castShadow = true; });
     this.scene.add(this.jet.root);
+    this.muzzles = this.jet.guns.map(g => { const m = glow(0xffd27a, 1.6); m.visible = false; g.add(m); return m; });
+    this.mainX = spec.gear.main.x + this.jet.airframe.position.x;
     if (spec.id === 'v22') this.setPivots(0); // parked with its rotors up, like a helicopter
     const { length, span, height } = this.jet.size, big = Math.max(length, span);
     const sh = this.sun.shadow.camera;
@@ -181,6 +220,7 @@ export class HangarStage {
     if (!keepView) this.camera.position.set(-big * 0.9, big * 0.42, big * 1.05);
     else { const off = this.camera.position.clone().sub(this.controls.target).setLength(big * 1.35); this.camera.position.copy(this.controls.target).add(off); }
     this.smoke.setScale(this.host.clientHeight * 1.2);
+    this.weapons.setScale(this.host.clientHeight * 1.2);
   }
 
   /** Moving parts: the V-22's nacelles (0 up, 1 forward) and the F-14's wings (0 forward, 1 swept). */
@@ -220,36 +260,112 @@ export class HangarStage {
   /** A burst of the fitted Smoke. */
   puff(ms = 2200) { this.puffUntil = performance.now() + ms; this.touch(); }
 
-  fly(on: boolean) {
+  /** Take Off (rolling down the runway, or straight up in the clouds when `instant`) or back to the hangar. */
+  fly(on: boolean, instant = false) {
     if (!this.jet) return;
     this.flying = on;
-    this.flyT = 0;
+    this.phase = on ? (instant ? 'air' : 'takeoff') : 'parked';
+    this.phaseT0 = performance.now();
+    this.altitude = on && instant ? CRUISE : 0;
+    this.speed = on && instant ? AIR_SPEED : 0;
+    this.bob = 0;
     this.trick = null;
+    this.landQueued = false;
+    this.gunning = false;
+    this.landed?.(); this.landed = null;
     this.hangar.visible = !on;
     this.sky.visible = on;
     this.scene.background = on ? (this.envs.skyBg ?? new THREE.Color(0x87b5e8)) : new THREE.Color(0x3a3a36);
     this.scene.environment = (on ? this.envs.sky : this.envs.hangar) ?? null;
     this.smoke.clear();
-    // gear up in the air, down in the hangar
-    this.jet.airframe.traverse(o => { if (o.userData.gear) o.visible = !on; });
+    this.weapons.clear();
+    this.setGear(!(on && instant));
     const root = this.jet.root;
-    root.position.set(0, on ? 0 : 0, 0);
+    root.position.set(0, 0, 0);
     root.rotation.set(0, 0, 0);
     this.jet.airframe.rotation.x = 0;
     if (this.spec?.id === 'v22') this.setPivots(on ? 1 : 0);
     if (this.spec?.id === 'f14') this.setPivots(on ? 1 : 0);
     const big = Math.max(this.jet.size.length, this.jet.size.span);
-    this.controls.target.set(0, on ? 0 : this.jet.size.height * 0.42, 0);
-    this.camera.position.set(on ? big * 1.2 : -big * 0.9, on ? big * 0.25 : big * 0.42, on ? big * 1.0 : big * 1.05);
-    this.controls.maxPolarAngle = on ? Math.PI - 0.2 : 1.5;
-    this.tween = null;
+    this.controls.target.set(0, this.jet.size.height * 0.42, 0);
+    this.camera.position.set(on ? big * 1.2 : -big * 0.9, on ? big * 0.3 : big * 0.42, on ? big * 1.0 : big * 1.05);
+    this.controls.maxPolarAngle = on && instant ? Math.PI - 0.2 : 1.5;
+    this.tween = null; this.afterTween = null;
     if (on) this.throttleUntil = Infinity; else this.throttleUntil = 0;
+    this.field.update(0, this.altitude);
+    this.cloudLayer.position.y = CRUISE - this.altitude;
     this.touch();
+  }
+
+  /** Flies back down to the runway, after any trick in progress; resolves once it has rolled to a stop. */
+  land(): Promise<void> {
+    if (this.phase !== 'air') return Promise.resolve();
+    this.gunning = false;
+    return new Promise(done => {
+      this.landed = done;
+      if (this.trick) this.landQueued = true; else this.beginLanding();
+    });
+  }
+
+  private beginLanding() {
+    if (!this.jet) return;
+    this.landQueued = false;
+    this.phase = 'landing';
+    this.phaseT0 = performance.now();
+    this.throttleUntil = performance.now() + 2500; // throttle back for the approach
+    // swing round to watch it come in from beside and behind, above the runway
+    const big = Math.max(this.jet.size.length, this.jet.size.span);
+    const from = new THREE.Spherical().setFromVector3(this.camera.position.clone().sub(this.controls.target));
+    const to = new THREE.Spherical(big * 1.5, 1.3, Math.atan2(1, 1.2));
+    while (to.theta - from.theta > Math.PI) to.theta -= Math.PI * 2;
+    while (from.theta - to.theta > Math.PI) to.theta += Math.PI * 2;
+    const target = new THREE.Vector3(0, this.jet.size.height * 0.42, 0);
+    this.tween = { t0: performance.now(), dur: 1600, from, to, target0: this.controls.target.clone(), target1: target };
+    this.afterTween = () => { this.controls.maxPolarAngle = 1.5; };
+  }
+
+  private setGear(down: boolean) {
+    this.gearUp = !down;
+    this.jet?.airframe.traverse(o => { if (o.userData.gear) o.visible = down; });
+  }
+
+  /** Where the flight is. */
+  get flight() { return this.phase; }
+
+  /** Holds the trigger down (true) or lets go (false). */
+  guns(on: boolean) {
+    this.gunning = on && this.phase === 'air';
+    if (this.gunning) this.chase(false);
+    this.touch();
+  }
+
+  /** Launches the next store under the wings, if the Aircraft is up in the clouds. */
+  fire(): FireResult | null {
+    if (this.phase !== 'air' || !this.jet) return null;
+    this.touch();
+    const shot = this.weapons.fire(this.jet.firable());
+    if (shot === 'bomb') this.chase(true);
+    else if (shot !== 'none') this.chase(false);
+    return shot;
+  }
+
+  /** Swings round so he sees where his shots go (unless he's looking there already): behind and above the Aircraft looking
+   * ahead, or for a bomb, off to the side looking down below it. */
+  private chase(below: boolean) {
+    if (!this.jet || this.tween) return;
+    const off = this.camera.position.clone().sub(this.controls.target).normalize();
+    if (below ? off.z > 0.8 && this.controls.target.y < 0 : off.x > 0.8 && off.y > 0.15) return;
+    const { height } = this.jet.size, big = Math.max(this.jet.size.length, this.jet.size.span);
+    const from = new THREE.Spherical().setFromVector3(this.camera.position.clone().sub(this.controls.target));
+    const to = below ? new THREE.Spherical(big * 2.6, 1.42, Math.atan2(0.3, 1)) : new THREE.Spherical(big * 2.2, 1.32, Math.atan2(1, 0.3));
+    while (to.theta - from.theta > Math.PI) to.theta -= Math.PI * 2;
+    while (from.theta - to.theta > Math.PI) to.theta += Math.PI * 2;
+    this.tween = { t0: performance.now(), dur: 700, from, to, target0: this.controls.target.clone(), target1: below ? new THREE.Vector3(big * 0.15, -big * 0.38, 0) : new THREE.Vector3(-big * 0.4, height * 0.42, 0) };
   }
 
   /** In the air: a roll or a loop, and the Legendary fireworks if they're fitted. */
   perform(kind: Trick) {
-    if (!this.flying || !this.jet) return;
+    if (this.phase !== 'air' || this.landQueued || !this.jet) return;
     this.trick = { kind, t0: performance.now() };
     if (this.fit?.weapons === 4) for (let k = 0; k < 3; k++) setTimeout(() => this.firework(), 250 + k * 380);
     this.touch();
@@ -257,21 +373,7 @@ export class HangarStage {
 
   private firework() {
     if (!this.flying || !this.jet) return;
-    const n = 260, pos = new Float32Array(n * 3), col = new Float32Array(n * 3), vel = new Float32Array(n * 3);
-    const at = new THREE.Vector3(-25 - Math.random() * 25, 6 + Math.random() * 14, -15 + Math.random() * 30), base = new THREE.Color().setHSL(Math.random(), 1, 0.6);
-    for (let i = 0; i < n; i++) {
-      pos.set(at.toArray(), i * 3);
-      const d = new THREE.Vector3().randomDirection().multiplyScalar(9 + Math.random() * 6);
-      vel.set(d.toArray(), i * 3);
-      const c = base.clone().offsetHSL((Math.random() - 0.5) * 0.15, 0, 0);
-      col.set([c.r, c.g, c.b], i * 3);
-    }
-    const geo = new THREE.BufferGeometry();
-    geo.setAttribute('position', new THREE.BufferAttribute(pos, 3));
-    geo.setAttribute('color', new THREE.BufferAttribute(col, 3));
-    const points = new THREE.Points(geo, new THREE.PointsMaterial({ size: 0.6, vertexColors: true, transparent: true, blending: THREE.AdditiveBlending, depthWrite: false, toneMapped: false }));
-    this.scene.add(points);
-    this.bursts.push({ points, vel, t: 0 });
+    this.weapons.firework(new THREE.Vector3(-25 - Math.random() * 25, 6 + Math.random() * 14, -15 + Math.random() * 30));
   }
 
   /** Is (clientX, clientY) on the Aircraft? */
@@ -296,6 +398,7 @@ export class HangarStage {
     this.camera.aspect = w / h;
     this.camera.updateProjectionMatrix();
     this.smoke.setScale(h * 1.2);
+    this.weapons.setScale(h * 1.2);
     this.touch();
   }
 
@@ -308,22 +411,22 @@ export class HangarStage {
     // engines
     const want = now < this.throttleUntil ? 1 : 0;
     this.throttle += (want - this.throttle) * Math.min(1, dt * (want ? 2.5 : 1.2));
-    const busy = this.throttle > 0.01 || this.tween || this.flying || now < this.puffUntil || this.bursts.length > 0 || (this.fit?.lights ?? 0) > 0;
+    const busy = this.throttle > 0.01 || this.tween || this.flying || now < this.puffUntil || this.weapons.busy || (this.fit?.lights ?? 0) > 0;
     if (!busy && now - this.idleSince > 1500 && this.hotFrame++ % 30) return; // nothing moving: rest, but keep hotspots fresh now and then
     if (this.tween) {
       const k = Math.min((now - this.tween.t0) / this.tween.dur, 1), e = ease(k), { from, to } = this.tween;
       const s = new THREE.Spherical(from.radius + (to.radius - from.radius) * e, from.phi + (to.phi - from.phi) * e, from.theta + (to.theta - from.theta) * e);
       this.controls.target.lerpVectors(this.tween.target0, this.tween.target1, e);
       this.camera.position.setFromSpherical(s).add(this.controls.target);
-      if (k >= 1) this.tween = null;
+      if (k >= 1) { this.tween = null; this.afterTween?.(); this.afterTween = null; }
     }
     if (jet) {
       jet.update(dt, t, { throttle: this.throttle });
       if (this.flying) this.flyFrame(dt, t);
       const colors = smokeColors(this.fit?.smoke ?? 0, t);
-      if (colors && (this.flying || now < this.puffUntil)) {
+      if (colors && (this.flying ? this.speed > AIR_SPEED * 0.5 : now < this.puffUntil)) {
         // in the air the puffs stream back as fast as the clouds; several per frame, spread along the frame's travel, make one trail
-        const p = new THREE.Vector3(), speed = this.flying ? 22 : 3, per = this.flying ? 6 : 1;
+        const p = new THREE.Vector3(), speed = this.flying ? (22 * this.speed) / AIR_SPEED : 3, per = this.flying ? 6 : 1;
         jet.smokeFrom.forEach((o, i) => {
           if (!this.flying && i !== 1) return;
           o.getWorldPosition(p);
@@ -336,17 +439,7 @@ export class HangarStage {
       }
     }
     this.smoke.update(dt);
-    for (const b of [...this.bursts]) {
-      b.t += dt;
-      const pos = b.points.geometry.attributes.position as THREE.BufferAttribute;
-      for (let i = 0; i < pos.count; i++) {
-        b.vel[i * 3 + 1]! -= 9 * dt * 0.4;
-        pos.setXYZ(i, pos.getX(i) + b.vel[i * 3]! * dt + 30 * dt, pos.getY(i) + b.vel[i * 3 + 1]! * dt, pos.getZ(i) + b.vel[i * 3 + 2]! * dt);
-      }
-      pos.needsUpdate = true;
-      (b.points.material as THREE.PointsMaterial).opacity = Math.max(0, 1 - b.t / 1.8);
-      if (b.t > 1.8) { this.scene.remove(b.points); b.points.geometry.dispose(); (b.points.material as THREE.Material).dispose(); this.bursts.splice(this.bursts.indexOf(b), 1); }
-    }
+    this.weapons.update(dt, this.speed, t);
     this.controls.update();
     this.renderer.render(this.scene, this.camera);
     if (jet && this.onHotspots) {
@@ -360,18 +453,60 @@ export class HangarStage {
   };
 
   private flyFrame(dt: number, t: number) {
-    const jet = this.jet!;
-    this.flyT += dt;
+    const jet = this.jet!, now = performance.now(), s = (now - this.phaseT0) / 1000;
+    let pitch = 0; // nose up
+    switch (this.phase) {
+      case 'takeoff': { // roll, rotate, lift off, gear up, climb into the clouds
+        const roll = clamp01((s - ROLL_AT) / (LIFTOFF_AT - ROLL_AT)), climb = clamp01((s - LIFTOFF_AT) / CLIMB_FOR);
+        this.speed = AIR_SPEED * (0.55 * roll + 0.45 * roll * roll);
+        this.altitude = CRUISE * ease(climb);
+        pitch = ROTATE * smooth(s, LIFTOFF_AT - 0.6, LIFTOFF_AT + 0.2) * (1 - smooth(climb, 0.5, 1));
+        if (!this.gearUp && s >= GEAR_UP_AT) { this.setGear(false); this.onFlight?.('gear'); }
+        if (this.altitude > 12) this.controls.maxPolarAngle = Math.PI - 0.2;
+        if (climb >= 1) { this.phase = 'air'; this.phaseT0 = now; this.onFlight?.('air'); }
+        break;
+      }
+      case 'air':
+        this.altitude = CRUISE; this.speed = AIR_SPEED;
+        if (this.landQueued && !this.trick) this.beginLanding();
+        break;
+      case 'landing': { // gear down, a long glide, and a flare just before the wheels touch
+        const k = clamp01(s / DESCEND_FOR);
+        if (this.gearUp && s >= 0.6) { this.setGear(true); this.onFlight?.('gear'); }
+        this.altitude = CRUISE * (1 - ease(k));
+        pitch = -0.05 * Math.sin(Math.PI * k) + FLARE * smooth(k, 0.75, 1);
+        if (k >= 1) {
+          this.phase = 'rollout'; this.phaseT0 = now; this.altitude = 0;
+          this.controls.maxPolarAngle = 1.5;
+          this.tyreSmoke();
+          this.onFlight?.('touchdown');
+        }
+        break;
+      }
+      case 'rollout': { // the nose comes down and it brakes to a stop
+        const k = clamp01(s / ROLLOUT_FOR);
+        this.speed = AIR_SPEED * (1 - k) * (1 - k);
+        pitch = FLARE * (1 - smooth(k, 0, 0.3));
+        if (k >= 1) { this.phase = 'parked'; this.speed = 0; this.onFlight?.('stopped'); this.landed?.(); this.landed = null; }
+        break;
+      }
+    }
+    const dist = this.speed * dt;
     for (const c of this.clouds) { // the world streams past
-      c.position.x += dt * 60;
+      c.position.x += dist;
       if (c.position.x > 160) { c.position.x = -160; c.position.z = (Math.random() < 0.5 ? -1 : 1) * (45 + Math.random() * 110); c.position.y = -40 + Math.random() * 60; }
     }
-    const root = jet.root;
-    root.position.y = Math.sin(t * 0.7) * 0.6;
-    root.rotation.x = Math.sin(t * 0.45) * 0.18; // a gentle bank (roll is about x: the Aircraft points along -x)
-    root.rotation.z = Math.sin(t * 0.6) * 0.04;
+    this.cloudLayer.position.y = CRUISE - this.altitude;
+    this.field.update(dist, this.altitude);
+
+    // up in the clouds it bobs and banks gently; on the runway it pivots on its main wheels
+    this.bob += ((this.phase === 'air' ? 1 : 0) - this.bob) * Math.min(1, dt * 1.2);
+    const root = jet.root, b = this.bob;
+    root.position.set(this.mainX * (1 - Math.cos(pitch)), this.mainX * Math.sin(pitch) + Math.sin(t * 0.7) * 0.6 * b, 0);
+    root.rotation.x = Math.sin(t * 0.45) * 0.18 * b; // a gentle bank (roll is about x: the Aircraft points along -x)
+    root.rotation.z = -pitch + Math.sin(t * 0.6) * 0.04 * b;
     if (this.trick) {
-      const k = Math.min((performance.now() - this.trick.t0) / (this.trick.kind === 'loop' ? 2600 : 1500), 1), e = ease(k);
+      const k = Math.min((now - this.trick.t0) / (this.trick.kind === 'loop' ? 2600 : 1500), 1), e = ease(k);
       if (this.trick.kind === 'roll') root.rotation.x += e * Math.PI * 2;
       else if (this.trick.kind === 'roll2') root.rotation.x -= e * Math.PI * 4;
       else { // a loop: nose up and over, climbing and coming back down
@@ -382,6 +517,26 @@ export class HangarStage {
       }
       if (k >= 1) this.trick = null;
     }
+
+    // guns: rounds from every muzzle while the trigger is held, with a flickering flash
+    const firing = this.gunning && this.phase === 'air';
+    if (firing) {
+      root.updateMatrixWorld(true);
+      const forward = new THREE.Vector3(-1, 0, 0).applyQuaternion(root.getWorldQuaternion(new THREE.Quaternion()));
+      this.gunDue += dt * GUN_RATE;
+      for (; this.gunDue >= 1; this.gunDue--) this.weapons.shoot(jet.guns, forward);
+    } else this.gunDue = 1;
+    for (const m of this.muzzles) { m.visible = firing && Math.random() < 0.7; m.scale.setScalar(1 + Math.random()); }
+  }
+
+  /** A puff of grey from each main wheel as it touches the runway. */
+  private tyreSmoke() {
+    const m = this.spec?.gear.main;
+    if (!m || !this.jet) return;
+    const grey = new THREE.Color(0.85, 0.85, 0.85);
+    for (const z of [m.z ?? 0, -(m.z ?? 0)]) for (let k = 0; k < 8; k++) {
+      this.smoke.emit(new THREE.Vector3(this.mainX + Math.random(), 0.3, z + (Math.random() - 0.5) * 0.5), new THREE.Vector3(10 + Math.random() * 6, 0.8, (Math.random() - 0.5) * 2), grey, 1.4, 0.7, 1.6);
+    }
   }
 
   dispose() {
@@ -390,6 +545,8 @@ export class HangarStage {
     this.controls.dispose();
     this.jet?.dispose();
     this.smoke.dispose();
+    this.weapons.dispose();
+    this.field.dispose();
     for (const v of Object.values(this.envs)) v?.dispose();
     this.renderer.dispose();
   }

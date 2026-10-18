@@ -116,11 +116,15 @@ function build(kind: StoreKind): { group: THREE.Group; r: number; len: number } 
   }
 }
 
+/** A loose store with nothing to hang from: the rockets a pod fires. Its nose is at x = 0, pointing toward -x. */
+export const storeModel = (kind: StoreKind) => build(kind);
+
 /** A store hanging from a hardpoint (with a pylon down from the wing), or on a wingtip rail. */
 export function mount(kind: StoreKind, point: Hardpoint, scale = 1) {
   const { group, r, len } = build(kind), out = new THREE.Group();
   const drop = point.kind === 'tip' ? 0 : Math.max(0.14, r * 0.6);
   group.scale.setScalar(scale);
+  group.userData.store = { kind, len: len * scale, r: r * scale, point: point.kind }; // launched in Take Off
   group.position.set(point.at[0] - (len * scale) / 2, point.at[1] - drop - r * scale, point.at[2]);
   out.add(group);
   if (point.kind !== 'tip') { // a swept pylon from the wing down to the store

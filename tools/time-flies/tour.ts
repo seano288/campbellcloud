@@ -30,8 +30,12 @@ await page.getByLabel('Paint').click({ timeout: 120000 }); await wait(1500); awa
 await page.getByLabel('Close').click({ timeout: 120000 }); await wait(600);
 await page.getByLabel('Weapons').click({ timeout: 120000 }); await wait(1500); await shot('weapons-sheet');
 await page.getByLabel('Close').click({ timeout: 120000 }); await wait(600);
-await page.getByLabel('Take Off').click({ timeout: 120000 }); await wait(5000); await shot('take-off');
-await page.getByLabel('Land').click({ timeout: 120000 }); await wait(1500);
+await page.getByLabel('Take Off').click({ timeout: 120000 }); await wait(2500); await shot('take-off');
+const guns = page.getByLabel('Guns'); // shown once it's up in the clouds
+await guns.waitFor({ timeout: 120000 }); await shot('in-the-air');
+await guns.hover(); await page.mouse.down(); await wait(1500); await shot('guns'); await page.mouse.up();
+await page.getByLabel('Missiles').click({ timeout: 120000 }); await wait(1500); await shot('missiles');
+await page.getByLabel('Land').click({ timeout: 120000 }); await wait(4000); await shot('landing');
 await page.getByLabel('Home').click({ timeout: 120000 }); await wait(800); await shot('home-after');
 console.log(errors.length ? `errors:\n${errors.join('\n')}` : 'no errors');
 await browser.close();

@@ -70,3 +70,11 @@ html,body{background:var(--night)}
 .flyby.go{left:42%}
 .flyby .jet-art{width:100%;display:block}
 .flyby .load{position:absolute;inset:0;display:flex;flex-wrap:wrap;gap:2px;justify-content:center;align-content:center;transform:rotate(-90deg)}
+
+/* ---------- Take Off: guns, missiles and landing ---------- */
+.flight .show-x:disabled{opacity:.35}
+.fire-btn{position:absolute;bottom:calc(22px + env(safe-area-inset-bottom));width:calc(120px*var(--u));height:calc(120px*var(--u));border-radius:50%;background:#000b;border:5px solid #fff;color:#fff;font-size:calc(58px*var(--u));line-height:1;touch-action:none;user-select:none;-webkit-user-select:none;-webkit-touch-callout:none;animation:pop-in .3s ease-out}
+.fire-btn:active{transform:scale(.92);background:#e63946cc}
+.fire-btn.guns{left:calc(22px + env(safe-area-inset-left))}
+.fire-btn.missiles{right:calc(22px + env(safe-area-inset-right))}
+@keyframes pop-in{from{transform:scale(0)}to{transform:scale(1)}}

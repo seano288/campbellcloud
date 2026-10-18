@@ -15,7 +15,7 @@ const GAME = [
   'Time Flies!', "Let's go!", 'Pick your first plane!', 'Hangar!', 'Round done!', 'Take off!', 'Wow!',
   'Level up!', 'New times!', 'The long hand can point to the three, the six and the nine.',
   'Now the long hand can point to every number.', 'You can build something new!', 'You built everything!',
-  "That's the best one!", 'Tap your plane to do a trick!',
+  "That's the best one!", 'Tap your plane to do a trick!', 'Touchdown!', 'Add Weapons in the Hangar to fire missiles!',
 ] as const;
 export const CHEERS = ['Great job!', 'You got it!', 'Right on time!', 'Super pilot!', 'Awesome!', 'Ace!'] as const;
 

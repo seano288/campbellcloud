@@ -1,7 +1,8 @@
 // The Hangar: "Tap the plane". The 3D Aircraft stands in a real hangar with a hotspot on each Slot's part; tapping one
 // swings the camera there and opens that Slot's sheet of 5 Mods (bottom sheet in portrait, side panel in landscape).
 // Along the bottom, the Aircraft strip shows every Aircraft, the locked ones with their Bolt price. 🛫 Take Off flies it
-// through the sky; 🏆 opens the Trophy Shelf. Legendaries wait in the Time Lock vault, opened by setting the clock.
+// off the runway into the sky, to fire its guns and weapons and land again; 🏆 opens the Trophy Shelf. Legendaries
+// wait in the Time Lock vault, opened by setting the clock.
 import { useEffect, useRef, useState } from 'preact/hooks';
 import type { ComponentChildren } from 'preact';
 import { sClink, sNope, sChime, sFanfare } from '../../audio/sfx';

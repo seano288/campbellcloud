@@ -57,7 +57,9 @@ _Avoid_: jet (the P-51, P-38 and Corsair have propellers), Body
 **Time Lock**: the vault that holds every Legendary in Time Flies. Once a Slot's top Rung is his, tapping its Legendary
 asks him to set the clock to a time; the vault opens when he does. A Legendary is never bought with Bolts.
 
-**Take Off**: the Hangar's stage moment, Time Flies' Show Off: the Aircraft flies through the sky with its Smoke and
-Engine, and does a trick when tapped.
+**Take Off**: the Hangar's stage moment, Time Flies' Show Off: the Aircraft rolls down a runway, lifts off and climbs
+into the sky with its Smoke and Engine. Up there it does a trick when tapped, fires its guns while 🔫 is held, and each 🚀
+tap launches the next store its Weapons Mod hangs under the wings (reloaded a few seconds later). 🛬 lands it back on
+the runway and returns to the Hangar.
 
 **Tail Number**: Time Flies' Door Number, painted on the fins.

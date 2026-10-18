@@ -22,6 +22,10 @@ export interface BuiltJet {
   pivots: Map<string, THREE.Object3D>;
   /** Where smoke comes out: left wingtip, tail, right wingtip (airframe coordinates). */
   smokeFrom: [THREE.Object3D, THREE.Object3D, THREE.Object3D];
+  /** Gun muzzles, where Take Off's tracers start (airframe coordinates). */
+  guns: THREE.Object3D[];
+  /** The stores fitted now that can be fired or dropped (not drop tanks), each tagged by stores.ts. */
+  firable(): THREE.Object3D[];
   size: { length: number; span: number; height: number };
   dress(fit: Fit): void;
   update(dt: number, t: number, engine: EngineState): void;
@@ -297,6 +301,15 @@ export function buildJet(spec: JetSpec, fit: Fit): BuiltJet {
     lights: anchor(wingTip), number: anchor([finTop[0] - 0.8, finTop[1] * 0.55, finTop[2] + 0.1]),
   };
   const smokeFrom: [THREE.Object3D, THREE.Object3D, THREE.Object3D] = [anchor([wingTip[0], wingTip[1], -wingTip[2]]), anchor([max.x + 0.3, engineAt[1], 0]), anchor(wingTip)];
+  // guns: in the wings when a propeller fills the nose (the Mustang, the Corsair), otherwise in the nose
+  const noseProp = (spec.props ?? []).some(p => !p.at[2]);
+  const guns = noseProp
+    ? (() => { // the leading edge, two fifths of the way out
+      const st = spec.surfaces.find(q => q.kind === 'wing')!.stations, z = wingTip[2] * 0.4;
+      const i = Math.max(1, st.findIndex(q => q.le[2] >= z)), p0 = st[i - 1]!, p1 = st[i] ?? p0, k = p1.le[2] > p0.le[2] ? (z - p0.le[2]) / (p1.le[2] - p0.le[2]) : 0;
+      return [1, -1].map(side => anchor([p0.le[0] + (p1.le[0] - p0.le[0]) * k, p0.le[1] + (p1.le[1] - p0.le[1]) * k, z * side]));
+    })()
+    : [anchor((() => { const x = min.x + (max.x - min.x) * 0.04, q = at(x); return [x, q.y, 0] as V3; })())];
 
   // centre it (measured before lights and stores are added): wheels on the floor, middle of its length at the origin
   airframe.position.set(-(all.min.x + all.max.x) / 2, -all.min.y, -(all.min.z + all.max.z) / 2);
@@ -377,5 +390,10 @@ export function buildJet(spec: JetSpec, fit: Fit): BuiltJet {
   }
 
   dress(fit);
-  return { root, airframe, anchors, pivots, smokeFrom, size, dress, update, dispose };
+  const firable = () => {
+    const out: THREE.Object3D[] = [];
+    stores.traverse(o => { if (o.userData.store && o.userData.store.kind !== 'tank') out.push(o); });
+    return out;
+  };
+  return { root, airframe, anchors, pivots, smokeFrom, guns, firable, size, dress, update, dispose };
 }

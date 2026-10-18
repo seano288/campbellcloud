@@ -39,3 +39,31 @@ export function fireworkSound() {
     noise({ dur: 0.8, vol: 0.1, type: 'highpass', f: 4000, when: 0.35 + k * 0.38, beat: 0.05 });
   }
 }
+
+/** Half a second of gunfire: a fast rattle, or the Warthog's deep BRRRT. */
+export function gunSound(brrrt: boolean) {
+  if (brrrt) { noise({ dur: 0.5, vol: 0.5, f: 380, beat: 0.016 }); tone(62, 0.5, 'sawtooth', 0, 0.2, 55); return; }
+  noise({ dur: 0.5, vol: 0.4, type: 'bandpass', f: 900, beat: 0.055 });
+}
+/** A missile or rocket leaving the rail: a hiss that roars away. */
+export function missileSound() {
+  noise({ dur: 0.25, vol: 0.3, f: 200 }); // the clunk off the rail
+  noise({ dur: 1.6, vol: 0.4, type: 'bandpass', f: 2600, f2: 500, when: 0.15 });
+}
+/** A bomb falling away: a long whistle down. */
+export const bombSound = () => { noise({ dur: 0.2, vol: 0.25, f: 200 }); tone(1500, 2.2, 'sine', 0.2, 0.06, 500); };
+/** An explosion, a little way off. */
+export function boomSound(when = 0) {
+  noise({ dur: 1.4, vol: 0.55, f: 160, when });
+  tone(55, 1.1, 'sine', when, 0.35, 30);
+}
+/** The landing gear going up or down: a whirr and a clunk. */
+export const gearSound = () => { tone(220, 0.8, 'sawtooth', 0, 0.03, 320); noise({ dur: 0.15, vol: 0.3, f: 300, when: 0.8 }); };
+/** Wheels touching the runway: two squeaks. */
+export const touchdownSound = () => [0, 0.18].forEach(w => noise({ dur: 0.3, vol: 0.3, type: 'bandpass', f: 2400, f2: 1200, when: w }));
+/** Coming in to land: the engines throttle back to a falling hum. */
+export function approachSound(prop: boolean) {
+  if (prop) { tone(70, 5, 'sawtooth', 0, 0.12, 45); noise({ dur: 5, vol: 0.18, f: 380, beat: 0.05 }); return; }
+  tone(900, 5, 'sawtooth', 0, 0.025, 380);
+  noise({ dur: 5.5, vol: 0.25, type: 'bandpass', f: 1400, f2: 500 });
+}

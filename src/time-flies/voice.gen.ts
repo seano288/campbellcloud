@@ -14,6 +14,8 @@ export const CLIPS = {
   "You built everything!": "e3116beca75f.mp3",
   "That's the best one!": "d9d09b6a0fac.mp3",
   "Tap your plane to do a trick!": "7ecfab43841e.mp3",
+  "Touchdown!": "db4e6db05d8b.mp3",
+  "Add Weapons in the Hangar to fire missiles!": "ad0c756d8990.mp3",
   "Great job!": "15a17173d557.mp3",
   "You got it!": "44934a531c0e.mp3",
   "Right on time!": "eb07d78e5f86.mp3",
