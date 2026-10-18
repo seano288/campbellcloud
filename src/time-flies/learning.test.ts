@@ -10,17 +10,28 @@ describe('clock Game Modes', () => {
     const s = freshLearning();
     expect([s.modes.find.opened, s.modes.read.opened, s.modes.set.opened]).toEqual([true, false, false]);
   });
-  it('raises a Level after 8 clean answers, and opens the next mode at Level 2', () => {
+  it('raises a Level after 16 clean answers, and opens the next mode at Level 2', () => {
     let s = freshLearning();
     const changes = [];
-    for (let i = 0; i < 8; i++) { const r = recordSolved(s, 'find', clean); s = r.state; changes.push(...r.changes); }
+    for (let i = 0; i < 15; i++) s = recordSolved(s, 'find', clean).state;
+    expect(s.modes.find.level).toBe(1); // 8 of 10 is not enough here
+    const r = recordSolved(s, 'find', clean); s = r.state; changes.push(...r.changes);
     expect(s.modes.find.level).toBe(2);
     expect(s.modes.read.opened).toBe(true);
     expect(s.modes.read.fresh).toBe(true);
     expect(changes).toEqual([{ kind: 'levelUp', mode: 'find', level: 2 }, { kind: 'open', mode: 'read' }]);
-    for (let i = 0; i < 8; i++) s = recordSolved(s, 'find', clean).state;
+    for (let i = 0; i < 16; i++) s = recordSolved(s, 'find', clean).state;
     expect(s.modes.find.level).toBe(3);
     expect(s.modes.set.opened).toBe(false); // Set the Clock waits on Read the Clock
+  });
+  it('needs 16 of the last 20, so a few misses only slow him down', () => {
+    let s = freshLearning();
+    const missed: SolvedProblem = { ...clean, outcome: 'missed' };
+    for (let i = 0; i < 4; i++) s = recordSolved(s, 'find', missed).state;
+    for (let i = 0; i < 15; i++) s = recordSolved(s, 'find', clean).state;
+    expect(s.modes.find.level).toBe(1);
+    s = recordSolved(s, 'find', clean).state;
+    expect(s.modes.find.level).toBe(2);
   });
   it('reads a damaged save as a fresh one, keeping what is valid', () => {
     expect(readLearning(null)).toEqual(freshLearning());

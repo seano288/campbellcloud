@@ -48,6 +48,9 @@ Trophy). These are its own:
 time from three read aloud) and Set the Clock (drag the hands). Each opens when the one before reaches Level 2. In every
 Game Mode, Level 1 is whole hours, Level 2 quarter hours and Level 3 every five minutes.
 
+**Mastery (Time Flies)**: Getting 16 of the last 20 problems in a Game Mode right on the first try without help, twice
+the run Monster Truck Money asks for, so he stays on each Level longer.
+
 **Aircraft**: one of the 14 planes in the Hangar, Time Flies' Body. Three starters (P-51 Mustang, F-16 Falcon, F/A-18
 Super Hornet) are his from the start; the rest cost 30 Bolts.
 _Avoid_: jet (the P-51, P-38 and Corsair have propellers), Body

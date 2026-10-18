@@ -1,8 +1,8 @@
 // The clock's three Game Modes, in unlock order, and his progress in each. Mastery, Levels and the unlock chain work as in
-// Monster Truck Money (src/modes/progress.ts): 8 of the last 10 right on the first try raises the Level, and a mode
-// opens when the one before it reaches Level 2.
+// Monster Truck Money (src/modes/progress.ts), but Mastery takes twice as long so he stays on each Level longer: 16 of the
+// last 20 right on the first try raises the Level, and a mode opens when the one before it reaches Level 2.
 import type { Check, LearningSession, Outcome, Progression, Rng } from '../learning/session';
-import { recordOutcome, struggling } from '../modes/progress';
+import { recordOutcome, struggling, type MasteryRule } from '../modes/progress';
 import type { ModeProgress } from '../modes/state';
 import { choicesFor, parseDigital, randomTime, sameTime, startingTime, type ClockTime, type Level } from './clock/time';
 
@@ -20,6 +20,9 @@ export interface LearningState {
   lastMode: ModeId;
 }
 
+/** 16 of the last 20 right on the first try. */
+export const CLOCK_RULE: MasteryRule = { window: 20, mastery: 16 };
+
 export const freshMode = (id: ModeId): ModeProgress => ({ level: 1, window: [], opened: id === 'find', starred: false, introPending: false, fresh: false });
 export const freshLearning = (): LearningState => ({
   modes: { find: freshMode('find'), read: freshMode('read'), set: freshMode('set') },
@@ -36,7 +39,7 @@ function readMode(id: ModeId, raw: unknown): ModeProgress {
   if (!isRecord(raw)) return f;
   return {
     level: ([1, 2, 3] as const).find(l => l === raw.level) ?? f.level,
-    window: Array.isArray(raw.window) ? raw.window.filter((o): o is Outcome => OUTCOMES.includes(o as Outcome)).slice(-10) : f.window,
+    window: Array.isArray(raw.window) ? raw.window.filter((o): o is Outcome => OUTCOMES.includes(o as Outcome)).slice(-CLOCK_RULE.window) : f.window,
     opened: bool(raw.opened, f.opened), starred: bool(raw.starred, f.starred),
     introPending: bool(raw.introPending, f.introPending), fresh: bool(raw.fresh, f.fresh),
   };
@@ -61,7 +64,7 @@ export type LearningChange =
   | { kind: 'star'; mode: ModeId };
 
 export const recordSolved: Progression<LearningState, ModeId, LearningChange> = (state, id, result) => {
-  const { mode, event } = recordOutcome(state.modes[id], result.outcome);
+  const { mode, event } = recordOutcome(state.modes[id], result.outcome, CLOCK_RULE);
   const changes: LearningChange[] = [];
   const modes = { ...state.modes, [id]: mode };
   if (event === 'levelUp') {

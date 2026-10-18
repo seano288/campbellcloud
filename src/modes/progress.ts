@@ -9,9 +9,13 @@ export const TOP_LEVEL = 3;
 
 export type ProgressEvent = 'levelUp' | 'star';
 
-export function recordOutcome(mode: ModeProgress, outcome: Outcome): { mode: ModeProgress; event: ProgressEvent | null } {
-  const window = [...mode.window, outcome].slice(-WINDOW);
-  const mastered = window.filter(o => o === 'clean').length >= MASTERY;
+/** How Mastery is judged: `mastery` right on the first try, of the last `window` problems. */
+export interface MasteryRule { readonly window: number; readonly mastery: number }
+export const DEFAULT_RULE: MasteryRule = { window: WINDOW, mastery: MASTERY };
+
+export function recordOutcome(mode: ModeProgress, outcome: Outcome, rule: MasteryRule = DEFAULT_RULE): { mode: ModeProgress; event: ProgressEvent | null } {
+  const window = [...mode.window, outcome].slice(-rule.window);
+  const mastered = window.filter(o => o === 'clean').length >= rule.mastery;
   if (mastered && mode.level < TOP_LEVEL) {
     return { mode: { ...mode, level: (mode.level + 1) as 2 | 3, window: [], introPending: true }, event: 'levelUp' };
   }
@@ -19,5 +23,5 @@ export function recordOutcome(mode: ModeProgress, outcome: Outcome): { mode: Mod
   return { mode: { ...mode, window }, event: null };
 }
 
-/** He has missed a lot lately: help steps in after a single miss. */
-export const struggling = (mode: ModeProgress) => mode.window.filter(o => o === 'missed').length >= STRUGGLE;
+/** He has missed a lot lately (of the last 10): help steps in after a single miss. */
+export const struggling = (mode: ModeProgress) => mode.window.slice(-WINDOW).filter(o => o === 'missed').length >= STRUGGLE;
