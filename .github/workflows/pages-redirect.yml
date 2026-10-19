@@ -22,7 +22,7 @@ jobs:
       name: github-pages
       url: ${{ steps.deployment.outputs.page_url }}
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
       # Every folder that had a service worker while the site lived on Pages. Games added since then never did.
       - run: |
           mkdir -p out
@@ -32,9 +32,9 @@ jobs:
             cp pages-redirect/sw.js "out/$dir/sw.js"
           done
           cp pages-redirect/index.html out/404.html
-      - uses: actions/configure-pages@v5
-      - uses: actions/upload-pages-artifact@v3
+      - uses: actions/configure-pages@v6
+      - uses: actions/upload-pages-artifact@v5
         with:
           path: out
       - id: deployment
-        uses: actions/deploy-pages@v4
+        uses: actions/deploy-pages@v5
