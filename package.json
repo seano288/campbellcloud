@@ -15,7 +15,9 @@
     "check:baseline": "tsx tools/baseline/browser.ts",
     "baseline:save": "tsx tools/baseline/export-save.ts",
     "build:site": "tsx tools/site-build.ts",
-    "dev:time-flies": "vite --config vite.time-flies.config.ts"
+    "check:hunch": "tsx tools/hunch/play.ts",
+    "dev:time-flies": "vite --config vite.time-flies.config.ts",
+    "dev:hunch": "vite --config vite.hunch.config.ts"
   },
   "dependencies": {
     "@fontsource/bungee": "^5.3.0",
