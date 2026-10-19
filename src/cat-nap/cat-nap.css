@@ -1,0 +1,77 @@
+/* Cat Nap: a cosy night-time purple, patchwork quilt colours on the board. Stands alone, without src/styles.css. */
+:root{--night:#3b2a6b;--ink:#2a1a10;--gold:#ffd23f;--green:#2bb673;--line:1px solid #0002;--edge:3px solid #2a1a10;--u:1}
+@media (max-width:700px),(max-height:700px){:root{--u:.82}}
+@media (max-width:430px),(max-height:520px){:root{--u:.66}}
+*{box-sizing:border-box}
+html,body{margin:0;height:100%;overflow:hidden;background:var(--night)}
+body{font-family:Nunito,system-ui,sans-serif;color:#fff;-webkit-tap-highlight-color:transparent;user-select:none;-webkit-user-select:none;touch-action:manipulation}
+button{font:inherit;color:inherit;border:0;background:none;padding:0;cursor:pointer}
+button:disabled{opacity:.4;cursor:default}
+#app{position:fixed;inset:0;display:flex;flex-direction:column;padding:env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left)}
+.screen{flex:1;min-height:0;display:flex;flex-direction:column;background:radial-gradient(circle at 50% 0%,#6a4fc0,var(--night) 70%)}
+.build-label{position:absolute;right:calc(12px + env(safe-area-inset-right));bottom:calc(8px + env(safe-area-inset-bottom));font:800 12px Nunito,sans-serif;color:#fff;opacity:.45;pointer-events:none}
+
+/* ---------- home ---------- */
+.nap-home{align-items:center;justify-content:center;gap:calc(22px*var(--u));padding:16px;overflow-y:auto}
+.nap-back{position:absolute;left:calc(14px + env(safe-area-inset-left));top:calc(10px + env(safe-area-inset-top));font-size:34px;text-decoration:none}
+.nap-title{text-align:center}
+.nap-title-cat{display:block;width:calc(130px*var(--u));margin:0 auto;animation:breathe 3s ease-in-out infinite}
+.nap-title-cat svg,.nap-card .cats svg,.nap-cell .cat svg{display:block;width:100%;height:100%}
+.nap-title h1{margin:4px 0 0;font:400 calc(64px*var(--u)) Bungee,sans-serif;color:var(--gold);text-shadow:3px 3px 0 #e2557a,6px 6px 0 #000}
+.nap-title p{margin:6px 0 0;font-weight:800;font-size:calc(18px*var(--u));opacity:.85}
+.nap-daily,.nap-mode{border:4px solid #000;border-radius:22px;box-shadow:0 6px 0 #000;color:var(--ink);display:flex;flex-direction:column;align-items:center;text-align:center}
+.nap-daily:active,.nap-mode:active{transform:translateY(4px);box-shadow:0 2px 0 #000}
+.nap-daily{width:min(100%,560px);background:linear-gradient(#ffe57a,#ffc23f);padding:calc(14px*var(--u)) 20px}
+.nap-daily.done{background:linear-gradient(#bff0cf,#7fd6a0)}
+.nap-daily .nm{font:400 calc(30px*var(--u)) Bungee,sans-serif}
+.nap-daily .sub{font-weight:900;font-size:calc(18px*var(--u))}
+.nap-modes{display:grid;grid-template-columns:repeat(4,1fr);gap:calc(14px*var(--u));width:min(100%,760px)}
+@media (max-width:620px){.nap-modes{grid-template-columns:repeat(2,1fr)}}
+.nap-mode{padding:calc(12px*var(--u)) 8px;gap:2px}
+.nap-mode .nm{font:400 calc(22px*var(--u)) Bungee,sans-serif}
+.nap-mode .sz{font-weight:900;font-size:calc(26px*var(--u))}
+.nap-mode .lv{font-weight:900;font-size:calc(16px*var(--u))}
+.nap-mode .best{font-weight:800;font-size:calc(14px*var(--u));opacity:.7}
+.m-easy{background:#b5e8c8}.m-medium{background:#bcd7ff}.m-hard{background:#ffc1cc}.m-extreme{background:#e2c6ff}
+
+/* ---------- play ---------- */
+.nap-bar{display:flex;align-items:center;gap:12px;padding:calc(10px*var(--u)) 16px;font-weight:900;font-size:calc(22px*var(--u))}
+.nap-icon{width:calc(52px*var(--u));height:calc(52px*var(--u));border-radius:50%;background:#0004;border:3px solid var(--gold);font-size:calc(24px*var(--u));display:grid;place-items:center;flex:none}
+.nap-level{flex:1;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;font-family:Bungee,sans-serif;font-weight:400;color:var(--gold)}
+.nap-time{font-variant-numeric:tabular-nums}
+.nap-fish{display:flex;gap:2px;font-size:calc(28px*var(--u))}
+.nap-fish span{transition:.3s}
+.nap-fish .gone{filter:grayscale(1);opacity:.25;transform:scale(.8) rotate(-30deg)}
+
+.nap-board-wrap{flex:1;min-height:0;container-type:size;display:grid;place-items:center;padding:0 12px}
+.nap-board{width:min(100cqw,100cqh,820px);aspect-ratio:1;display:grid;grid-template-columns:repeat(var(--n),1fr);grid-template-rows:repeat(var(--n),1fr);border:5px solid var(--ink);border-radius:14px;overflow:hidden;box-shadow:0 10px 0 #0008;touch-action:none;cursor:pointer;background:#fff}
+.nap-board.shake{animation:shake .4s}
+.nap-board.won .cat{animation:breathe 2s ease-in-out infinite}
+.nap-cell{position:relative;display:grid;place-items:center;container-type:size;min-width:0;min-height:0}
+.nap-cell.hover{filter:brightness(1.06)}
+.nap-cell.ruled::after{content:"";position:absolute;inset:0;background:#2a1a1018}
+.nap-cell .x{font-weight:900;font-size:42cqh;color:#2a1a10aa;line-height:1;pointer-events:none}
+.nap-cell .cat{width:82%;height:82%;pointer-events:none}
+.nap-cell .cat.pop{animation:pop .35s ease-out}
+
+.nap-tools{display:flex;justify-content:center;gap:10px;padding:calc(12px*var(--u)) 12px 0;flex-wrap:wrap}
+.nap-tool{background:#0004;border:3px solid #fff8;border-radius:999px;padding:6px 16px;font-weight:900;font-size:calc(18px*var(--u))}
+.nap-tool.on{border-color:var(--gold);color:var(--gold)}
+.nap-help{margin:6px 0 calc(10px*var(--u));text-align:center;font-weight:800;font-size:calc(14px*var(--u));opacity:.7}
+
+.nap-over{position:fixed;inset:0;z-index:50;display:grid;place-items:center;background:#0008;animation:fade .3s}
+.nap-card{background:#fff;color:var(--ink);border:4px solid #000;border-radius:26px;box-shadow:0 10px 0 #000;padding:24px 32px;text-align:center;display:flex;flex-direction:column;align-items:center;gap:10px;min-width:min(90vw,340px);animation:pop .35s ease-out}
+.nap-card h2{margin:0;font:400 calc(40px*var(--u)) Bungee,sans-serif;color:#7b5cd6}
+.nap-card p{margin:0;font-weight:800;font-size:calc(18px*var(--u))}
+.nap-card .big{font-size:72px;line-height:1}
+.nap-card .cats{display:flex;gap:6px}
+.nap-card .cats span{width:72px;height:72px;animation:breathe 2s ease-in-out infinite}
+.nap-card .cats span:nth-child(2){animation-delay:.3s}.nap-card .cats span:nth-child(3){animation-delay:.6s}
+.nap-btn{width:100%;border:4px solid #000;border-radius:18px;box-shadow:0 5px 0 #000;padding:10px 20px;font-weight:900;font-size:calc(24px*var(--u));background:#fff}
+.nap-btn:active{transform:translateY(3px);box-shadow:0 2px 0 #000}
+.nap-btn.go{background:var(--green);color:#fff}
+
+@keyframes shake{20%,60%{transform:translateX(-10px)}40%,80%{transform:translateX(10px)}}
+@keyframes pop{0%{transform:scale(.3)}70%{transform:scale(1.15)}100%{transform:scale(1)}}
+@keyframes breathe{50%{transform:scale(1.06,.96)}}
+@keyframes fade{from{opacity:0}}
