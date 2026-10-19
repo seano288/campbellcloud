@@ -14,8 +14,8 @@ from pathlib import Path
 
 VOICE = 'en-US-AvaNeural'
 RATE = '-8%'
-# Purrdoku's sarcastic narrator: a casual, conversational voice, a touch slow so the deadpan lines land
-VOICES = {'purrdoku': ('en-US-BrianMultilingualNeural', '-5%')}
+# Purrdoku's sarcastic narrator: a dry British voice, a touch slow so the deadpan lines land
+VOICES = {'purrdoku': ('en-GB-RyanNeural', '-5%')}
 ROOT = Path(__file__).resolve().parent.parent
 
 
