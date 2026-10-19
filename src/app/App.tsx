@@ -15,6 +15,7 @@ import { MoneyRound } from './MoneyRound';
 import { PLACE_KEY, screen, screenVoice } from './nav';
 import { MONEY_SAVE_KEY } from './save';
 import { HoldForProgress } from '../ui/MoveProgress';
+import { BuildLabel } from '../ui/BuildLabel';
 import { comeBack } from '../round/round';
 
 function start(voice: VoiceScope, reward: RewardPresentation) {
@@ -56,6 +57,7 @@ function StartScreen({ title, reward }: { title: readonly [string, string]; rewa
       <button class="big-btn go start-btn" aria-label="Start" onClick={() => start(voice, reward)}>
         <span class="e">▶</span>
       </button>
+      <BuildLabel />
     </div>
   );
 }

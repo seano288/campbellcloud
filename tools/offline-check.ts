@@ -269,6 +269,30 @@ journey('money app starts, practises, buys and plays recorded audio online with 
   }
 });
 
+journey('an update that arrives on the title screen reloads straight into it', async browser => {
+  const site = await serve('dist');
+  const context = await profile(browser, JOURNEY_SAVES['checkout-2']);
+  try {
+    const page = await newPage(context);
+    const problems = watch(page, site.url);
+    await warm(page, site.url);
+    await page.reload();
+    await button(page, 'Start').waitFor();
+    assert.match(await page.locator('.build-label').textContent() ?? '', /^\d{4}-\d\d-\d\d \d\d:\d\d · \w+$/);
+    publishUpdate(site, 1);
+    const reloaded = page.waitForEvent('framenavigated', { predicate: frame => frame === page.mainFrame() });
+    await page.evaluate(async () => { await (await navigator.serviceWorker.getRegistration())!.update(); });
+    await reloaded;
+    await page.locator('meta[name="candidate-update"][content="1"]').waitFor({ state: 'attached' });
+    await button(page, 'Start').click();
+    await button(page, 'Count the Cash').waitFor();
+    assert.deepEqual(problems, []);
+  } finally {
+    await context.close();
+    await site.close();
+  }
+});
+
 // Publishes version `n` of the served copy: different HTML and a matching precache revision.
 function publishUpdate(site: Site, n: number) {
   const html = resolve(site.root, 'index.html'), sw = resolve(site.root, 'sw.js');

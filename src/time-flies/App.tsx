@@ -4,6 +4,7 @@ import { useState } from 'preact/hooks';
 import { unlockAudio } from '../audio/context';
 import { BoltPile } from '../ui/bits';
 import { HoldForProgress } from '../ui/MoveProgress';
+import { BuildLabel } from '../ui/BuildLabel';
 import { player, SAVE_KEY } from './game';
 import { GoalBar } from './hangar/GoalBar';
 import { hasAffordable } from './hangar/hangar';
@@ -46,6 +47,7 @@ function Start() {
         else comeBack(); // back where he was before the page reloaded
         void screenVoice.value.say("Let's go!");
       }}><span class="e">▶</span></button>
+      <BuildLabel />
     </div>
   );
 }

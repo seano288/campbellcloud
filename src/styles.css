@@ -16,6 +16,7 @@ button{font:inherit;color:inherit;border:0;background:none;padding:0;cursor:poin
 
 .start{flex:1;display:grid;place-items:center;align-content:center;gap:calc(28px*var(--u));text-align:center;background:radial-gradient(#3a3d46,#15161a)}
 .start h1{margin:0;font:400 clamp(28px,7vmin,64px) Bungee,sans-serif;color:var(--yellow);text-shadow:3px 3px 0 var(--red),6px 6px 0 #000}
+.build-label{position:absolute;right:calc(12px + env(safe-area-inset-right));bottom:calc(8px + env(safe-area-inset-bottom));font:800 12px Nunito,sans-serif;color:#fff;opacity:.45;pointer-events:none}
 .start-btn{font-size:calc(48px*var(--u));padding:calc(24px*var(--u)) calc(64px*var(--u))}
 
 /* ---------- shared bits ---------- */

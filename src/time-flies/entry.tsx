@@ -6,6 +6,6 @@ import './time-flies.css';
 import { mountApp } from '../main';
 import { App } from './App';
 import { player } from './game';
-import { place } from './nav';
+import { place, screen } from './nav';
 
-void mountApp(App, () => Promise.all([player.load(), place.load()]));
+void mountApp(App, () => Promise.all([player.load(), place.load()]), () => screen.peek() === 'start');

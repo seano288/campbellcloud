@@ -1,3 +1,4 @@
+import { execSync } from 'node:child_process';
 import { readFileSync } from 'node:fs';
 import { isAbsolute, relative, resolve } from 'node:path';
 import preact from '@preact/preset-vite';
@@ -60,6 +61,13 @@ function selectedAssets(selection: Pick<StaticSelection, 'assets' | 'voice'>): P
   };
 }
 
+// Shown small on the title screen, so it's easy to tell which version the iPad is running.
+function buildLabel() {
+  let commit = 'dev';
+  try { commit = execSync('git rev-parse --short HEAD', { stdio: ['ignore', 'pipe', 'ignore'] }).toString().trim(); } catch { /* not a checkout */ }
+  return `${new Date().toISOString().slice(0, 16).replace('T', ' ')} · ${commit}`;
+}
+
 export function staticBuild<const P extends string>(selection: StaticSelection<P>): InlineConfig {
   const { branding } = selection;
   const voice = { root: selection.voice.root, collection: { ...selection.voice.collection, phrases: selection.entry.voice.phrases } };
@@ -72,6 +80,7 @@ export function staticBuild<const P extends string>(selection: StaticSelection<P
     root: resolve(import.meta.dirname, '..'),
     base: './',
     publicDir: false,
+    define: { __BUILD__: JSON.stringify(buildLabel()) },
     plugins: [
       preact(),
       {
@@ -95,7 +104,7 @@ export function staticBuild<const P extends string>(selection: StaticSelection<P
       homeScreenIcons(branding.icon),
       VitePWA({
         registerType: 'autoUpdate',
-        injectRegister: false, // src/pwa.ts registers it, only on the web and without reloading the page
+        injectRegister: false, // src/pwa.ts registers it, only on the web, and picks when to reload
         manifest: {
           name: branding.title,
           short_name: branding.shortName,
@@ -114,7 +123,7 @@ export function staticBuild<const P extends string>(selection: StaticSelection<P
         workbox: {
           globPatterns: ['**/*.{js,css,html,png,jpg,svg,webp,mp3,woff,woff2,hdr}'],
           cleanupOutdatedCaches: true,
-          // the new version takes over in the background; the page isn't reloaded, so it shows on the next launch
+          // the new version takes over in the background; src/pwa.ts reloads into it only when that can't interrupt him
           skipWaiting: true,
           clientsClaim: true,
         },
