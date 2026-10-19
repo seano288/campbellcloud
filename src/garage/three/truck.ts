@@ -15,13 +15,31 @@ import { BOLT, BOLTS, decalShapes, FLAME1, FLAME2, numberBox, numberSpot, SKULL,
 const V3 = THREE.Vector3, V2 = THREE.Vector2;
 type Pt = [number, number];
 
+/** Raised tire lettering, drawn once: the brand twice round, light grey worn into the rubber. */
+const sidewallTex = (() => {
+  if (typeof document === 'undefined') return null;
+  const c = document.createElement('canvas');
+  c.width = 2048; c.height = 128;
+  const g = c.getContext('2d')!;
+  g.font = '700 84px "Arial Black", Impact, sans-serif'; g.textAlign = 'center'; g.textBaseline = 'middle'; g.fillStyle = 'rgba(226,226,222,.92)';
+  for (const [x, t] of [[256, 'MONSTER'], [768, 'MUDDER  ◆'], [1280, 'MONSTER'], [1792, 'MUDDER  ◆']] as const) g.fillText(t, x, 66, 460);
+  const tex = new THREE.CanvasTexture(c); tex.colorSpace = THREE.SRGBColorSpace; tex.anisotropy = 8;
+  return tex;
+})();
 // ---------- materials shared by every build ----------
 const std = (c: number, o: THREE.MeshStandardMaterialParameters = {}) => new THREE.MeshStandardMaterial({ color: c, ...o });
 const M = {
-  rubber: std(0x1b1b1c, { roughness: 0.96 }),
+  rubber: std(0x232325, { roughness: 0.9 }),
+  letters: std(0xffffff, { map: sidewallTex, transparent: true, roughness: 0.85, depthWrite: false, polygonOffset: true, polygonOffsetFactor: -2 }),
   dark: std(0x1e2126, { roughness: 0.45, metalness: 0.6 }),
   chrome: std(0xf2f2f2, { roughness: 0.07, metalness: 1 }),
-  glass: new THREE.MeshPhysicalMaterial({ color: 0x101c26, roughness: 0.03, metalness: 0.2, clearcoat: 1 }),
+  glass: new THREE.MeshPhysicalMaterial({ color: 0x15222e, roughness: 0.03, metalness: 0.2, clearcoat: 1, envMapIntensity: 1.4 }),
+  /** The side windows: tinted, see-through glass with the cab behind it. */
+  tint: new THREE.MeshPhysicalMaterial({ color: 0x3d5566, roughness: 0.02, metalness: 0.3, clearcoat: 1, clearcoatRoughness: 0.02, transparent: true, opacity: 0.3, depthWrite: false, iridescence: 0.15, iridescenceIOR: 1.6, iridescenceThicknessRange: [200, 600], envMapIntensity: 1.6, side: THREE.DoubleSide }),
+  cab: std(0x2c2e33, { roughness: 0.85, side: THREE.BackSide }), // the tunnel walls face into the shell
+  suit: std(0xd8261c, { roughness: 0.7 }),
+  helmet: new THREE.MeshPhysicalMaterial({ color: 0xf2f2ee, roughness: 0.3, clearcoat: 1 }),
+  visor: new THREE.MeshPhysicalMaterial({ color: 0x1a1408, metalness: 0.9, roughness: 0.05, iridescence: 0.6 }),
   shock: std(0xff5a1f, { roughness: 0.3, metalness: 0.5 }),
   frame: std(0x2b62d9, { roughness: 0.35, metalness: 0.4 }),
   liner: std(0x0b0b0c, { roughness: 1 }),
@@ -30,8 +48,27 @@ const M = {
 const SHARED = new Set<THREE.Material>(Object.values(M));
 // Shell: R = corner rounding (profile units), bt/bs = bevel thickness/size
 const SH = { R: 9, bt: 0.07, bs: 0.06, seg: 5 };
+/** How far the cab runs on below a side window's sill, and the lowest it goes (above the coil-overs' tops), from the shell's base. */
+const CAB_DEPTH = 0.3, CAB_FLOOR = 0.36;
+/** How far the cab's cut reaches past the windows (profile units): its walls bevel in by about this much, leaving a slim lip. */
+const CAB_MARGIN = 5;
 const RIM_C = [0xb9c0c8, 0xd8dde3, 0xffcc33, 0xff3df0, 0xffd700] as const;
 
+
+/** A flat ring from r0 to r1 with its texture wrapped round it: u goes round, v goes out. */
+function sidewallRing(r0: number, r1: number, seg = 96) {
+  const pos: number[] = [], uv: number[] = [], idx: number[] = [];
+  for (let i = 0; i <= seg; i++) {
+    const a = (i / seg) * Math.PI * 2;
+    pos.push(Math.cos(a) * r0, Math.sin(a) * r0, 0, Math.cos(a) * r1, Math.sin(a) * r1, 0);
+    uv.push(1 - i / seg, 0, 1 - i / seg, 1);
+    if (i < seg) idx.push(i * 2, i * 2 + 1, i * 2 + 2, i * 2 + 1, i * 2 + 3, i * 2 + 2);
+  }
+  const geo = new THREE.BufferGeometry();
+  geo.setAttribute('position', new THREE.Float32BufferAttribute(pos, 3)); geo.setAttribute('uv', new THREE.Float32BufferAttribute(uv, 2)); geo.setIndex(idx);
+  geo.computeVertexNormals();
+  return geo;
+}
 
 const glowTex = (() => {
   if (typeof document === 'undefined') return null;
@@ -82,6 +119,52 @@ function creaseNormals(geo: THREE.BufferGeometry, deg: number) {
   }
   geo.setAttribute('normal', new THREE.BufferAttribute(out, 3));
   return geo;
+}
+
+/** Is p inside the polygon? */
+function inside(p: THREE.Vector2, poly: THREE.Vector2[]) {
+  let c = false;
+  for (let i = 0, j = poly.length - 1; i < poly.length; j = i++) {
+    const a = poly[i]!, b = poly[j]!;
+    if (a.y > p.y !== b.y > p.y && p.x < ((b.x - a.x) * (p.y - a.y)) / (b.y - a.y) + a.x) c = !c;
+  }
+  return c;
+}
+/** The convex hull of some points (monotone chain). */
+function convexHull(pts: Pt[]): Pt[] {
+  const p = [...pts].sort((a, b) => a[0] - b[0] || a[1] - b[1]), cross = (o: Pt, a: Pt, b: Pt) => (a[0] - o[0]) * (b[1] - o[1]) - (a[1] - o[1]) * (b[0] - o[0]);
+  const half = (list: Pt[]) => { const h: Pt[] = []; for (const q of list) { while (h.length >= 2 && cross(h[h.length - 2]!, h[h.length - 1]!, q) <= 0) h.pop(); h.push(q); } h.pop(); return h; };
+  return [...half(p), ...half([...p].reverse())];
+}
+/** A convex polygon pushed out by d on every side. */
+function offsetHull(poly: Pt[], d: number): Pt[] {
+  const n = poly.length, area = poly.reduce((a, p, i) => a + p[0] * poly[(i + 1) % n]![1] - poly[(i + 1) % n]![0] * p[1], 0), k = area > 0 ? 1 : -1;
+  const normal = (a: Pt, b: Pt) => { const ex = b[0] - a[0], ey = b[1] - a[1], l = Math.hypot(ex, ey) || 1; return [(k * ey) / l, (-k * ex) / l] as const; };
+  return poly.map((p, i) => {
+    const [ax, ay] = normal(poly[(i - 1 + n) % n]!, p), [bx, by] = normal(p, poly[(i + 1) % n]!), m = d / (1 + ax * bx + ay * by);
+    return [p[0] + (ax + bx) * m, p[1] + (ay + by) * m];
+  });
+}
+/** Splits a non-indexed geometry's triangles in two: those `pick` (given a triangle's first vertex) leaves, and those it takes. */
+function splitTriangles(geo: THREE.BufferGeometry, pick: (vertex: number) => boolean): [THREE.BufferGeometry, THREE.BufferGeometry] {
+  const names = ['position', 'normal', 'uv'] as const, out = [names.map(() => [] as number[]), names.map(() => [] as number[])];
+  for (let i = 0; i < geo.attributes.position!.count; i += 3) {
+    const dst = out[pick(i) ? 1 : 0]!;
+    names.forEach((name, k) => { const at = geo.attributes[name]!; for (let v = i; v < i + 3; v++) for (let e = 0; e < at.itemSize; e++) dst[k]!.push(at.array[v * at.itemSize + e]!); });
+  }
+  return out.map(arrs => {
+    const g = new THREE.BufferGeometry();
+    names.forEach((name, k) => g.setAttribute(name, new THREE.Float32BufferAttribute(arrs[k]!, name === 'uv' ? 2 : 3)));
+    return g;
+  }) as [THREE.BufferGeometry, THREE.BufferGeometry];
+}
+
+/** A copy of a flat geometry facing the other way. */
+function flipped(geo: THREE.BufferGeometry) {
+  const g = geo.clone(), idx = g.index!.array, n = g.attributes.normal!;
+  for (let i = 0; i < idx.length; i += 3) { const t = idx[i + 1]!; idx[i + 1] = idx[i + 2]!; idx[i + 2] = t; }
+  for (let i = 0; i < n.count; i++) n.setZ(i, -n.getZ(i));
+  return g;
 }
 
 function seeded(seed: number) {
@@ -176,15 +259,20 @@ class Builder {
   }
   /** Tire cross-section turned on a lathe: sidewall, rounded shoulders (k), flat tread. */
   tireGeo(r: number, w: number, rimR: number, k: number, seg = 48) {
-    const hw = w / 2, p = [new V2(rimR, -hw * 0.9)], N = 6;
+    const hw = w / 2, p = [new V2(rimR, -hw * 0.97)], N = 6;
     for (let i = 0; i <= N; i++) { const a = (i / N) * Math.PI / 2; p.push(new V2(r - k + Math.sin(a) * k, -hw + k - Math.cos(a) * k)); }
     for (let i = 0; i <= N; i++) { const a = (i / N) * Math.PI / 2; p.push(new V2(r - k + Math.cos(a) * k, hw - k + Math.sin(a) * k)); }
-    p.push(new V2(rimR, hw * 0.9));
+    p.push(new V2(rimR, hw * 0.97));
     return new THREE.LatheGeometry(p, seg).rotateX(Math.PI / 2);
   }
   wheel(rung: Rung, r: number, w: number) {
     const g = new THREE.Group(), rimR = r * 0.6, n = [30, 20, 16, 16, 12][rung]!, h = TREAD[rung] / U;
-    g.add(new THREE.Mesh(this.tireGeo(r - 0.01, w, rimR, Math.min(0.09, w * 0.3)), M.rubber));
+    const k = Math.min(0.09, w * 0.3);
+    g.add(new THREE.Mesh(this.tireGeo(r - 0.01, w, rimR, k), M.rubber));
+    if (sidewallTex) { // raised white lettering round both sidewalls
+      const ring = sidewallRing(rimR * 1.04, r - 0.01 - k * 0.9);
+      for (const s of [-1, 1]) { const o = new THREE.Mesh(ring, M.letters); o.position.z = s * (w / 2 + 0.002); if (s < 0) o.rotation.y = Math.PI; g.add(o); }
+    }
     for (let i = 0; i < n; i++) {
       const a = (i / n) * Math.PI * 2, rr = r + h / 2 - 0.015;
       if (rung === 0) {
@@ -213,21 +301,62 @@ class Builder {
   }
 
   // --- shell ---
+  /** The shell, hollowed out for the cab: one cut right through it round all the side windows and down below their sills.
+   *  The cut's walls are the cab, dark inside, and a skin painted like the shell covers each side but for the windows. */
   shell(cv: HTMLCanvasElement) {
     const { B, W, f } = this;
-    const geo = new THREE.ExtrudeGeometry(shellShapes(B.path, SH.R), { depth: W, bevelEnabled: true, bevelThickness: SH.bt, bevelSize: SH.bs, bevelSegments: SH.seg, curveSegments: 6 });
-    geo.translate(0, 0, -W / 2); geo.computeBoundingBox();
+    const outer = shellShapes(B.path, SH.R), wins = shellShapes(B.win, SH.R * 0.4), winPts = parsePath(B.win).flat();
+    const floor = -U * Math.max(CAB_FLOOR, -Math.max(...winPts.map(p => p[1])) / U - CAB_DEPTH);
+    const hull = offsetHull(convexHull([...winPts, ...winPts.map(([x]): Pt => [x, floor])]), CAB_MARGIN), cut = roundShape(hull, 4), cutPts = cut.getPoints(4);
+    const opts = { depth: W, bevelEnabled: true, bevelThickness: SH.bt, bevelSize: SH.bs, bevelSegments: SH.seg, curveSegments: 6 };
+    const k = Math.max(0, outer.findIndex(o => inside(cutPts[0]!, o.getPoints(6))));
+    // each shape extrudes as its lids then its walls, the outline's walls before the cut's: an uncut copy says where the cut's start
+    const uncut = new THREE.ExtrudeGeometry(outer[k]!, opts), outlineWalls = uncut.groups[1]!.count;
+    uncut.dispose();
+    outer[k]!.holes.push(cut);
+    const solid = new THREE.ExtrudeGeometry(outer, opts), walls = solid.groups[2 * k + 1]!, from = walls.start + outlineWalls, to = walls.start + walls.count;
+    solid.translate(0, 0, -W / 2);
+    const [geo, cab] = splitTriangles(solid, i => i >= from && i < to);
+    solid.dispose();
+    geo.computeBoundingBox();
     const bb = geo.boundingBox!, pos = geo.attributes.position!, uv = geo.attributes.uv!; // UVs = side projection, so the paint canvas wraps the whole shell
     for (let i = 0; i < pos.count; i++) uv.setXY(i, (pos.getX(i) - bb.min.x) / (bb.max.x - bb.min.x), (pos.getY(i) - bb.min.y) / (bb.max.y - bb.min.y));
     uv.needsUpdate = true;
     creaseNormals(geo, 40);
     const tex = new THREE.CanvasTexture(cv); tex.colorSpace = THREE.SRGBColorSpace; tex.anisotropy = 8;
     const chrome = f.paint === 3, gold = f.paint === 4;
-    this.body.add(new THREE.Mesh(geo, this.mat(new THREE.MeshPhysicalMaterial({ map: tex, roughness: gold ? 0.2 : chrome ? 0.15 : 0.3, metalness: gold ? 0.85 : chrome ? 0.7 : 0.25, clearcoat: 1, clearcoatRoughness: 0.05 }))));
-    const wd = W + 2 * SH.bt + 0.02, wg = new THREE.ExtrudeGeometry(shellShapes(B.win, SH.R * 0.4), { depth: wd, bevelEnabled: false, curveSegments: 4 }); wg.translate(0, 0, -wd / 2);
-    this.body.add(new THREE.Mesh(wg, M.glass));
+    const paint = this.mat(new THREE.MeshPhysicalMaterial({ map: tex, roughness: gold ? 0.2 : chrome ? 0.15 : 0.32, metalness: gold ? 0.85 : chrome ? 0.7 : 0, clearcoat: 1, clearcoatRoughness: 0.06 }));
+    this.body.add(new THREE.Mesh(geo, paint));
+    this.body.add(new THREE.Mesh(cab, M.cab));
+    const pane = new THREE.ShapeGeometry(wins, 4), skinShape = roundShape(hull, 4);
+    skinShape.holes.push(...wins);
+    const skin = new THREE.ShapeGeometry(skinShape, 4), sp = skin.attributes.position!, suv = skin.attributes.uv!;
+    for (let i = 0; i < sp.count; i++) suv.setXY(i, (sp.getX(i) - bb.min.x) / (bb.max.x - bb.min.x), (sp.getY(i) - bb.min.y) / (bb.max.y - bb.min.y));
+    for (const s of [1, -1]) {
+      const face = s * (W / 2 + SH.bt), o = new THREE.Mesh(s > 0 ? skin : flipped(skin), paint), g = new THREE.Mesh(pane, M.tint);
+      o.position.z = face + s * 0.001; g.position.z = face - s * 0.006; // the glass sits just inside the skin
+      this.body.add(o, g);
+    }
+    this.driver();
     for (const seg of [B.shield, B.rear]) if (seg) this.body.add(this.pane(seg, SH.bs + 0.015));
     return { tex, bb };
+  }
+
+  /** The driver, in a firesuit and a helmet, belted in the middle of the cab behind the front-most side window. */
+  driver() {
+    const win = parsePath(this.B.win).map(q => ({ x0: Math.min(...q.map(p => p[0])), x1: Math.max(...q.map(p => p[0])), top: Math.min(...q.map(p => p[1])), bot: Math.max(...q.map(p => p[1])) }))
+      .sort((a, b) => b.x1 - a.x1)[0];
+    if (!win) return;
+    const clear = (win.bot - win.top - 2 * SH.bs * U) / U, r = Math.min(0.14, Math.max(0.08, clear * 0.62));
+    const x = toX((win.x0 + win.x1) / 2), y = toY((win.top + win.bot) / 2) + r * 0.25, d = new THREE.Group();
+    const helmet = new THREE.Mesh(new THREE.SphereGeometry(r, 24, 16), M.helmet);
+    const visor = new THREE.Mesh(new THREE.SphereGeometry(r * 1.02, 24, 12, Math.PI * 0.68, Math.PI * 0.64, Math.PI * 0.3, Math.PI * 0.3), M.visor); // facing forward
+    const torso = new THREE.Mesh(new THREE.CapsuleGeometry(r * 1.05, r * 1.4, 6, 12), M.suit); torso.position.set(-r * 0.25, -r * 2.2, 0);
+    const seat = this.box(0.06, r * 4.5, r * 2.8, M.cab, -r * 1.35, -r * 1.6, 0);
+    const wheel = new THREE.Mesh(new THREE.TorusGeometry(r * 0.9, r * 0.12, 8, 24), M.dark); wheel.rotation.y = Math.PI / 2; wheel.rotation.x = 0; wheel.rotation.z = 0.5; wheel.position.set(r * 1.6, -r * 1.6, 0);
+    d.add(helmet, visor, torso, seat, wheel);
+    d.position.set(x, y, 0);
+    this.body.add(d);
   }
 
   // --- chassis and details ---

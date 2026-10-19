@@ -109,7 +109,7 @@ export class GarageStage {
     this.lights = { hemi, sun, rim, spot, beam, shade };
     this.loadWarehouse();
     scene.add(this.turntable);
-    const table = new THREE.Mesh(new THREE.CylinderGeometry(3.2, 3.3, 0.12, 72), new THREE.MeshStandardMaterial({ color: 0x3a4256, metalness: 0.6, roughness: 0.45 }));
+    const table = new THREE.Mesh(new THREE.CylinderGeometry(3.2, 3.3, 0.12, 72), new THREE.MeshStandardMaterial({ color: 0x6a7078, metalness: 0.85, roughness: 0.5 }));
     table.position.y = -0.06; table.receiveShadow = true; this.turntable.add(table);
     const ring = new THREE.Mesh(new THREE.TorusGeometry(3.22, 0.03, 8, 96), new THREE.MeshStandardMaterial({ color: 0xffc53d, emissive: 0xffc53d, emissiveIntensity: 1.2 }));
     ring.rotation.x = -Math.PI / 2; this.turntable.add(ring);
