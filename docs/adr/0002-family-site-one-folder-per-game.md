@@ -3,7 +3,7 @@
 The repo became `campbellcloud` to host more than one game. Pages now serves a small landing page at the site root with a
 big tile per game, and each game lives in its own folder (`/monster-truck-money/`, `/time-flies/`, `/purrdoku/`) as its own static
 build, with its own manifest, Home Screen icons and service worker scoped to that folder. `npm run build:site`
-(`tools/site-build.ts`) builds all of it into `dist-site/`, which Pages deploys; `npx vite build` still builds Monster
+(`tools/site-build.ts`) builds all of it into `dist-site/`, which is deployed (to Cloudflare since ADR 0004); `npx vite build` still builds Monster
 Truck Money alone into `dist/` for the existing browser checks.
 
 ## Considered Options

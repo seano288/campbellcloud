@@ -1,0 +1,21 @@
+// Serves dist-site/ (npm run build:site) on campbellcloud.com. The worker runs first on every request so it can turn
+// bots away before any file is served; see src/edge/worker.ts.
+{
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "campbellcloud",
+  "main": "src/edge/worker.ts",
+  "compatibility_date": "2026-10-19",
+  "assets": {
+    "directory": "./dist-site",
+    "binding": "ASSETS",
+    "run_worker_first": true,
+    "html_handling": "auto-trailing-slash",
+    "not_found_handling": "none"
+  },
+  "routes": [
+    { "pattern": "campbellcloud.com", "custom_domain": true },
+    { "pattern": "www.campbellcloud.com", "custom_domain": true }
+  ],
+  "workers_dev": false,
+  "preview_urls": false
+}
