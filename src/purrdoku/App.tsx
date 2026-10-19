@@ -134,6 +134,12 @@ function Board({ shake, pop, onCat }: { shake: number; pop: number | null; onCat
   const drop = () => { if (held.current) clearTimeout(held.current.timer); held.current = null; };
   const flush = () => { const h = held.current; drop(); if (h) paint([h.cell], h.mark); };
   useEffect(() => drop, [board]);
+  // iOS Safari still double-tap zooms over touch-action:none, so swallow the touches themselves; pointer events fire regardless
+  useEffect(() => {
+    const el = ref.current!, stop = (e: TouchEvent) => e.preventDefault();
+    el.addEventListener('touchend', stop, { passive: false });
+    return () => el.removeEventListener('touchend', stop);
+  }, [shake]);
   const playing = g.status === 'playing';
   const colours = useMemo(() => patchColours(board), [board]);
   const shown = shownHint.value;
