@@ -69,3 +69,34 @@ it('persists two intentional repeat purchases and rejects a later debit without 
   await reloaded.load();
   expect(reloaded.state.value).toEqual({ currency: { balance: 0 }, reward: { purchases: 2, available: true } });
 });
+
+it('pays for the whole Round when it was resumed after a reload, counting the earlier answers only once', async () => {
+  vi.useFakeTimers();
+  try {
+    const fresh = () => ({ learning: { solved: 2 }, currency: { balance: 0 } });
+    const store = createStore({ key: 'resume-test', adapter: { fresh, decode: fresh, encode: state => state }, backing: { read: () => null, write() {} } });
+    await store.load();
+    const practice = createPracticeCoordinator(store, {
+      start: state => ({ state: { ...state }, context: undefined, intro: false }),
+      acknowledge: state => state,
+      solve: (state, context, fact) => ({ state: { ...state, learning: progressNonMoney(state.learning, context, fact).state }, changes: [] }),
+      interrupt: state => state,
+      earnings: result => result.results.filter(r => r.outcome === 'clean').length,
+      complete: state => ({ state, facts: {} }),
+    });
+    const resume = [1, 2].map(index => ({ index, outcome: 'clean' as const, misses: 0, helped: false, replay: false }));
+    const started = practice.start(undefined, resume);
+    if (started.kind !== 'accepted') throw new Error('Expected Round start');
+    const controller = createRound({
+      roundId: started.roundId, session: nonMoneySession(), rng: () => 0, resume,
+      interrupt: vi.fn(), solved: (id, fact) => { practice.solve(id, fact); }, terminal: fact => { practice.terminal(fact); },
+    });
+    for (let i = 3; i <= 5; i++) {
+      controller.display.value.current.actions.submit('3:00');
+      await vi.advanceTimersByTimeAsync(i === 5 ? 900 : 1500);
+    }
+    expect(store.state.value).toEqual({ learning: { solved: 5 }, currency: { balance: 5 } });
+  } finally {
+    vi.useRealTimers();
+  }
+});

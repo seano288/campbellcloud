@@ -195,9 +195,9 @@ journey('money app practises, teaches, earns, buys, checks out, saves and plays 
     assert.deepEqual(await saved(page), legendary);
 
     // Offline reload, then a relaunch in a new page, both restore the committed state.
+    // Start takes him back to the Garage, where he was.
     await page.reload();
     await button(page, 'Start').click();
-    await button(page, 'Garage').click();
     await openSheet(page, 'Tires');
     assert.match(await button(page, 'Monster Treads').getAttribute('class') ?? '', /fitted/);
     assert.deepEqual(await saved(page), legendary);
@@ -208,7 +208,7 @@ journey('money app practises, teaches, earns, buys, checks out, saves and plays 
     voice = await observeRecordedVoice(page);
     await button(page, 'Start').click();
     await waitForAssertion(async () => assert.ok(played(voice), 'No recorded greeting played on offline relaunch'));
-    await page.locator('.home').waitFor();
+    await page.locator('.hot[aria-label="Tires"]').waitFor({ state: 'attached' }); // back in the Garage
     assert.deepEqual(await saved(page), legendary);
     assert.deepEqual(problems, []);
   } finally {
@@ -328,7 +328,7 @@ journey('an available update waits through an active Round, show and checkout an
     await page.goto(site.url);
     assert.equal(await page.locator('meta[name="candidate-update"]').getAttribute('content'), String(published));
     await button(page, 'Start').click();
-    await page.locator('.home').waitFor();
+    await page.locator('.hot[aria-label="Tires"]').waitFor({ state: 'attached' }); // back in the Garage, where he was
     assert.deepEqual(problems, []);
   } finally {
     await context.close();

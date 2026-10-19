@@ -6,5 +6,6 @@ import './time-flies.css';
 import { mountApp } from '../main';
 import { App } from './App';
 import { player } from './game';
+import { place } from './nav';
 
-void mountApp(App, () => player.load());
+void mountApp(App, () => Promise.all([player.load(), place.load()]));

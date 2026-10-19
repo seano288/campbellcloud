@@ -7,6 +7,7 @@ import { acknowledgeIntro, selectPractice, type LearningState } from '../modes/s
 import { completeTrophies } from './trophies';
 import { countAnswer as countStreak, type TrophyState } from '../trophies/rules';
 import type { createStore } from '../save/store';
+import type { SolvedProblem } from '../learning/session';
 import { createPracticeCoordinator } from './coordination';
 
 export interface MoneyPracticeState {
@@ -52,8 +53,8 @@ export function createMoneyPractice<State extends MoneyPracticeState>(
   });
   return {
     ...coordinator,
-    start(mode: ModeId) {
-      const result = coordinator.start(mode);
+    start(mode: ModeId, resume?: readonly SolvedProblem[]) {
+      const result = coordinator.start(mode, resume);
       return result.kind === 'accepted' ? { ...result, mode, level: result.state.learning.modes[mode].level } : result;
     },
   };

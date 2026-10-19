@@ -369,3 +369,23 @@ it.each([
   if (mode === 'count') await exercise(countSession(1, () => learning.modes.count, explain), p => p.choices.find(c => c !== p.total)!, p => p.total);
   else await exercise(paySession(1, () => learning.modes.pay, explain, async () => {}), () => ['p'] as const, p => helpPayCoins(p.price, p.bank));
 });
+
+it('carries on a resumed Round from the next problem, keeping the answers already given', async () => {
+  const before: SolvedProblem[] = [
+    { index: 1, outcome: 'clean', misses: 0, helped: false, replay: false },
+    { index: 2, outcome: 'missed', misses: 1, helped: false, replay: false },
+  ];
+  const solved: SolvedProblem[] = [], terminal: RoundResult[] = [];
+  const controller = createRound({
+    roundId: 'clock-resume', session: nonMoneySession(), rng: () => 0, resume: before,
+    interrupt: vi.fn(), solved: (_id, fact) => solved.push(fact), terminal: fact => terminal.push(fact),
+  });
+  expect(controller.display.value.answered).toBe(2);
+  expect(controller.display.value.results).toEqual(before);
+  for (let index = 3; index <= 5; index++) {
+    expect(controller.display.value.current.actions.submit('3:00')).toBe('correct');
+    expect(solved.at(-1)?.index).toBe(index);
+    await vi.advanceTimersByTimeAsync(index === 5 ? 900 : 1500);
+  }
+  expect(terminal).toEqual([{ roundId: 'clock-resume', status: 'completed', results: [...before, ...solved] }]);
+});

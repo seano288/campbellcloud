@@ -19,14 +19,15 @@ export function createPracticeCoordinator<State extends { currency: CurrencyStat
   let sequence = 0;
   let active: { roundId: string; context: Context; intro: boolean; results: SolvedProblem[]; terminal: boolean } | undefined;
 
-  function start(selection: Selection) {
+  /** `resume`: the answers already given in this Round before the page reloaded (already counted in the save). */
+  function start(selection: Selection, resume: readonly SolvedProblem[] = []) {
     const roundId = `round-${++sequence}`;
     let context!: Context, intro = false;
     const result = store.commit(state => {
       const next = policy.start(state, selection);
       context = next.context;
       intro = next.intro;
-      active = { roundId, context, intro, results: [], terminal: false };
+      active = { roundId, context, intro, results: resume.length < ROUND_LENGTH ? resume.map(r => ({ ...r })) : [], terminal: false };
       return next.state;
     });
     return result.kind === 'accepted' ? { ...result, roundId, context, intro } : result;

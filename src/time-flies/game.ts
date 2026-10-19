@@ -3,6 +3,7 @@
 import { readCurrency, type CurrencyState, type EarningsPolicy } from '../currency/currency';
 import { createPracticeCoordinator } from '../app/coordination';
 import { createRewardPurchases } from '../app/purchaseCoordination';
+import type { SolvedProblem } from '../learning/session';
 import { boltsFor } from '../round/rules';
 import { browserStorage, createStore, type SaveAdapter } from '../save/storage';
 import { countAnswer, freshTrophies, readTrophies, type TrophyState } from '../trophies/rules';
@@ -60,8 +61,8 @@ export function createPractice(store: Pick<typeof player, 'commit'>, today = () 
   });
   return {
     ...coordinator,
-    start(mode: ModeId) {
-      const result = coordinator.start(mode);
+    start(mode: ModeId, resume?: readonly SolvedProblem[]) {
+      const result = coordinator.start(mode, resume);
       return result.kind === 'accepted' ? { ...result, mode, level: result.state.learning.modes[mode].level } : result;
     },
   };

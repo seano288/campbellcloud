@@ -4,13 +4,13 @@ import { signal } from '@preact/signals';
 import { sBad, sGood } from '../audio/sfx';
 import { pick } from '../game/rng';
 import { createRound, type RoundDisplay } from '../learning/round';
-import type { LearningSession, Outcome, RoundResult } from '../learning/session';
+import type { LearningSession, Outcome, RoundResult, SolvedProblem } from '../learning/session';
 import { ROUND_LENGTH } from '../round/rules';
 import { explainChoice, explainFind, explainSet } from './clock/feedback';
 import type { ClockTime, Level } from './clock/time';
 import { practice, player } from './game';
 import { choiceSession, setSession, type ChoiceProblem, type LearningChange, type ModeId, type SetProblem } from './learning';
-import { screen, screenVoice } from './nav';
+import { place, screen, screenVoice } from './nav';
 import { CHEERS } from './phrases';
 import type { TrophyStep } from './trophies';
 import { createVoiceScope, toast, type VoiceScope } from './voice';
@@ -45,20 +45,26 @@ let stopShared = () => {};
 const set = (patch: Partial<RoundState>) => { if (round.value) round.value = { ...round.value, ...patch }; };
 const progressOf = (mode: ModeId) => () => player.state.peek().learning.modes[mode];
 
-export function startRound(mode: ModeId) {
+/** `resume`: the answers he gave in this Round before the page reloaded. */
+export function startRound(mode: ModeId, resume: readonly SolvedProblem[] = []) {
   leaveRound();
-  const started = practice.start(mode);
+  const started = practice.start(mode, resume);
   if (started.kind !== 'accepted') return;
   screen.value = 'round';
+  let soFar = [...resume];
+  place.round({ mode, results: soFar });
   const voice = createVoiceScope(screenVoice.peek().signal);
   const begin = <P, A>(session: LearningSession<P, A>, subject: (display: RoundDisplay<P, A>) => Subject) => {
     const controller = createRound({
-      roundId: started.roundId, session, rng: Math.random, signal: voice.signal,
+      roundId: started.roundId, session, rng: Math.random, signal: voice.signal, resume,
       introduction: started.intro ? { acknowledge: () => { practice.acknowledge(started.roundId); } } : undefined,
       interrupt: fact => { practice.interrupt(fact.roundId, fact.index, fact.outcome); },
       solved: (roundId, fact) => {
         const committed = practice.solve(roundId, fact);
-        if (committed.kind === 'accepted' && round.value?.roundId === roundId) set({ events: [...round.value.events, ...committed.changes] });
+        if (committed.kind !== 'accepted') return;
+        soFar = [...soFar, fact];
+        place.round({ mode, results: soFar });
+        if (round.value?.roundId === roundId) set({ events: [...round.value.events, ...committed.changes] });
       },
       terminal: fact => { if (fact.status === 'abandoned') practice.terminal(fact); else endRound(fact); },
       effects: {
@@ -73,7 +79,7 @@ export function startRound(mode: ModeId) {
     });
     shared = controller;
     round.value = {
-      ...subject(controller.display.peek()), voice, roundId: started.roundId, level: started.level, results: [],
+      ...subject(controller.display.peek()), voice, roundId: started.roundId, level: started.level, results: resume.map(r => r.outcome),
       busy: false, thinking: false, events: [], ended: false, earned: 0, canBuild: false, beforeBalance: 0, afterBalance: 0,
     };
     stopShared = controller.display.subscribe(display => {
@@ -91,8 +97,16 @@ export function startRound(mode: ModeId) {
   begin(setSession(level, progressOf(mode), explainSet), shared => ({ mode, shared }));
 }
 
+/** After the Start tap: back into the Round he was in the middle of, or to the screen he was on. */
+export function comeBack() {
+  const { screen: last, round: saved } = place.get();
+  if (saved && player.state.peek().learning.modes[saved.mode].opened) startRound(saved.mode, saved.results);
+  if (screen.peek() !== 'round') screen.value = last === 'hangar' ? 'hangar' : 'home';
+}
+
 export function leaveRound() {
   const r = round.value;
+  place.round(null);
   shared?.leave();
   stopShared();
   shared = null;
@@ -104,7 +118,9 @@ function endRound(fact: RoundResult) {
   const r = round.value;
   if (!r || r.roundId !== fact.roundId || r.ended) return;
   const done = practice.terminal(fact);
-  if (done.kind !== 'accepted' || round.value?.roundId !== fact.roundId) return;
+  if (done.kind !== 'accepted') return;
+  place.round(null);
+  if (round.value?.roundId !== fact.roundId) return;
   const events = [...r.events, ...done.trophies.map(step => ({ kind: 'trophy', step }) as const)];
   set({ ended: true, earned: done.earned, canBuild: done.canBuild, events, beforeBalance: done.beforeBalance, afterBalance: done.afterBalance });
 }

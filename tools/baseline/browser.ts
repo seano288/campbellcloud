@@ -138,9 +138,9 @@ for (const mode of ['count', 'pay'] as const) {
     assert.equal((await saved(page)).modes[mode].fresh, false);
     await page.getByRole('heading', { name: 'New money!' }).waitFor();
     await page.reload();
-    await button(page, 'Start').click();
+    await button(page, 'Start').click(); // back into the Round, so the introduction comes again
     assert.equal((await saved(page)).modes[mode].introPending, true);
-    await button(page, modeName[mode]).click();
+    await page.getByRole('heading', { name: 'New money!' }).waitFor();
     await button(page, 'Play').click();
     for (let i = 0; i < 5; i++) await solve(page, mode);
     const state = await saved(page);
@@ -512,7 +512,7 @@ journey('progressed save retains per-Body state on relaunch', PROGRESSED_EXPECTE
   assert.deepEqual(await saved(page), PROGRESSED_EXPECTED);
   await page.reload();
   await button(page, 'Start').click();
-  await page.locator('.home').waitFor();
+  await page.locator('.bodyname').waitFor(); // back in the Garage, where he was
   assert.deepEqual(await saved(page), PROGRESSED_EXPECTED);
 });
 
@@ -535,8 +535,7 @@ journey('Bolt purchase commits once before celebration and reload renders the fi
   assert.deepEqual(await saved(page), expected);
   assert.equal(await page.locator('.garage-hud .pilebox > span').innerText(), '1');
   await page.reload();
-  await button(page, 'Start').click();
-  await button(page, 'Garage').click();
+  await button(page, 'Start').click(); // back in the Garage, where he was
   await openSheet(page, 'Tires');
   assert.match(await button(page, 'Giant').getAttribute('class') ?? '', /fitted/);
   assert.equal(await page.locator('.blocker').count(), 0);
@@ -607,7 +606,7 @@ journey('Garage purchases, free fits, Body memory, Door Numbers and each selecte
   const state = await saved(page);
   await page.reload();
   await button(page, 'Start').click();
-  await page.locator('.home').waitFor();
+  await page.locator('.bodyname').waitFor(); // back in the Garage, where he was
   assert.deepEqual(await saved(page), state);
 });
 
@@ -668,8 +667,7 @@ for (const level of [2, 3] as const) {
     await page.locator('.blocker').waitFor({ state: 'hidden' });
     assert.match(await button(page, item).getAttribute('class') ?? '', /fitted/);
     await page.reload();
-    await button(page, 'Start').click();
-    await button(page, 'Garage').click();
+    await button(page, 'Start').click(); // back in the Garage, where he was
     await openSheet(page, level === 2 ? 'Tires' : 'Horn');
     assert.match(await button(page, item).getAttribute('class') ?? '', /fitted/);
     assert.equal(await page.locator('.checkout').count(), 0);

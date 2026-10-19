@@ -25,19 +25,21 @@ export interface RoundOptions<P, A> {
   rng: Rng;
   signal?: AbortSignal;
   introduction?: { acknowledge(): void };
+  /** The answers he already gave in this Round before the page reloaded: it carries on from the next one. */
+  resume?: readonly SolvedProblem[];
   effects?: { correct?(fact: SolvedProblem, signal: AbortSignal): Promise<void>; incorrect?: Effect };
   interrupt(fact: { roundId: string; problemId: number; index: number; outcome: Exclude<Outcome, 'clean'> }): void;
   solved(roundId: string, fact: SolvedProblem): void;
   terminal(fact: RoundResult): void;
 }
 
-export function createRound<P, A>({ roundId, session, rng, signal: parent, introduction, effects, interrupt, solved, terminal }: RoundOptions<P, A>): {
+export function createRound<P, A>({ roundId, session, rng, signal: parent, introduction, resume = [], effects, interrupt, solved, terminal }: RoundOptions<P, A>): {
   display: ReadonlySignal<RoundDisplay<P, A>>;
   leave(): void;
 } {
   let sequence = 0;
   let terminalStatus: RoundResult['status'] | null = null;
-  let results: readonly SolvedProblem[] = [];
+  let results: readonly SolvedProblem[] = resume;
   let queue: Again<P>[] = [];
   let work: AbortController;
   let transition: ReturnType<typeof setTimeout> | undefined;
@@ -55,7 +57,7 @@ export function createRound<P, A>({ roundId, session, rng, signal: parent, intro
         if (display.peek().phase === 'introduction') display.value = { ...display.peek(), phase: 'answering', introduction: null };
       },
     } : null,
-    current: instance(session.makeProblem(rng)), answered: 0, total: ROUND_LENGTH, results: [],
+    current: instance(session.makeProblem(rng)), answered: results.length, total: ROUND_LENGTH, results,
   });
 
   function instance(problem: P, replay = false): ProblemInstance<P, A> {

@@ -12,12 +12,16 @@ import type { VoiceScope } from '../voice/say';
 import { Home } from './Home';
 import { garageCues } from './garageEconomy';
 import { MoneyRound } from './MoneyRound';
-import { screen, screenVoice } from './nav';
+import { PLACE_KEY, screen, screenVoice } from './nav';
+import { MONEY_SAVE_KEY } from './save';
+import { HoldForProgress } from '../ui/MoveProgress';
+import { comeBack } from '../round/round';
 
 function start(voice: VoiceScope, reward: RewardPresentation) {
   if (!voice.active) return;
   unlockAudio(); // sound needs this tap on iPad Safari
-  screen.value = reward.setup ? 'body' : 'home'; // first launch only: choose a Body
+  if (reward.setup) screen.value = 'body'; // first launch only: choose a Body
+  else comeBack(); // back where he was before the page reloaded
   void screenVoice.value.say("Let's go!");
 }
 
@@ -48,7 +52,7 @@ function StartScreen({ title, reward }: { title: readonly [string, string]; rewa
   const voice = useVoice();
   return (
     <div class="start">
-      <h1>{title[0]}<br />{title[1]}</h1>
+      <HoldForProgress game="monster-truck-money" keys={[MONEY_SAVE_KEY, PLACE_KEY]}><h1>{title[0]}<br />{title[1]}</h1></HoldForProgress>
       <button class="big-btn go start-btn" aria-label="Start" onClick={() => start(voice, reward)}>
         <span class="e">▶</span>
       </button>

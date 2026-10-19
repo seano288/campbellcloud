@@ -13,3 +13,7 @@ second, so performance, touch and sound need a real iPad.
 - [ ] Take Off: smoke reads as a continuous trail and the afterburner looks good at 60 fps; tricks on tap.
 - [ ] Offline: after one online visit to each game, airplane mode and relaunch both from the Home Screen.
 - [ ] Add Time Flies to the Home Screen from `/time-flies/` and check its icon.
+- [ ] Move progress into the Home Screen app: Safari and the Home Screen app keep separate saves on the iPad. In Safari,
+      hold the game's title on the Start screen for 1.5 s, tap Copy; open the Home Screen icon, hold the title, tap Paste.
+      Do this for each game, then play only from the Home Screen icons.
+- [ ] Leave mid-Round (swipe the app away), relaunch, tap Start: he's back in the same Round with his stars.
