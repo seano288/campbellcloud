@@ -1,6 +1,7 @@
 // The single typed list of everything Time Flies says. tools/make_voice.py records a clip for each entry, the build
 // fails if one is missing, and say() accepts only these.
 import { MAX_BOLTS } from '../round/rules';
+import { CALENDAR_PHRASES, type CalendarPhrase } from './calendar/calendar';
 import { CLOCK_PHRASES } from './clock/speech';
 import {
   BOUGHT_COLOURS, BOUGHT_JETS, colourById, COLOURS, JET_IDS, JET_NAMES, MAX_TAIL_NUMBER, SLOTS,
@@ -75,7 +76,7 @@ export type Fact = (typeof FACTS)[JetId][number];
 
 export const PHRASES = [...new Set([
   ...GAME, ...CHEERS, ...Array.from({ length: MAX_BOLTS }, (_, i) => earnedBolts(i + 1)), ...modePhrases(), ...Object.values(LOCKED_HINTS),
-  ...CLOCK_PHRASES, ...hangarPhrases(), ...JET_IDS.flatMap(j => FACTS[j]), ...TROPHY_PHRASES,
+  ...CLOCK_PHRASES, ...CALENDAR_PHRASES, ...hangarPhrases(), ...JET_IDS.flatMap(j => FACTS[j]), ...TROPHY_PHRASES,
 ])];
 export type Phrase = (typeof GAME)[number] | (typeof CHEERS)[number] | EarnedPhrase | ModePhrase | (typeof LOCKED_HINTS)[keyof typeof LOCKED_HINTS]
-  | (typeof CLOCK_PHRASES)[number] | HangarPhrase | Fact | (typeof TROPHY_PHRASES)[number];
+  | (typeof CLOCK_PHRASES)[number] | CalendarPhrase | HangarPhrase | Fact | (typeof TROPHY_PHRASES)[number];

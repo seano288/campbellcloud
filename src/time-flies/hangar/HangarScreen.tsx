@@ -136,7 +136,7 @@ export function HangarScreen({ goal: goalView, onShelf }: { goal: ComponentChild
         <IconButton label="Trophies" class="trophies" onClick={() => { if (voice.active) { closeSheet(); onShelf(); } }}>🏆</IconButton>
         <IconButton label="Take Off" class="show" onClick={takeOff}>🛫</IconButton>
         <IconButton label="Home" onClick={() => { if (voice.active) screen.value = 'home'; }}>🏠</IconButton>
-        <IconButton label="Play" class="go" onClick={() => { if (voice.active) startRound(player.state.value.learning.lastMode); }}>▶</IconButton>
+        <IconButton label="Play" class="go" onClick={() => { if (voice.active) startRound(); }}>▶</IconButton>
       </header>
       <div class="garage-stage" ref={stageEl}>
         <canvas ref={canvas} />

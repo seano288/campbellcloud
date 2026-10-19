@@ -22,7 +22,7 @@ await wait(800); await shot('start');
 await page.getByLabel('Start').click({ timeout: 120000 }); await wait(1200); await shot('picker');
 await page.locator('.body-card').nth(1).click(); await wait(400);
 await page.getByLabel('That one').click({ timeout: 120000 }); await wait(1000); await shot('home');
-await page.getByLabel('Find the Clock').click({ timeout: 120000 }); await wait(1500); await shot('find');
+await page.getByLabel('Play').click({ timeout: 120000 }); await wait(1500); await shot('question');
 for (let k = 0; k < 5; k++) { await answerFind(page); await wait(k === 4 ? 1200 : 2200); }
 await wait(5000); await shot('round-done');
 await page.getByLabel('Hangar').first().click({ timeout: 120000 }); await wait(7000); await shot('hangar');

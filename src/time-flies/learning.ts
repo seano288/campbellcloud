@@ -1,33 +1,41 @@
-// The clock's three Game Modes, in unlock order, and his progress in each. Mastery, Levels and the unlock chain work as in
-// Monster Truck Money (src/modes/progress.ts), but Mastery takes twice as long so he stays on each Level longer: 16 of the
-// last 20 right on the first try raises the Level, and a mode opens when the one before it reaches Level 2.
-import type { Check, LearningSession, Outcome, Progression, Rng } from '../learning/session';
-import { recordOutcome, struggling, type MasteryRule } from '../modes/progress';
+// What Time Flies asks, and his progress in each kind of question. There is no picking: every Round mixes all the kinds
+// he has opened (src/time-flies/mix.ts). Each kind keeps its own Level, raised as in Monster Truck Money
+// (src/modes/progress.ts) but with Mastery taking twice as long: 16 of the last 20 right on the first try. Only the
+// questions asked at his Level count toward it; the easier ones mixed in are there for confidence.
+import type { Check, Outcome, Progression } from '../learning/session';
+import { recordOutcome, type MasteryRule } from '../modes/progress';
 import type { ModeProgress } from '../modes/state';
-import { choicesFor, parseDigital, randomTime, sameTime, startingTime, type ClockTime, type Level } from './clock/time';
+import { choicesFor, randomTime, startingTime, type ClockTime, type Level } from './clock/time';
+import type { Rng } from '../game/rng';
 
-export const MODE_IDS = ['find', 'read', 'set'] as const;
+export const MODE_IDS = ['find', 'read', 'set', 'days', 'months', 'units'] as const;
 export type ModeId = (typeof MODE_IDS)[number];
-export const MODE_NAMES = { find: 'Find the Clock', read: 'Read the Clock', set: 'Set the Clock' } as const;
+export const MODE_NAMES = {
+  find: 'Find the Clock', read: 'Read the Clock', set: 'Set the Clock',
+  days: 'Days of the Week', months: 'Months of the Year', units: 'Time Facts',
+} as const;
 export type ModeName = (typeof MODE_NAMES)[ModeId];
-export const OPENS_AFTER: Record<ModeId, ModeId | null> = { find: null, read: 'find', set: 'read' };
-/** Spoken when he taps a mode that is still locked. */
-export const LOCKED_HINTS = { read: 'Find more clocks to open this!', set: 'Read more clocks to open this!' } as const;
+/** The kinds that use the clock face (and its Level introductions). */
+export const CLOCK_MODES = ['find', 'read', 'set'] as const satisfies readonly ModeId[];
+export const isClock = (m: ModeId): m is (typeof CLOCK_MODES)[number] => (CLOCK_MODES as readonly ModeId[]).includes(m);
+/** A kind opens when the one before it reaches Level 2; the rest are open from the start. */
+export const OPENS_AFTER: Record<ModeId, ModeId | null> = { find: null, read: 'find', set: 'read', days: null, months: 'days', units: null };
+/** Spoken when he taps a kind that is still locked. */
+export const LOCKED_HINTS = {
+  read: 'Find more clocks to open this!', set: 'Read more clocks to open this!', months: 'Learn more days to open this!',
+} as const;
 export type LockedHint = (typeof LOCKED_HINTS)[keyof typeof LOCKED_HINTS];
 
 export interface LearningState {
   modes: Record<ModeId, ModeProgress>;
-  lastMode: ModeId;
 }
 
 /** 16 of the last 20 right on the first try. */
 export const CLOCK_RULE: MasteryRule = { window: 20, mastery: 16 };
 
-export const freshMode = (id: ModeId): ModeProgress => ({ level: 1, window: [], opened: id === 'find', starred: false, introPending: false, fresh: false });
-export const freshLearning = (): LearningState => ({
-  modes: { find: freshMode('find'), read: freshMode('read'), set: freshMode('set') },
-  lastMode: 'find',
-});
+export const freshMode = (id: ModeId): ModeProgress => ({ level: 1, window: [], opened: OPENS_AFTER[id] === null, starred: false, introPending: false, fresh: false });
+const eachMode = (f: (id: ModeId) => ModeProgress) => Object.fromEntries(MODE_IDS.map(id => [id, f(id)])) as Record<ModeId, ModeProgress>;
+export const freshLearning = (): LearningState => ({ modes: eachMode(freshMode) });
 
 type Raw = Record<string, unknown>;
 const isRecord = (x: unknown): x is Raw => typeof x === 'object' && x !== null && !Array.isArray(x);
@@ -47,24 +55,31 @@ function readMode(id: ModeId, raw: unknown): ModeProgress {
 
 export function readLearning(raw: unknown): LearningState {
   const data = isRecord(raw) ? raw : {}, modes = isRecord(data.modes) ? data.modes : {};
-  return {
-    modes: { find: readMode('find', modes.find), read: readMode('read', modes.read), set: readMode('set', modes.set) },
-    lastMode: MODE_IDS.find(id => id === data.lastMode) ?? 'find',
-  };
+  return { modes: eachMode(id => readMode(id, modes[id])) };
 }
 
-export const selectPractice = (state: LearningState, id: ModeId): LearningState =>
-  ({ ...state, lastMode: id, modes: { ...state.modes, [id]: { ...state.modes[id], fresh: false } } });
-export const acknowledgeIntro = (state: LearningState, id: ModeId): LearningState =>
-  ({ ...state, modes: { ...state.modes, [id]: { ...state.modes[id], introPending: false } } });
+/** A Round starts: newly opened kinds have been seen. */
+export const startPractice = (state: LearningState): LearningState =>
+  ({ modes: eachMode(id => ({ ...state.modes[id], fresh: false })) });
+/** The clock's next Level to introduce, when a clock kind has just reached one (1 when there's none). */
+export const pendingIntro = (state: LearningState): Level =>
+  Math.max(1, ...CLOCK_MODES.filter(m => state.modes[m].opened && state.modes[m].introPending).map(m => state.modes[m].level)) as Level;
+export const acknowledgeIntro = (state: LearningState): LearningState =>
+  ({ modes: eachMode(id => ({ ...state.modes[id], introPending: false })) });
 
 export type LearningChange =
   | { kind: 'levelUp'; mode: ModeId; level: 2 | 3 }
   | { kind: 'open'; mode: ModeId }
   | { kind: 'star'; mode: ModeId };
 
-export const recordSolved: Progression<LearningState, ModeId, LearningChange> = (state, id, result) => {
-  const { mode, event } = recordOutcome(state.modes[id], result.outcome, CLOCK_RULE);
+/** Which kind of question was solved, and whether it was asked at his Level (`push`) or was an easier one. */
+export interface Asked { readonly mode: ModeId; readonly push: boolean }
+
+export const recordSolved: Progression<LearningState, Asked, LearningChange> = (state, { mode: id, push }, result) => {
+  if (!push) return { state, changes: [] };
+  const recorded = recordOutcome(state.modes[id], result.outcome, CLOCK_RULE), event = recorded.event;
+  // only the clock has a card for its new times
+  const mode = isClock(id) ? recorded.mode : { ...recorded.mode, introPending: false };
   const changes: LearningChange[] = [];
   const modes = { ...state.modes, [id]: mode };
   if (event === 'levelUp') {
@@ -78,51 +93,25 @@ export const recordSolved: Progression<LearningState, ModeId, LearningChange> = 
   return { state: { ...state, modes }, changes };
 };
 
-// ---------- problems ----------
+// ---------- clock problems ----------
 
-/** Find the Clock and What Time Is It?: a time and three choices (clocks or written times), answered with its digital form. */
+/** Find the Clock and Read the Clock: a time and three choices (clocks or written times), answered with its digital form. */
 export interface ChoiceProblem { readonly target: ClockTime; readonly choices: readonly ClockTime[] }
-/** Set the Clock: a time to make, from where the hands start. Answered with the time the hands show. */
+/** Set the Clock: a time to make, from where the hands start. Answered with the digital form of the time the hands show. */
 export interface SetProblem { readonly target: ClockTime; readonly start: ClockTime }
 
-export type Explanation<P, A> = (problem: P, answer: A, teach: boolean, signal: AbortSignal) => Promise<void>;
+export type Explanation<P> = (problem: P, answer: string, teach: boolean, signal: AbortSignal) => Promise<void>;
 
-let lastTarget: ClockTime | undefined; // a new problem never repeats the one just asked
-
-export function makeChoice(level: Level, rng: Rng): ChoiceProblem {
-  const target = randomTime(level, rng, lastTarget);
-  lastTarget = target;
+export const makeChoice = (level: Level, rng: Rng, avoid?: ClockTime): ChoiceProblem => {
+  const target = randomTime(level, rng, avoid);
   return { target, choices: choicesFor(target, level, rng) };
-}
+};
 export const replayChoice = (p: ChoiceProblem, level: Level, rng: Rng): ChoiceProblem => ({ target: p.target, choices: choicesFor(p.target, level, rng) });
 
-export function makeSet(level: Level, rng: Rng): SetProblem {
-  const target = randomTime(level, rng, lastTarget);
-  lastTarget = target;
+export const makeSet = (level: Level, rng: Rng, avoid?: ClockTime): SetProblem => {
+  const target = randomTime(level, rng, avoid);
   return { target, start: startingTime(target, level, rng) };
-}
+};
 
-function verdict<P, A>(correct: boolean, problem: P, answer: A, explain: Explanation<P, A>): Check {
-  return correct ? { kind: 'correct' } : { kind: 'incorrect', explain: (teach, signal) => explain(problem, answer, teach, signal) };
-}
-
-export function choiceSession(level: Level, read: () => ModeProgress, explain: Explanation<ChoiceProblem, string>): LearningSession<ChoiceProblem, string> {
-  return {
-    makeProblem: rng => makeChoice(level, rng),
-    replay: (p, rng) => replayChoice(p, level, rng),
-    check(p, answer) {
-      const t = parseDigital(answer);
-      return t ? verdict(sameTime(t, p.target), p, answer, explain) : { kind: 'not-an-answer' };
-    },
-    needsEarlyHelp: () => struggling(read()),
-  };
-}
-
-export function setSession(level: Level, read: () => ModeProgress, explain: Explanation<SetProblem, ClockTime>): LearningSession<SetProblem, ClockTime> {
-  return {
-    makeProblem: rng => makeSet(level, rng),
-    replay: (p, rng) => ({ target: p.target, start: startingTime(p.target, level, rng) }),
-    check: (p, answer) => verdict(sameTime(answer, p.target), p, answer, explain),
-    needsEarlyHelp: () => struggling(read()),
-  };
-}
+export const verdict = <P>(correct: boolean, problem: P, answer: string, explain: Explanation<P>): Check =>
+  correct ? { kind: 'correct' } : { kind: 'incorrect', explain: (teach, signal) => explain(problem, answer, teach, signal) };

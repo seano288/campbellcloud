@@ -1,4 +1,4 @@
-// The three Game Modes on screen. Every question is spoken as it appears (🔊 says it again), every answer button reads
+// The three clock questions on screen. Every question is spoken as it appears (🔊 says it again), every answer button reads
 // aloud while it lights up, and 🔎 Help walks through the clock with the hands lit up.
 import { useEffect, useState } from 'preact/hooks';
 import type { ProblemInstance } from '../../learning/round';
@@ -9,7 +9,7 @@ import { timePhrase } from './speech';
 import { helpTime, lessonFor } from './teach';
 import { digital, fromMinutes, minutesOf, sameTime, snap, STEP, type ClockTime, type Level } from './time';
 
-function Ask({ text, speech }: { text: string; speech: Item[] }) {
+export function Ask({ text, speech }: { text: string; speech: Item[] }) {
   const { say } = useVoice();
   useEffect(() => { void say(...speech); }, []);
   return (
@@ -85,7 +85,7 @@ export function ReadView({ current }: { current: ProblemInstance<ChoiceProblem, 
 }
 
 /** Set the Clock: drag the hands to the time he hears, then ✓. */
-export function SetView({ current, level }: { current: ProblemInstance<SetProblem, ClockTime>; level: Level }) {
+export function SetView({ current, level }: { current: ProblemInstance<SetProblem, string>; level: Level }) {
   const voice = useVoice(), p = current.problem, lesson = lessonFor(current.signal);
   const [minutes, setMinutes] = useState(minutesOf(p.start));
   const [moved, setMoved] = useState(false);
@@ -105,7 +105,7 @@ export function SetView({ current, level }: { current: ProblemInstance<SetProble
   function check() {
     if (!voice.active || current.signal.aborted || done) return;
     if (!moved && !shown) { void voice.say('Move the hands!'); return; }
-    const verdict = current.actions.submit(fromMinutes(snap(minutes, level)));
+    const verdict = current.actions.submit(digital(fromMinutes(snap(minutes, level))));
     if (verdict === 'correct') setDone(true);
   }
   return (

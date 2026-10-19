@@ -1,10 +1,10 @@
-// What each Game Mode says after a miss. A first miss says what went wrong; once help steps in (the second miss, or the
+// What each clock question says after a miss. A first miss says what went wrong; once help steps in (the second miss, or the
 // first when he's been struggling) it teaches the right time on the clock, lighting the hands as it goes.
 import type { ChoiceProblem, SetProblem } from '../learning';
 import { toast } from '../voice';
 import { timePhrase } from './speech';
 import { clearLesson, lessonFor, teachTime } from './teach';
-import { parseDigital, sameTime, type ClockTime } from './time';
+import { parseDigital, sameTime } from './time';
 
 /** Find the Clock: he tapped a clock showing another time. */
 export async function explainFind(p: ChoiceProblem, answer: string, teach: boolean, lifetime: AbortSignal) {
@@ -30,9 +30,9 @@ export async function explainChoice(p: ChoiceProblem, _answer: string, teach: bo
 }
 
 /** Set the Clock: the hands show another time. Teaching moves the hands to the right time and explains it. */
-export async function explainSet(p: SetProblem, answer: ClockTime, teach: boolean, lifetime: AbortSignal) {
-  const lesson = lessonFor(lifetime), voice = lesson.run.start();
-  await voice.say('Your clock says', timePhrase(answer));
+export async function explainSet(p: SetProblem, answer: string, teach: boolean, lifetime: AbortSignal) {
+  const lesson = lessonFor(lifetime), voice = lesson.run.start(), shown = parseDigital(answer);
+  if (shown) await voice.say('Your clock says', timePhrase(shown));
   if (!voice.active) return;
   if (!teach) { await voice.say('Try again!'); return; }
   await voice.say("Let's look together.");

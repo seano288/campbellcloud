@@ -8,9 +8,12 @@ import { boltsFor } from '../round/rules';
 import { browserStorage, createStore, type SaveAdapter } from '../save/storage';
 import { countAnswer, freshTrophies, readTrophies, type TrophyState } from '../trophies/rules';
 import type { JetId } from './hangar/catalog';
+import type { Level } from './clock/time';
 import { becameAffordable, freshHangar, proposePurchase, readHangar, type HangarState } from './hangar/hangar';
-import { acknowledgeIntro, freshLearning, readLearning, recordSolved, selectPractice, type LearningState, type ModeId } from './learning';
-import { completeTrophies, dayOf, STEP_IDS, type StepId } from './trophies';
+import { acknowledgeIntro, freshLearning, pendingIntro, readLearning, recordSolved, startPractice, type Asked, type LearningChange, type LearningState } from './learning';
+import { completeTrophies, dayOf, STEP_IDS, type StepId, type TrophyStep } from './trophies';
+
+interface CompleteFacts { trophies: TrophyStep[]; canBuild: boolean }
 
 export const SAVE_KEY = 'time-flies-save';
 export const SAVE_VERSION = 1;
@@ -42,15 +45,16 @@ export const player = createStore({ key: SAVE_KEY, adapter: fliesSave, backing: 
 export const earnings: EarningsPolicy = result => boltsFor(result.results.map(r => r.outcome));
 
 export function createPractice(store: Pick<typeof player, 'commit'>, today = () => dayOf(new Date())) {
-  const coordinator = createPracticeCoordinator(store, {
-    start(state: FliesState, mode: ModeId) {
-      const intro = state.learning.modes[mode].introPending;
-      return { state: { ...state, learning: selectPractice(state.learning, mode) }, context: mode, intro };
+  const coordinator = createPracticeCoordinator<FliesState, void, Level, LearningChange, CompleteFacts, Asked>(store, {
+    start(state) {
+      // the context is the clock's new Level, when one of its kinds just reached it: its new times are introduced first
+      const level = pendingIntro(state.learning);
+      return { state: { ...state, learning: startPractice(state.learning) }, context: level, intro: level > 1 };
     },
-    acknowledge: (state, mode) => ({ ...state, learning: acknowledgeIntro(state.learning, mode) }),
+    acknowledge: state => ({ ...state, learning: acknowledgeIntro(state.learning) }),
     interrupt: (state, outcome) => ({ ...state, trophies: countAnswer(state.trophies, outcome) }),
-    solve(state, mode, fact) {
-      const next = recordSolved(state.learning, mode, fact);
+    solve(state, _context, fact, asked) {
+      const next = asked ? recordSolved(state.learning, asked, fact) : { state: state.learning, changes: [] };
       return { state: { ...state, learning: next.state, trophies: countAnswer(state.trophies, fact.outcome) }, changes: next.changes };
     },
     earnings,
@@ -59,13 +63,7 @@ export function createPractice(store: Pick<typeof player, 'commit'>, today = () 
       return { state: { ...state, trophies: done.state }, facts: { trophies: done.earned, canBuild: becameAffordable(state.hangar, before, after) } };
     },
   });
-  return {
-    ...coordinator,
-    start(mode: ModeId, resume?: readonly SolvedProblem[]) {
-      const result = coordinator.start(mode, resume);
-      return result.kind === 'accepted' ? { ...result, mode, level: result.state.learning.modes[mode].level } : result;
-    },
-  };
+  return { ...coordinator, start: (resume?: readonly SolvedProblem[]) => coordinator.start(undefined, resume) };
 }
 
 export const practice = createPractice(player);

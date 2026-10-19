@@ -44,12 +44,20 @@ _Avoid_: badge, achievement, award
 Time Flies reuses the terms above where they mean the same thing (Round, Level, Mastery, Bolt, Slot, Mod, Rung, Goal,
 Trophy). These are its own:
 
-**Game Modes (Time Flies)**: Find the Clock (hear a time, tap the clock that shows it), Read the Clock (one clock, pick its
-time from three read aloud) and Set the Clock (drag the hands). Each opens when the one before reaches Level 2. In every
-Game Mode, Level 1 is whole hours, Level 2 quarter hours and Level 3 every five minutes.
+**Game Modes (Time Flies)**: the six kinds of question. The clock: Find the Clock (hear a time, tap the clock that shows
+it), Read the Clock (one clock, pick its time from three read aloud) and Set the Clock (drag the hands); Level 1 is
+whole hours, Level 2 quarter hours and Level 3 every five minutes. The calendar: Days of the Week (tomorrow, then
+yesterday, then two days on), Months of the Year (the month after, the month before, then "the third month") and Time
+Facts (how many seconds in a minute, minutes in an hour, hours in a day...). Find the Clock, Days of the Week and Time
+Facts are open from the start; Read the Clock opens when Find the Clock reaches Level 2, Set the Clock after Read the
+Clock, and Months of the Year after Days of the Week. He never picks one: every Round mixes all the open ones.
 
-**Mastery (Time Flies)**: Getting 16 of the last 20 problems in a Game Mode right on the first try without help, twice
-the run Monster Truck Money asks for, so he stays on each Level longer.
+**Mixed Round (Time Flies)**: each question is a different kind from the one before. Most are asked at that kind's
+Level, to push him, and only those count toward Mastery; about one in three, and always the one right after a miss,
+comes from an easier Level.
+
+**Mastery (Time Flies)**: Getting 16 of the last 20 questions of one kind, asked at its Level, right on the first try
+without help, twice the run Monster Truck Money asks for, so he stays on each Level longer.
 
 **Aircraft**: one of the 14 planes in the Hangar, Time Flies' Body. Three starters (P-51 Mustang, F-16 Falcon, F/A-18
 Super Hornet) are his from the start; the rest cost 30 Bolts.

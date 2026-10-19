@@ -3,18 +3,19 @@ import type { Outcome, RoundResult, SolvedProblem } from '../learning/session';
 import { ROUND_LENGTH } from '../round/rules';
 import type { createStore } from '../save/store';
 
-export interface PracticePolicy<State, Selection, Context, Change, Facts> {
+/** `Detail`: what the game knows about the problem just solved, when its Rounds mix several kinds (Time Flies). */
+export interface PracticePolicy<State, Selection, Context, Change, Facts, Detail = undefined> {
   start(state: State, selection: Selection): { state: State; context: Context; intro: boolean };
   acknowledge(state: State, context: Context): State;
-  solve(state: State, context: Context, fact: SolvedProblem): { state: State; changes: Change[] };
+  solve(state: State, context: Context, fact: SolvedProblem, detail: Detail | undefined): { state: State; changes: Change[] };
   interrupt(state: State, outcome: Exclude<Outcome, 'clean'>): State;
   earnings: EarningsPolicy;
   complete(state: State, result: RoundResult, beforeBalance: number, afterBalance: number): { state: State; facts: Facts };
 }
 
-export function createPracticeCoordinator<State extends { currency: CurrencyState }, Selection, Context, Change, Facts>(
+export function createPracticeCoordinator<State extends { currency: CurrencyState }, Selection, Context, Change, Facts, Detail = undefined>(
   store: Pick<ReturnType<typeof createStore<State>>, 'commit'>,
-  policy: PracticePolicy<State, Selection, Context, Change, Facts>,
+  policy: PracticePolicy<State, Selection, Context, Change, Facts, Detail>,
 ) {
   let sequence = 0;
   let active: { roundId: string; context: Context; intro: boolean; results: SolvedProblem[]; terminal: boolean } | undefined;
@@ -48,11 +49,11 @@ export function createPracticeCoordinator<State extends { currency: CurrencyStat
     return store.commit(state => accepts(roundId, index) ? policy.interrupt(state, outcome) : null);
   }
 
-  function solve(roundId: string, fact: SolvedProblem) {
+  function solve(roundId: string, fact: SolvedProblem, detail?: Detail) {
     let changes: Change[] = [];
     const result = store.commit(state => {
       if (!active || !accepts(roundId, fact.index)) return null;
-      const next = policy.solve(state, active.context, fact);
+      const next = policy.solve(state, active.context, fact, detail);
       changes = next.changes;
       active.results.push({ ...fact });
       return next.state;

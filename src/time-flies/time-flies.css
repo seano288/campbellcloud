@@ -78,3 +78,29 @@ html,body{background:var(--night)}
 .fire-btn.guns{left:calc(22px + env(safe-area-inset-left))}
 .fire-btn.missiles{right:calc(22px + env(safe-area-inset-right))}
 @keyframes pop-in{from{transform:scale(0)}to{transform:scale(1)}}
+
+/* ---------- Home: Hangar, Play and his Level in each kind of question ---------- */
+.home.flies{grid-template-areas:"g g" "p k";grid-template-rows:1fr 1fr;grid-template-columns:1fr 1.6fr}
+@media (orientation:landscape){.home.flies{grid-template-areas:"p g" "k g";grid-template-rows:1fr 1.2fr;grid-template-columns:1fr 1.2fr}}
+.t-play{grid-area:p;background:#ffd23f;flex-direction:column}
+.t-play .e{font-size:calc(56px*var(--u));line-height:1}
+.t-kinds{grid-area:k;background:#7cc8ff;display:grid;grid-template-columns:repeat(2,1fr);gap:calc(8px*var(--u));padding:calc(10px*var(--u));grid-auto-rows:1fr;align-items:stretch}
+.kind{position:relative;display:flex;align-items:center;gap:8px;background:#fff8;border:3px solid #000;border-radius:16px;padding:4px 10px;min-height:0;text-align:left}
+.kind:active{transform:scale(.97)}
+.kind .ki{font-size:calc(30px*var(--u));line-height:1}
+.kind .kn{flex:1;min-width:0;font:400 calc(14px*var(--u)) Bungee,sans-serif;line-height:1.1}
+.kind .lvl i{width:calc(11px*var(--u));height:calc(11px*var(--u))}
+.kind.locked{filter:grayscale(.9) brightness(.8)}
+.kind.fresh{animation:pulse 1s infinite}
+.kind .badge{position:absolute;right:-6px;top:-10px;font-size:calc(22px*var(--u))}
+
+/* ---------- calendar questions ---------- */
+.game.quiz .ask h2{font-size:calc(24px*var(--u));max-width:min(90vw,820px)}
+.choices.words{grid-template-columns:repeat(3,1fr);width:min(100%,760px)}
+.choices.words .choice{font-size:calc(32px*var(--u));padding:calc(14px*var(--u)) 6px}
+.strip{display:grid;grid-template-columns:repeat(7,auto);gap:6px;justify-content:center}
+.strip.year{grid-template-columns:repeat(6,auto)}
+.strip .chip{display:flex;flex-direction:column;align-items:center;min-width:calc(62px*var(--u));padding:6px 8px;border:3px solid #000;border-radius:12px;background:#e8edf2;font:900 calc(20px*var(--u)) Nunito,sans-serif;transition:transform .15s,background .15s}
+.strip .chip b{font-size:calc(14px*var(--u));color:#1f5fd1}
+.strip .chip.lit{background:var(--yellow);transform:scale(1.15)}
+.fact{font:900 calc(28px*var(--u)) Nunito,sans-serif;background:#fff3c4;border:3px solid #000;border-radius:16px;padding:10px 18px}

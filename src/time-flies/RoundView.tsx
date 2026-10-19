@@ -1,5 +1,6 @@
-// A Round on screen: the shared Round layout (src/round/RoundScreen.tsx) with the clock Game Mode's problem view, a
-// card introducing the new times when a mode reaches a new Level, and the end-of-Round celebration.
+// A Round on screen: the shared Round layout (src/round/RoundScreen.tsx) with each question's view (a clock, or a
+// calendar question), a card introducing the new times when a clock kind reaches a new Level, and the end-of-Round
+// celebration.
 import type { ComponentChildren } from 'preact';
 import { useEffect, useState } from 'preact/hooks';
 import { sCount } from '../audio/sfx';
@@ -7,28 +8,30 @@ import type { ProblemInstance } from '../learning/round';
 import { RoundScreen } from '../round/RoundScreen';
 import { IconButton, Stars } from '../ui/bits';
 import { ClockFace } from './clock/ClockFace';
+import { QuizView } from './calendar/QuizView';
 import { FIVES, timePhrase } from './clock/speech';
-import type { ClockTime } from './clock/time';
 import { FindView, ReadView, SetView } from './clock/views';
 import { EndOverlay } from './EndOverlay';
-import type { ChoiceProblem, SetProblem } from './learning';
+import type { Problem } from './mix';
 import { screen } from './nav';
 import { leaveRound, round, startRound } from './round';
 import { useVoiceScope, VoiceBoundary, VoiceContext } from './voice';
 
-function Find({ current }: { current: ProblemInstance<ChoiceProblem, string> }) {
-  return <VoiceBoundary active={!round.value!.busy} signal={current.signal}><FindView current={current} level={round.value!.level} /></VoiceBoundary>;
-}
-function Read({ current }: { current: ProblemInstance<ChoiceProblem, string> }) {
-  return <VoiceBoundary active={!round.value!.busy} signal={current.signal}><ReadView current={current} /></VoiceBoundary>;
-}
-function Set({ current }: { current: ProblemInstance<SetProblem, ClockTime> }) {
-  return <VoiceBoundary active={!round.value!.busy} signal={current.signal}><SetView current={current} level={round.value!.level} /></VoiceBoundary>;
+function Question({ current }: { current: ProblemInstance<Problem, string> }) {
+  const p = current.problem, as = <Q,>(problem: Q): ProblemInstance<Q, string> => ({ ...current, problem });
+  return (
+    <VoiceBoundary active={!round.value!.busy} signal={current.signal}>
+      {p.mode === 'find' ? <FindView current={as(p.choice)} level={p.level} />
+        : p.mode === 'read' ? <ReadView current={as(p.choice)} />
+          : p.mode === 'set' ? <SetView current={as(p.set)} level={p.level} />
+            : <QuizView current={as(p.quiz)} />}
+    </VoiceBoundary>
+  );
 }
 
 /** New times: at Level 2 the long hand visits the quarters; at Level 3 it counts round by fives. */
 function Introduction({ signal, acknowledge }: { signal: AbortSignal; acknowledge(): void }) {
-  const level = round.value!.level, voice = useVoiceScope(signal);
+  const level = round.value!.introLevel, voice = useVoiceScope(signal);
   const [minutes, setMinutes] = useState(180);
   const [fives, setFives] = useState(0);
   const [ready, setReady] = useState(false);
@@ -69,14 +72,12 @@ export function RoundView({ status, hasAffordable }: { status: ComponentChildren
     Introduction,
     end: r.ended && <EndOverlay key={r.roundId} result={r} hasAffordable={hasAffordable}
       onHangar={() => { leaveRound(); screen.value = 'hangar'; }}
-      onAgain={() => startRound(r.mode)}
+      onAgain={() => startRound()}
       onHome={() => { leaveRound(); screen.value = 'home'; }} />,
   };
   return (
     <VoiceContext.Provider value={r.voice}>
-      {r.mode === 'find' ? <RoundScreen {...views} display={r.shared} Problem={Find} />
-        : r.mode === 'read' ? <RoundScreen {...views} display={r.shared} Problem={Read} />
-          : <RoundScreen {...views} display={r.shared} Problem={Set} />}
+      <RoundScreen {...views} display={r.shared} Problem={Question} />
     </VoiceContext.Provider>
   );
 }
