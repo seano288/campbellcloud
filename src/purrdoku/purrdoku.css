@@ -30,11 +30,18 @@ button:disabled{opacity:.4;cursor:default}
 .nap-cell .x{font-weight:900;font-size:42cqh;color:#2a1a10aa;line-height:1;pointer-events:none}
 .nap-cell .cat{width:82%;height:82%;pointer-events:none}
 .nap-cell .cat.pop{animation:pop .35s ease-out}
-/* a hint: the cells that show why get a dashed ring (a wash would change their patch colour), the cells to act on a pulsing ring (gold edged in dark for a cat, so it shows on the yellow patch; dark for ✕) */
-.nap-cell.hint-why::after,.nap-cell.hint-cat::after,.nap-cell.hint-cross::after{content:'';position:absolute;inset:0;pointer-events:none}
-.nap-cell.hint-why::after{inset:3px;border:3px dashed #fffd;border-radius:6px}
-.nap-cell.hint-cat::after{box-shadow:inset 0 0 0 3px var(--ink),inset 0 0 0 8px var(--gold);animation:nudge 1s ease-in-out infinite}
-.nap-cell.hint-cross::after{box-shadow:inset 0 0 0 4px #2a1a10cc;animation:nudge 1s ease-in-out infinite}
+/* a hint: everything it doesn't need fades back under a dark wash (over the grid line too); the cells that show why
+   stay bright with a white glow, and the cells to act on stay bright with a pulsing ghost of the move. A cat to lay
+   also gets a ring (gold edged in dark, so it shows on the yellow patch), and fades any ✕ it's hiding under. */
+.nap-cell::after{content:'';position:absolute;inset:-1px 0 0 -1px;pointer-events:none;background:#1a0f3a00;transition:background .2s}
+.nap-board.hinting .nap-cell::after{background:#1a0f3aa6}
+.nap-board.hinting .nap-cell:is(.hint-why,.hint-cat,.hint-cross)::after{background:none}
+.nap-board.hinting .nap-cell.hint-why::after{box-shadow:inset 0 0 0 3px #fff,inset 0 0 14px 2px #fff9}
+.nap-board.hinting .nap-cell.hint-cat::after{box-shadow:inset 0 0 0 3px var(--ink),inset 0 0 0 7px var(--gold);animation:nudge 1s ease-in-out infinite}
+.nap-cell.hint-cat .x:not(.ghost){opacity:.3}
+.nap-cell .ghost{position:absolute;animation:ghost 1s ease-in-out infinite}
+.nap-cell .x.ghost{color:#d62f2f;font-size:52cqh}
+.nap-cell .cat.ghost{opacity:.7}
 
 .nap-tools{display:flex;justify-content:center;gap:calc(16px*var(--u));padding:calc(12px*var(--u)) 12px 0;flex-wrap:wrap}
 .nap-tool.on{background:var(--gold);color:var(--ink);border-color:var(--gold)}
@@ -43,6 +50,7 @@ button:disabled{opacity:.4;cursor:default}
 .nap-tool svg{width:calc(28px*var(--u));height:calc(28px*var(--u));fill:none;stroke:currentColor;stroke-width:2.4;stroke-linecap:round;stroke-linejoin:round}
 .nap-help{margin:6px 12px calc(10px*var(--u) + 16px);text-align:center;font-weight:800;font-size:calc(14px*var(--u));opacity:.7}
 .nap-help.hint{opacity:1;color:var(--gold);font-size:calc(16px*var(--u))}
+.nap-help.hint b{color:#fff}
 
 .nap-over{position:fixed;inset:0;z-index:50;display:grid;place-items:center;background:#0008;animation:fade .3s}
 .nap-card{background:#fff;color:var(--ink);border:4px solid #000;border-radius:26px;box-shadow:0 10px 0 #000;padding:24px 32px;text-align:center;display:flex;flex-direction:column;align-items:center;gap:10px;min-width:min(90vw,340px);animation:pop .35s ease-out}
@@ -61,3 +69,4 @@ button:disabled{opacity:.4;cursor:default}
 @keyframes breathe{50%{transform:scale(1.06,.96)}}
 @keyframes fade{from{opacity:0}}
 @keyframes nudge{50%{opacity:.45}}
+@keyframes ghost{50%{opacity:.25;transform:scale(.9)}}

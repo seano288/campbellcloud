@@ -2,7 +2,7 @@ import { useEffect, useMemo, useRef, useState } from 'preact/hooks';
 import { BuildLabel } from '../ui/BuildLabel';
 import { catSvg } from './art';
 import type { Puzzle } from './puzzle';
-import { CAT, CROSS, EMPTY, LIVES, canUndo, clock, game, hint, next, paint, placeCat, puzzle, restart, shownHint, tick, undo } from './game';
+import { CAT, CROSS, EMPTY, LIVES, type Hint, canUndo, clock, game, hint, next, paint, placeCat, puzzle, restart, shownHint, tick, undo } from './game';
 import { muted, newBoard, react, toggleMute } from './voice';
 
 // One colour per patch, picked to stay apart from each other and from the cats' orange. With no outline round the
@@ -44,6 +44,9 @@ const ICONS = {
 const Icon = ({ name }: { name: keyof typeof ICONS }) => (
   <svg viewBox="0 0 24 24" aria-hidden="true">{ICONS[name].map(d => <path key={d} d={d} />)}</svg>
 );
+
+// what the hint asks the player to do, ahead of why
+const hintMove = (h: Hint) => (h.kind === 'cat' ? 'Lay a cat in the gold box.' : h.cells.length === 1 ? 'Mark the red ✕.' : `Mark the ${h.cells.length} red ✕s.`);
 
 export function App() {
   return <Play />;
@@ -91,7 +94,9 @@ function Play() {
         <button class={`nap-tool${shown ? ' on' : ''}`} aria-label="Hint" title="Hint" aria-pressed={!!shown} disabled={g.status !== 'playing'} onClick={hint}><Icon name="hint" /></button>
         <button class="nap-tool" aria-pressed={muted.value} aria-label={muted.value ? 'Sound off' : 'Sound on'} title={muted.value ? 'Sound off' : 'Sound on'} onClick={toggleMute}><Icon name={muted.value ? 'muted' : 'sound'} /></button>
       </div>
-      <p class={`nap-help${shown ? ' hint' : ''}`}>{shown ? shown.why : 'Tap to mark ✕ · drag to mark lots · double-tap to lay a cat down'}</p>
+      <p class={`nap-help${shown ? ' hint' : ''}`}>
+        {shown ? <><b>{hintMove(shown)}</b> {shown.why}</> : 'Tap to mark ✕ · drag to mark lots · double-tap to lay a cat down'}
+      </p>
       <BuildLabel />
       {g.status === 'won' && (
         <div class="nap-over">
@@ -179,7 +184,7 @@ function Board({ shake, pop, onCat }: { shake: number; pop: number | null; onCat
       <div
         ref={ref}
         key={shake}
-        class={`nap-board${shake ? ' shake' : ''}${g.status === 'won' ? ' won' : ''}`}
+        class={`nap-board${shake ? ' shake' : ''}${g.status === 'won' ? ' won' : ''}${shown ? ' hinting' : ''}`}
         style={{ '--n': n }}
         onPointerDown={down}
         onPointerMove={move}
@@ -197,6 +202,7 @@ function Board({ shake, pop, onCat }: { shake: number; pop: number | null; onCat
             >
               {mark === CROSS && <span class="x">✕</span>}
               {mark === CAT && <span class={`cat${i === pop ? ' pop' : ''}`} dangerouslySetInnerHTML={{ __html: CAT_ART }} />}
+              {todo.has(i) && (shown!.kind === 'cross' ? <span class="x ghost">✕</span> : <span class="cat ghost" dangerouslySetInnerHTML={{ __html: CAT_ART }} />)}
             </div>
           );
         })}
