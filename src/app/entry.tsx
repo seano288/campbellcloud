@@ -8,10 +8,11 @@ import { TrophyShelf } from '../trophies/TrophyShelf';
 import { App } from './App';
 import { moneyBranding } from './branding';
 import { createGaragePresentation } from './garagePresentation';
+import { pricingAt } from '../garage/economy';
 import { moneyApp } from './money';
 import { place, screen } from './nav';
 
-const reward = createGaragePresentation(moneyApp.store, { context: state => state.learning.modes.pay.level });
+const reward = createGaragePresentation(moneyApp.store, { context: state => pricingAt(state.learning.modes.pay.level) });
 
 function Shelf({ onClose }: { onClose(): void }) {
   return <TrophyShelf earned={moneyApp.store.state.value.trophies.earned} onClose={onClose} />;

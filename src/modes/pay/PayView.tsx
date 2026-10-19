@@ -8,10 +8,11 @@ import { PayCounter } from './PayCounter';
 
 export function PayView({ problem: p, level, actions, signal }: ProblemViewProps<PayProblem, readonly MoneyKey[]> & { level: Level }) {
   const buy = `Buy the ${p.item.name}!` as const;
-  const speech: Item[] = [buy, 'It costs', { cents: p.price }];
+  const speech: Item[] = [buy, 'It costs', { cents: p.price }, ...(p.fewest ? ['Use as few coins as you can!'] as const : [])];
   return (
     <div class="game">
       <Ask text={buy} speech={speech} />
+      {p.fewest && <div class="fewest">Use as few coins as you can!</div>}
       <PayCounter price={p.price} bank={p.bank} icon={p.item.icon} peekMoney={LEVEL_MONEY[level]} speech={speech} actions={actions} signal={signal} />
     </div>
   );

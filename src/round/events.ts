@@ -1,5 +1,6 @@
 // What each end-of-Round moment says, and the order they play in: smallest first.
 import { modeById } from '../modes/modes';
+import { levelLine } from '../modes/phrases';
 import { earnedTrophy } from '../trophies/phrases';
 import type { Phrase } from '../voice/phrases';
 import type { RoundEvent } from './round';
@@ -11,7 +12,7 @@ export const smallestFirst = (events: readonly RoundEvent[]) => [...events].sort
 export function eventLines(e: RoundEvent): Phrase[] {
   if (e.kind === 'trophy') return [earnedTrophy(e.step)];
   const name = modeById(e.mode).name;
-  if (e.kind === 'levelUp') return ['Level up!', e.level === 2 ? 'Now you get quarters!' : 'Now you get dollar bills!'];
+  if (e.kind === 'levelUp') return ['Level up!', levelLine(e.mode, e.level)];
   if (e.kind === 'star') return [`You are a ${name} star!`];
   return [`You opened ${name}!`];
 }

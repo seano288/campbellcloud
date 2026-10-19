@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest';
-import { LEVELS, type Level } from '../modes/ids';
+const LEVELS = [1, 2, 3] as const; // the Pay the Shop Levels with their own prices
+type Level = (typeof LEVELS)[number];
 import { helpPayCoins } from '../money/payment';
 import { LEVEL_MONEY, MONEY, total } from '../money/money';
 import { amountPieces } from '../voice/amount';

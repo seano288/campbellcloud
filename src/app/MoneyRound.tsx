@@ -10,7 +10,8 @@ import { PayView } from '../modes/pay/PayView';
 import type { MoneyKey } from '../money/money';
 import { truckColor } from './garage';
 import { EndOverlay } from './EndOverlay';
-import { IntroCard } from '../round/IntroCard';
+import { IntroCard, LevelCard } from '../round/IntroCard';
+import { levelLine } from '../modes/phrases';
 import { leaveRound, round, startRound } from '../round/round';
 import { RoundScreen } from '../round/RoundScreen';
 import { IconButton, Stars } from '../ui/bits';
@@ -31,7 +32,9 @@ function Pay({ current }: { current: ProblemInstance<PayProblem, readonly MoneyK
 
 function Introduction({ signal, acknowledge }: { signal: AbortSignal; acknowledge(): void }) {
   const r = round.value!;
-  return r.level > 1 ? <IntroCard money={modeById(r.mode).introMoney[r.level as 2 | 3]} signal={signal} onGo={acknowledge} /> : null;
+  const mode = modeById(r.mode);
+  if (r.level === 2 || r.level === 3) return <IntroCard money={mode.introMoney[r.level]} signal={signal} onGo={acknowledge} />;
+  return r.level === 4 || r.level === 5 ? <LevelCard icon={mode.icon} level={r.level} line={levelLine(r.mode, r.level)} signal={signal} onGo={acknowledge} /> : null;
 }
 
 export function MoneyRound({ status, hasAffordable }: { status: ComponentChildren; hasAffordable: boolean }) {

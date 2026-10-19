@@ -3,7 +3,7 @@ import { sClink } from '../../audio/sfx';
 import { fmt, total, type MoneyKey } from '../../money/money';
 import { toast } from '../../ui/toast';
 import { createVoiceScope, createVoiceTask, type VoiceScope } from '../../voice/say';
-import { helpPayCoins, type PayCheck, type MoneyPayment } from '../../money/payment';
+import { helpPayCoins, type MoneyPayment, type PayMiss } from '../../money/payment';
 
 const feedback = new WeakMap<AbortSignal, { tray: Signal<MoneyKey[]>; run: ReturnType<typeof createVoiceTask> }>();
 
@@ -33,11 +33,13 @@ async function fill(p: MoneyPayment, lifetime: AbortSignal, task: VoiceScope) {
 
 export const helpPay = (p: MoneyPayment, lifetime: AbortSignal) => fill(p, lifetime, payment(lifetime).run.start());
 
-export async function explainPay(p: MoneyPayment, result: Extract<PayCheck, { kind: 'short' | 'over' }>, teach: boolean, lifetime: AbortSignal) {
+export async function explainPay(p: MoneyPayment, result: PayMiss, teach: boolean, lifetime: AbortSignal) {
   const task = payment(lifetime).run.start();
   await (result.kind === 'short'
     ? toast(task, `Almost! You need ${fmt(result.by)} more.`, 'Almost!', 'You need', { cents: result.by }, 'more')
-    : toast(task, `Too much! Take back ${fmt(result.by)}.`, 'Too much!', 'Take back', { cents: result.by }));
+    : result.kind === 'over'
+      ? toast(task, `Too much! Take back ${fmt(result.by)}.`, 'Too much!', 'Take back', { cents: result.by })
+      : toast(task, 'Right amount! Now use fewer coins.', 'Right amount!', 'Now use fewer coins.'));
   if (teach && task.active) await fill(p, lifetime, task);
 }
 

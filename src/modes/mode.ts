@@ -17,7 +17,7 @@ export interface GameMode<P = unknown, A = unknown> {
   lockedHint: Phrase | null;
   /** The money each Level uses. */
   levels: Record<Level, readonly MoneyKey[]>;
-  /** The new money shown on the introduction card when the mode reaches that Level. */
+  /** The new money shown on the introduction card when the mode reaches that Level (Levels 4 and 5 bring none). */
   introMoney: Record<2 | 3, readonly MoneyKey[]>;
   /** Everything the mode says (all listed in phrases.ts). */
   phrases: readonly Phrase[];

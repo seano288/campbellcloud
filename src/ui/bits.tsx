@@ -19,8 +19,9 @@ export function Stars({ results }: { results: readonly Outcome[] }) {
   return <div class="stars">{[0, 1, 2, 3, 4].map(i => <span key={i} class={results[i] === 'clean' ? 'on' : results[i] ? 'on half' : ''}>⭐</span>)}</div>;
 }
 
-export function LevelDots({ level }: { level: number }) {
-  return <span class="lvl" aria-label={`Level ${level}`}>{[1, 2, 3].map(i => <i key={i} class={i <= level ? 'on' : ''} />)}</span>;
+/** One dot per Level, `of` in all, lit up to his. */
+export function LevelDots({ level, of = 3 }: { level: number; of?: number }) {
+  return <span class="lvl" aria-label={`Level ${level}`}>{Array.from({ length: of }, (_, i) => i + 1).map(i => <i key={i} class={i <= level ? 'on' : ''} />)}</span>;
 }
 
 export function IconButton({ onClick, label, class: cls = '', children }: { onClick: () => void; label: string; class?: string; children: ComponentChildren }) {

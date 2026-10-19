@@ -1,14 +1,15 @@
 // The Round: 5 correct answers in one Game Mode, then a Bolt for each one right on the first try and one for
 // finishing. A miss holds taps while it's explained, help teaches the answer after two, and a missed problem comes
-// back later. Each problem's result feeds the mode's Mastery window and the first-try streak, and any Level up,
-// opened mode, star or new trophy is celebrated at the end.
+// back later. The problems adapt as he goes (src/modes/session.ts): each one asked at his Level feeds the mode's
+// Mastery window, every one feeds the first-try streak, and any Level up, opened mode, star or new trophy is
+// celebrated at the end.
 import { signal } from '@preact/signals';
 import { sBad, sGood } from '../audio/sfx';
 import { place, screen, screenVoice } from '../app/nav';
 import { pick } from '../game/rng';
 import { player } from '../game/store';
 import { moneyApp } from '../app/money';
-import type { LearningSession, Outcome, RoundResult, SolvedProblem } from '../learning/session';
+import type { Outcome, RoundResult, SolvedProblem } from '../learning/session';
 import { createRound, type RoundDisplay } from '../learning/round';
 import type { MoneyKey } from '../money/money';
 import { explainLearn } from '../modes/learn/feedback';
@@ -17,7 +18,7 @@ import type { CountProblem } from '../modes/count/count';
 import { explainCount } from '../modes/count/feedback';
 import type { PayProblem } from '../modes/pay/pay';
 import { explainPay, promptPay } from '../modes/pay/feedback';
-import type { countSession, paySession } from '../modes/session';
+import type { Adaptive, AdaptiveSession, countSession, paySession } from '../modes/session';
 import type { Level, ModeId } from '../modes/ids';
 import type { LearningChange } from '../modes/learning';
 import type { TrophyStep } from '../trophies/trophies';
@@ -76,14 +77,16 @@ export function startRound(mode: ModeId, explanations: {
   let soFar = [...resume];
   place.round({ mode, results: soFar });
   const voice = createVoiceScope(screenVoice.peek().signal);
-  const startShared = <P, A>(session: LearningSession<P, A>, subject: (display: RoundDisplay<P, A>) => Subject) => {
+  const startShared = <P, A>(session: AdaptiveSession<P, A>, subject: (display: RoundDisplay<Adaptive<P>, A>) => Subject) => {
     const controller = createRound({
       roundId: started.roundId, session,
       rng: Math.random, signal: voice.signal, resume,
       introduction: started.intro ? { acknowledge: () => { practice.acknowledge(started.roundId); } } : undefined,
       interrupt: fact => { practice.interrupt(fact.roundId, fact.index, fact.outcome); },
       solved: (roundId, fact) => {
-        const committed = practice.solve(roundId, fact);
+        const asked = controller.display.peek().current.problem;
+        session.note(fact.outcome);
+        const committed = practice.solve(roundId, fact, { push: asked.push });
         if (committed.kind !== 'accepted') return;
         soFar = [...soFar, fact];
         place.round({ mode, results: soFar });

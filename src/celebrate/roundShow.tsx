@@ -69,11 +69,14 @@ async function roundDone(st: ShowStage, bolts: number, earned: number) {
     .then(() => { if (st.alive()) { sound(sClink); st.bump(++n); } })));
 }
 
-/** Level up (+~2 s): a wheelie with a honk, and the new money pops up with a chime and confetti. */
+/** Level up (+~2 s): a wheelie with a honk, and the new money (or the mode and its new Level) pops up with a chime and confetti. */
 async function levelUp(st: ShowStage, e: Extract<RoundEvent, { kind: 'levelUp' }>) {
   const { animate, confetti, sound } = effectsFor(st.voice.signal);
   const sign = prop(st, 'right:4%;bottom:30px');
-  render(<>{modeById(e.mode).introMoney[e.level].map(k => <Money key={k} k={k} caption={false} scale={0.8} />)}</>, sign);
+  const mode = modeById(e.mode);
+  render(e.level === 2 || e.level === 3
+    ? <>{mode.introMoney[e.level].map(k => <Money key={k} k={k} caption={false} scale={0.8} />)}</>
+    : <span class="level-sign">{mode.icon}{e.level}</span>, sign);
   sign.style.transform = 'scale(0)';
   sound(sHonk); sound(sEngine, 1);
   speak(st, eventLines(e));

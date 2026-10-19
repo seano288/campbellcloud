@@ -9,7 +9,7 @@ export const PRICES = {
 } as const;
 /**
  * Legendary Mods, in cents, by his Pay the Shop Level, each paid with that Level's money: Level 1 under $1 in
- * pennies, nickels and dimes, Level 2 $1.10 to $2.90 with quarters, Level 3 $3.35 to $8.80 with bills.
+ * pennies, nickels and dimes, Level 2 $1.10 to $2.90 with quarters, Level 3 and up $3.35 to $8.80 with bills.
  */
 export const CASH_PRICES = {
   1: { tires: 35, number: 42, paint: 50, grille: 56, decals: 63, exhaust: 70, lights: 75, engine: 81, topper: 88, horn: 95 },
@@ -18,6 +18,8 @@ export const CASH_PRICES = {
 } as const satisfies Record<number, Record<SlotId, number>>;
 
 export type GaragePricingContext = keyof typeof CASH_PRICES;
+/** The prices for his Pay the Shop Level: Levels 4 and 5 keep Level 3's, already up to $8.80. */
+export const pricingAt = (payLevel: number): GaragePricingContext => (payLevel >= 3 ? 3 : payLevel <= 1 ? 1 : 2);
 export type Price = { bolts: number; cents?: never } | { cents: number; bolts?: never };
 
 /** A Legendary, the Mod on the top of a Slot's Rungs, bought with money. */

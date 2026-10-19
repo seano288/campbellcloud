@@ -3,6 +3,7 @@ import { boltsFor } from '../round/rules';
 import { dayOf, type StepId } from '../trophies/trophies';
 import type { ModeId } from '../modes/ids';
 import { recordSolved } from '../modes/learning';
+import type { Asked } from '../modes/session';
 import { acknowledgeIntro, selectPractice, type LearningState } from '../modes/state';
 import { completeTrophies } from './trophies';
 import { countAnswer as countStreak, type TrophyState } from '../trophies/rules';
@@ -38,9 +39,12 @@ export function createMoneyPractice<State extends MoneyPracticeState>(
     },
     acknowledge: (state, mode) => ({ ...state, learning: acknowledgeIntro(state.learning, mode) }),
     interrupt: (state, outcome) => ({ ...state, trophies: streak(state.trophies, outcome) }),
-    solve(state, mode, fact) {
+    // an easier problem mixed in (`push: false`) keeps the streak going but doesn't count toward Mastery
+    solve(state, mode, fact, detail?: Asked) {
+      const trophies = streak(state.trophies, fact.outcome);
+      if (detail?.push === false) return { state: { ...state, trophies }, changes: [] };
       const next = recordSolved(state.learning, mode, fact);
-      return { state: { ...state, learning: next.state, trophies: streak(state.trophies, fact.outcome) }, changes: next.changes };
+      return { state: { ...state, learning: next.state, trophies }, changes: next.changes };
     },
     earnings,
     complete(state, fact, beforeBalance, afterBalance) {

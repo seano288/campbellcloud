@@ -11,6 +11,7 @@ import type { LearnProblem } from './learn';
 
 const PROMPT = {
   name: 'What is this called?', value: 'How much is this worth?', more: 'Which is worth more?', less: 'Which is worth less?',
+  same: 'Which one is worth the same?',
 } as const;
 
 export function LearnView({ problem: p, actions, signal }: ProblemViewProps<LearnProblem, MoneyKey>) {
@@ -50,13 +51,20 @@ export function LearnView({ problem: p, actions, signal }: ProblemViewProps<Lear
           </div>
         </>
       ) : (
+        <>
+        {p.kind === 'same' && (
+          <div class={`pile same ${p.group.length > 6 ? 'many' : ''}`}>
+            {p.group.map((k, i) => <Money key={i} k={k} caption={false} scale={p.group.length > 6 ? 0.6 : 0.8} />)}
+          </div>
+        )}
         <div class="pile learn">
           {p.options.map(k => (
             <button key={k} class={`money-btn ${cls(k)}`} aria-label={MONEY[k].name} onClick={() => tap(k)}>
-              <Money k={k} caption={reveal(k)} scale={p.kind === 'find' ? 1.6 : 1.9} />
+              <Money k={k} caption={reveal(k)} scale={p.kind === 'same' ? (p.options.length > 3 ? 1 : 1.3) : p.kind === 'find' ? 1.6 : 1.9} />
             </button>
           ))}
         </div>
+        </>
       )}
     </div>
   );

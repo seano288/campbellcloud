@@ -5,6 +5,7 @@ import { game } from '../game/store';
 import type { MODES } from '../modes/modes';
 import { startRound } from '../round/round';
 import { LevelDots } from '../ui/bits';
+import { TOP_LEVEL } from '../modes/progress';
 import type { RewardPresentation } from '../rewards/presentation';
 import { useVoice } from '../voice/context';
 import type { VoiceScope } from '../voice/say';
@@ -38,7 +39,7 @@ export function Home({ reward, status, modes, title }: { reward: RewardPresentat
           return (
             <button key={id} class={`tile mode t-${id} ${m.opened ? '' : 'locked'} ${m.opened && m.fresh ? 'fresh' : ''}`} aria-label={name} onClick={() => tapMode(mode, voice)}>
               <span class="e">{icon}</span>
-              <span><span class="nm">{name}</span><br /><LevelDots level={m.level} /></span>
+              <span><span class="nm">{name}</span><br /><LevelDots level={m.level} of={TOP_LEVEL} /></span>
               {!m.opened ? <span class="lock">🔒</span> : m.starred && <span class="badge">⭐</span>}
             </button>
           );

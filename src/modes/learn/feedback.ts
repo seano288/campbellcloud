@@ -1,5 +1,5 @@
 import { signal, type Signal } from '@preact/signals';
-import { MONEY, type MoneyKey } from '../../money/money';
+import { fmt, MONEY, total, type MoneyKey } from '../../money/money';
 import { toast } from '../../ui/toast';
 import { moneyIs } from '../../money/phrases';
 import type { Phrase } from '../../voice/phrases';
@@ -20,6 +20,10 @@ export async function explainLearn(p: LearnProblem, answer: MoneyKey, teach: boo
   const voice = createVoiceScope(signal), t = MONEY[p.target], m = MONEY[answer];
   if ('choices' in p) return toast(voice, 'Try again!', 'Try again!');
   if (p.kind === 'find') return toast(voice, `That's a ${m.name}. Find the ${t.name}!`, `That's a ${m.name}.`, `Find the ${t.name}!`);
+  if (p.kind === 'same') {
+    const sum = total(p.group);
+    return toast(voice, `All together they make ${fmt(sum)}. That's a ${m.name}.`, 'All together they make', { cents: sum }, `That's a ${m.name}.`, moneyIs(answer));
+  }
   const lines: Phrase[] = [moneyIs(p.target), moneyIs(answer)];
   if (dimeTip(answer, p.target)) lines.push('The dime is small, but it is worth more!');
   await toast(voice, lines.join(' '), ...lines);

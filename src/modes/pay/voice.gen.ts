@@ -7,4 +7,6 @@ export const CLIPS = {
   "Too much!": "d7e808151fe7.mp3",
   "Take back": "51d6a5baff08.mp3",
   "Tap a coin to hear its name.": "c491f5a8eeeb.mp3",
+  "Right amount!": "b2d553b70162.mp3",
+  "Now use fewer coins.": "ef680ca13bca.mp3",
 } as const;

@@ -1,13 +1,13 @@
 import type { Progression } from '../learning/session';
 import { OPENS_AFTER, opensWith } from './chain';
-import { MODE_IDS, type ModeId } from './ids';
+import { MODE_IDS, type ModeId, type RaisedLevel } from './ids';
 import { recordOutcome } from './progress';
 import type { LearningState } from './state';
 
 const UNLOCK_CHAIN = MODE_IDS.map(id => ({ id, opensAfter: OPENS_AFTER[id] }));
 
 export type LearningChange =
-  | { kind: 'levelUp'; mode: ModeId; level: 2 | 3 }
+  | { kind: 'levelUp'; mode: ModeId; level: RaisedLevel }
   | { kind: 'open'; mode: ModeId }
   | { kind: 'star'; mode: ModeId };
 
@@ -16,7 +16,7 @@ export const recordSolved: Progression<LearningState, ModeId, LearningChange> = 
   const changes: LearningChange[] = [];
   const modes = { ...state.modes, [id]: mode };
   if (event === 'levelUp') {
-    changes.push({ kind: 'levelUp', mode: id, level: mode.level as 2 | 3 });
+    changes.push({ kind: 'levelUp', mode: id, level: mode.level as RaisedLevel });
     for (const opened of opensWith(UNLOCK_CHAIN, id, mode.level)) {
       modes[opened] = { ...modes[opened], opened: true, fresh: true };
       changes.push({ kind: 'open', mode: opened });

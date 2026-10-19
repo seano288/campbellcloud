@@ -5,7 +5,7 @@ import { sBad } from '../../audio/sfx';
 import { ClockFace } from '../clock/ClockFace';
 import { timePhrase } from '../clock/speech';
 import { clearLesson, lessonFor, teachTime } from '../clock/teach';
-import { digital, fromMinutes, minutesOf, randomTime, sameTime, snap, startingTime, STEP } from '../clock/time';
+import { digital, fromMinutes, minutesOf, randomTime, sameTime, snap, startingTime, STEP, type Level } from '../clock/time';
 import { player } from '../game';
 import { useVoiceScope } from '../voice';
 import { unlockLegendary } from './actions';
@@ -14,7 +14,7 @@ import { ModIcon } from './ModIcon';
 
 export function TimeLock({ slot, onOpen, onClose }: { slot: SlotId; onOpen(): void; onClose(): void }) {
   const voice = useVoiceScope(), lesson = lessonFor(voice.signal);
-  const level = player.state.value.learning.modes.find.level;
+  const level = player.state.value.learning.modes.find.level as Level; // the clock's Levels stop at 3
   const target = useMemo(() => randomTime(level, Math.random), []);
   const [minutes, setMinutes] = useState(() => minutesOf(startingTime(target, level, Math.random)));
   const [misses, setMisses] = useState(0);

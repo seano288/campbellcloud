@@ -3,11 +3,14 @@
 **Game Mode**: One kind of money practice. There are three: Learn the Coins (names and values), Count the Cash (how much is here?) and Pay the Shop (pick the right money). They open in that order: each one after the previous reaches Level 2. The player picks which open Game Mode to play.
 _Avoid_: Pay the Garage (it clashes with the Garage, which uses Bolts, not money)
 
-**Level**: How hard a Game Mode is, set by which money appears. Level 1 uses pennies, nickels and dimes, Level 2 adds quarters and Level 3 adds $1 and $5 bills. Each Game Mode has its own Level. The game raises it itself when the player shows mastery; nobody picks it by hand, and it never goes down.
+**Level**: How hard a Game Mode is. Levels 1 to 3 are set by which money appears: Level 1 uses pennies, nickels and dimes, Level 2 adds quarters and Level 3 adds $1 and $5 bills. Levels 4 and 5 use all the money and ask for something harder: Learn the Coins asks which one piece is worth the same as a pile (piles of one kind, then mixed piles), Count the Cash counts bigger jumbled piles up to $9.99 and then the change from paying for something, and Pay the Shop pays prices up to $9.75 with the $5 bill and then pays with the fewest pieces. Each Game Mode has its own Level. The game raises it itself when the player shows mastery; nobody picks it by hand, and it never goes down.
 
-**Mastery**: Getting 8 of the last 10 problems in a Game Mode right on the first try without help. It raises that Game Mode's Level.
+**Stretch**: How big a problem is within its Level: smaller piles, lower prices and fewer answers to pick from while the player is new to the Level or missing a lot, growing as their first-try answers outnumber their misses.
+_Avoid_: Level (a Stretch never changes the money or the kind of problem)
 
-**Round**: A short run of problems in one Game Mode that ends in a reward. A problem he missed comes back once, later in the Round.
+**Mastery**: Getting 8 of the last 10 problems in a Game Mode right on the first try without help, or the last 6 in a row. It raises that Game Mode's Level; at Level 5 it gives the star. Only problems asked at the player's Level count.
+
+**Round**: A short run of problems in one Game Mode that ends in a reward. A problem he missed comes back once, later in the Round. Above Level 1 the first problem, and the one right after a miss or help, is a warm-up from the Level below that doesn't count toward Mastery.
 
 **Bolt**: What the player earns in Rounds, one for each answer right on the first try without help plus one for finishing, and spends to unlock Mods and Colours and buy Bodies. It is deliberately *not* money, so spending it never asks the player to count cash. A Bolt never buys a Legendary Mod.
 _Avoid_: Reward Token, coin, star, point
@@ -22,7 +25,7 @@ _Avoid_: Category, part type
 
 **Mod**: A part, look or sound that goes in one Slot (tires, paint, flames, lights, an engine and so on). A Mod is unlocked once, by spending Bolts (or money, for a Legendary), and cooler Mods cost more. After that it can be fitted to any Body or taken off freely.
 
-**Rung**: A Mod's step within its Slot: first, second, top, then Legendary. A higher Rung looks cooler and costs more. The first three are paid in Bolts; the Legendary Rung is paid in money, tapped into the Pay the Shop tray to the exact price, and opens for purchase once the top Rung in its Slot is unlocked. A Legendary's price follows the player's Pay the Shop Level and uses only that Level's money, so it grows as he improves; no Level is needed to buy one. Each Slot also has a free default that is not a Rung.
+**Rung**: A Mod's step within its Slot: first, second, top, then Legendary. A higher Rung looks cooler and costs more. The first three are paid in Bolts; the Legendary Rung is paid in money, tapped into the Pay the Shop tray to the exact price, and opens for purchase once the top Rung in its Slot is unlocked. A Legendary's price follows the player's Pay the Shop Level (Levels 4 and 5 keep Level 3's prices) and uses only that Level's money, so it grows as he improves; no Level is needed to buy one. Each Slot also has a free default that is not a Rung.
 _Avoid_: Tier, level (Level means how hard a Game Mode is)
 
 **Door Number**: The racing number on the Truck's door, 0 to 99, which the player picks himself with two wheels (tens and ones) while it is read aloud. Each Body keeps its own number, and changing it is always free. It is not a Mod: the Door Number Slot's Mods are only its style (Plain, Outlined, Flaming, Glowing Gold), and with No Number fitted it isn't shown.

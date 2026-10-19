@@ -10,7 +10,7 @@ it('captures generation Level while checking and early help use current learning
   let state = freshLearning();
   const explain = vi.fn(async () => {});
   const session = learnSession(1, () => state.modes.learn, explain);
-  const problem = { kind: 'find', target: 'd', options: ['d', 'p'] } as const;
+  const problem = { kind: 'find', target: 'd', options: ['d', 'p'], push: true } as const;
   const wrong = session.check({ ...problem, options: [...problem.options] }, 'p');
   expect(wrong.kind).toBe('incorrect');
   expect(explain).not.toHaveBeenCalled();
@@ -33,7 +33,7 @@ it('treats an empty Pay tray as a prompt, not a miss, and defers wrong-payment t
   const state = freshLearning();
   const explain = vi.fn(async () => {}), prompt = vi.fn(async () => {});
   const session = paySession(1, () => state.modes.pay, explain, prompt);
-  const problem = { item: SHOP_ITEMS[0], price: 15, bank: ['d', 'n', 'p'] } as const;
+  const problem = { item: SHOP_ITEMS[0], price: 15, bank: ['d', 'n', 'p'], push: true } as const;
   const empty = session.check(problem, []);
   expect(empty.kind).toBe('not-an-answer');
   expect(prompt).not.toHaveBeenCalled();
@@ -52,7 +52,7 @@ it('treats an empty Pay tray as a prompt, not a miss, and defers wrong-payment t
 it('checks Count totals and replays the same pile with fresh choices', () => {
   const state = freshLearning(), explain = vi.fn(async () => {});
   const session = countSession(1, () => state.modes.count, explain);
-  const problem = { pile: ['d', 'n'], total: 15, choices: [10, 15, 20, 25] } as const;
+  const problem = { pile: ['d', 'n'], total: 15, choices: [10, 15, 20, 25], push: true } as const;
   const p = { ...problem, pile: [...problem.pile], choices: [...problem.choices] };
   expect(session.check(p, 15)).toEqual({ kind: 'correct' });
   expect(session.check(p, 10).kind).toBe('incorrect');
@@ -83,24 +83,24 @@ describe('money progression', () => {
   it.each(['learn', 'count', 'pay'] as const)('keeps %s Levels monotonic, grants its star once and keeps helped results out of Mastery', id => {
     let state = freshLearning();
     const changes = [];
-    for (let i = 0; i < 24; i++) {
+    for (let i = 0; i < 30; i++) {
       const next = recordSolved(state, id, { ...clean, index: i + 1 });
       state = next.state;
       changes.push(...next.changes);
     }
-    expect(changes.filter(c => c.kind === 'levelUp')).toEqual([{ kind: 'levelUp', mode: id, level: 2 }, { kind: 'levelUp', mode: id, level: 3 }]);
+    expect(changes.filter(c => c.kind === 'levelUp')).toEqual(([2, 3, 4, 5] as const).map(level => ({ kind: 'levelUp', mode: id, level })));
     expect(changes.filter(c => c.kind === 'star')).toEqual([{ kind: 'star', mode: id }]);
     for (let i = 0; i < 12; i++) state = recordSolved(state, id, { ...clean, outcome: 'missed', misses: 1 }).state;
-    expect(state.modes[id]).toMatchObject({ level: 3, starred: true, window: Array(10).fill('missed') });
+    expect(state.modes[id]).toMatchObject({ level: 5, starred: true, window: Array(10).fill('missed') });
     const helped = recordSolved(state, id, { ...clean, outcome: 'helped', helped: true });
     expect(helped.changes).toEqual([]);
     expect(helped.state.modes[id].window).toEqual([...Array(9).fill('missed'), 'helped']);
   });
-  it('advances after eight clean results, clears the window and opens the next practice', () => {
+  it('advances after six clean results in a row, clears the window and opens the next practice', () => {
     const initial = freshLearning();
     let state = initial;
     const changes = [];
-    for (let i = 0; i < 8; i++) {
+    for (let i = 0; i < 6; i++) {
       const next = recordSolved(state, 'learn', clean);
       state = next.state;
       changes.push(...next.changes);

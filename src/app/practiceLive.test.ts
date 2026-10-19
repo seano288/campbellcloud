@@ -175,7 +175,8 @@ describe('live practice coordination', () => {
     expect(app.round.value?.events).toEqual([{ kind: 'levelUp', mode: 'learn', level: 2 }, { kind: 'open', mode: 'count' }]);
     await vi.advanceTimersByTimeAsync(900);
     expect(app.game.value).toMatchObject({ bolts: 6, roundsFinished: 1 });
-    expect(snapshot().modes.learn.window).toEqual(['clean', 'clean', 'clean', 'clean']);
+    // the rest of the Round was asked at Level 1, so none of it counts toward Level 2
+    expect(snapshot().modes.learn.window).toEqual([]);
     app.leaveRound();
     app.startRound('learn');
     expect(app.round.value).toMatchObject({ level: 2, intro: true });
@@ -366,7 +367,7 @@ describe('live practice coordination', () => {
       app.leaveRound();
     });
 
-    it.each([1, 3] as const)('captures Level %i generation while saving a Level increase or star', async level => {
+    it.each([1, 5] as const)('captures Level %i generation while saving a Level increase or star', async level => {
       seedMoney(mode, { level, window: Array(7).fill('clean'), fresh: true });
       const app = await launch();
       app.startRound(mode);
@@ -382,7 +383,9 @@ describe('live practice coordination', () => {
           }
         }
         solveMoney(r);
-        expect(app.game.value.modes[mode]).toMatchObject(level === 1 ? { level: 2, introPending: true } : { level: 3, starred: true });
+        // above Level 1 a Round opens with a warm-up from the Level below, which doesn't count toward Mastery
+        if (level === 5 && index === 0) expect(app.game.value.modes[mode]).toMatchObject({ level: 5, starred: false });
+        else expect(app.game.value.modes[mode]).toMatchObject(level === 1 ? { level: 2, introPending: true } : { level: 5, starred: true });
         if (index < 4) await vi.advanceTimersByTimeAsync(1500);
       }
       await vi.advanceTimersByTimeAsync(900);

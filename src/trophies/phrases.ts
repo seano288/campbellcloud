@@ -1,10 +1,10 @@
-import { MODE_IDS, MODE_NAMES, type ModeId, type ModeName } from '../modes/ids';
+import { MODE_IDS, MODE_NAMES, type ModeId, type ModeName, type RaisedLevel } from '../modes/ids';
 import { DAYS, TROPHIES, type RoundsN, type StreakN, type TrophyStep } from './trophies';
 
 // ---------- Trophies ----------
-export type TrophyName = `${ModeName} Level ${2 | 3}` | `${ModeName} Star` | `${StreakN} in a Row` | 'Perfect Round' | `${RoundsN} Rounds` | `${typeof DAYS} Days`;
+export type TrophyName = `${ModeName} Level ${RaisedLevel}` | `${ModeName} Star` | `${StreakN} in a Row` | 'Perfect Round' | `${RoundsN} Rounds` | `${typeof DAYS} Days`;
 /** Read aloud when he taps a trophy he hasn't earned yet. */
-type TrophyHint = `Reach Level ${2 | 3} in ${ModeName}!` | `Be a ${ModeName} star!` | `Get ${StreakN} right in a row on the first try!`
+type TrophyHint = `Reach Level ${RaisedLevel} in ${ModeName}!` | `Be a ${ModeName} star!` | `Get ${StreakN} right in a row on the first try!`
   | 'Get every answer right on the first try in one Round!' | `Finish ${RoundsN} Rounds!` | `Play on ${typeof DAYS} different days!`;
 type TrophyPhrase = 'Trophies!' | TrophyName | TrophyHint | `You earned ${TrophyName}!`;
 const modeName = (m: ModeId) => MODE_NAMES[MODE_IDS.indexOf(m)]!;

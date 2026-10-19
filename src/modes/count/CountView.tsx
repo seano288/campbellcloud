@@ -18,7 +18,11 @@ export function CountView({ problem: p, level, actions, signal }: ProblemViewPro
   const [peek, setPeek] = useState(false);
   const run = counting(signal).run; // bumped to stop a Help me count in progress
 
-  const speech: Item[] = ['How much money is this?', ...p.choices.map(c => ({ parts: [{ cents: c }], light: `c${c}` }))];
+  const ask = p.change ? 'How much change do you get?' : 'How much money is this?';
+  const speech: Item[] = [
+    ...(p.change ? ['It costs', { cents: p.change.price }, 'You pay with this.'] as const : []),
+    ask, ...p.choices.map(c => ({ parts: [{ cents: c }], light: `c${c}` })),
+  ];
 
   function tap(c: number) {
     if (!voice.active || signal.aborted || done || wrong.includes(c)) return;
@@ -31,7 +35,8 @@ export function CountView({ problem: p, level, actions, signal }: ProblemViewPro
 
   return (
     <div class="game">
-      <Ask text="How much money is this?" speech={speech} />
+      <Ask text={ask} speech={speech} />
+      {p.change && <div class="price-tag"><span class="e">{p.change.item.icon}</span><span class="price">{fmt(p.change.price)}</span></div>}
       <div class="pile">
         {p.pile.map((k, i) => (
           <div key={i} class={`slot ${i < counted.value ? 'lit' : ''}`}>

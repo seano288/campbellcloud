@@ -1,7 +1,7 @@
 // Trophies: earned by playing well, never bought and never lost. Each one is a pure check over the save (and the
 // Round just finished), so new ones can be added any time without touching the Garage economy. A counting trophy
 // takes one spot on the shelf and upgrades in place, bronze to silver to gold and on, one step at a time.
-import { MODE_IDS, type ModeId } from '../modes/ids';
+import { MODE_IDS, type ModeId, type RaisedLevel } from '../modes/ids';
 
 export const STREAKS = [5, 10, 20] as const;
 export const ROUND_COUNTS = [10, 25, 50, 100, 250] as const;
@@ -10,14 +10,14 @@ export type StreakN = (typeof STREAKS)[number];
 export type RoundsN = (typeof ROUND_COUNTS)[number];
 
 export type TrophyStep =
-  | { kind: 'level'; mode: ModeId; level: 2 | 3 }
+  | { kind: 'level'; mode: ModeId; level: RaisedLevel }
   | { kind: 'star'; mode: ModeId }
   | { kind: 'streak'; n: StreakN }
   | { kind: 'perfect' }
   | { kind: 'rounds'; n: RoundsN }
   | { kind: 'days'; n: typeof DAYS };
 
-export type StepId = `${ModeId}:${2 | 3 | 'star'}` | `streak:${StreakN}` | 'perfect' | `rounds:${RoundsN}` | `days:${typeof DAYS}`;
+export type StepId = `${ModeId}:${RaisedLevel | 'star'}` | `streak:${StreakN}` | 'perfect' | `rounds:${RoundsN}` | `days:${typeof DAYS}`;
 
 /** Earned steps and the day each was earned ("2026-09-30"). */
 export type Earned = Partial<Record<StepId, string>>;
@@ -31,8 +31,7 @@ export interface Trophy {
 
 export const TROPHIES: readonly Trophy[] = [
   ...MODE_IDS.flatMap((mode): Trophy[] => [
-    { id: `${mode}:2`, kind: 'learning', steps: [{ kind: 'level', mode, level: 2 }] },
-    { id: `${mode}:3`, kind: 'learning', steps: [{ kind: 'level', mode, level: 3 }] },
+    ...([2, 3, 4, 5] as const).map((level): Trophy => ({ id: `${mode}:${level}`, kind: 'learning', steps: [{ kind: 'level', mode, level }] })),
     { id: `${mode}:star`, kind: 'learning', steps: [{ kind: 'star', mode }] },
   ]),
   { id: 'streak', kind: 'skill', steps: STREAKS.map(n => ({ kind: 'streak', n })) },

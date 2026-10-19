@@ -7,9 +7,8 @@ import {
   bodyItem, BODY_IDS, BOUGHT_COLOURS, buyableName, colourItem, defaultFit, FREE_COLOUR, isLegendary, isModItem, isStarter, LEGENDARY, modId, modName, parseMod,
   BOLT_RUNGS, type BodyId, type BoughtColour, type Buyable, type BuyRung, type ColourId, type Fit, type ModId, type Rung, type SlotId,
 } from '../garage/catalog';
-import type { Level } from '../modes/ids';
 import { affordable, boltsNeeded, forBolts, goalOf, priceOf, waitingOn } from './garageEconomy';
-import { affordable as affordableItems, type BoltItem } from '../garage/economy';
+import { affordable as affordableItems, pricingAt, type BoltItem, type GaragePricingContext } from '../garage/economy';
 import { chooseBody as selectBody, fitColour as applyColour, fitMod, selectGoal, setDoorNumber as numberBody, type GarageState } from '../garage/state';
 import { garageFromSave, type MoneyState } from './save';
 import { proposePurchase } from '../garage/purchases';
@@ -25,8 +24,8 @@ const updateGarage = (change: (state: GarageState) => GarageState) => player.com
 export const currentBody = (): BodyId => game.value.body ?? 'pickup';
 export const currentFit = (state = player.state.value): Fit => state.garage.fitted[state.garage.body ?? 'pickup'] ?? defaultFit();
 
-/** His Pay the Shop Level, which sets what a Legendary costs. */
-export const payLevel = (): Level => game.value.modes.pay.level;
+/** The prices his Pay the Shop Level sets for a Legendary. */
+export const payLevel = (): GaragePricingContext => pricingAt(game.value.modes.pay.level);
 /** A Legendary's price in cents at his Pay the Shop Level. */
 export const legendaryPrice = (slot: SlotId, level = payLevel()) => priceOf(modId(slot, LEGENDARY), level).cents!;
 

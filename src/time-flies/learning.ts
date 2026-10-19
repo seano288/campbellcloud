@@ -31,7 +31,7 @@ export interface LearningState {
 }
 
 /** 16 of the last 20 right on the first try. */
-export const CLOCK_RULE: MasteryRule = { window: 20, mastery: 16 };
+export const CLOCK_RULE: MasteryRule = { window: 20, mastery: 16, top: 3 };
 
 export const freshMode = (id: ModeId): ModeProgress => ({ level: 1, window: [], opened: OPENS_AFTER[id] === null, starred: false, introPending: false, fresh: false });
 const eachMode = (f: (id: ModeId) => ModeProgress) => Object.fromEntries(MODE_IDS.map(id => [id, f(id)])) as Record<ModeId, ModeProgress>;

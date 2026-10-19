@@ -26,7 +26,7 @@ export type Problem =
 export function pickNext(state: LearningState, rng: Rng, last?: { mode: ModeId; missed: boolean }): Base {
   const open = MODE_IDS.filter(m => state.modes[m].opened);
   const others = open.filter(m => m !== last?.mode);
-  const mode = pick(rng, others.length ? others : open), top = state.modes[mode].level;
+  const mode = pick(rng, others.length ? others : open), top = state.modes[mode].level as Level; // the clock's Levels stop at 3
   const easy = top > 1 && (last?.missed || rng() < EASY_SHARE);
   return easy ? { mode, level: int(rng, 1, top - 1) as Level, push: false } : { mode, level: top, push: true };
 }

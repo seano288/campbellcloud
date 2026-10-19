@@ -10,13 +10,14 @@ import { CLIPS } from '../../src/voice/voice.gen';
 import { ALL_MODS, BODY_IDS, BOUGHT_COLOURS, isLegendary } from '../../src/garage/catalog';
 import { TrophyShelf } from '../../src/trophies/TrophyShelf';
 import { freshSave } from '../../src/save/migrate';
+import { pricingAt } from '../../src/garage/economy';
 import { moneyEntry } from '../../src/app/entrySelection';
 
 const store = createStore({
   key: 'presentation-fixture', adapter: moneySave,
   backing: { read: () => JSON.stringify({ ...freshSave(), trophies: { 'learn:2': '2026-09-01', 'streak:5': '2026-09-02', 'streak:10': '2026-09-03' } }), write() {} },
 });
-const reward = createGaragePresentation(store, { context: state => state.learning.modes.pay.level });
+const reward = createGaragePresentation(store, { context: state => pricingAt(state.learning.modes.pay.level) });
 const spoken = signal<string[]>([]);
 const playback = createMoneyVoice({
   load: async file => file,

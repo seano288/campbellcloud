@@ -1,5 +1,5 @@
 import type { Outcome } from '../learning/session';
-import { MODE_IDS, type Level, type ModeId } from './ids';
+import { LEVELS, MODE_IDS, type Level, type ModeId } from './ids';
 
 export interface ModeProgress {
   level: Level;
@@ -34,7 +34,7 @@ function readMode(id: ModeId, raw: unknown): ModeProgress {
   if (!isRecord(raw)) return f;
   const outcomes = ['clean', 'helped', 'missed'] as const;
   return {
-    level: ([1, 2, 3] as const).find(l => l === raw.level) ?? f.level,
+    level: LEVELS.find(l => l === raw.level) ?? f.level,
     window: Array.isArray(raw.window) ? raw.window.filter((o): o is Outcome => outcomes.includes(o as Outcome)).slice(-10) : f.window,
     opened: bool(raw.opened, f.opened),
     starred: bool(raw.starred, f.starred),
