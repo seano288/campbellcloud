@@ -3,6 +3,7 @@ import { BuildLabel } from '../ui/BuildLabel';
 import { catSvg } from './art';
 import type { Puzzle } from './puzzle';
 import { CAT, CROSS, EMPTY, LIVES, canUndo, clock, game, next, paint, placeCat, puzzle, restart, tick, undo } from './game';
+import { muted, newBoard, react, toggleMute } from './voice';
 
 // One colour per patch, picked to stay apart from each other and from the cats' orange. With no outline round the
 // patches, colour is all that tells them apart, so neighbouring patches get the colours furthest from each other.
@@ -50,9 +51,11 @@ function Play() {
     }, 1000);
     return () => clearInterval(id);
   }, [g.status, g.level]);
+  useEffect(() => { if (g.status === 'playing') newBoard(); }, [g.status, g.level]);
 
   const onCat = (cell: number) => {
     const result = placeCat(cell);
+    if (result) react(result);
     if (result === 'wrong' || result === 'lost') { setShake(s => s + 1); navigator.vibrate?.(120); }
     if (result === 'cat' || result === 'won') setPop(cell);
   };
@@ -71,6 +74,7 @@ function Play() {
       <div class="nap-tools">
         <button class="nap-tool" disabled={!canUndo.value || g.status !== 'playing'} onClick={undo}>↶ Undo</button>
         <button class="nap-tool" disabled={g.status !== 'playing'} onClick={() => paint(g.marks.flatMap((m, i) => (m === CROSS ? [i] : [])), EMPTY)}>Clear ✕</button>
+        <button class="nap-tool" aria-pressed={muted.value} onClick={toggleMute}>{muted.value ? '🔇 Sound off' : '🔊 Sound on'}</button>
       </div>
       <p class="nap-help">Tap to mark ✕ · drag to mark lots · double-tap to lay a cat down</p>
       <BuildLabel />

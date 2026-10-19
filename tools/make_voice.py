@@ -3,6 +3,7 @@
   python3 -m venv .venv && .venv/bin/pip install edge-tts
   .venv/bin/python tools/make_voice.py --collection money --out public/voice --index src/voice/voice.gen.ts
   .venv/bin/python tools/make_voice.py --collection time-flies --out public/time-flies-voice --index src/time-flies/voice.gen.ts
+  .venv/bin/python tools/make_voice.py --collection purrdoku --out public/purrdoku-voice --index src/purrdoku/voice.gen.ts
 
 Select phrases through tools/phrases.ts and write recordings and a typed index to explicit locations.
 Only missing clips are recorded. Cleanup touches only the selected directory, whose .voice-collection
@@ -13,6 +14,8 @@ from pathlib import Path
 
 VOICE = 'en-US-AvaNeural'
 RATE = '-8%'
+# Purrdoku's sarcastic narrator: a casual, conversational voice, a touch slow so the deadpan lines land
+VOICES = {'purrdoku': ('en-US-BrianMultilingualNeural', '-5%')}
 ROOT = Path(__file__).resolve().parent.parent
 
 
@@ -21,22 +24,24 @@ def speakable(s):
                  ('VROOM', 'Vroom'), ('Truck-tastic', 'Truck tastic'),
                  # Time Flies: aircraft names said the way pilots say them
                  ('F/A-18', 'F A 18'), ('F-117', 'F one seventeen'), ('Lightning II', 'Lightning Two'), ('SR-71', 'S R 71'),
-                 ('F4U', 'F 4 U')]:
+                 ('F4U', 'F 4 U'),
+                 # Purrdoku: puns said as one word
+                 ('Purr-fect', 'Purrfect'), ('Paw-some', 'Pawsome'), ('Meow-velous', 'Meowvelous'), ('Mm-hmm', 'Mm hmm')]:
         s = s.replace(a, b)
     return re.sub(r'(\d+)¢', lambda m: 'one cent' if m[1] == '1' else f'{m[1]} cents', s)
 
 
-def clip_id(text):
+def clip_id(text, voice, rate):
     # a change of voice, rate or spoken text makes a new clip
-    return hashlib.sha1(f'{VOICE}|{RATE}|{speakable(text)}'.encode()).hexdigest()[:12]
+    return hashlib.sha1(f'{voice}|{rate}|{speakable(text)}'.encode()).hexdigest()[:12]
 
 
-async def record(text, out, sem):
+async def record(text, out, voice, rate, sem):
     import edge_tts
     async with sem:
         for attempt in range(3):
             try:
-                return await edge_tts.Communicate(speakable(text), VOICE, rate=RATE).save(str(out))
+                return await edge_tts.Communicate(speakable(text), voice, rate=rate).save(str(out))
             except Exception:
                 if attempt == 2:
                     raise
@@ -51,8 +56,9 @@ async def main():
     parser.add_argument('--index-only', action='store_true')
     args = parser.parse_args()
     clips, index = args.out.resolve(), args.index.resolve()
+    voice, rate = VOICES.get(args.collection, (VOICE, RATE))
     phrases = json.loads(subprocess.run(['npx', 'tsx', 'tools/phrases.ts', '--collection', args.collection], cwd=ROOT, check=True, capture_output=True, text=True).stdout)
-    files = {p: f'{clip_id(p)}.mp3' for p in phrases}
+    files = {p: f'{clip_id(p, voice, rate)}.mp3' for p in phrases}
     todo = [p for p, f in files.items() if not (clips / f).is_file()]
     stale = []
     if args.index_only:
@@ -68,7 +74,7 @@ async def main():
         clips.mkdir(parents=True, exist_ok=True)
         owner.write_text(args.collection + '\n')
         sem = asyncio.Semaphore(8)
-        await asyncio.gather(*(record(p, clips / files[p], sem) for p in todo))
+        await asyncio.gather(*(record(p, clips / files[p], voice, rate, sem) for p in todo))
         keep = set(files.values())
         stale = [f for f in clips.glob('*.mp3') if f.name not in keep]
         for f in stale:
@@ -76,6 +82,6 @@ async def main():
     body = ''.join(f'  {json.dumps(p, ensure_ascii=False)}: {json.dumps(f)},\n' for p, f in files.items())
     header = ''.join(line + '\n' for line in index.read_text().splitlines() if line.startswith('//')) if index.exists() else ''
     index.write_text(header + f'export const CLIPS = {{\n{body}}} as const;\n')
-    print(f'{len(phrases)} phrases: recorded {len(todo)}, removed {len(stale)} stale clips, with {VOICE}')
+    print(f'{len(phrases)} phrases: recorded {len(todo)}, removed {len(stale)} stale clips, with {voice}')
 
 asyncio.run(main())

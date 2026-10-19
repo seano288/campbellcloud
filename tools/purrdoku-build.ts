@@ -8,6 +8,6 @@ export const purrdokuBuild = {
   entry: purrdokuEntry,
   outDir: 'dist-site/purrdoku',
   branding: { ...purrdokuBranding, icon: { svg: iconSvg, background: ICON_BACKGROUND } },
-  voice: { collection: purrdokuEntry.voice, root: resolve(import.meta.dirname, '../public/voice') },
+  voice: { collection: purrdokuEntry.voice, root: resolve(import.meta.dirname, '../public/purrdoku-voice') },
   assets: [],
 } satisfies StaticSelection;

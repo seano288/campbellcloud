@@ -5,6 +5,8 @@ import './purrdoku.css';
 import { mountApp } from '../main';
 import { App } from './App';
 import { game, start } from './game';
+import { listen } from './voice';
 
 start();
+listen();
 void mountApp(App, async () => {}, () => game.peek()?.status !== 'playing');

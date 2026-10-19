@@ -11,6 +11,7 @@ const collections = {
   inspection: async () => (await import('../src/money/phrases')).MONEY_INSPECTION_PHRASES,
   amounts: async () => (await import('../src/voice/amount')).allAmountPieces(),
   'time-flies': async () => (await import('../src/time-flies/phrases')).PHRASES,
+  purrdoku: async () => (await import('../src/purrdoku/phrases')).PHRASES,
 };
 if (!name || !Object.hasOwn(collections, name)) throw new Error(`Select --collection ${Object.keys(collections).join('|')}`);
 const phrases = await collections[name as keyof typeof collections]();
