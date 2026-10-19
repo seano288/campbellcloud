@@ -1,5 +1,5 @@
 import { beforeEach, describe, expect, it } from 'vitest';
-import { CAT, CROSS, EMPTY, game, LIVES, placeCat, puzzle, restart, save, start } from './game';
+import { CAT, CROSS, EMPTY, game, hint, LIVES, paint, placeCat, puzzle, restart, save, shownHint, start } from './game';
 import { STEPS, stepFor } from './ladder';
 import { rate } from './puzzle';
 
@@ -38,6 +38,40 @@ describe('playing Purrdoku', () => {
     start();
     expect(game.value!.level).toBe(2);
     expect(game.value!.status).toBe('playing');
+  });
+});
+
+describe('Purrdoku hints', () => {
+  it('following hints alone solves a board without a wrong cat or a wrong ✕', () => {
+    for (const level of [1, 30, 90, 200]) {
+      save.value = { v: 2, level, solved: 0 };
+      start();
+      const right = new Set(answer());
+      for (let asked = 0; game.value!.status === 'playing'; asked++) {
+        expect(asked).toBeLessThan(500);
+        hint();
+        const shown = shownHint.value!;
+        expect(shown.why).toBeTruthy();
+        if (shown.kind === 'cat') expect(['cat', 'won']).toContain(placeCat(shown.cells[0]!));
+        else {
+          expect(shown.cells.some(cell => right.has(cell))).toBe(false);
+          paint(shown.cells, CROSS);
+        }
+        expect(shownHint.value).toBeNull();
+      }
+      expect(game.value!.status).toBe('won');
+      expect(game.value!.hints).toBeGreaterThan(0);
+    }
+  });
+
+  it('points out a ✕ that hides a cat first', () => {
+    save.value = { v: 2, level: 1, solved: 0 };
+    start();
+    paint([wrongCell(0), answer()[2]!], CROSS);
+    hint();
+    expect(shownHint.value).toMatchObject({ kind: 'cat', cells: [answer()[2]] });
+    hint(); // a second tap hides it
+    expect(shownHint.value).toBeNull();
   });
 });
 

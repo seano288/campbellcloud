@@ -2,7 +2,7 @@
 // It is all kept in localStorage under its own key; the board itself isn't stored, it's remade from its seed.
 import { computed, effect, signal } from '@preact/signals';
 import { levelBoard } from './ladder';
-import { generate, turn, type Puzzle } from './puzzle';
+import { generate, nextStep, settle, touches, turn, type Puzzle } from './puzzle';
 
 export const LIVES = 3;
 export const EMPTY = 0, CROSS = 1, CAT = 2;
@@ -16,6 +16,8 @@ export interface Game {
   turn: number;
   marks: Mark[];
   strikes: number;
+  /** hints asked for on this board (missing from saves made before there were hints) */
+  hints?: number;
   /** milliseconds spent on this board so far */
   elapsed: number;
   status: 'playing' | 'won' | 'lost';
@@ -69,6 +71,7 @@ export function start() {
   if (save.value.game?.level === level) return;
   history.length = 0;
   canUndo.value = false;
+  shownHint.value = null;
   setGame(newGame(level, levelBoard(level)));
 }
 
@@ -77,6 +80,7 @@ export function restart() {
   if (!g) return;
   history.length = 0;
   canUndo.value = false;
+  shownHint.value = null;
   setGame(newGame(g.level, g));
 }
 
@@ -91,6 +95,7 @@ function update(change: (g: Game) => Partial<Game>, remember = true) {
   if (!g || g.status !== 'playing') return;
   if (remember) { history.push(g.marks); if (history.length > 200) history.shift(); }
   setGame({ ...g, ...change(g) });
+  shownHint.value = null; // the board has moved on, so the hint may not hold any more
   canUndo.value = history.length > 0;
 }
 
@@ -130,6 +135,49 @@ export function placeCat(cell: number): Placed | undefined {
   update(() => ({ marks, status: won ? 'won' : 'playing' }));
   if (won) save.value = { ...save.value, level: g.level + 1, solved: save.value.solved + 1 };
   return won ? 'won' : 'cat';
+}
+
+export interface Hint {
+  /** 'cat': a cat goes in cells[0]; 'cross': none of `cells` can have a cat */
+  kind: 'cat' | 'cross';
+  cells: number[];
+  /** the cells that show why */
+  because: number[];
+  why: string;
+}
+
+/** The hint on show, until the board changes. */
+export const shownHint = signal<Hint | null>(null);
+
+/**
+ * The next thing the player can work out from their own marks: first a ✕ that's hiding a cat, then cells a cat they've
+ * laid rules out, then the easiest step of reasoning left (see nextStep). When only guessing is left, it gives a cat.
+ */
+export function findHint(board: Puzzle, marks: readonly Mark[]): Hint {
+  const n = board.size, answer = board.cats.map((col, row) => row * n + col);
+  const hidden = answer.find(cell => marks[cell] === CROSS);
+  if (hidden !== undefined) return { kind: 'cat', cells: [hidden], because: [], why: "There's a cat under this ✕." };
+
+  const open = marks.map(m => m === EMPTY), done = new Array<boolean>(3 * n).fill(false);
+  for (const cat of answer) {
+    if (marks[cat] !== CAT) continue;
+    const loose = marks.flatMap((m, i) => (m === EMPTY && touches(board, cat, i) ? [i] : []));
+    if (loose.length) return { kind: 'cross', cells: loose, because: [cat], why: 'This cat rules out its row, column and patch, and every cell touching it.' };
+    settle(board, open, done, cat);
+  }
+  const step = nextStep(board, open, done);
+  if (step) return { kind: step.kind, cells: step.cells, because: step.because, why: step.why };
+  const free = answer.find(cell => marks[cell] !== CAT)!;
+  return { kind: 'cat', cells: [free], because: [], why: "Nothing more can be worked out here without guessing, so here's a cat." };
+}
+
+/** Shows a hint for the board in play, or hides the one on show. */
+export function hint() {
+  const g = game.value, board = puzzle.value;
+  if (!g || !board || g.status !== 'playing') return;
+  if (shownHint.value) { shownHint.value = null; return; }
+  shownHint.value = findHint(board, g.marks);
+  setGame({ ...g, hints: (g.hints ?? 0) + 1 });
 }
 
 /** Adds time to the board in play; called every second while it's on screen. */

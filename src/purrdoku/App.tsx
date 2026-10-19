@@ -2,7 +2,7 @@ import { useEffect, useMemo, useRef, useState } from 'preact/hooks';
 import { BuildLabel } from '../ui/BuildLabel';
 import { catSvg } from './art';
 import type { Puzzle } from './puzzle';
-import { CAT, CROSS, EMPTY, LIVES, canUndo, clock, game, next, paint, placeCat, puzzle, restart, tick, undo } from './game';
+import { CAT, CROSS, EMPTY, LIVES, canUndo, clock, game, hint, next, paint, placeCat, puzzle, restart, shownHint, tick, undo } from './game';
 import { muted, newBoard, react, toggleMute } from './voice';
 
 // One colour per patch, picked to stay apart from each other and from the cats' orange. With no outline round the
@@ -40,6 +40,7 @@ function Play() {
   const g = game.value!;
   const [shake, setShake] = useState(0);
   const [pop, setPop] = useState<number | null>(null);
+  const shown = shownHint.value;
 
   useEffect(() => {
     if (g.status !== 'playing') return;
@@ -74,16 +75,17 @@ function Play() {
       <div class="nap-tools">
         <button class="nap-tool" disabled={!canUndo.value || g.status !== 'playing'} onClick={undo}>↶ Undo</button>
         <button class="nap-tool" disabled={g.status !== 'playing'} onClick={() => paint(g.marks.flatMap((m, i) => (m === CROSS ? [i] : [])), EMPTY)}>Clear ✕</button>
-        <button class="nap-tool" aria-pressed={muted.value} onClick={toggleMute}>{muted.value ? '🔇 Sound off' : '🔊 Sound on'}</button>
+        <button class={`nap-tool${shown ? ' on' : ''}`} disabled={g.status !== 'playing'} onClick={hint}>💡 Hint</button>
+        <button class="nap-tool" aria-pressed={muted.value} aria-label={muted.value ? 'Sound off' : 'Sound on'} title={muted.value ? 'Sound off' : 'Sound on'} onClick={toggleMute}>{muted.value ? '🔇' : '🔊'}</button>
       </div>
-      <p class="nap-help">Tap to mark ✕ · drag to mark lots · double-tap to lay a cat down</p>
+      <p class={`nap-help${shown ? ' hint' : ''}`}>{shown ? shown.why : 'Tap to mark ✕ · drag to mark lots · double-tap to lay a cat down'}</p>
       <BuildLabel />
       {g.status === 'won' && (
         <div class="nap-over">
           <div class="nap-card win">
             <div class="cats">{[0, 1, 2].map(i => <span key={i} dangerouslySetInnerHTML={{ __html: CAT_ART }} />)}</div>
             <h2>Purrfect!</h2>
-            <p>Solved in {clock(g.elapsed)}{g.strikes === 0 && ' with no mistakes'}</p>
+            <p>Solved in {clock(g.elapsed)}{g.strikes === 0 && ' with no mistakes'}{!!g.hints && ` · ${g.hints} ${g.hints === 1 ? 'hint' : 'hints'}`}</p>
             <button class="nap-btn go" onClick={next}>Next level ▶</button>
           </div>
         </div>
@@ -116,6 +118,8 @@ function Board({ shake, pop, onCat }: { shake: number; pop: number | null; onCat
   useEffect(() => drop, [board]);
   const playing = g.status === 'playing';
   const colours = useMemo(() => patchColours(board), [board]);
+  const shown = shownHint.value;
+  const todo = new Set(shown?.cells), because = new Set(shown?.because);
 
   const cellAt = (e: PointerEvent) => {
     const rect = ref.current!.getBoundingClientRect();
@@ -175,7 +179,7 @@ function Board({ shake, pop, onCat }: { shake: number; pop: number | null; onCat
           return (
             <div
               key={i}
-              class="nap-cell"
+              class={`nap-cell${todo.has(i) ? ` hint-${shown!.kind}` : because.has(i) ? ' hint-why' : ''}`}
               style={{ background: colours[board.regions[i]!], borderTop: r > 0 ? 'var(--line)' : 'none', borderLeft: c > 0 ? 'var(--line)' : 'none' }}
             >
               {mark === CROSS && <span class="x">✕</span>}

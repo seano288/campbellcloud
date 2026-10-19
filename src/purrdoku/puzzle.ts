@@ -175,15 +175,31 @@ export function turn(board: Puzzle, way: number): Puzzle {
   return { size: n, regions, cats };
 }
 
+/** One step of reasoning: either a cat has to go in a cell, or none of some cells can have a cat. */
+export interface Step {
+  kind: 'cat' | 'cross';
+  /** where the cat goes (one cell), or the cells that are ruled out */
+  cells: number[];
+  /** the cells that show why */
+  because: number[];
+  why: string;
+  /** how hard the step is, as rate() counts it */
+  tier: number;
+}
+
+const KINDS = ['row', 'column', 'patch'] as const;
+const plural = (kind: string) => (kind === 'patch' ? 'patches' : `${kind}s`);
+
 /**
- * How hard a board is to solve by reasoning alone, 1..4, judged by the hardest step a player can't avoid:
+ * The easiest next step on a board part-way through. `open[i]` says whether cell i could still have a cat; `done[u]`
+ * whether unit u (rows 0..n-1, then columns, then patches) already has its cat. Null when only trial and error is left.
+ * The steps, easiest first:
  * 1 · a row, column or patch has only one place left for its cat;
  * 2 · a patch fits in one row or column (or a row in one patch), or a cell would leave some row, column or patch with
  *     nowhere to go;
- * 3 · several patches fit in the same number of rows or columns (or the other way round);
- * 4 · none of that is enough, and the player has to try a cat and see what goes wrong.
+ * 3 · several patches fit in the same number of rows or columns (or the other way round).
  */
-export function rate(board: Puzzle): number {
+export function nextStep(board: Puzzle, open: readonly boolean[], done: readonly boolean[]): Step | null {
   const n = board.size, cells = n * n;
   const rowOf = (i: number) => Math.floor(i / n), colOf = (i: number) => i % n;
   const units: number[][] = [];
@@ -191,78 +207,99 @@ export function rate(board: Puzzle): number {
   for (let k = 0; k < n; k++) units.push([...Array(n).keys()].map(r => r * n + k)); // columns
   for (let k = 0; k < n; k++) units.push([...Array(cells).keys()].filter(i => board.regions[i] === k)); // patches
   const unitsOf = (i: number) => [rowOf(i), n + colOf(i), 2 * n + board.regions[i]!];
-  const open = new Array<boolean>(cells).fill(true), done = new Array<boolean>(3 * n).fill(false);
+  const kindOf = (u: number) => KINDS[Math.floor(u / n)]!;
   const left = (u: number) => units[u]!.filter(i => open[i]);
-  const hits = (a: number, b: number) =>
-    a !== b && (rowOf(a) === rowOf(b) || colOf(a) === colOf(b) || board.regions[a] === board.regions[b] ||
-      (Math.abs(rowOf(a) - rowOf(b)) < 2 && Math.abs(colOf(a) - colOf(b)) < 2));
-  let placed = 0;
-  const place = (cell: number) => {
-    for (let i = 0; i < cells; i++) if (hits(cell, i)) open[i] = false;
-    open[cell] = false;
-    for (const u of unitsOf(cell)) done[u] = true;
-    placed++;
-  };
-  /** Shuts every open cell of `targets` that isn't in `keep`; true if anything changed. */
-  const shut = (targets: Iterable<number>, keep: (i: number) => boolean) => {
-    let changed = false;
-    for (const i of targets) if (open[i] && !keep(i)) { open[i] = false; changed = true; }
-    return changed;
-  };
 
-  const single = () => {
+  const single = (): Step | null => {
     for (let u = 0; u < 3 * n; u++) {
       if (done[u]) continue;
       const l = left(u);
-      if (l.length === 1) { place(l[0]!); return true; }
+      if (l.length === 1) return { kind: 'cat', cells: l, because: units[u]!, why: `This is the only place left for this ${kindOf(u)}'s cat.`, tier: 1 };
     }
-    return false;
+    return null;
   };
 
-  const wipeout = () => {
+  const wipeout = (): Step | null => {
     for (let c = 0; c < cells; c++) {
       if (!open[c]) continue;
       const own = new Set(unitsOf(c));
       for (let u = 0; u < 3 * n; u++) {
         if (done[u] || own.has(u)) continue;
-        if (left(u).every(i => hits(c, i))) { open[c] = false; return true; }
+        const l = left(u);
+        if (l.every(i => touches(board, c, i))) {
+          return { kind: 'cross', cells: [c], because: l, why: `A cat here would leave this ${kindOf(u)} with nowhere for its cat.`, tier: 2 };
+        }
       }
     }
-    return false;
+    return null;
   };
 
   // k units of one kind whose cats must all fall inside k units of another kind claim those units for themselves
-  const kinds = [0, 1, 2] as const; // rows, columns, patches
   const lineOf = (kind: number, i: number) => (kind === 0 ? rowOf(i) : kind === 1 ? colOf(i) : board.regions[i]!);
-  const confine = (maxK: number) => {
-    for (const from of kinds) for (const to of kinds) {
+  const confine = (maxK: number, tier: number): Step | null => {
+    for (const from of [0, 1, 2]) for (const to of [0, 1, 2]) {
       if (from === to || (from !== 2 && to !== 2)) continue; // rows vs columns is plain counting, never needed
       const free = [...Array(n).keys()].filter(k => !done[from * n + k]);
-      const subsets = (start: number, chosen: number[]): boolean => {
+      const subsets = (start: number, chosen: number[]): Step | null => {
         if (chosen.length > 0 && chosen.length <= maxK) {
           const spread = new Set(chosen.flatMap(k => left(from * n + k).map(i => lineOf(to, i))));
           if (spread.size === chosen.length) {
             const mine = new Set(chosen);
-            const targets = [...spread].flatMap(t => units[to * n + t]!);
-            if (shut(targets, i => mine.has(lineOf(from, i)))) return true;
+            const shut = [...spread].flatMap(t => units[to * n + t]!).filter(i => open[i] && !mine.has(lineOf(from, i)));
+            if (shut.length) {
+              const a = KINDS[from]!, b = KINDS[to]!, k = chosen.length;
+              return {
+                kind: 'cross', cells: shut, because: chosen.flatMap(c => left(from * n + c)), tier,
+                why: k === 1
+                  ? `This ${a}'s cat has to be in this ${b}, so nothing else in the ${b} can have one.`
+                  : `These ${k} ${plural(a)} have to have their cats in these ${k} ${plural(b)}, so nothing else in those ${plural(b)} can have one.`,
+              };
+            }
           }
         }
-        if (chosen.length === maxK) return false;
-        for (let s = start; s < free.length; s++) if (subsets(s + 1, [...chosen, free[s]!])) return true;
-        return false;
+        if (chosen.length === maxK) return null;
+        for (let s = start; s < free.length; s++) {
+          const step = subsets(s + 1, [...chosen, free[s]!]);
+          if (step) return step;
+        }
+        return null;
       };
-      if (subsets(0, [])) return true;
+      const step = subsets(0, []);
+      if (step) return step;
     }
-    return false;
+    return null;
   };
 
+  return single() ?? confine(1, 2) ?? wipeout() ?? confine(n - 1, 3);
+}
+
+/** Whether cats in cells a and b would clash: same row, column or patch, or touching. */
+export function touches(board: Puzzle, a: number, b: number) {
+  const n = board.size, ra = Math.floor(a / n), rb = Math.floor(b / n), ca = a % n, cb = b % n;
+  return a !== b && (ra === rb || ca === cb || board.regions[a] === board.regions[b] || (Math.abs(ra - rb) < 2 && Math.abs(ca - cb) < 2));
+}
+
+/** Lays a cat in `cell`, shutting every cell it rules out and marking its row, column and patch done. */
+export function settle(board: Puzzle, open: boolean[], done: boolean[], cell: number) {
+  const n = board.size;
+  open.forEach((_, i) => { if (touches(board, cell, i)) open[i] = false; });
+  open[cell] = false;
+  for (const u of [Math.floor(cell / n), n + (cell % n), 2 * n + board.regions[cell]!]) done[u] = true;
+}
+
+/**
+ * How hard a board is to solve by reasoning alone, 1..4: the hardest step (see nextStep) a player can't avoid, or 4
+ * when those steps aren't enough and the player has to try a cat and see what goes wrong.
+ */
+export function rate(board: Puzzle): number {
+  const n = board.size, open = new Array<boolean>(n * n).fill(true), done = new Array<boolean>(3 * n).fill(false);
   let tier = 1;
-  while (placed < n) {
-    if (single()) continue;
-    if (confine(1) || wipeout()) { tier = Math.max(tier, 2); continue; }
-    if (confine(n - 1)) { tier = 3; continue; }
-    return 4;
+  for (let placed = 0; placed < n;) {
+    const step = nextStep(board, open, done);
+    if (!step) return 4;
+    tier = Math.max(tier, step.tier);
+    if (step.kind === 'cat') { settle(board, open, done, step.cells[0]!); placed++; }
+    else for (const i of step.cells) open[i] = false;
   }
   return tier;
 }
-
