@@ -16,8 +16,17 @@ import { moneyBuild } from './money-build';
 import { staticBuild } from './static-build';
 import { fliesBuild } from './time-flies-build';
 
+// Task Force is hosted on its own site; its tile here just links out to it. The art is its own home-screen icon.
+const taskForceIcon = (scale = 1) => {
+  const off = 256 * (1 - scale);
+  return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><rect width="512" height="512" fill="#e3fa56"/><g transform="translate(${off} ${off}) scale(${scale})"><g transform="translate(86 86) scale(3.4)">
+  <path fill="#24291f" fill-rule="evenodd" d="M30 14h40l18 22-7 37-18 13H37L19 73l-7-37Zm-4 28 4 17 40-7 4-17Zm12 27v6h8v-6Zm16 0v6h8v-6Z"/></g></g></svg>`;
+};
+
+type Tile = { name: string; icon: (scale?: number) => string } & ({ path: string } | { href: string });
+
 export const SITE = 'dist-site';
-export const SECTIONS = [
+export const SECTIONS: readonly { title: string; games: readonly Tile[] }[] = [
   { title: 'Learning Games', games: [
     { path: 'monster-truck-money', name: 'Monster Truck Money', icon: truckIcon },
     { path: 'time-flies', name: 'Time Flies', icon: fliesIcon },
@@ -25,9 +34,11 @@ export const SECTIONS = [
   { title: 'Just for Fun', games: [
     { path: 'hunch', name: 'Hunch', icon: hunchIcon },
     { path: 'purrdoku', name: 'Purrdoku', icon: purrdokuIcon },
+    { href: 'https://playtaskforce.com/', name: 'Task Force', icon: taskForceIcon },
   ] },
-] as const;
-export const GAMES: readonly { path: string; name: string; icon: (scale?: number) => string }[] = SECTIONS.flatMap(s => [...s.games]);
+];
+// The games this site builds and hosts itself (not the ones it only links out to).
+export const GAMES = SECTIONS.flatMap(s => s.games.filter(g => 'path' in g));
 
 const cloudIcon = (scale = 1) => {
   const off = 256 * (1 - scale);
@@ -42,7 +53,7 @@ function landing(): InlineConfig {
     name: 'game-tiles',
     transformIndexHtml: html => html.replace('%SECTIONS%', SECTIONS.map(s =>
       `<section><h2>${s.title}</h2><div class="games">${s.games.map(g =>
-        `<a class="game" href="./${g.path}/" aria-label="${g.name}"><div class="art">${g.icon(1).replace('<svg ', '<svg aria-hidden="true" ')}</div><span>${g.name}</span></a>`).join('')}</div></section>`).join('')),
+        `<a class="game" href="${'path' in g ? `./${g.path}/` : g.href}" aria-label="${g.name}"><div class="art">${g.icon(1).replace('<svg ', '<svg aria-hidden="true" ')}</div><span>${g.name}</span></a>`).join('')}</div></section>`).join('')),
   };
   return {
     configFile: false, root: resolve(import.meta.dirname, '../landing'), base: './', publicDir: false, logLevel: 'warn',
