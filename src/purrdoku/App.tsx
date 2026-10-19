@@ -73,9 +73,9 @@ function Play() {
       </div>
       <Board key={g.level} shake={shake} pop={pop} onCat={onCat} />
       <div class="nap-tools">
-        <button class="nap-tool" disabled={!canUndo.value || g.status !== 'playing'} onClick={undo}>↶ Undo</button>
-        <button class="nap-tool" disabled={g.status !== 'playing'} onClick={() => paint(g.marks.flatMap((m, i) => (m === CROSS ? [i] : [])), EMPTY)}>Clear ✕</button>
-        <button class={`nap-tool${shown ? ' on' : ''}`} disabled={g.status !== 'playing'} onClick={hint}>💡 Hint</button>
+        <button class="nap-tool" aria-label="Undo" title="Undo" disabled={!canUndo.value || g.status !== 'playing'} onClick={undo}>↶</button>
+        <button class="nap-tool" aria-label="Clear ✕" title="Clear ✕" disabled={g.status !== 'playing'} onClick={() => paint(g.marks.flatMap((m, i) => (m === CROSS ? [i] : [])), EMPTY)}>🧹</button>
+        <button class={`nap-tool${shown ? ' on' : ''}`} aria-label="Hint" title="Hint" aria-pressed={!!shown} disabled={g.status !== 'playing'} onClick={hint}>💡</button>
         <button class="nap-tool" aria-pressed={muted.value} aria-label={muted.value ? 'Sound off' : 'Sound on'} title={muted.value ? 'Sound off' : 'Sound on'} onClick={toggleMute}>{muted.value ? '🔇' : '🔊'}</button>
       </div>
       <p class={`nap-help${shown ? ' hint' : ''}`}>{shown ? shown.why : 'Tap to mark ✕ · drag to mark lots · double-tap to lay a cat down'}</p>
