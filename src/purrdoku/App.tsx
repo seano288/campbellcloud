@@ -1,47 +1,38 @@
-import { useEffect, useRef, useState } from 'preact/hooks';
+import { useEffect, useMemo, useRef, useState } from 'preact/hooks';
 import { BuildLabel } from '../ui/BuildLabel';
 import { catSvg } from './art';
-import {
-  CAT, CROSS, EMPTY, LEVEL_MODES, LIVES, MODES, blocked, canUndo, clock, dailyDone, game, next, open, paint, placeCat,
-  puzzle, restart, save, screen, streak, tick, toggleAutoCross, undo,
-} from './game';
+import type { Puzzle } from './puzzle';
+import { CAT, CROSS, EMPTY, LIVES, canUndo, clock, game, next, paint, placeCat, puzzle, restart, tick, undo } from './game';
 
-// One colour per patch, picked to stay apart from each other and from the cats' orange.
-const PATCHES = ['#ffc1cc', '#b5e8c8', '#ffe39a', '#bcd7ff', '#e2c6ff', '#ffd0a6', '#a9eae6', '#d8c49a', '#d3e9a0', '#c9ccd6'];
+// One colour per patch, picked to stay apart from each other and from the cats' orange. With no outline round the
+// patches, colour is all that tells them apart, so neighbouring patches get the colours furthest from each other.
+const PATCHES = ['#ff9aa2', '#ffe066', '#8fdc7a', '#79c3ff', '#bb9cff', '#5fd6c4', '#f5a8e6', '#d4d4d4', '#c8a97e', '#fdfbf3'];
+const rgb = (hex: string) => [1, 3, 5].map(i => parseInt(hex.slice(i, i + 2), 16));
+const apart = (a: string, b: string) => Math.hypot(...rgb(a).map((v, i) => v - rgb(b)[i]!));
+
+function patchColours(board: Puzzle): string[] {
+  const n = board.size, touching = Array.from({ length: n }, () => new Set<number>());
+  board.regions.forEach((region, i) => {
+    for (const j of [i % n < n - 1 ? i + 1 : -1, i + n]) {
+      const other = board.regions[j];
+      if (other !== undefined && other !== region) { touching[region]!.add(other); touching[other]!.add(region); }
+    }
+  });
+  const colours: string[] = [], free = PATCHES.slice(0, n);
+  const order = [...touching.keys()].sort((a, b) => touching[b]!.size - touching[a]!.size || a - b);
+  for (const region of order) {
+    const near = [...touching[region]!].flatMap(r => (colours[r] ? [colours[r]] : []));
+    const score = (c: string) => Math.min(Infinity, ...near.map(o => apart(c, o)));
+    const best = free.reduce((a, b) => (score(b) > score(a) ? b : a));
+    colours[region] = best;
+    free.splice(free.indexOf(best), 1);
+  }
+  return colours;
+}
 const CAT_ART = catSvg();
 
 export function App() {
-  return screen.value === 'home' ? <Home /> : <Play />;
-}
-
-function Home() {
-  const s = save.value;
-  const days = streak();
-  return (
-    <div class="screen nap-home">
-      <a class="nap-back" href="../" aria-label="All games">☁️</a>
-      <div class="nap-title">
-        <span class="nap-title-cat" dangerouslySetInnerHTML={{ __html: CAT_ART }} />
-        <h1>Purrdoku</h1>
-        <p>One cat per row, column and colour. Cats don't like to touch!</p>
-      </div>
-      <button class={`nap-daily${dailyDone() ? ' done' : ''}`} onClick={() => open('daily')}>
-        <span class="nm">Daily Nap</span>
-        <span class="sub">{dailyDone() ? '✓ Done today' : 'A new board every day'}{days > 0 && ` · 🔥 ${days}`}</span>
-      </button>
-      <div class="nap-modes">
-        {LEVEL_MODES.map(m => (
-          <button key={m} class={`nap-mode m-${m}`} onClick={() => open(m)}>
-            <span class="nm">{MODES[m].name}</span>
-            <span class="sz">{MODES[m].size}×{MODES[m].size}</span>
-            <span class="lv">Level {s.levels[m]}</span>
-            {s.best[m] !== undefined && <span class="best">Best {clock(s.best[m]!)}</span>}
-          </button>
-        ))}
-      </div>
-      <BuildLabel />
-    </div>
-  );
+  return <Play />;
 }
 
 function Play() {
@@ -58,7 +49,7 @@ function Play() {
       last = now;
     }, 1000);
     return () => clearInterval(id);
-  }, [g.status, g.mode, g.level]);
+  }, [g.status, g.level]);
 
   const onCat = (cell: number) => {
     const result = placeCat(cell);
@@ -66,32 +57,30 @@ function Play() {
     if (result === 'cat' || result === 'won') setPop(cell);
   };
 
-  const title = g.mode === 'daily' ? 'Daily Nap' : `${MODES[g.mode].name} · Level ${g.level}`;
   return (
     <div class="screen nap-play">
       <div class="nap-bar">
-        <button class="nap-icon" onClick={() => { screen.value = 'home'; }} aria-label="Home">🏠</button>
-        <div class="nap-level">{title}</div>
+        <a class="nap-icon" href="../" aria-label="All games">☁️</a>
+        <div class="nap-level">Level {g.level}</div>
         <div class="nap-time">⏱ {clock(g.elapsed)}</div>
         <div class="nap-fish" aria-label={`${LIVES - g.strikes} fish left`}>
           {Array.from({ length: LIVES }, (_, i) => <span key={i} class={i < LIVES - g.strikes ? '' : 'gone'}>🐟</span>)}
         </div>
       </div>
-      <Board key={`${g.mode}:${g.level}`} shake={shake} pop={pop} onCat={onCat} />
+      <Board key={g.level} shake={shake} pop={pop} onCat={onCat} />
       <div class="nap-tools">
         <button class="nap-tool" disabled={!canUndo.value || g.status !== 'playing'} onClick={undo}>↶ Undo</button>
         <button class="nap-tool" disabled={g.status !== 'playing'} onClick={() => paint(g.marks.flatMap((m, i) => (m === CROSS ? [i] : [])), EMPTY)}>Clear ✕</button>
-        <button class={`nap-tool${save.value.autoCross ? ' on' : ''}`} onClick={toggleAutoCross}>Auto ✕ {save.value.autoCross ? 'on' : 'off'}</button>
       </div>
       <p class="nap-help">Tap to mark ✕ · drag to mark lots · double-tap to lay a cat down</p>
+      <BuildLabel />
       {g.status === 'won' && (
         <div class="nap-over">
           <div class="nap-card win">
             <div class="cats">{[0, 1, 2].map(i => <span key={i} dangerouslySetInnerHTML={{ __html: CAT_ART }} />)}</div>
             <h2>Purrfect!</h2>
             <p>Solved in {clock(g.elapsed)}{g.strikes === 0 && ' with no mistakes'}</p>
-            <button class="nap-btn go" onClick={next}>{g.mode === 'daily' ? 'Done' : 'Next level ▶'}</button>
-            {g.mode !== 'daily' && <button class="nap-btn" onClick={() => { screen.value = 'home'; }}>Home</button>}
+            <button class="nap-btn go" onClick={next}>Next level ▶</button>
           </div>
         </div>
       )}
@@ -102,7 +91,6 @@ function Play() {
             <h2>Out of fish!</h2>
             <p>You woke up too many cats.</p>
             <button class="nap-btn go" onClick={restart}>Try again</button>
-            <button class="nap-btn" onClick={() => { screen.value = 'home'; }}>Home</button>
           </div>
         </div>
       )}
@@ -117,8 +105,8 @@ function Board({ shake, pop, onCat }: { shake: number; pop: number | null; onCat
   const ref = useRef<HTMLDivElement>(null);
   const drag = useRef<{ mark: typeof EMPTY | typeof CROSS; seen: Set<number> } | null>(null);
   const lastTap = useRef({ cell: -1, at: 0 });
-  const [hover, setHover] = useState<number | null>(null);
   const playing = g.status === 'playing';
+  const colours = useMemo(() => patchColours(board), [board]);
 
   const cellAt = (e: PointerEvent) => {
     const rect = ref.current!.getBoundingClientRect();
@@ -147,7 +135,6 @@ function Board({ shake, pop, onCat }: { shake: number; pop: number | null; onCat
 
   const move = (e: PointerEvent) => {
     const d = drag.current;
-    if (e.pointerType === 'mouse' && !d) setHover(playing ? cellAt(e) : null);
     if (!d) return;
     const cell = cellAt(e);
     if (cell < 0 || d.seen.has(cell)) return;
@@ -157,9 +144,6 @@ function Board({ shake, pop, onCat }: { shake: number; pop: number | null; onCat
   };
 
   const up = () => { drag.current = null; };
-
-  // with the mouse, hovering a cell shows which cells a cat there would rule out
-  const ruledOut = hover !== null && hover >= 0 && g.marks[hover] !== CAT ? new Set(blocked(board, hover)) : null;
 
   return (
     <div class="nap-board-wrap">
@@ -172,20 +156,15 @@ function Board({ shake, pop, onCat }: { shake: number; pop: number | null; onCat
         onPointerMove={move}
         onPointerUp={up}
         onPointerCancel={up}
-        onPointerLeave={() => setHover(null)}
       >
         {g.marks.map((mark, i) => {
-          const r = Math.floor(i / n), c = i % n, region = board.regions[i]!;
-          const edge = (other: number | undefined) => (other === undefined || other !== region ? 'var(--edge)' : 'var(--line)');
+          // patches show by colour alone, with no outline round them: the same thin line runs between every cell
+          const r = Math.floor(i / n), c = i % n;
           return (
             <div
               key={i}
-              class={`nap-cell${ruledOut?.has(i) ? ' ruled' : ''}${i === hover ? ' hover' : ''}`}
-              style={{
-                background: PATCHES[region],
-                borderTop: r > 0 ? edge(board.regions[i - n]) : 'none',
-                borderLeft: c > 0 ? edge(board.regions[i - 1]) : 'none',
-              }}
+              class="nap-cell"
+              style={{ background: colours[board.regions[i]!], borderTop: r > 0 ? 'var(--line)' : 'none', borderLeft: c > 0 ? 'var(--line)' : 'none' }}
             >
               {mark === CROSS && <span class="x">✕</span>}
               {mark === CAT && <span class={`cat${i === pop ? ' pop' : ''}`} dangerouslySetInnerHTML={{ __html: CAT_ART }} />}

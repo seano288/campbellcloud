@@ -155,5 +155,114 @@ export function generate(size: number, seed: number): Puzzle {
   }
 }
 
-/** A seed for each calendar day, so everyone gets the same daily board. */
-export const daySeed = (date: Date) => date.getFullYear() * 10000 + (date.getMonth() + 1) * 100 + date.getDate();
+/**
+ * The same board turned or flipped, one of 8 ways (0 leaves it as it is). It keeps its one answer and its difficulty.
+ */
+export function turn(board: Puzzle, way: number): Puzzle {
+  const n = board.size, regions = new Array<number>(n * n), cats = new Array<number>(n);
+  const move = (r: number, c: number): [number, number] => {
+    if (way & 4) [r, c] = [c, r];
+    return [way & 2 ? n - 1 - r : r, way & 1 ? n - 1 - c : c];
+  };
+  board.regions.forEach((region, i) => {
+    const [r, c] = move(Math.floor(i / n), i % n);
+    regions[r * n + c] = region;
+  });
+  board.cats.forEach((col, row) => {
+    const [r, c] = move(row, col);
+    cats[r] = c;
+  });
+  return { size: n, regions, cats };
+}
+
+/**
+ * How hard a board is to solve by reasoning alone, 1..4, judged by the hardest step a player can't avoid:
+ * 1 · a row, column or patch has only one place left for its cat;
+ * 2 · a patch fits in one row or column (or a row in one patch), or a cell would leave some row, column or patch with
+ *     nowhere to go;
+ * 3 · several patches fit in the same number of rows or columns (or the other way round);
+ * 4 · none of that is enough, and the player has to try a cat and see what goes wrong.
+ */
+export function rate(board: Puzzle): number {
+  const n = board.size, cells = n * n;
+  const rowOf = (i: number) => Math.floor(i / n), colOf = (i: number) => i % n;
+  const units: number[][] = [];
+  for (let k = 0; k < n; k++) units.push([...Array(n).keys()].map(c => k * n + c)); // rows
+  for (let k = 0; k < n; k++) units.push([...Array(n).keys()].map(r => r * n + k)); // columns
+  for (let k = 0; k < n; k++) units.push([...Array(cells).keys()].filter(i => board.regions[i] === k)); // patches
+  const unitsOf = (i: number) => [rowOf(i), n + colOf(i), 2 * n + board.regions[i]!];
+  const open = new Array<boolean>(cells).fill(true), done = new Array<boolean>(3 * n).fill(false);
+  const left = (u: number) => units[u]!.filter(i => open[i]);
+  const hits = (a: number, b: number) =>
+    a !== b && (rowOf(a) === rowOf(b) || colOf(a) === colOf(b) || board.regions[a] === board.regions[b] ||
+      (Math.abs(rowOf(a) - rowOf(b)) < 2 && Math.abs(colOf(a) - colOf(b)) < 2));
+  let placed = 0;
+  const place = (cell: number) => {
+    for (let i = 0; i < cells; i++) if (hits(cell, i)) open[i] = false;
+    open[cell] = false;
+    for (const u of unitsOf(cell)) done[u] = true;
+    placed++;
+  };
+  /** Shuts every open cell of `targets` that isn't in `keep`; true if anything changed. */
+  const shut = (targets: Iterable<number>, keep: (i: number) => boolean) => {
+    let changed = false;
+    for (const i of targets) if (open[i] && !keep(i)) { open[i] = false; changed = true; }
+    return changed;
+  };
+
+  const single = () => {
+    for (let u = 0; u < 3 * n; u++) {
+      if (done[u]) continue;
+      const l = left(u);
+      if (l.length === 1) { place(l[0]!); return true; }
+    }
+    return false;
+  };
+
+  const wipeout = () => {
+    for (let c = 0; c < cells; c++) {
+      if (!open[c]) continue;
+      const own = new Set(unitsOf(c));
+      for (let u = 0; u < 3 * n; u++) {
+        if (done[u] || own.has(u)) continue;
+        if (left(u).every(i => hits(c, i))) { open[c] = false; return true; }
+      }
+    }
+    return false;
+  };
+
+  // k units of one kind whose cats must all fall inside k units of another kind claim those units for themselves
+  const kinds = [0, 1, 2] as const; // rows, columns, patches
+  const lineOf = (kind: number, i: number) => (kind === 0 ? rowOf(i) : kind === 1 ? colOf(i) : board.regions[i]!);
+  const confine = (maxK: number) => {
+    for (const from of kinds) for (const to of kinds) {
+      if (from === to || (from !== 2 && to !== 2)) continue; // rows vs columns is plain counting, never needed
+      const free = [...Array(n).keys()].filter(k => !done[from * n + k]);
+      const subsets = (start: number, chosen: number[]): boolean => {
+        if (chosen.length > 0 && chosen.length <= maxK) {
+          const spread = new Set(chosen.flatMap(k => left(from * n + k).map(i => lineOf(to, i))));
+          if (spread.size === chosen.length) {
+            const mine = new Set(chosen);
+            const targets = [...spread].flatMap(t => units[to * n + t]!);
+            if (shut(targets, i => mine.has(lineOf(from, i)))) return true;
+          }
+        }
+        if (chosen.length === maxK) return false;
+        for (let s = start; s < free.length; s++) if (subsets(s + 1, [...chosen, free[s]!])) return true;
+        return false;
+      };
+      if (subsets(0, [])) return true;
+    }
+    return false;
+  };
+
+  let tier = 1;
+  while (placed < n) {
+    if (single()) continue;
+    if (confine(1) || wipeout()) { tier = Math.max(tier, 2); continue; }
+    if (confine(n - 1)) { tier = 3; continue; }
+    return 4;
+  }
+  return tier;
+}
+

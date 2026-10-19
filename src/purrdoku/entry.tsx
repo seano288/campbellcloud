@@ -4,6 +4,7 @@ import '@fontsource/bungee/latin-400.css';
 import './purrdoku.css';
 import { mountApp } from '../main';
 import { App } from './App';
-import { screen } from './game';
+import { game, start } from './game';
 
-void mountApp(App, async () => {}, () => screen.peek() === 'home');
+start();
+void mountApp(App, async () => {}, () => game.peek()?.status !== 'playing');
