@@ -59,7 +59,7 @@ comes from an easier Level.
 **Mastery (Time Flies)**: Getting 16 of the last 20 questions of one kind, asked at its Level, right on the first try
 without help, twice the run Monster Truck Money asks for, so he stays on each Level longer.
 
-**Aircraft**: one of the 14 planes in the Hangar, Time Flies' Body. Three starters (P-51 Mustang, F-16 Falcon, F/A-18
+**Aircraft**: one of the 18 planes in the Hangar, Time Flies' Body. Three starters (P-51 Mustang, F-16 Falcon, F/A-18
 Super Hornet) are his from the start; the rest cost 30 Bolts.
 _Avoid_: jet (the P-51, P-38 and Corsair have propellers), Body
 

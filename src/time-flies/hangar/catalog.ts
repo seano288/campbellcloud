@@ -1,13 +1,14 @@
-// The Hangar's parts: fourteen Aircraft (three starters, eleven bought with Bolts), nine Slots, and in each Slot a free
+// The Hangar's parts: eighteen Aircraft (three starters, fifteen bought with Bolts), nine Slots, and in each Slot a free
 // default plus four Mods: Rungs 1-3 bought with Bolts and a Legendary Rung 4 kept in the Time Lock vault. And Colours,
 // shown with Plain paint: Factory (the Aircraft's real scheme) is free.
-export const JET_IDS = ['p51', 'f16', 'f18', 'f4u', 'p38', 'a10', 'f4', 'f14', 'f15', 'v22', 'f117', 'f35', 'f22', 'sr71'] as const;
+export const JET_IDS = ['p51', 'f16', 'f18', 'f4u', 'p38', 'a4', 'a10', 'f4', 'f14', 'f15', 'f20', 'av8b', 'v22', 'f117', 'x29', 'f35', 'f22', 'sr71'] as const;
 export type JetId = (typeof JET_IDS)[number];
 export const STARTER_JETS = ['p51', 'f16', 'f18'] as const satisfies readonly JetId[];
 export const JET_NAMES = {
   p51: 'P-51 Mustang', f16: 'F-16 Falcon', f18: 'F/A-18 Super Hornet', f4u: 'F4U Corsair', p38: 'P-38 Lightning',
-  a10: 'A-10 Warthog', f4: 'F-4 Phantom', f14: 'F-14 Tomcat', f15: 'F-15 Eagle', v22: 'V-22 Osprey',
-  f117: 'F-117 Nighthawk', f35: 'F-35 Lightning II', f22: 'F-22 Raptor', sr71: 'SR-71 Blackbird',
+  a4: 'A-4 Skyhawk', a10: 'A-10 Warthog', f4: 'F-4 Phantom', f14: 'F-14 Tomcat', f15: 'F-15 Eagle', f20: 'F-20 Tigershark',
+  av8b: 'AV-8B Harrier', v22: 'V-22 Osprey', f117: 'F-117 Nighthawk', x29: 'X-29', f35: 'F-35 Lightning II', f22: 'F-22 Raptor',
+  sr71: 'SR-71 Blackbird',
 } as const satisfies Record<JetId, string>;
 export type JetName = (typeof JET_NAMES)[JetId];
 export type StarterJet = (typeof STARTER_JETS)[number];

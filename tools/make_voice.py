@@ -24,7 +24,7 @@ def speakable(s):
                  ('VROOM', 'Vroom'), ('Truck-tastic', 'Truck tastic'),
                  # Time Flies: aircraft names said the way pilots say them
                  ('F/A-18', 'F A 18'), ('F-117', 'F one seventeen'), ('Lightning II', 'Lightning Two'), ('SR-71', 'S R 71'),
-                 ('F4U', 'F 4 U'),
+                 ('F4U', 'F 4 U'), ('AV-8B', 'A V 8 B'), ('X-29', 'X 29'),
                  # Purrdoku: puns said as one word
                  ('Purr-fect', 'Purrfect'), ('Paw-some', 'Pawsome'), ('Meow-velous', 'Meowvelous'), ('Mm-hmm', 'Mm hmm')]:
         s = s.replace(a, b)

@@ -54,6 +54,6 @@ describe('the Hangar', () => {
       expect(s.bodies.length).toBeGreaterThan(0);
       expect(s.surfaces.some(x => x.kind === 'wing')).toBe(true);
     }
-    expect(ALL_BUYABLES.filter(x => x.startsWith('jet:'))).toHaveLength(11);
+    expect(ALL_BUYABLES.filter(x => x.startsWith('jet:'))).toHaveLength(15);
   });
 });
