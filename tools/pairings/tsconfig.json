@@ -8,7 +8,6 @@
     "builds.ts",
     "build.ts",
     "pairings.test.ts",
-    "builds.test.ts",
     "dependencies.test.ts"
   ]
 }

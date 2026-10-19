@@ -40,7 +40,8 @@ describe('live money save composition', () => {
     };
     expect(game.value).toEqual(expected);
     expect(published).toHaveBeenCalledTimes(6);
-    await vi.waitFor(() => expect(write).toHaveBeenCalledTimes(6));
+    await new Promise(setImmediate);
+    expect(write).toHaveBeenCalledTimes(6);
     expect(JSON.parse(values.get(STORAGE_KEY)!)).toEqual(expected);
     unsubscribe();
     vi.resetModules();
@@ -90,7 +91,8 @@ describe('live money save composition', () => {
     expect(player.state.value.garage.body).toBe('bigfoot');
     expect(player.state.value.currency.balance).toBe(46);
     expect(published).toHaveBeenCalledTimes(1);
-    await vi.waitFor(() => expect(write).toHaveBeenCalledTimes(1));
+    await new Promise(setImmediate);
+    expect(write).toHaveBeenCalledTimes(1);
     expect(JSON.parse(values.get(STORAGE_KEY)!)).toEqual({ ...PROGRESSED_EXPECTED, body: 'bigfoot' });
     await loadGame();
     expect(read).toHaveBeenCalledExactlyOnceWith(STORAGE_KEY);

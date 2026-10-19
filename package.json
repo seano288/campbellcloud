@@ -10,7 +10,6 @@
     "typecheck": "tsc --noEmit",
     "typecheck:pairings": "tsc --noEmit -p tools/pairings/tsconfig.json",
     "test": "vitest run",
-    "test:pairings": "vitest run tools/pairings/pairings.test.ts tools/pairings/builds.test.ts tools/pairings/dependencies.test.ts",
     "build:pairings": "tsx tools/pairings/build.ts",
     "check:offline": "tsx tools/offline-check.ts",
     "check:baseline": "tsx tools/baseline/browser.ts",

@@ -4,5 +4,5 @@ import { moneyBuild } from './tools/money-build';
 
 export default defineConfig({
   ...staticBuild(moneyBuild),
-  test: { include: ['src/**/*.test.ts', 'tools/**/*.test.ts'] },
+  test: { include: ['src/**/*.test.ts', 'tools/**/*.test.ts'], pool: 'threads' },
 });
