@@ -39,7 +39,8 @@ button:disabled{opacity:.4;cursor:default}
 .nap-tools{display:flex;justify-content:center;gap:calc(16px*var(--u));padding:calc(12px*var(--u)) 12px 0;flex-wrap:wrap}
 .nap-tool.on{background:var(--gold);color:var(--ink);border-color:var(--gold)}
 /* icon-only round buttons; each one's name is in its aria-label and title */
-.nap-tool{background:#0004;border:3px solid #fff8;border-radius:50%;width:calc(56px*var(--u));height:calc(56px*var(--u));display:grid;place-items:center;font-weight:900;font-size:calc(26px*var(--u));line-height:1}
+.nap-tool{background:#0004;border:3px solid #fff8;border-radius:50%;width:calc(56px*var(--u));height:calc(56px*var(--u));display:grid;place-items:center}
+.nap-tool svg{width:calc(28px*var(--u));height:calc(28px*var(--u));fill:none;stroke:currentColor;stroke-width:2.4;stroke-linecap:round;stroke-linejoin:round}
 .nap-help{margin:6px 12px calc(10px*var(--u) + 16px);text-align:center;font-weight:800;font-size:calc(14px*var(--u));opacity:.7}
 .nap-help.hint{opacity:1;color:var(--gold);font-size:calc(16px*var(--u))}
 
