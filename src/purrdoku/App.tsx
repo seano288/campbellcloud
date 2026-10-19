@@ -105,6 +105,11 @@ function Board({ shake, pop, onCat }: { shake: number; pop: number | null; onCat
   const ref = useRef<HTMLDivElement>(null);
   const drag = useRef<{ mark: typeof EMPTY | typeof CROSS; seen: Set<number> } | null>(null);
   const lastTap = useRef({ cell: -1, at: 0 });
+  // a lone tap's ✕ waits out the double-tap window, so a double-tap goes straight to a cat with no ✕ flashing first
+  const held = useRef<{ cell: number; mark: typeof EMPTY | typeof CROSS; timer: number } | null>(null);
+  const drop = () => { if (held.current) clearTimeout(held.current.timer); held.current = null; };
+  const flush = () => { const h = held.current; drop(); if (h) paint([h.cell], h.mark); };
+  useEffect(() => drop, [board]);
   const playing = g.status === 'playing';
   const colours = useMemo(() => patchColours(board), [board]);
 
@@ -121,16 +126,18 @@ function Board({ shake, pop, onCat }: { shake: number; pop: number | null; onCat
     (e.currentTarget as HTMLElement).setPointerCapture(e.pointerId);
     const now = performance.now(), last = lastTap.current;
     if (last.cell === cell && now - last.at < DOUBLE_TAP_MS) {
+      drop();
       lastTap.current = { cell: -1, at: 0 };
       drag.current = null;
       onCat(cell);
       return;
     }
+    flush();
     lastTap.current = { cell, at: now };
     if (g.marks[cell] === CAT) return;
     const mark = g.marks[cell] === CROSS ? EMPTY : CROSS;
     drag.current = { mark, seen: new Set([cell]) };
-    paint([cell], mark);
+    held.current = { cell, mark, timer: window.setTimeout(flush, DOUBLE_TAP_MS) };
   };
 
   const move = (e: PointerEvent) => {
@@ -139,6 +146,7 @@ function Board({ shake, pop, onCat }: { shake: number; pop: number | null; onCat
     const cell = cellAt(e);
     if (cell < 0 || d.seen.has(cell)) return;
     d.seen.add(cell);
+    flush(); // a drag marks its first cell straight away
     lastTap.current = { cell: -1, at: 0 }; // a drag is never the first half of a double-tap
     paint([cell], d.mark, false);
   };
