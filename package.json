@@ -18,7 +18,7 @@
     "check:hunch": "tsx tools/hunch/play.ts",
     "dev:time-flies": "vite --config vite.time-flies.config.ts",
     "dev:hunch": "vite --config vite.hunch.config.ts",
-    "dev:cat-nap": "vite --config vite.cat-nap.config.ts"
+    "dev:purrdoku": "vite --config vite.purrdoku.config.ts"
   },
   "dependencies": {
     "@fontsource/bungee": "^5.3.0",

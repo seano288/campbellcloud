@@ -7,7 +7,7 @@ const wrongCell = (n = 0) => {
   return [...Array(puzzle.value!.size ** 2).keys()].filter(i => !right.has(i))[n]!;
 };
 
-describe('playing Cat Nap', () => {
+describe('playing Purrdoku', () => {
   beforeEach(() => { save.value = { ...save.value, games: {}, levels: { easy: 1, medium: 1, hard: 1, extreme: 1 }, best: {}, solved: {} }; });
 
   it('crosses out a wrong cat and costs a fish; three wrong loses the board', () => {

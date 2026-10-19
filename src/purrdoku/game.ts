@@ -1,4 +1,4 @@
-// Cat Nap's state: one game in progress per mode, the level reached in each, best times and the daily streak.
+// Purrdoku's state: one game in progress per mode, the level reached in each, best times and the daily streak.
 // It is all kept in localStorage under its own key; boards aren't stored, they're remade from their seed.
 import { computed, effect, signal } from '@preact/signals';
 import { daySeed, generate, type Puzzle } from './puzzle';
@@ -38,7 +38,7 @@ export interface Save {
   games: Partial<Record<Mode, Game>>;
 }
 
-export const SAVE_KEY = 'cat-nap-save';
+export const SAVE_KEY = 'purrdoku-save';
 const fresh = (): Save => ({ v: 1, levels: { easy: 1, medium: 1, hard: 1, extreme: 1 }, best: {}, solved: {}, daily: { last: 0, streak: 0 }, autoCross: true, games: {} });
 
 function load(): Save {

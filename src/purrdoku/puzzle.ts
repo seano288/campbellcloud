@@ -1,4 +1,4 @@
-// Cat Nap puzzles: an n×n board split into n coloured patches. Every row, every column and every patch gets exactly
+// Purrdoku puzzles: an n×n board split into n coloured patches. Every row, every column and every patch gets exactly
 // one sleeping cat, and no two cats may touch, not even at a corner. Each generated board has exactly one answer.
 
 export interface Puzzle {

@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { countSolutions, daySeed, generate } from './puzzle';
 
-describe('Cat Nap boards', () => {
+describe('Purrdoku boards', () => {
   for (const size of [5, 7, 8, 10]) it(`makes ${size}×${size} boards with exactly one answer`, () => {
     for (let seed = 1; seed <= 8; seed++) {
       const { regions, cats } = generate(size, seed);

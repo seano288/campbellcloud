@@ -22,7 +22,7 @@ function Home() {
       <a class="nap-back" href="../" aria-label="All games">☁️</a>
       <div class="nap-title">
         <span class="nap-title-cat" dangerouslySetInnerHTML={{ __html: CAT_ART }} />
-        <h1>Cat Nap</h1>
+        <h1>Purrdoku</h1>
         <p>One cat per row, column and colour. Cats don't like to touch!</p>
       </div>
       <button class={`nap-daily${dailyDone() ? ' done' : ''}`} onClick={() => open('daily')}>

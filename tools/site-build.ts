@@ -9,8 +9,8 @@ import { iconSvg as truckIcon } from '../src/icon/icon';
 import { iconSvg as fliesIcon } from '../src/time-flies/icon';
 import { iconSvg as hunchIcon } from '../src/hunch/icon';
 import { hunchBuild } from './hunch-build';
-import { iconSvg as napIcon } from '../src/cat-nap/art';
-import { napBuild } from './cat-nap-build';
+import { iconSvg as purrdokuIcon } from '../src/purrdoku/art';
+import { purrdokuBuild } from './purrdoku-build';
 import { homeScreenIcons } from './icons';
 import { moneyBuild } from './money-build';
 import { staticBuild } from './static-build';
@@ -24,7 +24,7 @@ export const SECTIONS = [
   ] },
   { title: 'Just for Fun', games: [
     { path: 'hunch', name: 'Hunch', icon: hunchIcon },
-    { path: 'cat-nap', name: 'Cat Nap', icon: napIcon },
+    { path: 'purrdoku', name: 'Purrdoku', icon: purrdokuIcon },
   ] },
 ] as const;
 export const GAMES: readonly { path: string; name: string; icon: (scale?: number) => string }[] = SECTIONS.flatMap(s => [...s.games]);
@@ -73,5 +73,5 @@ await build(landing());
 await build({ ...staticBuild({ ...moneyBuild, outDir: `${SITE}/monster-truck-money` }), logLevel: 'warn' });
 await build({ ...staticBuild(fliesBuild), logLevel: 'warn' });
 await build({ ...hunchBuild(), logLevel: 'warn' });
-await build({ ...staticBuild(napBuild), logLevel: 'warn' });
+await build({ ...staticBuild(purrdokuBuild), logLevel: 'warn' });
 console.log(`Built ${SITE}/: landing page, ${GAMES.map(g => g.path).join(', ')}`);
