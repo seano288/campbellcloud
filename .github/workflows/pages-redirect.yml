@@ -1,0 +1,40 @@
+name: Redirect GitHub Pages to campbellcloud.com
+
+on:
+  push:
+    branches: [main]
+    paths: [pages-redirect/**, .github/workflows/pages-redirect.yml]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: pages
+  cancel-in-progress: true
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - uses: actions/checkout@v4
+      # Every folder that had a service worker while the site lived on Pages. Games added since then never did.
+      - run: |
+          mkdir -p out
+          for dir in . monster-truck-money time-flies hunch purrdoku; do
+            mkdir -p "out/$dir"
+            cp pages-redirect/index.html "out/$dir/index.html"
+            cp pages-redirect/sw.js "out/$dir/sw.js"
+          done
+          cp pages-redirect/index.html out/404.html
+      - uses: actions/configure-pages@v5
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: out
+      - id: deployment
+        uses: actions/deploy-pages@v4

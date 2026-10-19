@@ -27,9 +27,9 @@ code) do the rest. The `deploy.yml` workflow deploys on every push to `main`, us
 
 ## Consequences
 
-- **Saves don't move with the site.** Storage belongs to the origin, so progress at `seano288.github.io` stays there.
-  Use the hidden Move progress panel (hold the Start-screen title) to copy it across, then re-add the Home Screen icons
-  from `campbellcloud.com`. Turn off Pages only after that.
+- **GitHub Pages now only redirects.** `pages-redirect/` (published by `pages-redirect.yml`) sends every old address to
+  the same path on `campbellcloud.com`, and replaces each old service worker with one that deletes its offline copy and
+  unregisters, so cached Home Screen apps reach the redirect too. Saves stay behind on the old origin; that was accepted.
 - **Link previews are blocked.** iMessage and Slack fetch previews with bot user agents, so a shared link shows no card.
 - **Free-plan limit**: every request runs the Worker, and the free plan allows 100,000 a day. That is far more than a
   family uses.
