@@ -1,5 +1,7 @@
 # Environment maps
 
+The hangar files also light and surround Monster Truck Money's Garage (`tools/money-build.ts`).
+
 All CC0 (public domain) from Poly Haven.
 
 | File | Source | Author |

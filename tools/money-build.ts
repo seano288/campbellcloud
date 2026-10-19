@@ -9,5 +9,6 @@ export const moneyBuild = {
   outDir: 'dist',
   branding: { ...moneyBranding, icon: { svg: iconSvg, background: '#ffd23f' } },
   voice: { collection: moneyEntry.voice, root: resolve(import.meta.dirname, '../public/voice') },
-  assets: [],
+  // the Garage stands in Time Flies' warehouse
+  assets: [{ root: resolve(import.meta.dirname, '../public/time-flies-assets'), files: ['env/hangar-1k.hdr', 'env/hangar.jpg'] }],
 } satisfies StaticSelection;

@@ -1,9 +1,13 @@
 // The Garage stage: the Truck on a turntable he can spin, a camera that swings to a Slot's part,
 // hotspots that follow the parts, a slow spin after 12 s idle, and the Truck's jumps, each with a puff from the
 // Exhaust. For Show Off it dims the lights, puts a spotlight on the Truck, spins the turntable and puffs gently.
+// It is lit like Time Flies' Hangar: the turntable stands in a real warehouse, a CC0 photo (HDRI) that lights the Truck
+// and, projected onto a ground dome, surrounds it, with soft shadows and Neutral tone mapping so paint keeps its colour.
 import * as THREE from 'three';
 import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
 import { RoomEnvironment } from 'three/addons/environments/RoomEnvironment.js';
+import { HDRLoader } from 'three/addons/loaders/HDRLoader.js';
+import { GroundedSkybox } from 'three/addons/objects/GroundedSkybox.js';
 import type { BodyId, Fit, SlotId } from '../catalog';
 import { POINT_SCALE, PUFF } from './exhaust';
 import { buildTruck, type BuiltTruck } from './truck';
@@ -11,6 +15,10 @@ import { buildTruck, type BuiltTruck } from './truck';
 // Camera per Slot when its sheet opens: [x, z] direction from the Truck, polar angle
 const VIEWS: Record<SlotId, [number, number, number]> = { tires: [0.5, 1, 1.32], paint: [0.8, 1, 1.12], decals: [0, 1, 1.3], lights: [1, 0.4, 1.3], horn: [1, 0.7, 0.95], engine: [1, 0.3, 1], grille: [1, 0.15, 1.35], exhaust: [-1, 0.9, 1.1], topper: [-0.7, 1, 0.85], number: [0.25, 1, 1.3] };
 export const IDLE_SPIN_MS = 12000;
+/** The warehouse photo's camera height: high enough that the view stays undistorted from up high, low enough that the Truck still looks big. */
+const WAREHOUSE_EYE = 3.2;
+/** The floor, just under the turntable. */
+const FLOOR_Y = -0.12;
 /** How long a Dragon Jaw snap takes: two chomps. */
 const SNAP_MS = 700;
 /** While jumping the Exhaust keeps puffing this often; idle in Show Off it puffs gently this often. */
@@ -42,7 +50,7 @@ export function spreadHotspots(places: Record<SlotId, HotspotPlace>, d: number) 
 export class GarageStage {
   private renderer: THREE.WebGLRenderer;
   private scene = new THREE.Scene();
-  private camera = new THREE.PerspectiveCamera(32, 1, 0.1, 60);
+  private camera = new THREE.PerspectiveCamera(32, 1, 0.1, 200);
   private controls: OrbitControls;
   private truck: BuiltTruck | null = null;
   private sig = '';
@@ -62,8 +70,11 @@ export class GarageStage {
   private lastLand: boolean | null = null;
   /** The table, its ring and the Truck: this is what spins in the show. */
   private turntable = new THREE.Group();
-  private lights: { hemi: THREE.HemisphereLight; sun: THREE.DirectionalLight; rim: THREE.DirectionalLight; spot: THREE.SpotLight; beam: THREE.Mesh; floor: THREE.Mesh };
+  private lights: { hemi: THREE.HemisphereLight; sun: THREE.DirectionalLight; rim: THREE.DirectionalLight; spot: THREE.SpotLight; beam: THREE.Mesh; shade: THREE.ShadowMaterial };
+  /** The warehouse around the Truck, dimmed for Show Off. */
+  private backdrop: THREE.MeshBasicMaterial | null = null;
   private showing = false;
+  private disposed = false;
   private lastFrame = performance.now();
   /** Called every frame with where each Slot's hotspot goes (in stage pixels). */
   onHotspots: ((places: Record<SlotId, HotspotPlace>) => void) | null = null;
@@ -71,27 +82,32 @@ export class GarageStage {
   constructor(canvas: HTMLCanvasElement, private stage: HTMLElement) {
     const r = (this.renderer = new THREE.WebGLRenderer({ canvas, antialias: true }));
     r.setPixelRatio(Math.min(devicePixelRatio, 2));
-    r.shadowMap.enabled = true; r.shadowMap.type = THREE.PCFSoftShadowMap;
-    r.toneMapping = THREE.ACESFilmicToneMapping;
+    r.shadowMap.enabled = true; r.shadowMap.type = THREE.PCFShadowMap; // PCFSoftShadowMap was removed in r186
+    r.toneMapping = THREE.NeutralToneMapping;
     const scene = this.scene;
-    scene.background = new THREE.Color(0x161b28);
-    scene.fog = new THREE.Fog(0x161b28, 12, 26);
+    scene.background = new THREE.Color(0x3a3a36);
+    // a studio room lights the Truck until the warehouse photo arrives
     const pm = new THREE.PMREMGenerator(r);
     scene.environment = pm.fromScene(new RoomEnvironment(), 0.04).texture;
     pm.dispose();
-    scene.environmentIntensity = 0.9;
-    const hemi = new THREE.HemisphereLight(0xcfe0ff, 0x1a1a26, 0.6); scene.add(hemi);
-    const sun = new THREE.DirectionalLight(0xffffff, 2.6); sun.position.set(3, 7, 4); sun.castShadow = true;
-    sun.shadow.mapSize.set(2048, 2048); Object.assign(sun.shadow.camera, { left: -4, right: 4, top: 4, bottom: -4, near: 1, far: 20 }); sun.shadow.bias = -0.0005;
+    scene.environmentIntensity = 1;
+    // the ceiling lights: one warm key light casting the Truck's shadow, a soft fill and a cool rim from the open door
+    const hemi = new THREE.HemisphereLight(0xdfe8ff, 0x5a5348, 0.35); scene.add(hemi);
+    const sun = new THREE.DirectionalLight(0xfff4e2, 1.6); sun.position.set(3, 9, 4); sun.castShadow = true;
+    sun.shadow.mapSize.set(2048, 2048); Object.assign(sun.shadow.camera, { left: -4.5, right: 4.5, top: 4.5, bottom: -4.5, near: 1, far: 24 });
+    sun.shadow.radius = 6; sun.shadow.bias = -0.0004; sun.shadow.normalBias = 0.02;
     scene.add(sun);
-    const rim = new THREE.DirectionalLight(0x6f8cff, 1.3); rim.position.set(-4, 3, -5); scene.add(rim);
+    const rim = new THREE.DirectionalLight(0xcfdcff, 0.6); rim.position.set(-4, 3, -5); scene.add(rim);
     const spot = new THREE.SpotLight(0xfff4dc, 90, 16, 0.42, 0.45, 1.2); spot.position.set(0, 8, 1.5); spot.target.position.set(0, 0.6, 0);
     spot.castShadow = true; spot.shadow.mapSize.set(1024, 1024); spot.visible = false; scene.add(spot, spot.target);
     const beam = new THREE.Mesh(new THREE.ConeGeometry(3.3, 8, 48, 1, true).translate(0, -4, 0), new THREE.MeshBasicMaterial({ color: 0xfff4dc, transparent: true, opacity: 0.07, blending: THREE.AdditiveBlending, depthWrite: false, side: THREE.DoubleSide }));
     beam.position.copy(spot.position); beam.lookAt(spot.target.position); beam.rotateX(-Math.PI / 2); beam.visible = false; scene.add(beam);
-    const floor = new THREE.Mesh(new THREE.CircleGeometry(20, 64), new THREE.MeshStandardMaterial({ color: 0x1d2233, roughness: 0.95 }));
-    floor.rotation.x = -Math.PI / 2; floor.position.y = -0.12; floor.receiveShadow = true; scene.add(floor);
-    this.lights = { hemi, sun, rim, spot, beam, floor };
+    // the warehouse floor is the photo; this only catches the shadows on it
+    const shade = new THREE.ShadowMaterial({ opacity: 0.55 });
+    const floor = new THREE.Mesh(new THREE.PlaneGeometry(40, 40).rotateX(-Math.PI / 2), shade);
+    floor.position.y = FLOOR_Y + 0.002; floor.receiveShadow = true; scene.add(floor);
+    this.lights = { hemi, sun, rim, spot, beam, shade };
+    this.loadWarehouse();
     scene.add(this.turntable);
     const table = new THREE.Mesh(new THREE.CylinderGeometry(3.2, 3.3, 0.12, 72), new THREE.MeshStandardMaterial({ color: 0x3a4256, metalness: 0.6, roughness: 0.45 }));
     table.position.y = -0.06; table.receiveShadow = true; this.turntable.add(table);
@@ -195,20 +211,48 @@ export class GarageStage {
   }
 
   dispose() {
+    this.disposed = true;
     this.stopMove();
     cancelAnimationFrame(this.raf);
     this.resizeObs.disconnect();
     this.controls.dispose();
     if (this.truck) this.truck.dispose();
+    this.scene.environment?.dispose();
+    this.backdrop?.map?.dispose();
     this.renderer.dispose();
   }
 
+  /** The warehouse: its HDRI lights the Truck, and its photo surrounds the turntable. Both are Time Flies' hangar. */
+  private loadWarehouse() {
+    new HDRLoader().load('./env/hangar-1k.hdr', t => {
+      if (this.disposed) { t.dispose(); return; }
+      const pm = new THREE.PMREMGenerator(this.renderer);
+      this.scene.environment?.dispose(); // the studio room it stood in for
+      this.scene.environment = pm.fromEquirectangular(t).texture;
+      pm.dispose(); t.dispose();
+    });
+    new THREE.TextureLoader().load('./env/hangar.jpg', t => {
+      if (this.disposed) { t.dispose(); return; }
+      t.mapping = THREE.EquirectangularReflectionMapping;
+      t.colorSpace = THREE.SRGBColorSpace;
+      const g = new GroundedSkybox(t, WAREHOUSE_EYE, 100, 64), m = g.material as THREE.MeshBasicMaterial;
+      m.toneMapped = false;
+      this.backdrop = m;
+      g.position.y = FLOOR_Y + WAREHOUSE_EYE - 0.01;
+      g.rotation.y = Math.PI * 1.5; // the corrugated wall behind the Truck
+      this.scene.add(g);
+      this.light(this.showing);
+    });
+  }
+
   private light(show: boolean) {
-    const L = this.lights, bg = show ? 0x05060a : 0x161b28;
-    L.hemi.intensity = show ? 0.06 : 0.6; L.sun.intensity = show ? 0.25 : 2.6; L.rim.intensity = show ? 0.6 : 1.3;
+    const L = this.lights;
+    L.hemi.intensity = show ? 0.04 : 0.35; L.sun.intensity = show ? 0.2 : 1.6; L.rim.intensity = show ? 0.5 : 0.6;
     L.spot.visible = L.beam.visible = show;
-    this.scene.environmentIntensity = show ? 0.35 : 0.9;
-    this.scene.background = new THREE.Color(bg); (this.scene.fog as THREE.Fog).color.set(bg);
+    L.shade.opacity = show ? 0.8 : 0.55;
+    this.scene.environmentIntensity = show ? 0.25 : 1;
+    this.scene.background = new THREE.Color(show ? 0x05060a : 0x3a3a36);
+    this.backdrop?.color.setScalar(show ? 0.03 : 1); // the warehouse lights go down
   }
 
   /** Distance that keeps the whole Truck in the part of the stage the sheet leaves free. */
