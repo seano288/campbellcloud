@@ -12,6 +12,7 @@ import { hunchBuild } from './hunch-build';
 import { iconSvg as purrdokuIcon } from '../src/purrdoku/art';
 import { purrdokuBuild } from './purrdoku-build';
 import { homeScreenIcons } from './icons';
+import { BRAND, faviconSvg, iconSvg as cloudIcon, markSvg } from '../src/brand/mark';
 import { moneyBuild } from './money-build';
 import { staticBuild } from './static-build';
 import { fliesBuild } from './time-flies-build';
@@ -40,30 +41,25 @@ export const SECTIONS: readonly { title: string; games: readonly Tile[] }[] = [
 // The games this site builds and hosts itself (not the ones it only links out to).
 export const GAMES = SECTIONS.flatMap(s => s.games.filter(g => 'path' in g));
 
-const cloudIcon = (scale = 1) => {
-  const off = 256 * (1 - scale);
-  return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><rect width="512" height="512" fill="#2f8fe0"/><g transform="translate(${off} ${off}) scale(${scale})">
-  <circle cx="356" cy="150" r="64" fill="#ffd23f"/>
-  <path d="M120 360 Q60 360 62 300 Q66 244 130 244 Q140 168 220 168 Q290 168 312 230 Q392 222 404 292 Q412 360 340 360 Z" fill="#fff" stroke="#1d1d1f" stroke-width="14" stroke-linejoin="round"/>
-  <circle cx="200" cy="292" r="12" fill="#1d1d1f"/><circle cx="290" cy="292" r="12" fill="#1d1d1f"/><path d="M216 322 Q245 344 274 322" fill="none" stroke="#1d1d1f" stroke-width="10" stroke-linecap="round"/></g></svg>`;
-};
-
 function landing(): InlineConfig {
   const tiles: Plugin = {
     name: 'game-tiles',
-    transformIndexHtml: html => html.replace('%SECTIONS%', SECTIONS.map(s =>
-      `<section><h2>${s.title}</h2><div class="games">${s.games.map(g =>
-        `<a class="game" href="${'path' in g ? `./${g.path}/` : g.href}" aria-label="${g.name}"><div class="art">${g.icon(1).replace('<svg ', '<svg aria-hidden="true" ')}</div><span>${g.name}</span></a>`).join('')}</div></section>`).join('')),
+    transformIndexHtml: html => html
+      .replace('%LOGO%', markSvg(32))
+      .replace('%FAVICON%', `data:image/svg+xml,${encodeURIComponent(faviconSvg())}`)
+      .replace('%SECTIONS%', SECTIONS.map(s =>
+        `<section><h2 class="mono"><span>// ${s.title}</span><span>${String(s.games.length).padStart(2, '0')}</span></h2><div class="games">${s.games.map(g =>
+          `<a class="game" href="${'path' in g ? `./${g.path}/` : g.href}" aria-label="${g.name}"><div class="art">${g.icon(1).replace('<svg ', '<svg aria-hidden="true" ')}</div><span class="name">${g.name}</span><span class="where mono">${'path' in g ? `/${g.path}` : `↗ ${new URL(g.href).host}`}</span></a>`).join('')}</div></section>`).join('')),
   };
   return {
     configFile: false, root: resolve(import.meta.dirname, '../landing'), base: './', publicDir: false, logLevel: 'warn',
     plugins: [
-      tiles, homeScreenIcons({ svg: cloudIcon, background: '#2f8fe0' }),
+      tiles, homeScreenIcons({ svg: cloudIcon, background: BRAND.icon.bg }),
       VitePWA({
         registerType: 'autoUpdate', injectRegister: false,
         manifest: {
           name: 'Campbell Cloud', short_name: 'Campbell Cloud', start_url: './', scope: './', display: 'standalone', orientation: 'any',
-          theme_color: '#1b3a63', background_color: '#1b3a63',
+          theme_color: BRAND.dark.bg, background_color: BRAND.dark.bg,
           icons: [
             { src: 'icon-192.png', sizes: '192x192', type: 'image/png', purpose: 'any' },
             { src: 'icon-512.png', sizes: '512x512', type: 'image/png', purpose: 'any' },
@@ -71,7 +67,7 @@ function landing(): InlineConfig {
           ],
         },
         workbox: {
-          globPatterns: ['**/*.{js,css,html,png,svg}'], cleanupOutdatedCaches: true, skipWaiting: true, clientsClaim: true,
+          globPatterns: ['**/*.{js,css,html,png,svg,woff2}'], cleanupOutdatedCaches: true, skipWaiting: true, clientsClaim: true,
           navigateFallbackDenylist: GAMES.map(g => new RegExp(`/${g.path}(/|$)`)),
         },
       }),

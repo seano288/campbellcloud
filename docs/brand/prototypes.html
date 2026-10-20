@@ -1,0 +1,142 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;600;800&family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,600;1,9..144,400;1,9..144,600&family=Inter:wght@400;500;600&family=Space+Grotesk:wght@400;500;700&family=JetBrains+Mono:wght@400;500&family=Bricolage+Grotesque:opsz,wght@12..96,400;12..96,600;12..96,800&family=Geist:wght@300;400;500;600&family=Geist+Mono:wght@400&display=swap" rel="stylesheet">
+<style>
+*{box-sizing:border-box}
+body{margin:0}
+.wrap{display:flex;flex-direction:column;gap:40px;padding:4px 0 24px}
+.dir{display:flex;flex-direction:column;gap:14px}
+.dir-head{display:flex;align-items:baseline;gap:10px;flex-wrap:wrap}
+.dir-head .tag{font:600 12px/1 var(--font-mono);color:var(--muted-foreground);border:1px solid var(--border);border-radius:99px;padding:5px 9px}
+.dir-head h2{margin:0;font:600 20px/1.2 var(--font-sans)}
+.dir-head p{margin:0;flex-basis:100%;color:var(--muted-foreground);font:14px/1.5 var(--font-sans)}
+.kit{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:12px}
+.kit .cell:first-child{grid-column:1/-1;min-height:0}
+.kit .cell:first-child .lockups{flex-direction:row;flex-wrap:wrap}
+.kit .cell:first-child .lock{flex:1 1 260px;justify-content:center;padding:22px}
+.cell{border:1px solid var(--border);border-radius:var(--radius);padding:16px;display:flex;flex-direction:column;gap:12px;min-height:150px}
+.cell h3{margin:0;font:600 11px/1 var(--font-mono);letter-spacing:.06em;text-transform:uppercase;color:var(--muted-foreground)}
+.icons{display:flex;align-items:flex-end;gap:14px;flex-wrap:wrap}
+.icons .ic{border-radius:22%;overflow:hidden;box-shadow:0 1px 2px #0003,0 6px 16px #0002}
+.icons .ic svg{display:block}
+.fav{display:flex;gap:6px;align-items:flex-end}
+.sw{display:grid;grid-template-columns:repeat(4,1fr);gap:6px}
+.sw div{aspect-ratio:1.3;border-radius:6px;border:1px solid #8883;display:flex;align-items:flex-end;padding:4px;font:9px/1 var(--font-mono)}
+.sw-lab{font:10px/1 var(--font-mono);color:var(--muted-foreground);margin-bottom:-6px}
+.lockups{display:flex;flex-direction:column;gap:10px}
+.lock{white-space:nowrap;display:flex;align-items:center;gap:10px;padding:14px;border-radius:10px}
+.mocks{display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:12px}
+.mock{border-radius:var(--radius);padding:18px;display:flex;flex-direction:column;gap:16px;border:1px solid #8882}
+.mock nav{white-space:nowrap;display:flex;align-items:center;justify-content:space-between;gap:8px}
+.mock nav .links{display:flex;gap:12px;font-size:12px;opacity:.7}
+.mock .hero{display:flex;flex-direction:column;gap:6px}
+.mock .hero h1{margin:0}
+.mock .hero p{margin:0;font-size:13px;line-height:1.5;opacity:.7}
+.mock .tiles{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+.mock .tile{display:flex;flex-direction:column;gap:6px;font-size:11px}
+.mock .tile .art{aspect-ratio:1;border-radius:10px}
+.mock .tile b{font-weight:600}
+.mock .tile small{opacity:.6;font-size:10px}
+.mock .foot{display:flex;justify-content:space-between;font-size:10px;opacity:.5}
+.type{display:flex;flex-direction:column;gap:6px}
+</style>
+</head>
+<body>
+<div class="wrap" id="root"></div>
+<script>
+// ---------- marks: (fg, accent) -> svg inner (viewBox 0 0 64 64) ----------
+const marks = {
+  cumulus:(fg,ac)=>`<g fill="${fg}"><circle cx="22" cy="37" r="11"/><circle cx="35" cy="29" r="15"/><circle cx="47" cy="38" r="10"/><rect x="22" y="36" width="25" height="12"/></g>`,
+  monogram:(fg,ac)=>`<g fill="none" stroke="${fg}" stroke-width="6" stroke-linecap="round"><path d="M30.9 24.2 A12 12 0 1 0 30.9 43.8"/><path d="M49 20.5 A14 14 0 1 0 49 43.5" stroke="${ac}"/></g>`,
+  horizon:(fg,ac)=>`<path d="M4 46 H15 A7 7 0 0 1 20 34 A12 12 0 0 1 43 32 A8 8 0 0 1 49 46 H60" fill="none" stroke="${fg}" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/><circle cx="50" cy="20" r="3.5" fill="${ac}"/>`,
+  blocks:(fg,ac)=>{const rows=['.XA.','XXXX'];let s='';rows.forEach((r,y)=>[...r].forEach((c,x)=>{if(c!=='.')s+=`<rect x="${3+x*15}" y="${18+y*15}" width="13" height="13" rx="3.5" fill="${c==='A'?ac:fg}"/>`}));return s},
+  dot:(fg,ac)=>`<circle cx="39" cy="30" r="15" fill="${ac}"/><circle cx="23" cy="39" r="10" fill="${fg}"/>`,
+};
+const svg=(inner,size,vb='0 0 64 64')=>`<svg width="${size}" height="${size}" viewBox="${vb}" xmlns="http://www.w3.org/2000/svg">${inner}</svg>`;
+const icon=(d,mode,size)=>{const p=d[mode];return svg(`<rect width="64" height="64" fill="${p.iconBg}"/><g transform="translate(9.6 9.6) scale(.7)">${marks[d.mark](p.iconFg,p.iconAc)}</g>`,size)};
+
+// ---------- directions ----------
+const D=[
+ {key:'A',name:'Cumulus',mark:'cumulus',
+  pitch:'Calm, friendly, quietly confident. A plain geometric cloud (three circles and a flat base) that works at any size. Warm paper and ink with one soft sky-blue accent. The safest and most versatile.',
+  word:(c)=>`<span style="font:800 21px/1 Manrope;letter-spacing:-.03em;color:${c.fg}">campbell<span style="color:${c.ac}">cloud</span></span>`,
+  h1:'font:800 26px/1.1 Manrope;letter-spacing:-.035em', body:'Manrope', tileR:'14px',
+  fonts:'Manrope 800 / 400', specimen:(c)=>`<div style="font:800 28px/1 Manrope;letter-spacing:-.04em">Aa Bb Cc</div><div style="font:400 13px/1.5 Manrope;opacity:.75">One family does everything: heavy for headlines, regular for text. Rounded enough to feel kind, not cartoonish.</div>`,
+  light:{bg:'#F7F5F0',fg:'#1C1D21',mut:'#6B6A66',card:'#FFFFFF',ac:'#3D74D6',iconBg:'#3D74D6',iconFg:'#FFFFFF',iconAc:'#FFFFFF',tiles:['#DCE7F8','#F3E6D3','#E3EEE2']},
+  dark:{bg:'#121317',fg:'#ECEAE4',mut:'#8E8D89',card:'#1B1C21',ac:'#8DB3FF',iconBg:'#1B1C21',iconFg:'#8DB3FF',iconAc:'#8DB3FF',tiles:['#1F2C44','#3A3124','#22322A']}},
+ {key:'B',name:'Monogram',mark:'monogram',
+  pitch:'Curated and editorial, like a small studio or a journal. Two interlocking c’s whose curves read as a cloud’s outline. An expressive serif for display with a neutral sans for text. Cream and ink with a terracotta accent.',
+  word:(c)=>`<span style="font:italic 400 23px/1 Fraunces;letter-spacing:-.01em;color:${c.fg}">Campbell <span style="font-style:normal;font-weight:600">Cloud</span></span>`,
+  h1:'font:400 28px/1.05 Fraunces;letter-spacing:-.02em', body:'Inter', tileR:'4px',
+  fonts:'Fraunces (display) + Inter (text)', specimen:(c)=>`<div style="font:italic 400 30px/1 Fraunces">Aa <span style="font-style:normal;font-weight:600">Bb</span> Cc</div><div style="font:400 13px/1.5 Inter;opacity:.75">The serif carries personality in headlines; Inter keeps everything else quiet and readable.</div>`,
+  light:{bg:'#F4EFE6',fg:'#211D18',mut:'#7A7166',card:'#FBF8F2',ac:'#C4522F',iconBg:'#F4EFE6',iconFg:'#211D18',iconAc:'#C4522F',tiles:['#E6D6C3','#D9DCCB','#EBCDBF']},
+  dark:{bg:'#17140F',fg:'#EFE7DA',mut:'#9A9081',card:'#211D17',ac:'#E8875F',iconBg:'#211D18',iconFg:'#EFE7DA',iconAc:'#E8875F',tiles:['#352B20','#2A2E24','#3F2A21']}},
+ {key:'C',name:'Horizon',mark:'horizon',
+  pitch:'A studio / workshop feel. One unbroken line rises out of the horizon into a cloud, with a small electric-blue sun. Grotesk headlines with monospace labels: precise, modern, good for projects, tools and writing alike.',
+  word:(c)=>`<span style="font:500 19px/1 'Space Grotesk';letter-spacing:-.02em;color:${c.fg}">campbell<span style="color:${c.ac}">/</span>cloud</span>`,
+  h1:"font:500 27px/1.05 'Space Grotesk';letter-spacing:-.035em", body:"'Space Grotesk'", tileR:'2px', mono:true,
+  fonts:'Space Grotesk + JetBrains Mono', specimen:(c)=>`<div style="font:500 28px/1 'Space Grotesk';letter-spacing:-.04em">Aa Bb Cc</div><div style="font:400 11px/1.6 'JetBrains Mono';opacity:.75">// mono for labels, dates, metadata<br>// grotesk for everything else</div>`,
+  light:{bg:'#FFFFFF',fg:'#0E0E10',mut:'#6E6E73',card:'#F4F4F5',ac:'#2F5BFF',iconBg:'#0E0E10',iconFg:'#FFFFFF',iconAc:'#5C7DFF',tiles:['#E8ECFF','#F1F1F2','#E4E4E7']},
+  dark:{bg:'#0B0C0F',fg:'#F2F2F2',mut:'#8A8A90',card:'#15161A',ac:'#7C9BFF',iconBg:'#F2F2F2',iconFg:'#0B0C0F',iconAc:'#2F5BFF',tiles:['#1A2140','#1C1D22','#232429']}},
+ {key:'D',name:'Blocks',mark:'blocks',
+  pitch:'Built, not drawn: a cloud made from rounded blocks, one of them lit. It hints at making things and gives a system: each section of the site (Play, Make, Read…) gets its own lit-block colour. The most playful option, still minimal.',
+  word:(c)=>`<span style="font:800 21px/1 'Bricolage Grotesque';letter-spacing:-.035em;color:${c.fg}">campbellcloud</span>`,
+  h1:"font:800 27px/1.02 'Bricolage Grotesque';letter-spacing:-.04em", body:"'Bricolage Grotesque'", tileR:'12px',
+  fonts:'Bricolage Grotesque', specimen:(c)=>`<div style="font:800 30px/1 'Bricolage Grotesque';letter-spacing:-.04em">Aa Bb Cc</div><div style="font:400 13px/1.5 'Bricolage Grotesque';opacity:.75">Quirky at big sizes, plain at small ones, so it can be fun without being childish.</div>`,
+  light:{bg:'#FAFAF7',fg:'#191919',mut:'#6F6F6A',card:'#FFFFFF',ac:'#FF6A3D',iconBg:'#191919',iconFg:'#FAFAF7',iconAc:'#FF6A3D',tiles:['#FFD9CC','#CFE6FF','#D7F0DD'],sections:['#FF6A3D','#3D8BFF','#2FB36B','#F5B800']},
+  dark:{bg:'#141414',fg:'#F2F2EE',mut:'#8E8E88',card:'#1D1D1D',ac:'#FF7E57',iconBg:'#FAFAF7',iconFg:'#191919',iconAc:'#FF6A3D',tiles:['#3B241C','#1C2A3D','#1D3326'],sections:['#FF7E57','#6AA6FF','#4CC985','#FFCB3D']}},
+ {key:'E',name:'Two Dots',mark:'dot',
+  pitch:'The most reduced: two overlapping circles, a small one and a big one (two c’s, a puff of cloud, a parent and kid). Wordmark-led, lots of white space, light-weight type. Feels like a gallery or a personal homepage that could hold anything.',
+  word:(c)=>`<span style="font:400 20px/1 Geist;letter-spacing:-.04em;color:${c.fg}">campbell <span style="color:${c.mut}">cloud</span></span>`,
+  h1:'font:300 29px/1.05 Geist;letter-spacing:-.05em', body:'Geist', tileR:'50%',
+  fonts:'Geist 300–500 + Geist Mono', specimen:(c)=>`<div style="font:300 30px/1 Geist;letter-spacing:-.05em">Aa Bb <b style="font-weight:500">Cc</b></div><div style="font:400 13px/1.5 Geist;opacity:.75">Light and tightly spaced for headlines; the restraint lets the work on the page be the colour.</div>`,
+  light:{bg:'#FFFFFF',fg:'#111111',mut:'#9A9A9A',card:'#F6F6F6',ac:'#59A8F5',iconBg:'#FFFFFF',iconFg:'#111111',iconAc:'#59A8F5',tiles:['#E5F1FD','#F3F3F3','#FDEBD8']},
+  dark:{bg:'#0A0A0A',fg:'#EDEDED',mut:'#6E6E6E',card:'#161616',ac:'#6CB6FF',iconBg:'#0A0A0A',iconFg:'#EDEDED',iconAc:'#6CB6FF',tiles:['#13253A','#1A1A1A','#33261A']}},
+];
+
+const nav=['Play','Make','Read','About'];
+const tiles=[['Play','Time Flies','game'],['Make','Workshop','project'],['Read','Notes','writing']];
+
+function mock(d,mode){
+  const c=d[mode];
+  const sec=c.sections;
+  const lab=(t)=>d.mono?`<span style="font-family:'JetBrains Mono';font-size:9px;opacity:.6">${t}</span>`:`<small>${t}</small>`;
+  return `<div class="mock" style="background:${c.bg};color:${c.fg};font-family:${d.body}">
+   <nav><span style="display:flex;align-items:center;gap:7px">${svg(marks[d.mark](c.fg,c.ac),26)}${d.word(c)}</span>
+   <span class="links">${nav.slice(0,3).map((n,i)=>`<span${sec?` style="display:flex;align-items:center;gap:4px"`:''}>${sec?`<i style="width:7px;height:7px;border-radius:2px;background:${sec[i]};display:inline-block"></i>`:''}${n}</span>`).join('')}</span></nav>
+   <div class="hero">${d.mono?`<span style="font:400 10px 'JetBrains Mono';color:${c.ac}">// est. 2026</span>`:''}<h1 style="${d.h1}">Things we make,<br>play and keep.</h1><p>A family corner of the internet. Games, projects and notes, collected in one place.</p></div>
+   <div class="tiles">${tiles.map(([s,t,k],i)=>`<div class="tile"><div class="art" style="background:${c.tiles[i]};border-radius:${d.tileR};${sec?`box-shadow:inset 0 -4px 0 ${sec[i]}`:''}"></div><b>${t}</b>${lab(s+' · '+k)}</div>`).join('')}</div>
+   <div class="foot"><span>© 2026 Campbell Cloud</span><span style="color:${c.ac};opacity:1">${mode==='light'?'☀︎ Light':'☾ Dark'}</span></div>
+  </div>`;
+}
+function swatches(c,label){
+  const items=[['bg',c.bg],['card',c.card],['ink',c.fg],['accent',c.ac]];
+  return `<div class="sw-lab">${label}</div><div class="sw">${items.map(([n,h])=>`<div style="background:${h};color:${n==='ink'||n==='accent'?c.bg:c.fg}">${h}</div>`).join('')}</div>`;
+}
+function render(){
+  document.getElementById('root').innerHTML=D.map(d=>`
+  <div class="dir">
+    <div class="dir-head"><span class="tag">${d.key}</span><h2>${d.name}</h2><p>${d.pitch}</p></div>
+    <div class="kit">
+      <div class="cell"><h3>Logo</h3><div class="lockups">
+        <div class="lock" style="background:${d.light.bg}">${svg(marks[d.mark](d.light.fg,d.light.ac),34)}${d.word(d.light)}</div>
+        <div class="lock" style="background:${d.dark.bg}">${svg(marks[d.mark](d.dark.fg,d.dark.ac),34)}${d.word(d.dark)}</div></div></div>
+      <div class="cell"><h3>App icon · favicon</h3><div class="icons">
+        <span class="ic">${icon(d,'light',64)}</span><span class="ic">${icon(d,'dark',64)}</span>
+        <span class="fav"><span class="ic" style="border-radius:4px">${icon(d,'light',32)}</span><span class="ic" style="border-radius:3px">${icon(d,'light',16)}</span></span></div>
+        <div style="font:12px/1.4 var(--font-sans);color:var(--muted-foreground)">Home-screen light / dark, then 32 and 16px.</div></div>
+      <div class="cell"><h3>Colour</h3>${swatches(d.light,'light')}${swatches(d.dark,'dark')}${d.light.sections?`<div class="sw-lab">section colours</div><div class="sw">${d.light.sections.map((h,i)=>`<div style="background:${h};color:#fff">${nav[i]}</div>`).join('')}</div>`:''}</div>
+      <div class="cell"><h3>Type · ${d.fonts}</h3><div class="type" style="color:var(--foreground)">${d.specimen(d.light)}</div></div>
+    </div>
+    <div class="mocks">${mock(d,'light')}${mock(d,'dark')}</div>
+  </div>`).join('');
+}
+render();
+document.fonts.ready.then(()=>console.log('fonts', [...document.fonts].filter(f=>f.status==='loaded').length));
+</script>
+</body>
+</html>
