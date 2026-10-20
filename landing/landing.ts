@@ -8,10 +8,10 @@ if ('serviceWorker' in navigator && location.protocol.startsWith('http')) naviga
 // Light or dark: follows the system until the button picks one, which is remembered. The <head> script applies it before first paint.
 const root = document.documentElement;
 const button = document.querySelector<HTMLButtonElement>('.theme')!;
-const label = button.querySelector('.theme-label')!;
 const system = matchMedia('(prefers-color-scheme: dark)');
 const current = () => (root.dataset.theme ?? (system.matches ? 'dark' : 'light')) as 'light' | 'dark';
-const show = () => { label.textContent = current() === 'dark' ? '☾ dark' : '☀︎ light'; };
+// The icon shows what a tap switches to (a moon in light, a sun in dark); the CSS picks it, this keeps the label in step.
+const show = () => { button.setAttribute('aria-label', current() === 'dark' ? 'Switch to light' : 'Switch to dark'); };
 button.addEventListener('click', () => {
   const next = current() === 'dark' ? 'light' : 'dark';
   root.dataset.theme = next;
