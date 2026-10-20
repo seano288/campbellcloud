@@ -3,6 +3,7 @@ import { BuildLabel } from '../ui/BuildLabel';
 import { catSvg } from './art';
 import type { Puzzle } from './puzzle';
 import { CAT, CROSS, EMPTY, LIVES, type Hint, canUndo, clock, game, hint, next, paint, placeCat, puzzle, restart, shownHint, tick, undo } from './game';
+import { haptic } from './haptics';
 import { muted, newBoard, react, toggleMute } from './voice';
 
 // One colour per patch, picked to stay apart from each other and from the cats' orange. With no outline round the
@@ -73,8 +74,10 @@ function Play() {
   const onCat = (cell: number) => {
     const result = placeCat(cell);
     if (result) react(result);
-    if (result === 'wrong' || result === 'lost') { setShake(s => s + 1); navigator.vibrate?.(120); }
+    if (result === 'wrong' || result === 'lost') { setShake(s => s + 1); haptic.wrong(); }
     if (result === 'cat' || result === 'won') setPop(cell);
+    if (result === 'cat') haptic.cat();
+    if (result === 'won') haptic.won();
   };
 
   return (
@@ -132,7 +135,7 @@ function Board({ shake, pop, onCat }: { shake: number; pop: number | null; onCat
   // a lone tap's ✕ waits out the double-tap window, so a double-tap goes straight to a cat with no ✕ flashing first
   const held = useRef<{ cell: number; mark: typeof EMPTY | typeof CROSS; timer: number } | null>(null);
   const drop = () => { if (held.current) clearTimeout(held.current.timer); held.current = null; };
-  const flush = () => { const h = held.current; drop(); if (h) paint([h.cell], h.mark); };
+  const flush = () => { const h = held.current; drop(); if (h) { paint([h.cell], h.mark); haptic.mark(); } };
   useEffect(() => drop, [board]);
   // iOS Safari still double-tap zooms over touch-action:none, so swallow the touches themselves; pointer events fire regardless
   useEffect(() => {
@@ -181,6 +184,7 @@ function Board({ shake, pop, onCat }: { shake: number; pop: number | null; onCat
     flush(); // a drag marks its first cell straight away
     lastTap.current = { cell: -1, at: 0 }; // a drag is never the first half of a double-tap
     paint([cell], d.mark, false);
+    haptic.mark();
   };
 
   const up = () => { drag.current = null; };
