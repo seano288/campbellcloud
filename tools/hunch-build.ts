@@ -4,13 +4,13 @@ import { resolve } from 'node:path';
 import type { InlineConfig } from 'vite';
 import { VitePWA } from 'vite-plugin-pwa';
 import { ICON_BACKGROUND, iconSvg } from '../src/hunch/icon';
-import { homeScreenIcons } from './icons';
+import { favicon, homeScreenIcons } from './icons';
 
 export function hunchBuild(outDir = resolve(import.meta.dirname, '../dist-site/hunch')): InlineConfig {
   return {
     configFile: false, root: resolve(import.meta.dirname, '../src/hunch'), base: './', publicDir: false,
     plugins: [
-      homeScreenIcons({ svg: iconSvg, background: ICON_BACKGROUND }),
+      favicon(), homeScreenIcons({ svg: iconSvg, background: ICON_BACKGROUND }),
       VitePWA({
         registerType: 'autoUpdate', injectRegister: false, // src/pwa.ts registers it
         manifest: {

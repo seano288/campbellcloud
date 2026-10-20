@@ -11,8 +11,8 @@ import { iconSvg as hunchIcon } from '../src/hunch/icon';
 import { hunchBuild } from './hunch-build';
 import { iconSvg as purrdokuIcon } from '../src/purrdoku/art';
 import { purrdokuBuild } from './purrdoku-build';
-import { homeScreenIcons } from './icons';
-import { BRAND, faviconSvg, iconSvg as cloudIcon, markSvg } from '../src/brand/mark';
+import { favicon, homeScreenIcons } from './icons';
+import { BRAND, iconSvg as cloudIcon, markSvg } from '../src/brand/mark';
 import { moneyBuild } from './money-build';
 import { staticBuild } from './static-build';
 import { fliesBuild } from './time-flies-build';
@@ -46,7 +46,6 @@ function landing(): InlineConfig {
     name: 'game-tiles',
     transformIndexHtml: html => html
       .replace('%LOGO%', markSvg(32))
-      .replace('%FAVICON%', `data:image/svg+xml,${encodeURIComponent(faviconSvg())}`)
       .replace('%SECTIONS%', SECTIONS.map(s =>
         `<section><h2 class="mono"><span>// ${s.title}</span><span>${String(s.games.length).padStart(2, '0')}</span></h2><div class="games">${s.games.map(g =>
           `<a class="game" href="${'path' in g ? `./${g.path}/` : g.href}" aria-label="${g.name}"><div class="art">${g.icon(1).replace('<svg ', '<svg aria-hidden="true" ')}</div><span class="name">${g.name}</span><span class="where mono">${'path' in g ? `/${g.path}` : `↗ ${new URL(g.href).host}`}</span></a>`).join('')}</div></section>`).join('')),
@@ -54,7 +53,7 @@ function landing(): InlineConfig {
   return {
     configFile: false, root: resolve(import.meta.dirname, '../landing'), base: './', publicDir: false, logLevel: 'warn',
     plugins: [
-      tiles, homeScreenIcons({ svg: cloudIcon, background: BRAND.icon.bg }),
+      tiles, favicon(), homeScreenIcons({ svg: cloudIcon, background: BRAND.icon.bg }),
       VitePWA({
         registerType: 'autoUpdate', injectRegister: false,
         manifest: {

@@ -6,7 +6,7 @@ import { VitePWA } from 'vite-plugin-pwa';
 import type { InlineConfig, Plugin } from 'vite';
 import type { VoiceCollection } from '../src/voice/collection';
 import type { AppEntry } from '../src/entry';
-import { homeScreenIcons, type IconArtwork } from './icons';
+import { favicon, homeScreenIcons, type IconArtwork } from './icons';
 import { voiceCheck } from './voice-check';
 
 export interface StaticSelection<P extends string = string> {
@@ -101,6 +101,7 @@ export function staticBuild<const P extends string>(selection: StaticSelection<P
       },
       voiceCheck([voice]),
       selectedAssets({ assets: selection.assets, voice }),
+      favicon(),
       homeScreenIcons(branding.icon),
       VitePWA({
         registerType: 'autoUpdate',

@@ -2,6 +2,7 @@
 // Every PNG is a full square with no alpha channel, because iOS masks the icon itself.
 import sharp from 'sharp';
 import type { Plugin } from 'vite';
+import { faviconSvg } from '../src/brand/mark';
 
 export interface IconArtwork {
   svg(scale: number): string;
@@ -25,5 +26,13 @@ export function homeScreenIcons(artwork: IconArtwork): Plugin {
     async generateBundle() {
       for (const { file, size, scale } of ICONS) this.emitFile({ type: 'asset', fileName: file, source: await renderIcon(artwork, size, scale) });
     },
+  };
+}
+
+// The browser-tab icon: every page on the site, landing and games alike, shows the Campbell Cloud mark. Inlined, so it works offline and in dev.
+export function favicon(): Plugin {
+  return {
+    name: 'campbell-cloud-favicon',
+    transformIndexHtml: () => [{ tag: 'link', attrs: { rel: 'icon', type: 'image/svg+xml', href: `data:image/svg+xml,${encodeURIComponent(faviconSvg())}` }, injectTo: 'head' }],
   };
 }
