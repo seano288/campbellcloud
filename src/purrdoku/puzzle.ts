@@ -303,3 +303,11 @@ export function rate(board: Puzzle): number {
   }
   return tier;
 }
+
+/** A board as text: each cell's patch, then each row's cat column, one base-36 digit apiece. */
+export const encode = (board: Puzzle) => [...board.regions, ...board.cats].map(d => d.toString(36)).join('');
+
+export function decode(size: number, text: string): Puzzle {
+  const digits = [...text].map(ch => parseInt(ch, 36));
+  return { size, regions: digits.slice(0, size * size), cats: digits.slice(size * size) };
+}

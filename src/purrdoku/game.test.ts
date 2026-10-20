@@ -1,7 +1,8 @@
 import { beforeEach, describe, expect, it } from 'vitest';
-import { CAT, CROSS, EMPTY, game, hint, LIVES, paint, placeCat, puzzle, restart, save, shownHint, start } from './game';
-import { STEPS, stepFor } from './ladder';
-import { rate } from './puzzle';
+import { CAT, CROSS, EMPTY, game, hint, LIVES, paint, placeCat, puzzle, restart, save, setPace, shownHint, start } from './game';
+import { BONUS_SIZE, BONUS_TIERS, levelBoard, STEPS, stepFor } from './ladder';
+import { BONUS } from './bonus';
+import { countSolutions, decode, rate } from './puzzle';
 
 const answer = () => puzzle.value!.cats.map((col, row) => row * puzzle.value!.size + col);
 const wrongCell = (n = 0) => {
@@ -39,11 +40,21 @@ describe('playing Purrdoku', () => {
     expect(game.value!.level).toBe(2);
     expect(game.value!.status).toBe('playing');
   });
+
+  it('a faster pace climbs more rungs per level, from the next level on', () => {
+    setPace(3);
+    setPace(9); // not a pace: ignored
+    expect(save.value.pace).toBe(3);
+    answer().forEach(cell => placeCat(cell));
+    expect(save.value).toMatchObject({ level: 2, rung: 4 });
+    start();
+    expect(game.value).toMatchObject(levelBoard(2, 4));
+  });
 });
 
 describe('Purrdoku hints', () => {
   it('following hints alone solves a board without a wrong cat or a wrong ✕', () => {
-    for (const level of [1, 30, 90, 200]) {
+    for (const level of [1, 30, 91, 201]) {
       save.value = { v: 2, level, solved: 0 };
       start();
       const right = new Set(answer());
@@ -86,12 +97,34 @@ describe('the level ladder', () => {
   });
 
   it("gives each level a board of its step's size and difficulty", () => {
-    for (const level of [1, 7, 40, 120, 250]) {
+    for (const level of [1, 7, 41, 121, 251]) {
       save.value = { v: 2, level, solved: 0 };
       start();
       const [size, tier] = STEPS[stepFor(level)]!;
       expect(puzzle.value!.size).toBe(size);
       expect(rate(puzzle.value!)).toBe(tier);
+    }
+  });
+
+  it('makes every tenth level a 12×12 bonus round, a little harder once the ladder is', () => {
+    for (const level of [10, 20, 30, 150]) {
+      save.value = { v: 2, level, solved: 0 };
+      start();
+      expect(puzzle.value!.size).toBe(BONUS_SIZE);
+      expect(rate(puzzle.value!)).toBe(level < 26 ? 2 : 3);
+    }
+    expect(levelBoard(11).size).toBeLessThan(BONUS_SIZE);
+  });
+
+  it('keeps whole bonus boards with exactly one answer and the tier they are filed under', () => {
+    for (const tier of BONUS_TIERS) {
+      expect(BONUS[tier]!.length).toBeGreaterThan(20);
+      for (const text of BONUS[tier]!.slice(0, 5)) {
+        const board = decode(BONUS_SIZE, text);
+        expect(countSolutions(BONUS_SIZE, board.regions)).toBe(1);
+        expect(new Set(board.cats.map((col, row) => board.regions[row * BONUS_SIZE + col])).size).toBe(BONUS_SIZE);
+        expect(rate(board)).toBe(tier);
+      }
     }
   });
 });

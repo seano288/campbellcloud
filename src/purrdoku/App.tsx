@@ -2,13 +2,14 @@ import { useEffect, useMemo, useRef, useState } from 'preact/hooks';
 import { BuildLabel } from '../ui/BuildLabel';
 import { catSvg } from './art';
 import type { Puzzle } from './puzzle';
-import { CAT, CROSS, EMPTY, LIVES, type Hint, canUndo, clock, game, hint, next, paint, placeCat, puzzle, restart, shownHint, tick, undo } from './game';
+import { CAT, CROSS, EMPTY, LIVES, type Hint, canUndo, clock, game, hint, next, pace, paint, placeCat, puzzle, restart, setPace, shownHint, tick, undo } from './game';
+import { BONUS_SIZE, PACES } from './ladder';
 import { haptic } from './haptics';
 import { muted, newBoard, react, toggleMute } from './voice';
 
 // One colour per patch, picked to stay apart from each other and from the cats' orange. With no outline round the
 // patches, colour is all that tells them apart, so neighbouring patches get the colours furthest from each other.
-const PATCHES = ['#ff9aa2', '#ffe066', '#8fdc7a', '#79c3ff', '#bb9cff', '#5fd6c4', '#f5a8e6', '#d4d4d4', '#c8a97e', '#fdfbf3'];
+const PATCHES = ['#ff9aa2', '#ffe066', '#8fdc7a', '#79c3ff', '#bb9cff', '#5fd6c4', '#f5a8e6', '#d4d4d4', '#c8a97e', '#fdfbf3', '#c2e86b', '#e57fa0'];
 const rgb = (hex: string) => [1, 3, 5].map(i => parseInt(hex.slice(i, i + 2), 16));
 const apart = (a: string, b: string) => Math.hypot(...rgb(a).map((v, i) => v - rgb(b)[i]!));
 
@@ -41,6 +42,7 @@ const ICONS = {
   hint: ['M15 14c.2-1 .7-1.7 1.5-2.5 1-.9 1.5-2.2 1.5-3.5A6 6 0 0 0 6 8c0 1 .2 2.2 1.5 3.5.7.7 1.3 1.5 1.5 2.5', 'M9 18h6', 'M10 22h4'],
   sound: [SPEAKER, 'M16 9a5 5 0 0 1 0 6', 'M19.4 18.4a9 9 0 0 0 0-12.7'],
   muted: [SPEAKER, 'M22 9l-6 6', 'M16 9l6 6'],
+  pace: ['m12 14 4-4', 'M3.3 19a10 10 0 1 1 17.4 0'],
 };
 const Icon = ({ name }: { name: keyof typeof ICONS }) => (
   <svg viewBox="0 0 24 24" aria-hidden="true">{ICONS[name].map(d => <path key={d} d={d} />)}</svg>
@@ -57,6 +59,7 @@ function Play() {
   const g = game.value!;
   const [shake, setShake] = useState(0);
   const [pop, setPop] = useState<number | null>(null);
+  const [pacing, setPacing] = useState(false);
   const shown = shownHint.value;
 
   useEffect(() => {
@@ -84,7 +87,7 @@ function Play() {
     <div class="screen nap-play">
       <div class="nap-bar">
         <a class="nap-icon" href="../" aria-label="All games">☁️</a>
-        <div class="nap-level">Level {g.level}</div>
+        <div class="nap-level">Level {g.level}{g.size === BONUS_SIZE && <span class="nap-bonus"> · Bonus!</span>}</div>
         <div class="nap-time">⏱ {clock(g.elapsed)}</div>
         <div class="nap-fish" aria-label={`${LIVES - g.strikes} fish left`}>
           {Array.from({ length: LIVES }, (_, i) => <span key={i} class={i < LIVES - g.strikes ? '' : 'gone'}>🐟</span>)}
@@ -95,11 +98,21 @@ function Play() {
         <button class="nap-tool" aria-label="Undo" title="Undo" disabled={!canUndo.value || g.status !== 'playing'} onClick={undo}><Icon name="undo" /></button>
         <button class="nap-tool" aria-label="Clear ✕" title="Clear ✕" disabled={g.status !== 'playing'} onClick={() => paint(g.marks.flatMap((m, i) => (m === CROSS ? [i] : [])), EMPTY)}><Icon name="clear" /></button>
         <button class={`nap-tool${shown ? ' on' : ''}`} aria-label="Hint" title="Hint" aria-pressed={!!shown} disabled={g.status !== 'playing'} onClick={hint}><Icon name="hint" /></button>
+        <button class={`nap-tool${pacing ? ' on' : ''}`} aria-label="Climb speed" title="Climb speed" aria-pressed={pacing} onClick={() => setPacing(p => !p)}><Icon name="pace" /></button>
         <button class="nap-tool" aria-pressed={muted.value} aria-label={muted.value ? 'Sound off' : 'Sound on'} title={muted.value ? 'Sound off' : 'Sound on'} onClick={toggleMute}><Icon name={muted.value ? 'muted' : 'sound'} /></button>
       </div>
-      <p class={`nap-help${shown ? ' hint' : ''}`}>
-        {shown ? <><b>{hintMove(shown)}</b> {shown.why}</> : 'Tap to mark ✕ · drag to mark lots · double-tap to lay a cat down'}
-      </p>
+      {pacing ? (
+        <label class="nap-pace">
+          <span aria-hidden="true">🐢</span>
+          <input type="range" min={PACES[0]} max={PACES.at(-1)} step={1} value={pace.value} aria-label="Climb speed" onInput={e => setPace(Number(e.currentTarget.value))} />
+          <span aria-hidden="true">🐆</span>
+          <b title="Climb speed, from the next level on">{pace.value}×</b>
+        </label>
+      ) : (
+        <p class={`nap-help${shown ? ' hint' : ''}`}>
+          {shown ? <><b>{hintMove(shown)}</b> {shown.why}</> : 'Tap to mark ✕ · drag to mark lots · double-tap to lay a cat down'}
+        </p>
+      )}
       <BuildLabel />
       {g.status === 'won' && (
         <div class="nap-over">
@@ -202,13 +215,12 @@ function Board({ shake, pop, onCat }: { shake: number; pop: number | null; onCat
         onPointerCancel={up}
       >
         {g.marks.map((mark, i) => {
-          // patches show by colour alone, with no outline round them: the same thin line runs between every cell
-          const r = Math.floor(i / n), c = i % n;
+          // patches show by colour alone, with no outline round them: the same thin white gap runs between every cell
           return (
             <div
               key={i}
               class={`nap-cell${todo.has(i) ? ` hint-${shown!.kind}` : because.has(i) ? ' hint-why' : ''}`}
-              style={{ background: colours[board.regions[i]!], borderTop: r > 0 ? 'var(--line)' : 'none', borderLeft: c > 0 ? 'var(--line)' : 'none' }}
+              style={{ background: colours[board.regions[i]!] }}
             >
               {mark === CROSS && <span class="x">✕</span>}
               {mark === CAT && <span class={`cat${i === pop ? ' pop' : ''}`} dangerouslySetInnerHTML={{ __html: CAT_ART }} />}

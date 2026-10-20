@@ -1,5 +1,5 @@
 /* Purrdoku: a cosy night-time purple, patchwork quilt colours on the board. Stands alone, without src/styles.css. */
-:root{--night:#3b2a6b;--ink:#2a1a10;--gold:#ffd23f;--green:#2bb673;--line:1px solid #0002;--u:1}
+:root{--night:#3b2a6b;--ink:#2a1a10;--gold:#ffd23f;--green:#2bb673;--gap:2px;--u:1}
 @media (max-width:700px),(max-height:700px){:root{--u:.82}}
 @media (max-width:430px),(max-height:520px){:root{--u:.66}}
 *{box-sizing:border-box}
@@ -18,22 +18,24 @@ button:disabled{opacity:.4;cursor:default}
 .nap-icon{text-decoration:none;width:calc(52px*var(--u));height:calc(52px*var(--u));border-radius:50%;background:#0004;border:3px solid var(--gold);font-size:calc(24px*var(--u));display:grid;place-items:center;flex:none}
 .nap-level{flex:1;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;font-family:Bungee,sans-serif;font-weight:400;color:var(--gold)}
 .nap-time{font-variant-numeric:tabular-nums}
+.nap-bonus{color:#fff}
 .nap-fish{display:flex;gap:2px;font-size:calc(28px*var(--u))}
 .nap-fish span{transition:.3s}
 .nap-fish .gone{filter:grayscale(1);opacity:.25;transform:scale(.8) rotate(-30deg)}
 
 .nap-board-wrap{flex:1;min-height:0;container-type:size;display:grid;place-items:center;padding:0 12px}
-.nap-board{width:min(100cqw,100cqh,820px);aspect-ratio:1;display:grid;grid-template-columns:repeat(var(--n),1fr);grid-template-rows:repeat(var(--n),1fr);border:5px solid var(--ink);border-radius:14px;overflow:hidden;box-shadow:0 10px 0 #0008;touch-action:none;cursor:pointer;background:#fff}
+.nap-board{width:min(100cqw,100cqh,820px);aspect-ratio:1;display:grid;grid-template-columns:repeat(var(--n),1fr);grid-template-rows:repeat(var(--n),1fr);gap:var(--gap);border:5px solid var(--ink);border-radius:14px;overflow:hidden;box-shadow:0 10px 0 #0008;touch-action:none;cursor:pointer;background:#fff;transition:background .2s}
 .nap-board.shake{animation:shake .4s}
 .nap-board.won .cat{animation:breathe 2s ease-in-out infinite}
 .nap-cell{position:relative;display:grid;place-items:center;container-type:size;min-width:0;min-height:0}
 .nap-cell .x{font-weight:900;font-size:42cqh;color:#2a1a10aa;line-height:1;pointer-events:none}
 .nap-cell .cat{width:82%;height:82%;pointer-events:none}
 .nap-cell .cat.pop{animation:pop .35s ease-out}
-/* a hint: everything it doesn't need fades back under a dark wash (over the grid line too); the cells that show why
+/* a hint: everything it doesn't need fades back under a dark wash (the white gaps too); the cells that show why
    stay bright with a white glow, and the cells to act on stay bright with a pulsing ghost of the move. A cat to lay
    also gets a ring (gold edged in dark, so it shows on the yellow patch), and fades any ✕ it's hiding under. */
-.nap-cell::after{content:'';position:absolute;inset:-1px 0 0 -1px;pointer-events:none;background:#1a0f3a00;transition:background .2s}
+.nap-cell::after{content:'';position:absolute;inset:0;pointer-events:none;background:#1a0f3a00;transition:background .2s}
+.nap-board.hinting{background:#6a637f}
 .nap-board.hinting .nap-cell::after{background:#1a0f3aa6}
 .nap-board.hinting .nap-cell:is(.hint-why,.hint-cat,.hint-cross)::after{background:none}
 .nap-board.hinting .nap-cell.hint-why::after{box-shadow:inset 0 0 0 3px #fff,inset 0 0 14px 2px #fff9}
@@ -51,6 +53,9 @@ button:disabled{opacity:.4;cursor:default}
 .nap-help{margin:6px 12px calc(10px*var(--u) + 16px);text-align:center;font-weight:800;font-size:calc(14px*var(--u));opacity:.7}
 .nap-help.hint{opacity:1;color:var(--gold);font-size:calc(16px*var(--u))}
 .nap-help.hint b{color:#fff}
+.nap-pace{display:flex;align-items:center;justify-content:center;gap:10px;margin:2px 12px calc(10px*var(--u) + 12px);font-weight:900;font-size:calc(16px*var(--u));line-height:1}
+.nap-pace input{width:min(50vw,220px);accent-color:var(--gold)}
+.nap-pace b{color:var(--gold);min-width:2.2em;font-variant-numeric:tabular-nums}
 
 .nap-over{position:fixed;inset:0;z-index:50;display:grid;place-items:center;background:#0008;animation:fade .3s}
 .nap-card{background:#fff;color:var(--ink);border:4px solid #000;border-radius:26px;box-shadow:0 10px 0 #000;padding:24px 32px;text-align:center;display:flex;flex-direction:column;align-items:center;gap:10px;min-width:min(90vw,340px);animation:pop .35s ease-out}

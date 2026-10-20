@@ -1,8 +1,8 @@
 // Purrdoku's state: one endless run of levels, the board in progress and how many have been solved.
 // It is all kept in localStorage under its own key; the board itself isn't stored, it's remade from its seed.
 import { computed, effect, signal } from '@preact/signals';
-import { levelBoard } from './ladder';
-import { generate, nextStep, settle, touches, turn, type Puzzle } from './puzzle';
+import { type LevelBoard, levelBoard, PACES } from './ladder';
+import { decode, generate, nextStep, settle, touches, turn, type Puzzle } from './puzzle';
 
 export const LIVES = 3;
 export const EMPTY = 0, CROSS = 1, CAT = 2;
@@ -11,9 +11,10 @@ export type Mark = typeof EMPTY | typeof CROSS | typeof CAT;
 export interface Game {
   level: number;
   size: number;
-  /** the board is generate(size, seed), turned `turn` ways */
+  /** the board is generate(size, seed), or `board` decoded for a bonus round, turned `turn` ways */
   seed: number;
   turn: number;
+  board?: string;
   marks: Mark[];
   strikes: number;
   /** hints asked for on this board (missing from saves made before there were hints) */
@@ -28,6 +29,10 @@ export interface Save {
   /** the level being played, or the next one after a win */
   level: number;
   solved: number;
+  /** how far up the ladder the next level sits (see levelBoard); missing from older saves, where it's the level */
+  rung?: number;
+  /** rungs climbed per solved level, one of PACES (missing means 1) */
+  pace?: number;
   game?: Game;
 }
 
@@ -50,16 +55,16 @@ effect(() => {
 export const game = computed(() => save.value.game);
 
 const boards = new Map<string, Puzzle>();
-function boardOf(g: Pick<Game, 'size' | 'seed' | 'turn'>): Puzzle {
-  const key = `${g.size}:${g.seed}:${g.turn}`;
+function boardOf(g: LevelBoard): Puzzle {
+  const key = `${g.size}:${g.board ?? g.seed}:${g.turn}`;
   let board = boards.get(key);
-  if (!board) boards.set(key, board = turn(generate(g.size, g.seed), g.turn));
+  if (!board) boards.set(key, board = turn(g.board ? decode(g.size, g.board) : generate(g.size, g.seed), g.turn));
   return board;
 }
 export const puzzle = computed(() => game.value && boardOf(game.value));
 
-const newGame = (level: number, { size, seed, turn }: Pick<Game, 'size' | 'seed' | 'turn'>): Game =>
-  ({ level, size, seed, turn, marks: new Array(size ** 2).fill(EMPTY), strikes: 0, elapsed: 0, status: 'playing' });
+const newGame = (level: number, { size, seed, turn, board }: LevelBoard): Game =>
+  ({ level, size, seed, turn, ...(board && { board }), marks: new Array(size ** 2).fill(EMPTY), strikes: 0, elapsed: 0, status: 'playing' });
 
 function setGame(next: Game) {
   save.value = { ...save.value, game: next };
@@ -72,7 +77,14 @@ export function start() {
   history.length = 0;
   canUndo.value = false;
   shownHint.value = null;
-  setGame(newGame(level, levelBoard(level)));
+  setGame(newGame(level, levelBoard(level, save.value.rung ?? level)));
+}
+
+export const pace = computed(() => save.value.pace ?? 1);
+
+/** Sets how fast the ladder climbs from the next level on; the board in play stays as it is. */
+export function setPace(next: number) {
+  if ((PACES as readonly number[]).includes(next)) save.value = { ...save.value, pace: next };
 }
 
 export function restart() {
@@ -133,7 +145,10 @@ export function placeCat(cell: number): Placed | undefined {
   marks[cell] = CAT;
   const won = marks.filter(m => m === CAT).length === n;
   update(() => ({ marks, status: won ? 'won' : 'playing' }));
-  if (won) save.value = { ...save.value, level: g.level + 1, solved: save.value.solved + 1 };
+  if (won) {
+    const s = save.value;
+    save.value = { ...s, level: g.level + 1, rung: (s.rung ?? g.level) + pace.value, solved: s.solved + 1 };
+  }
   return won ? 'won' : 'cat';
 }
 
