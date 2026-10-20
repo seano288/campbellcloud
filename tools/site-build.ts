@@ -20,8 +20,26 @@ import { fliesBuild } from './time-flies-build';
 // Task Force is hosted on its own site; its tile here just links out to it. The art is its own home-screen icon.
 const taskForceIcon = (scale = 1) => {
   const off = 256 * (1 - scale);
-  return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><rect width="512" height="512" fill="#e3fa56"/><g transform="translate(${off} ${off}) scale(${scale})"><g transform="translate(86 86) scale(3.4)">
-  <path fill="#24291f" fill-rule="evenodd" d="M30 14h40l18 22-7 37-18 13H37L19 73l-7-37Zm-4 28 4 17 40-7 4-17Zm12 27v6h8v-6Zm16 0v6h8v-6Z"/></g></g></svg>`;
+  return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><defs>
+  <radialGradient id="tf-glow-purple" cx="15%" cy="0%" r="80%"><stop offset="0" stop-color="#7a3cff" stop-opacity=".75"/><stop offset="1" stop-color="#7a3cff" stop-opacity="0"/></radialGradient>
+  <radialGradient id="tf-glow-blue" cx="100%" cy="40%" r="70%"><stop offset="0" stop-color="#1ea0ff" stop-opacity=".45"/><stop offset="1" stop-color="#1ea0ff" stop-opacity="0"/></radialGradient>
+  <radialGradient id="tf-glow-pink" cx="50%" cy="110%" r="70%"><stop offset="0" stop-color="#ff3c8c" stop-opacity=".4"/><stop offset="1" stop-color="#ff3c8c" stop-opacity="0"/></radialGradient>
+</defs><rect width="512" height="512" fill="#070b1e"/><rect width="512" height="512" fill="url(#tf-glow-purple)"/><rect width="512" height="512" fill="url(#tf-glow-blue)"/><rect width="512" height="512" fill="url(#tf-glow-pink)"/><g transform="translate(${off} ${off}) scale(${scale})">
+  <g fill="#fff"><circle cx="70" cy="96" r="4"/><circle cx="430" cy="70" r="5"/><circle cx="452" cy="300" r="3"/><circle cx="58" cy="380" r="3"/><circle cx="400" cy="450" r="4" fill="#bfe8ff"/><circle cx="120" cy="470" r="2.5" fill="#ffd9f5"/></g>
+  <g transform="translate(101 67) scale(3.1)">
+    <ellipse cx="34" cy="104" rx="13" ry="8" fill="rgb(152,141,37)" stroke="#0a0d20" stroke-width="5" stroke-linejoin="round"/>
+    <ellipse cx="66" cy="104" rx="13" ry="8" fill="rgb(152,141,37)" stroke="#0a0d20" stroke-width="5" stroke-linejoin="round"/>
+    <path d="M18 98 Q12 98 14 86 L20 46 Q24 10 50 10 Q76 10 80 46 L86 86 Q88 98 82 98 Z" fill="#f5e33b"/>
+    <path d="M26 74 L23 90" fill="none" stroke="rgb(152,141,37)" stroke-width="5" stroke-linecap="round" opacity=".5"/>
+    <rect x="16" y="40" width="68" height="12" fill="#1b2138"/>
+    <path d="M18 98 Q12 98 14 86 L20 46 Q24 10 50 10 Q76 10 80 46 L86 86 Q88 98 82 98 Z" fill="none" stroke="#0a0d20" stroke-width="5" stroke-linejoin="round"/>
+    <circle cx="36" cy="46" r="13" fill="#9fe0f7" stroke="#0a0d20" stroke-width="5" stroke-linejoin="round"/>
+    <circle cx="64" cy="46" r="13" fill="#9fe0f7" stroke="#0a0d20" stroke-width="5" stroke-linejoin="round"/>
+    <circle cx="38" cy="48" r="4.5" fill="#0a0d20"/><circle cx="66" cy="48" r="4.5" fill="#0a0d20"/>
+    <path d="M29 42 Q31 37 36 37" fill="none" stroke="#fff" stroke-width="3.5" stroke-linecap="round"/>
+    <path d="M57 42 Q59 37 64 37" fill="none" stroke="#fff" stroke-width="3.5" stroke-linecap="round"/>
+    <path d="M40 76 Q50 82 60 76" fill="none" stroke="rgb(152,141,37)" stroke-width="4" stroke-linecap="round" opacity=".7"/>
+  </g></g></svg>`;
 };
 
 type Tile = { name: string; icon: (scale?: number) => string } & ({ path: string } | { href: string });
