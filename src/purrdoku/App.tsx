@@ -139,6 +139,7 @@ function Play() {
 }
 
 const DOUBLE_TAP_MS = 320;
+const SHAKE = [0, -10, 10, -10, 10, 0].map(x => ({ transform: `translateX(${x}px)` }));
 
 function Board({ shake, pop, onCat }: { shake: number; pop: number | null; onCat: (cell: number) => void }) {
   const g = game.value!, board = puzzle.value!, n = board.size;
@@ -148,13 +149,17 @@ function Board({ shake, pop, onCat }: { shake: number; pop: number | null; onCat
   // a lone tap's ✕ waits out the double-tap window, so a double-tap goes straight to a cat with no ✕ flashing first
   const held = useRef<{ cell: number; mark: typeof EMPTY | typeof CROSS; timer: number } | null>(null);
   const drop = () => { if (held.current) clearTimeout(held.current.timer); held.current = null; };
-  const flush = () => { const h = held.current; drop(); if (h) { paint([h.cell], h.mark); haptic.mark(); } };
+  const flush = () => { const h = held.current; drop(); if (h) paint([h.cell], h.mark); };
   useEffect(() => drop, [board]);
   // iOS Safari still double-tap zooms over touch-action:none, so swallow the touches themselves; pointer events fire regardless
   useEffect(() => {
     const el = ref.current!, stop = (e: TouchEvent) => e.preventDefault();
     el.addEventListener('touchend', stop, { passive: false });
     return () => el.removeEventListener('touchend', stop);
+  }, []);
+  // shaken in place rather than remade: a board remade under the finger loses the touchend that iOS haptics wait for
+  useEffect(() => {
+    if (shake) ref.current!.animate(SHAKE, 400);
   }, [shake]);
   const playing = g.status === 'playing';
   const colours = useMemo(() => patchColours(board), [board]);
@@ -186,6 +191,7 @@ function Board({ shake, pop, onCat }: { shake: number; pop: number | null; onCat
     const mark = g.marks[cell] === CROSS ? EMPTY : CROSS;
     drag.current = { mark, seen: new Set([cell]) };
     held.current = { cell, mark, timer: window.setTimeout(flush, DOUBLE_TAP_MS) };
+    haptic.mark(); // now, while the finger's on it, not when the ✕ shows: iOS only buzzes as the touch ends
   };
 
   const move = (e: PointerEvent) => {
@@ -206,8 +212,7 @@ function Board({ shake, pop, onCat }: { shake: number; pop: number | null; onCat
     <div class="nap-board-wrap">
       <div
         ref={ref}
-        key={shake}
-        class={`nap-board${shake ? ' shake' : ''}${g.status === 'won' ? ' won' : ''}${shown ? ' hinting' : ''}`}
+        class={`nap-board${g.status === 'won' ? ' won' : ''}${shown ? ' hinting' : ''}`}
         style={{ '--n': n }}
         onPointerDown={down}
         onPointerMove={move}

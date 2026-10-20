@@ -1,9 +1,12 @@
 // Purrdoku's buzzes. Android has navigator.vibrate; iOS Safari doesn't, but since iOS 18 flipping a switch checkbox
-// gives a light tap, so there a hidden one is flipped through its label. That is one strength only, and only straight
-// after a touch, so on iOS a pattern is just taps spaced out. Anywhere with neither, nothing happens.
+// gives a light tap, so there a hidden one is flipped through its label. That is one strength only, and iOS only
+// allows it while it's handling a finger lifting off the screen, so on iOS a buzz waits for the touchend of the tap
+// that caused it (a drag's ticks come as one on letting go), and a pattern is taps spaced out.
 
 /** Gaps between iOS taps; any closer and they run together into one. */
 const GAP_MS = 110;
+
+const iOS = /iPhone|iPad|iPod/.test(navigator.userAgent) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
 
 function tapIOS() {
   const label = document.createElement('label'), input = document.createElement('input');
@@ -17,12 +20,22 @@ function tapIOS() {
   label.remove();
 }
 
+/** iOS taps waiting for the finger to lift: the biggest buzz asked for during this touch. */
+let pending = 0;
+if (iOS) {
+  addEventListener('touchend', () => {
+    const taps = pending;
+    pending = 0;
+    for (let i = 0; i < taps; i++) {
+      if (i === 0) tapIOS();
+      else setTimeout(tapIOS, i * GAP_MS);
+    }
+  }, true);
+}
+
 function buzz(pattern: number[], taps: number) {
-  if (navigator.vibrate) { navigator.vibrate(pattern); return; }
-  for (let i = 0; i < taps; i++) {
-    if (i === 0) tapIOS();
-    else setTimeout(tapIOS, i * GAP_MS);
-  }
+  if (iOS) pending = Math.max(pending, taps);
+  else navigator.vibrate?.(pattern);
 }
 
 export const haptic = {
