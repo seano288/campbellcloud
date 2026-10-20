@@ -9,7 +9,7 @@ button{font:inherit;color:inherit;border:0;background:none;padding:0;cursor:poin
 button:disabled{opacity:.4;cursor:default}
 #app{position:fixed;inset:0;display:flex;flex-direction:column;padding:env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left)}
 .screen{flex:1;min-height:0;display:flex;flex-direction:column;background:radial-gradient(circle at 50% 0%,#6a4fc0,var(--night) 70%)}
-.build-label{position:absolute;right:calc(12px + env(safe-area-inset-right));bottom:calc(8px + env(safe-area-inset-bottom));font:800 12px Nunito,sans-serif;color:#fff;opacity:.45;pointer-events:none}
+.build-label{position:absolute;right:calc(6px + env(safe-area-inset-right));bottom:2px;font:700 9px/1 Nunito,sans-serif;color:#fff;opacity:.25;pointer-events:none}
 
 .nap-card .cats svg,.nap-cell .cat svg{display:block;width:100%;height:100%}
 

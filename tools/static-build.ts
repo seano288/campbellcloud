@@ -65,7 +65,7 @@ function selectedAssets(selection: Pick<StaticSelection, 'assets' | 'voice'>): P
 function buildLabel() {
   let commit = 'dev';
   try { commit = execSync('git rev-parse --short HEAD', { stdio: ['ignore', 'pipe', 'ignore'] }).toString().trim(); } catch { /* not a checkout */ }
-  return `${new Date().toISOString().slice(0, 16).replace('T', ' ')} · ${commit}`;
+  return commit;
 }
 
 export function staticBuild<const P extends string>(selection: StaticSelection<P>): InlineConfig {

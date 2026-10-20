@@ -278,7 +278,7 @@ journey('an update that arrives on the title screen reloads straight into it', a
     await warm(page, site.url);
     await page.reload();
     await button(page, 'Start').waitFor();
-    assert.match(await page.locator('.build-label').textContent() ?? '', /^\d{4}-\d\d-\d\d \d\d:\d\d · \w+$/);
+    assert.match(await page.locator('.build-label').textContent() ?? '', /^\w+$/);
     publishUpdate(site, 1);
     const reloaded = page.waitForEvent('framenavigated', { predicate: frame => frame === page.mainFrame() });
     await page.evaluate(async () => { await (await navigator.serviceWorker.getRegistration())!.update(); });
