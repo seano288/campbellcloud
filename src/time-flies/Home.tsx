@@ -1,5 +1,6 @@
 // Home: the Hangar tile with his plane, one Play tile (every Round mixes all the kinds of question he has opened), and a
-// board with his Level in each kind. Tapping a kind says its name; a locked one says what opens it.
+// board with his Level in each kind. The board is drawn flat, as a chart rather than more buttons, so it doesn't read as
+// something to press; tapping a kind still says its name, and a locked one says what opens it.
 import { useEffect } from 'preact/hooks';
 import type { ComponentChildren } from 'preact';
 import { sBad } from '../audio/sfx';
@@ -38,16 +39,19 @@ export function Home({ status }: { status: ComponentChildren }) {
           <span class="tile-clock"><ClockFace minutes={130} glide={false} /></span>
           <span class="e">▶</span>
         </button>
-        <div class="tile t-kinds">
+        <div class="tile t-kinds" role="list" aria-label="My Levels">
+          <h2 class="kinds-head">🏆 My Levels</h2>
           {MODE_IDS.map(id => {
             const m = modes[id];
             return (
-              <button key={id} class={`kind ${m.opened ? '' : 'locked'} ${m.opened && m.fresh ? 'fresh' : ''}`} aria-label={MODE_NAMES[id]} onClick={() => tap(id)}>
+              <div key={id} role="listitem" class={`kind ${m.opened ? '' : 'locked'} ${m.opened && m.fresh ? 'fresh' : ''}`} aria-label={MODE_NAMES[id]} onClick={() => tap(id)}>
                 <span class="ki">{m.opened ? MODE_ICONS[id] : '🔒'}</span>
-                <span class="kn">{MODE_NAMES[id]}</span>
-                <LevelDots level={m.opened ? m.level : 0} />
+                <span class="kb">
+                  <span class="kn">{MODE_NAMES[id]}</span>
+                  <LevelDots level={m.opened ? m.level : 0} />
+                </span>
                 {m.opened && m.starred && <span class="badge">⭐</span>}
-              </button>
+              </div>
             );
           })}
         </div>
