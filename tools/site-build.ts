@@ -42,6 +42,11 @@ const taskForceIcon = (scale = 1) => {
   </g></g></svg>`;
 };
 
+// Cash Chaos, the family budget app, is hosted on its own site too. The art is its favicon's three rising bars.
+const cashChaosIcon = () => `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><g transform="translate(96 96) scale(10)" fill="#0ca30c">
+  <rect x="5" y="18" width="6" height="10" rx="1.5"/><rect x="13" y="10" width="6" height="18" rx="1.5"/><rect x="21" y="4" width="6" height="24" rx="1.5"/>
+</g></svg>`;
+
 type Tile = { name: string; icon: (scale?: number) => string } & ({ path: string } | { href: string });
 
 export const SITE = 'dist-site';
@@ -54,6 +59,9 @@ export const SECTIONS: readonly { title: string; games: readonly Tile[] }[] = [
     { path: 'hunch', name: 'Hunch', icon: hunchIcon },
     { path: 'purrdoku', name: 'Purrdoku', icon: purrdokuIcon },
     { href: 'https://playtaskforce.com/', name: 'Task Force', icon: taskForceIcon },
+  ] },
+  { title: 'Tools', games: [
+    { href: 'https://cashchaos.com/', name: 'Cash Chaos', icon: cashChaosIcon },
   ] },
 ];
 // The games this site builds and hosts itself (not the ones it only links out to).
