@@ -35,10 +35,13 @@ button:disabled{opacity:.4;cursor:default}
 .nap-fish span{transition:.3s}
 .nap-fish .gone{filter:grayscale(1);opacity:.25;transform:scale(.8) rotate(-30deg)}
 
-.nap-board-wrap{flex:1;min-height:0;container-type:size;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:0 12px}
+.nap-board-wrap{--edge:5px;--round:14px;--most:820px;flex:1;min-height:0;container-type:size;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:0 12px}
+/* a big board (10×10 up, the 12×12 bonus most of all) takes every pixel it can for its cells: it runs nearly to the
+   screen's edges, with a thinner frame and thinner gaps, and grows past the usual cap on a big screen */
+.nap-board-wrap.big{--gap:2px;--edge:2px;--round:6px;--most:1100px;padding:0 2px}
 /* the board and the message line on top of it share the height, and the message is as wide as the board */
-.nap-board,.nap-say{width:min(100cqw,calc(100cqh - var(--say)),820px)}
-.nap-board{flex:none;aspect-ratio:1;display:grid;grid-template-columns:repeat(var(--n),1fr);grid-template-rows:repeat(var(--n),1fr);gap:var(--gap);border:5px solid var(--ink);border-radius:14px;overflow:hidden;box-shadow:0 10px 0 #0008;touch-action:none;cursor:pointer;background:#fff;transition:background .2s}
+.nap-board,.nap-say{width:min(100cqw,calc(100cqh - var(--say)),var(--most))}
+.nap-board{flex:none;aspect-ratio:1;display:grid;grid-template-columns:repeat(var(--n),1fr);grid-template-rows:repeat(var(--n),1fr);gap:var(--gap);border:var(--edge) solid var(--ink);border-radius:var(--round);overflow:hidden;box-shadow:0 10px 0 #0008;touch-action:none;cursor:pointer;background:#fff;transition:background .2s}
 .nap-board.won .cat{animation:breathe 2s ease-in-out infinite}
 .nap-cell{position:relative;display:grid;place-items:center;container-type:size;min-width:0;min-height:0}
 /* a ✕ is white with a dark edge, so it shows on every colour; a wrong cat's ✕ is red */

@@ -247,7 +247,7 @@ function Board({ shake, pop, onCat, children }: { shake: number; pop: number | n
   const up = () => { drag.current = null; };
 
   return (
-    <div class="nap-board-wrap">
+    <div class={`nap-board-wrap${n >= 10 ? ' big' : ''}`}>
       {children}
       <div
         ref={ref}
