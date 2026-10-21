@@ -47,6 +47,13 @@ const cashChaosIcon = () => `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 
   <rect x="5" y="18" width="6" height="10" rx="1.5"/><rect x="13" y="10" width="6" height="18" rx="1.5"/><rect x="21" y="4" width="6" height="24" rx="1.5"/>
 </g></svg>`;
 
+// Break Schedule, the California break-scheduling app, is hosted on its own site too. The art is its favicon's shift bars with gaps for breaks.
+const breakScheduleIcon = () => `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><g transform="translate(96 96) scale(10)" fill="#0d9488">
+  <rect x="2" y="4" width="7" height="6" rx="2"/><rect x="13" y="4" width="17" height="6" rx="2"/>
+  <rect x="2" y="13" width="13" height="6" rx="2"/><rect x="19" y="13" width="11" height="6" rx="2"/>
+  <rect x="2" y="22" width="19" height="6" rx="2"/><rect x="25" y="22" width="5" height="6" rx="2"/>
+</g></svg>`;
+
 // Tiles with an href leave campbellcloud.com, so they open in a new tab.
 type Tile = { name: string; icon: (scale?: number) => string } & ({ path: string } | { href: string });
 
@@ -63,6 +70,7 @@ export const SECTIONS: readonly { title: string; games: readonly Tile[] }[] = [
   ] },
   { title: 'Tools', games: [
     { href: 'https://cashchaos.com/', name: 'Cash Chaos', icon: cashChaosIcon },
+    { href: 'https://breakschedule.com/', name: 'Break Schedule', icon: breakScheduleIcon },
   ] },
 ];
 // The games this site builds and hosts itself (not the ones it only links out to).
