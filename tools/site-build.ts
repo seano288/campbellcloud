@@ -42,13 +42,14 @@ const taskForceIcon = (scale = 1) => {
   </g></g></svg>`;
 };
 
-// Cash Chaos, the family budget app, is hosted on its own site too. The art is its favicon's three rising bars.
-const cashChaosIcon = () => `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><g transform="translate(96 96) scale(10)" fill="#0ca30c">
+// Cash Chaos, the family budget app, is hosted on its own site too. The art is its favicon's three rising bars on a tint of their green, so the tile
+// carries colour like the game art does instead of reading as an empty card.
+const cashChaosIcon = () => `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><rect width="512" height="512" fill="#ddf4dd"/><g transform="translate(76 76) scale(11.25)" fill="#0ca30c">
   <rect x="5" y="18" width="6" height="10" rx="1.5"/><rect x="13" y="10" width="6" height="18" rx="1.5"/><rect x="21" y="4" width="6" height="24" rx="1.5"/>
 </g></svg>`;
 
-// Break Schedule, the California break-scheduling app, is hosted on its own site too. The art is its favicon's shift bars with gaps for breaks.
-const breakScheduleIcon = () => `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><g transform="translate(96 96) scale(10)" fill="#0d9488">
+// Break Schedule, the California break-scheduling app, is hosted on its own site too. The art is its favicon's shift bars with gaps for breaks, on a tint of their teal.
+const breakScheduleIcon = () => `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><rect width="512" height="512" fill="#d9f2ef"/><g transform="translate(76 76) scale(11.25)" fill="#0d9488">
   <rect x="2" y="4" width="7" height="6" rx="2"/><rect x="13" y="4" width="17" height="6" rx="2"/>
   <rect x="2" y="13" width="13" height="6" rx="2"/><rect x="19" y="13" width="11" height="6" rx="2"/>
   <rect x="2" y="22" width="19" height="6" rx="2"/><rect x="25" y="22" width="5" height="6" rx="2"/>
@@ -81,9 +82,11 @@ function landing(): InlineConfig {
     name: 'game-tiles',
     transformIndexHtml: html => html
       .replace('%LOGO%', markSvg(32))
+      // The "//" and the tile count are decoration, hidden from screen readers so a heading reads as just its title. A tile that leaves the site says
+      // where it goes and that it opens a new tab.
       .replace('%SECTIONS%', SECTIONS.map(s =>
-        `<section><h2 class="mono"><span>// ${s.title}</span><span>${String(s.games.length).padStart(2, '0')}</span></h2><div class="games">${s.games.map(g =>
-          `<a class="game" ${'path' in g ? `href="./${g.path}/"` : `href="${g.href}" target="_blank" rel="noopener"`} aria-label="${g.name}"><div class="art">${g.icon(1).replace('<svg ', '<svg aria-hidden="true" ')}</div><span class="name">${g.name}</span><span class="where mono">${'path' in g ? `/${g.path}` : `↗ ${new URL(g.href).host}`}</span></a>`).join('')}</div></section>`).join('')),
+        `<section><h2 class="mono"><span><span aria-hidden="true">// </span>${s.title}</span><span aria-hidden="true">${String(s.games.length).padStart(2, '0')}</span></h2><div class="games">${s.games.map(g =>
+          `<a class="game" ${'path' in g ? `href="./${g.path}/" aria-label="${g.name}"` : `href="${g.href}" target="_blank" rel="noopener" aria-label="${g.name}, opens ${new URL(g.href).host} in a new tab"`}><div class="art">${g.icon(1).replace('<svg ', '<svg aria-hidden="true" ')}</div><span class="name">${g.name}</span><span class="where mono">${'path' in g ? `/${g.path}` : `↗ ${new URL(g.href).host}`}</span></a>`).join('')}</div></section>`).join('')),
   };
   return {
     configFile: false, root: resolve(import.meta.dirname, '../landing'), base: './', publicDir: false, logLevel: 'warn',

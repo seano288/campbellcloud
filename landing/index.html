@@ -16,37 +16,42 @@
 <link rel="manifest" href="./manifest.webmanifest">
 <style>
 /* Brand tokens: see docs/brand/README.md. Light by default, dark when the system asks, unless the toggle picked one. */
-:root{--bg:#ffffff;--fg:#0e0e10;--muted:#6e6e73;--card:#f4f4f5;--line:#e4e4e7;--accent:#2f5bff;color-scheme:light}
-:root[data-theme=dark]{--bg:#0b0c0f;--fg:#f2f2f2;--muted:#8a8a90;--card:#15161a;--line:#232429;--accent:#7c9bff;color-scheme:dark}
-@media (prefers-color-scheme:dark){:root:not([data-theme=light]){--bg:#0b0c0f;--fg:#f2f2f2;--muted:#8a8a90;--card:#15161a;--line:#232429;--accent:#7c9bff;color-scheme:dark}}
+:root{--bg:#ffffff;--fg:#0e0e10;--muted:#6e6e73;--card:#f4f4f5;--line:#e4e4e7;--edge:#929296;--accent:#2f5bff;color-scheme:light;--t-xs:12px;--t-sm:15px;--t-md:19px;--t-display:clamp(36px,6vw,56px)}
+:root[data-theme=dark]{--bg:#0b0c0f;--fg:#f2f2f2;--muted:#8a8a90;--card:#15161a;--line:#232429;--edge:#5e5f66;--accent:#7c9bff;color-scheme:dark}
+@media (prefers-color-scheme:dark){:root:not([data-theme=light]){--bg:#0b0c0f;--fg:#f2f2f2;--muted:#8a8a90;--card:#15161a;--line:#232429;--edge:#5e5f66;--accent:#7c9bff;color-scheme:dark}}
 *{box-sizing:border-box}
 html,body{margin:0;min-height:100%;background:var(--bg);color:var(--fg);font-family:"Space Grotesk",system-ui,sans-serif;-webkit-font-smoothing:antialiased;-webkit-tap-highlight-color:transparent;user-select:none;-webkit-user-select:none}
 .mono{font-family:"JetBrains Mono",ui-monospace,monospace;font-weight:400}
 .page{max-width:1080px;margin:0 auto;padding:calc(20px + env(safe-area-inset-top)) max(20px,env(safe-area-inset-right)) calc(28px + env(safe-area-inset-bottom)) max(20px,env(safe-area-inset-left));display:flex;flex-direction:column;gap:clamp(36px,7vw,72px);min-height:100vh;min-height:100dvh}
 header{display:flex;align-items:center;justify-content:space-between;gap:12px}
-.brand{display:flex;align-items:center;gap:10px;color:var(--fg);text-decoration:none;font-weight:500;font-size:20px;letter-spacing:-.02em}
+.brand{display:flex;align-items:center;gap:10px;color:var(--fg);text-decoration:none;font-weight:500;font-size:var(--t-md);letter-spacing:-.02em}
 .brand .slash{color:var(--accent)}
-.theme{appearance:none;border:1px solid var(--line);background:none;color:var(--muted);border-radius:999px;width:40px;height:40px;padding:0;cursor:pointer;display:grid;place-items:center}
+.theme{appearance:none;border:1px solid var(--edge);background:none;color:var(--muted);border-radius:999px;width:40px;height:40px;padding:0;cursor:pointer;display:grid;place-items:center}
 .theme svg{width:18px;height:18px;fill:none;stroke:currentColor;stroke-width:1.75;stroke-linecap:round;stroke-linejoin:round}
 .theme .sun{display:none}
 :root[data-theme=dark] .theme .sun{display:block}:root[data-theme=dark] .theme .moon{display:none}
 @media (prefers-color-scheme:dark){:root:not([data-theme=light]) .theme .sun{display:block}:root:not([data-theme=light]) .theme .moon{display:none}}
 .theme:hover{color:var(--fg)}
 .hero{display:flex;flex-direction:column;gap:14px}
-.hero .kicker{color:var(--accent);font-size:13px}
-.hero h1{margin:0;font-weight:500;font-size:clamp(36px,7vw,72px);line-height:1.02;letter-spacing:-.045em}
+.hero .kicker{color:var(--muted);font-size:var(--t-sm)}
+.hero h1{margin:0;font-weight:500;font-size:var(--t-display);line-height:1.05;letter-spacing:-.045em}
 .sections{display:flex;flex-direction:column;gap:clamp(36px,6vw,56px)}
 section{display:flex;flex-direction:column;gap:18px}
-section h2{margin:0;display:flex;justify-content:space-between;align-items:baseline;gap:12px;padding-bottom:12px;border-bottom:1px solid var(--line);font-size:13px;color:var(--muted);text-transform:lowercase}
-.games{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:clamp(16px,3vw,28px)}
-a.game{display:flex;flex-direction:column;gap:10px;color:var(--fg);text-decoration:none}
+section h2{margin:0;display:flex;justify-content:space-between;align-items:baseline;gap:12px;padding-bottom:12px;border-bottom:1px solid var(--line);font-size:var(--t-sm);color:var(--muted);text-transform:lowercase}
+/* Tiles grow with the screen (2 across on a phone, 4 on a laptop); each tile is a subgrid so names and captions line up across a row even when a name wraps. */
+.games{display:grid;grid-template-columns:repeat(auto-fill,minmax(clamp(140px,22vw,220px),1fr));gap:clamp(16px,3vw,28px)}
+a.game{display:grid;grid-row:span 3;grid-template-rows:subgrid;row-gap:8px;align-content:start;color:var(--fg);text-decoration:none;outline:none}
 a.game .art{aspect-ratio:1;border-radius:22%;overflow:hidden;background:var(--card);box-shadow:0 0 0 1px var(--line);transition:transform .2s cubic-bezier(.2,.8,.2,1)}
 a.game .art svg{width:100%;height:100%;display:block}
 a.game:hover .art{transform:translateY(-3px)}
 a.game:active .art{transform:scale(.97)}
-a.game .name{font-weight:500;font-size:17px;letter-spacing:-.01em}
-a.game .where{font-size:11px;color:var(--muted);margin-top:-6px}
-footer{margin-top:auto;display:flex;justify-content:space-between;gap:12px;font-size:11px;color:var(--muted);padding-top:20px;border-top:1px solid var(--line)}
+a.game .name,a.game .where{transition:opacity .15s}
+a.game:active .name,a.game:active .where{opacity:.6}
+a.game:focus-visible .art{box-shadow:0 0 0 2px var(--bg),0 0 0 4px var(--accent)}
+a.game:focus-visible .name{text-decoration:underline;text-decoration-color:var(--accent);text-underline-offset:3px}
+a.game .name{font-weight:500;font-size:var(--t-md);line-height:1.25;letter-spacing:-.01em}
+a.game .where{font-size:var(--t-xs);color:var(--muted)}
+footer{margin-top:auto;display:flex;justify-content:space-between;gap:12px;font-size:var(--t-xs);color:var(--muted);padding-top:20px;border-top:1px solid var(--line)}
 </style>
 </head>
 <body>
