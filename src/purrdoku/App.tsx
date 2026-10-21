@@ -1,15 +1,18 @@
+import type { ComponentChildren } from 'preact';
 import { useEffect, useMemo, useRef, useState } from 'preact/hooks';
 import { BuildLabel } from '../ui/BuildLabel';
 import { catSvg } from './art';
 import type { Puzzle } from './puzzle';
-import { CAT, CROSS, EMPTY, LIVES, type Hint, canUndo, clock, game, hint, next, pace, paint, placeCat, puzzle, restart, setPace, shownHint, tick, undo } from './game';
+import { CAT, CROSS, EMPTY, LIVES, type Hint, canUndo, clock, game, hint, next, pace, paint, placeCat, puzzle, restart, setPace, shownHint, shownMistake, tick, undo } from './game';
 import { BONUS_SIZE, PACES } from './ladder';
 import { haptic } from './haptics';
+import { sound } from './sounds';
 import { muted, newBoard, react, toggleMute } from './voice';
 
-// One colour per patch, picked to stay apart from each other and from the cats' orange. With no outline round the
-// patches, colour is all that tells them apart, so neighbouring patches get the colours furthest from each other.
-const PATCHES = ['#ff9aa2', '#ffe066', '#8fdc7a', '#79c3ff', '#bb9cff', '#5fd6c4', '#f5a8e6', '#d4d4d4', '#c8a97e', '#fdfbf3', '#c2e86b', '#e57fa0'];
+// One colour per patch, picked to stay apart from each other, from the cats' orange and from the white gaps. With no
+// outline round the patches, colour is all that tells them apart, so neighbouring patches get the colours furthest from
+// each other. On screen a patch is just called a "color".
+const PATCHES = ['#ff9aa2', '#ffe066', '#8fdc7a', '#79c3ff', '#bb9cff', '#5fd6c4', '#f5a8e6', '#d4d4d4', '#c8a97e', '#3f9a5a', '#c2e86b', '#e57fa0'];
 const rgb = (hex: string) => [1, 3, 5].map(i => parseInt(hex.slice(i, i + 2), 16));
 const apart = (a: string, b: string) => Math.hypot(...rgb(a).map((v, i) => v - rgb(b)[i]!));
 
@@ -49,7 +52,12 @@ const Icon = ({ name }: { name: keyof typeof ICONS }) => (
 );
 
 // what the hint asks the player to do, ahead of why
-const hintMove = (h: Hint) => (h.kind === 'cat' ? 'Lay a cat in the gold box.' : h.cells.length === 1 ? 'Mark the red ✕.' : `Mark the ${h.cells.length} red ✕s.`);
+const hintMove = (h: Hint) => (h.kind === 'cat' ? 'Lay a cat in the gold box.' : h.cells.length === 1 ? 'Mark the flashing ✕.' : `Mark the ${h.cells.length} flashing ✕s.`);
+
+/** A ✕, white (or red for a wrong cat) with a dark edge so it shows on every colour. */
+const Cross = ({ class: cls = '' }: { class?: string }) => (
+  <svg class={`x ${cls}`} viewBox="0 0 10 10" aria-hidden="true"><path class="edge" d="M2 2 8 8M8 2 2 8" /><path d="M2 2 8 8M8 2 2 8" /></svg>
+);
 
 export function App() {
   return <Play />;
@@ -60,7 +68,7 @@ function Play() {
   const [shake, setShake] = useState(0);
   const [pop, setPop] = useState<number | null>(null);
   const [pacing, setPacing] = useState(false);
-  const shown = shownHint.value;
+  const shown = shownHint.value, mistake = shownMistake.value;
 
   useEffect(() => {
     if (g.status !== 'playing') return;
@@ -77,10 +85,15 @@ function Play() {
   const onCat = (cell: number) => {
     const result = placeCat(cell);
     if (result) react(result);
-    if (result === 'wrong' || result === 'lost') { setShake(s => s + 1); haptic.wrong(); }
+    if (result === 'wrong' || result === 'lost') { setShake(s => s + 1); haptic.wrong(); sound.wrong(); }
     if (result === 'cat' || result === 'won') setPop(cell);
-    if (result === 'cat') haptic.cat();
-    if (result === 'won') haptic.won();
+    if (result === 'cat') { haptic.cat(); sound.cat(); }
+    if (result === 'won') { haptic.won(); sound.won(); }
+  };
+  // taking the hint makes its move for the player
+  const take = (h: Hint) => {
+    if (h.kind === 'cat') onCat(h.cells[0]!);
+    else { paint(h.cells, CROSS); haptic.mark(); sound.cross(); }
   };
 
   return (
@@ -93,26 +106,42 @@ function Play() {
           {Array.from({ length: LIVES }, (_, i) => <span key={i} class={i < LIVES - g.strikes ? '' : 'gone'}>🐟</span>)}
         </div>
       </div>
-      <Board key={g.level} shake={shake} pop={pop} onCat={onCat} />
+      <Board key={g.level} shake={shake} pop={pop} onCat={onCat}>
+        <div class={`nap-say${shown ? ' hint' : mistake ? ' oops' : ''}`} role="status">
+          {shown ? (
+            <>
+              <p><b>{hintMove(shown)}</b> {shown.why}</p>
+              <div class="nap-say-btns">
+                <button class="nap-say-btn go" onClick={() => take(shown)}>{shown.kind === 'cat' ? 'Lay it' : shown.cells.length === 1 ? 'Mark it' : 'Mark them'}</button>
+                <button class="nap-say-btn" onClick={hint}>No thanks</button>
+              </div>
+            </>
+          ) : mistake ? (
+            <p><b>Not there!</b> {mistake.why}</p>
+          ) : (
+            <p class="help">Tap to mark ✕ · drag to mark lots · double-tap to lay a cat down</p>
+          )}
+        </div>
+      </Board>
       <div class="nap-tools">
         <button class="nap-tool" aria-label="Undo" title="Undo" disabled={!canUndo.value || g.status !== 'playing'} onClick={undo}><Icon name="undo" /></button>
-        <button class="nap-tool" aria-label="Clear ✕" title="Clear ✕" disabled={g.status !== 'playing'} onClick={() => paint(g.marks.flatMap((m, i) => (m === CROSS ? [i] : [])), EMPTY)}><Icon name="clear" /></button>
+        <button class="nap-tool" aria-label="Clear ✕" title="Clear ✕" disabled={g.status !== 'playing'} onClick={() => paint(g.marks.flatMap((m, i) => (m === CROSS && !g.wrong?.includes(i) ? [i] : [])), EMPTY)}><Icon name="clear" /></button>
         <button class={`nap-tool${shown ? ' on' : ''}`} aria-label="Hint" title="Hint" aria-pressed={!!shown} disabled={g.status !== 'playing'} onClick={hint}><Icon name="hint" /></button>
         <button class={`nap-tool${pacing ? ' on' : ''}`} aria-label="Climb speed" title="Climb speed" aria-pressed={pacing} onClick={() => setPacing(p => !p)}><Icon name="pace" /></button>
         <button class="nap-tool" aria-pressed={muted.value} aria-label={muted.value ? 'Sound off' : 'Sound on'} title={muted.value ? 'Sound off' : 'Sound on'} onClick={toggleMute}><Icon name={muted.value ? 'muted' : 'sound'} /></button>
       </div>
-      {pacing ? (
-        <label class="nap-pace">
-          <span aria-hidden="true">🐢</span>
-          <input type="range" min={PACES[0]} max={PACES.at(-1)} step={1} value={pace.value} aria-label="Climb speed" onInput={e => setPace(Number(e.currentTarget.value))} />
-          <span aria-hidden="true">🐆</span>
-          <b title="Climb speed, from the next level on">{pace.value}×</b>
-        </label>
-      ) : (
-        <p class={`nap-help${shown ? ' hint' : ''}`}>
-          {shown ? <><b>{hintMove(shown)}</b> {shown.why}</> : 'Tap to mark ✕ · drag to mark lots · double-tap to lay a cat down'}
-        </p>
-      )}
+      <div class="nap-under">
+        {pacing && (
+          <label class="nap-pace">
+            <span aria-hidden="true">🐢</span>
+            {/* it shuts itself once a speed is picked (change fires on letting go) */}
+            <input type="range" min={PACES[0]} max={PACES.at(-1)} step={1} value={pace.value} aria-label="Climb speed"
+              onInput={e => setPace(Number(e.currentTarget.value))} onChange={() => setPacing(false)} />
+            <span aria-hidden="true">🐆</span>
+            <b title="Climb speed, from the next level on">{pace.value}×</b>
+          </label>
+        )}
+      </div>
       <BuildLabel />
       {g.status === 'won' && (
         <div class="nap-over">
@@ -141,7 +170,8 @@ function Play() {
 const DOUBLE_TAP_MS = 320;
 const SHAKE = [0, -10, 10, -10, 10, 0].map(x => ({ transform: `translateX(${x}px)` }));
 
-function Board({ shake, pop, onCat }: { shake: number; pop: number | null; onCat: (cell: number) => void }) {
+/** The board, with `children` (the message line) sat on top of it at its width. */
+function Board({ shake, pop, onCat, children }: { shake: number; pop: number | null; onCat: (cell: number) => void; children: ComponentChildren }) {
   const g = game.value!, board = puzzle.value!, n = board.size;
   const ref = useRef<HTMLDivElement>(null);
   const drag = useRef<{ mark: typeof EMPTY | typeof CROSS; seen: Set<number> } | null>(null);
@@ -149,7 +179,13 @@ function Board({ shake, pop, onCat }: { shake: number; pop: number | null; onCat
   // a lone tap's ✕ waits out the double-tap window, so a double-tap goes straight to a cat with no ✕ flashing first
   const held = useRef<{ cell: number; mark: typeof EMPTY | typeof CROSS; timer: number } | null>(null);
   const drop = () => { if (held.current) clearTimeout(held.current.timer); held.current = null; };
-  const flush = () => { const h = held.current; drop(); if (h) paint([h.cell], h.mark); };
+  const flush = () => {
+    const h = held.current;
+    drop();
+    if (!h) return;
+    paint([h.cell], h.mark);
+    if (h.mark === CROSS) sound.cross();
+  };
   useEffect(() => drop, [board]);
   // iOS Safari still double-tap zooms over touch-action:none, so swallow the touches themselves; pointer events fire regardless
   useEffect(() => {
@@ -163,8 +199,9 @@ function Board({ shake, pop, onCat }: { shake: number; pop: number | null; onCat
   }, [shake]);
   const playing = g.status === 'playing';
   const colours = useMemo(() => patchColours(board), [board]);
-  const shown = shownHint.value;
-  const todo = new Set(shown?.cells), because = new Set(shown?.because);
+  // a hint, or why the last cat was wrong, picks out the cells that matter (a wrong cat with no reason shown doesn't)
+  const shown = shownHint.value, mistake = shownMistake.value, focus = shown ?? (mistake?.because.length ? mistake : null);
+  const todo = new Set(shown?.cells), because = new Set(focus?.because), wrong = new Set(g.wrong);
 
   const cellAt = (e: PointerEvent) => {
     const rect = ref.current!.getBoundingClientRect();
@@ -203,6 +240,7 @@ function Board({ shake, pop, onCat }: { shake: number; pop: number | null; onCat
     flush(); // a drag marks its first cell straight away
     lastTap.current = { cell: -1, at: 0 }; // a drag is never the first half of a double-tap
     paint([cell], d.mark, false);
+    if (d.mark === CROSS) sound.cross();
     haptic.mark();
   };
 
@@ -210,9 +248,10 @@ function Board({ shake, pop, onCat }: { shake: number; pop: number | null; onCat
 
   return (
     <div class="nap-board-wrap">
+      {children}
       <div
         ref={ref}
-        class={`nap-board${g.status === 'won' ? ' won' : ''}${shown ? ' hinting' : ''}`}
+        class={`nap-board${g.status === 'won' ? ' won' : ''}${focus ? ' hinting' : ''}`}
         style={{ '--n': n }}
         onPointerDown={down}
         onPointerMove={move}
@@ -224,12 +263,12 @@ function Board({ shake, pop, onCat }: { shake: number; pop: number | null; onCat
           return (
             <div
               key={i}
-              class={`nap-cell${todo.has(i) ? ` hint-${shown!.kind}` : because.has(i) ? ' hint-why' : ''}`}
+              class={`nap-cell${todo.has(i) ? ` hint-${shown!.kind}` : focus && i === mistake?.cell ? ' hint-wrong' : because.has(i) ? ' hint-why' : ''}`}
               style={{ background: colours[board.regions[i]!] }}
             >
-              {mark === CROSS && <span class="x">✕</span>}
+              {mark === CROSS && <Cross class={wrong.has(i) ? 'wrong' : ''} />}
               {mark === CAT && <span class={`cat${i === pop ? ' pop' : ''}`} dangerouslySetInnerHTML={{ __html: CAT_ART }} />}
-              {todo.has(i) && (shown!.kind === 'cross' ? <span class="x ghost">✕</span> : <span class="cat ghost" dangerouslySetInnerHTML={{ __html: CAT_ART }} />)}
+              {todo.has(i) && (shown!.kind === 'cross' ? <Cross class="ghost" /> : <span class="cat ghost" dangerouslySetInnerHTML={{ __html: CAT_ART }} />)}
             </div>
           );
         })}

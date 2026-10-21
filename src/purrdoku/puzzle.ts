@@ -187,8 +187,8 @@ export interface Step {
   tier: number;
 }
 
-const KINDS = ['row', 'column', 'patch'] as const;
-const plural = (kind: string) => (kind === 'patch' ? 'patches' : `${kind}s`);
+// what each kind of unit is called on screen, where a patch is just a color
+const KINDS = ['row', 'column', 'color'] as const;
 
 /**
  * The easiest next step on a board part-way through. `open[i]` says whether cell i could still have a cat; `done[u]`
@@ -202,10 +202,7 @@ const plural = (kind: string) => (kind === 'patch' ? 'patches' : `${kind}s`);
 export function nextStep(board: Puzzle, open: readonly boolean[], done: readonly boolean[]): Step | null {
   const n = board.size, cells = n * n;
   const rowOf = (i: number) => Math.floor(i / n), colOf = (i: number) => i % n;
-  const units: number[][] = [];
-  for (let k = 0; k < n; k++) units.push([...Array(n).keys()].map(c => k * n + c)); // rows
-  for (let k = 0; k < n; k++) units.push([...Array(n).keys()].map(r => r * n + k)); // columns
-  for (let k = 0; k < n; k++) units.push([...Array(cells).keys()].filter(i => board.regions[i] === k)); // patches
+  const units = unitCells(board);
   const unitsOf = (i: number) => [rowOf(i), n + colOf(i), 2 * n + board.regions[i]!];
   const kindOf = (u: number) => KINDS[Math.floor(u / n)]!;
   const left = (u: number) => units[u]!.filter(i => open[i]);
@@ -252,7 +249,7 @@ export function nextStep(board: Puzzle, open: readonly boolean[], done: readonly
                 kind: 'cross', cells: shut, because: chosen.flatMap(c => left(from * n + c)), tier,
                 why: k === 1
                   ? `This ${a}'s cat has to be in this ${b}, so nothing else in the ${b} can have one.`
-                  : `These ${k} ${plural(a)} have to have their cats in these ${k} ${plural(b)}, so nothing else in those ${plural(b)} can have one.`,
+                  : `These ${k} ${a}s have to have their cats in these ${k} ${b}s, so nothing else in those ${b}s can have one.`,
               };
             }
           }
@@ -271,6 +268,22 @@ export function nextStep(board: Puzzle, open: readonly boolean[], done: readonly
   };
 
   return single() ?? confine(1, 2) ?? wipeout() ?? confine(n - 1, 3);
+}
+
+/** Every unit's cells: rows 0..n-1, then columns, then patches. */
+function unitCells(board: Puzzle): number[][] {
+  const n = board.size, units: number[][] = [];
+  for (let k = 0; k < n; k++) units.push([...Array(n).keys()].map(c => k * n + c));
+  for (let k = 0; k < n; k++) units.push([...Array(n).keys()].map(r => r * n + k));
+  for (let k = 0; k < n; k++) units.push([...Array(n * n).keys()].filter(i => board.regions[i] === k));
+  return units;
+}
+
+/** A row, column or patch that still needs its cat but has nowhere left for it (see nextStep for open and done). */
+export function stuck(board: Puzzle, open: readonly boolean[], done: readonly boolean[]) {
+  const n = board.size, units = unitCells(board);
+  const u = units.findIndex((cells, u) => !done[u] && !cells.some(i => open[i]));
+  return u < 0 ? null : { kind: KINDS[Math.floor(u / n)]!, cells: units[u]! };
 }
 
 /** Whether cats in cells a and b would clash: same row, column or patch, or touching. */

@@ -1,5 +1,5 @@
 import { beforeEach, describe, expect, it } from 'vitest';
-import { CAT, CROSS, EMPTY, game, hint, LIVES, paint, placeCat, puzzle, restart, save, setPace, shownHint, start } from './game';
+import { CAT, CROSS, EMPTY, game, hint, LIVES, paint, placeCat, puzzle, restart, save, setPace, shownHint, shownMistake, start } from './game';
 import { BONUS_SIZE, BONUS_TIERS, levelBoard, STEPS, stepFor } from './ladder';
 import { BONUS } from './bonus';
 import { countSolutions, decode, rate } from './puzzle';
@@ -23,6 +23,30 @@ describe('playing Purrdoku', () => {
     restart();
     expect(game.value!.status).toBe('playing');
     expect(game.value!.strikes).toBe(0);
+  });
+
+  it("a wrong cat's ✕ is remembered as wrong, with why when a cat it clashes with is down", () => {
+    const n = puzzle.value!.size, cat = answer()[0]!, sameRow = cat % n === 0 ? cat + 1 : cat - 1;
+    placeCat(cat);
+    expect(placeCat(sameRow)).toBe('wrong');
+    expect(game.value!.wrong).toEqual([sameRow]);
+    expect(shownMistake.value).toMatchObject({ cell: sameRow, because: [cat], why: "There's already a cat in this row." });
+    paint([wrongCell(3)], CROSS); // the board moving on hides the reason, but the ✕ stays wrong
+    expect(shownMistake.value).toBeNull();
+    expect(game.value!.wrong).toEqual([sameRow]);
+  });
+
+  it('says when a wrong cat would leave a row, column or color nowhere for its cat', () => {
+    const board = puzzle.value!, n = board.size;
+    // a cell no laid cat clashes with, where a cat would still shut a whole row, column or color
+    const found = [...Array(n * n).keys()].find(cell => {
+      if (board.cats[Math.floor(cell / n)] === cell % n) return false;
+      start(); restart();
+      placeCat(cell);
+      return shownMistake.value!.because.length > 0;
+    });
+    expect(found).toBeDefined();
+    expect(shownMistake.value!.why).toMatch(/^A cat here would leave this (row|column|color) with nowhere for its cat\.$/);
   });
 
   it('a right cat crosses nothing else out', () => {
