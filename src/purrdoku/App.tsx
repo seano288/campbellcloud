@@ -111,10 +111,7 @@ function Play() {
           {shown ? (
             <>
               <p><b>{hintMove(shown)}</b> {shown.why}</p>
-              <div class="nap-say-btns">
-                <button class="nap-say-btn go" onClick={() => take(shown)}>{shown.kind === 'cat' ? 'Lay it' : shown.cells.length === 1 ? 'Mark it' : 'Mark them'}</button>
-                <button class="nap-say-btn" onClick={hint}>No thanks</button>
-              </div>
+              <button class="nap-say-btn go" onClick={() => take(shown)}>{shown.kind === 'cat' ? 'Lay it' : shown.cells.length === 1 ? 'Mark it' : 'Mark them'}</button>
             </>
           ) : mistake ? (
             <p><b>Not there!</b> {mistake.why}</p>
