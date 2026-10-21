@@ -47,6 +47,7 @@ const cashChaosIcon = () => `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 
   <rect x="5" y="18" width="6" height="10" rx="1.5"/><rect x="13" y="10" width="6" height="18" rx="1.5"/><rect x="21" y="4" width="6" height="24" rx="1.5"/>
 </g></svg>`;
 
+// Tiles with an href leave campbellcloud.com, so they open in a new tab.
 type Tile = { name: string; icon: (scale?: number) => string } & ({ path: string } | { href: string });
 
 export const SITE = 'dist-site';
@@ -74,7 +75,7 @@ function landing(): InlineConfig {
       .replace('%LOGO%', markSvg(32))
       .replace('%SECTIONS%', SECTIONS.map(s =>
         `<section><h2 class="mono"><span>// ${s.title}</span><span>${String(s.games.length).padStart(2, '0')}</span></h2><div class="games">${s.games.map(g =>
-          `<a class="game" href="${'path' in g ? `./${g.path}/` : g.href}" aria-label="${g.name}"><div class="art">${g.icon(1).replace('<svg ', '<svg aria-hidden="true" ')}</div><span class="name">${g.name}</span><span class="where mono">${'path' in g ? `/${g.path}` : `↗ ${new URL(g.href).host}`}</span></a>`).join('')}</div></section>`).join('')),
+          `<a class="game" ${'path' in g ? `href="./${g.path}/"` : `href="${g.href}" target="_blank" rel="noopener"`} aria-label="${g.name}"><div class="art">${g.icon(1).replace('<svg ', '<svg aria-hidden="true" ')}</div><span class="name">${g.name}</span><span class="where mono">${'path' in g ? `/${g.path}` : `↗ ${new URL(g.href).host}`}</span></a>`).join('')}</div></section>`).join('')),
   };
   return {
     configFile: false, root: resolve(import.meta.dirname, '../landing'), base: './', publicDir: false, logLevel: 'warn',
