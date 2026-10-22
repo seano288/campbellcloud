@@ -12,10 +12,10 @@ Sizes come from a short scale, each step about 1.25× the last (CSS variables on
 
 | token       | size                    | for                                   |
 |-------------|-------------------------|---------------------------------------|
-| `t-xs`      | 12px                    | captions under tiles, footer          |
-| `t-sm`      | 15px                    | kicker, section headings              |
+| `t-xs`      | 12px                    | domains of sites elsewhere, footer    |
+| `t-sm`      | 15px                    | section headings, tile blurbs         |
 | `t-md`      | 19px                    | wordmark, tile names                  |
-| `t-display` | `clamp(36px,6vw,56px)`  | the one headline per page             |
+| `t-display` | `clamp(32px,6vw,56px)`  | the one headline per page             |
 
 **Colour**
 
@@ -29,7 +29,7 @@ Sizes come from a short scale, each step about 1.25× the last (CSS variables on
 | edge     | `#929296` | `#5e5f66` |
 | accent   | `#2f5bff` | `#7c9bff` |
 
-`line` is for rules and tile outlines; `edge` is for the border of a control (like the theme toggle) so it holds 3:1 against the page. Accent is kept for the wordmark slash, the mark's sun and focus rings, so it never makes plain text look like a link.
+`line` is for rules; tile outlines use `ring` (the same as `line` in light, a step brighter, `#35363d`, in dark so black tile art keeps its edge); `edge` is for the border of a control (like the theme toggle) so it holds 3:1 against the page. Accent is kept for the wordmark slash, the mark's sun and focus rings, so it never makes plain text look like a link.
 
 The app icon is white on ink (`#0e0e10`) with a `#5c7dff` sun. Pages follow the system theme until the visitor picks one with the toggle (stored as `cc-theme` in localStorage).
 

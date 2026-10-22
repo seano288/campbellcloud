@@ -44,12 +44,12 @@ const taskForceIcon = (scale = 1) => {
 
 // Cash Chaos, the family budget app, is hosted on its own site too. The art is its favicon's three rising bars on a tint of their green, so the tile
 // carries colour like the game art does instead of reading as an empty card.
-const cashChaosIcon = () => `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><rect width="512" height="512" fill="#ddf4dd"/><g transform="translate(76 76) scale(11.25)" fill="#0ca30c">
+const cashChaosIcon = () => `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><rect class="tint" width="512" height="512" fill="#ddf4dd" style="--dark:#10261a"/><g transform="translate(76 76) scale(11.25)" fill="#0ca30c">
   <rect x="5" y="18" width="6" height="10" rx="1.5"/><rect x="13" y="10" width="6" height="18" rx="1.5"/><rect x="21" y="4" width="6" height="24" rx="1.5"/>
 </g></svg>`;
 
 // Break Schedule, the California break-scheduling app, is hosted on its own site too. The art is its favicon's shift bars with gaps for breaks, on a tint of their burnt orange.
-const breakScheduleIcon = () => `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><rect width="512" height="512" fill="#fbe4d8"/><g transform="translate(76 76) scale(11.25)" fill="#c2410c">
+const breakScheduleIcon = () => `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><rect class="tint" width="512" height="512" fill="#fbe4d8" style="--dark:#2b170d"/><g transform="translate(76 76) scale(11.25)" fill="#c2410c">
   <rect x="2" y="4" width="7" height="6" rx="2"/><rect x="13" y="4" width="17" height="6" rx="2"/>
   <rect x="2" y="13" width="13" height="6" rx="2"/><rect x="19" y="13" width="11" height="6" rx="2"/>
   <rect x="2" y="22" width="19" height="6" rx="2"/><rect x="25" y="22" width="5" height="6" rx="2"/>
@@ -58,24 +58,26 @@ const breakScheduleIcon = () => `<svg xmlns="http://www.w3.org/2000/svg" viewBox
 // Killr, the Senior Assassin game runner, is hosted on its own site too. The art is its favicon as-is: a crosshair on near-black, the brand's own colours.
 const killrIcon = () => `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><rect width="512" height="512" fill="#0b0b0a"/><circle cx="256" cy="256" r="150" fill="none" stroke="#efe8da" stroke-width="22"/><circle cx="256" cy="256" r="18" fill="#d8322a"/><path d="M256 70v120M256 322v120M70 256h120M322 256h120" stroke="#d8322a" stroke-width="26"/></svg>`;
 
-// Tiles with an href leave campbellcloud.com, so they open in a new tab.
-type Tile = { name: string; icon: (scale?: number) => string } & ({ path: string } | { href: string });
+// Tiles with an href leave campbellcloud.com, so they open in a new tab. The blurb says in a few words what it is.
+type Tile = { name: string; blurb: string; icon: (scale?: number) => string } & ({ path: string } | { href: string });
 
 export const SITE = 'dist-site';
+// The kids' games come first, as big tiles. The family's projects that live on their own sites follow in a quieter list, so a child can't
+// mistake one of them for a game here.
 export const SECTIONS: readonly { title: string; games: readonly Tile[] }[] = [
   { title: 'Learning Games', games: [
-    { path: 'monster-truck-money', name: 'Monster Truck Money', icon: truckIcon },
-    { path: 'time-flies', name: 'Time Flies', icon: fliesIcon },
+    { path: 'monster-truck-money', name: 'Monster Truck Money', blurb: 'Count coins, build a truck', icon: truckIcon },
+    { path: 'time-flies', name: 'Time Flies', blurb: 'Clocks, days and months', icon: fliesIcon },
   ] },
   { title: 'Just for Fun', games: [
-    { path: 'hunch', name: 'Hunch', icon: hunchIcon },
-    { path: 'purrdoku', name: 'Purrdoku', icon: purrdokuIcon },
-    { href: 'https://playtaskforce.com/', name: 'Task Force', icon: taskForceIcon },
-    { href: 'https://killr.app/', name: 'Killr', icon: killrIcon },
+    { path: 'hunch', name: 'Hunch', blurb: 'Guess the five-letter word', icon: hunchIcon },
+    { path: 'purrdoku', name: 'Purrdoku', blurb: 'Cat logic puzzles', icon: purrdokuIcon },
   ] },
-  { title: 'Tools', games: [
-    { href: 'https://cashchaos.com/', name: 'Cash Chaos', icon: cashChaosIcon },
-    { href: 'https://breakschedule.com/', name: 'Break Schedule', icon: breakScheduleIcon },
+  { title: 'Elsewhere', games: [
+    { href: 'https://playtaskforce.com/', name: 'Task Force', blurb: 'A social deduction game for your house', icon: taskForceIcon },
+    { href: 'https://killr.app/', name: 'Killr', blurb: 'Run Senior Assassin from everyone\'s phone', icon: killrIcon },
+    { href: 'https://cashchaos.com/', name: 'Cash Chaos', blurb: 'The family budget', icon: cashChaosIcon },
+    { href: 'https://breakschedule.com/', name: 'Break Schedule', blurb: 'California break scheduling', icon: breakScheduleIcon },
   ] },
 ];
 // The games this site builds and hosts itself (not the ones it only links out to).
@@ -86,11 +88,23 @@ function landing(): InlineConfig {
     name: 'game-tiles',
     transformIndexHtml: html => html
       .replace('%LOGO%', markSvg(32))
-      // The "//" and the tile count are decoration, hidden from screen readers so a heading reads as just its title. A tile that leaves the site says
-      // where it goes and that it opens a new tab.
-      .replace('%SECTIONS%', SECTIONS.map(s =>
-        `<section><h2 class="mono"><span><span aria-hidden="true">// </span>${s.title}</span><span aria-hidden="true">${String(s.games.length).padStart(2, '0')}</span></h2><div class="games">${s.games.map(g =>
-          `<a class="game" ${'path' in g ? `href="./${g.path}/" aria-label="${g.name}"` : `href="${g.href}" target="_blank" rel="noopener" aria-label="${g.name}, opens ${new URL(g.href).host} in a new tab"`}><div class="art">${g.icon(1).replace('<svg ', '<svg aria-hidden="true" ')}</div><span class="name">${g.name}</span><span class="where mono">${'path' in g ? `/${g.path}` : `↗ ${new URL(g.href).host}`}</span></a>`).join('')}</div></section>`).join('')),
+      // The "//" is decoration, hidden from screen readers so a heading reads as just its title. The games here share one shelf of big tiles; the
+      // sites elsewhere are a list of rows with an arrow, and say where they go and that they open a new tab. Each blurb is the link's description.
+      .replace('%SECTIONS%', (() => {
+        const art = (g: Tile) => g.icon(1).replace('<svg ', '<svg aria-hidden="true" ');
+        const id = (g: Tile) => `about-${g.name.toLowerCase().replace(/[^a-z]+/g, '-')}`;
+        const heading = (title: string) => `<h2 class="mono"><span aria-hidden="true">// </span>${title}</h2>`;
+        const tile = (g: Tile & { path: string }) =>
+          `<a class="game" href="./${g.path}/" aria-label="${g.name}" aria-describedby="${id(g)}"><div class="art">${art(g)}</div><span class="name">${g.name}</span><span class="blurb" id="${id(g)}">${g.blurb}</span></a>`;
+        const row = (g: Tile & { href: string }) => {
+          const host = new URL(g.href).host;
+          return `<li><a class="away" href="${g.href}" target="_blank" rel="noopener" aria-label="${g.name}, opens ${host} in a new tab" aria-describedby="${id(g)}"><div class="art">${art(g)}</div><span class="text"><span class="name">${g.name}</span><span class="blurb" id="${id(g)}">${g.blurb}</span><span class="where mono" aria-hidden="true">${host}</span></span><svg class="out" viewBox="0 0 24 24" aria-hidden="true"><path d="M8 16 16 8M9.5 8H16v6.5"/></svg></a></li>`;
+        };
+        const here = SECTIONS.filter(s => s.games.every(g => 'path' in g));
+        const away = SECTIONS.filter(s => !here.includes(s));
+        return `<div class="shelf">${here.map(s => `<section>${heading(s.title)}<div class="games">${s.games.map(g => tile(g as Tile & { path: string })).join('')}</div></section>`).join('')}</div>`
+          + away.map(s => `<section class="elsewhere">${heading(s.title)}<ul class="rows">${s.games.map(g => row(g as Tile & { href: string })).join('')}</ul></section>`).join('');
+      })()),
   };
   return {
     configFile: false, root: resolve(import.meta.dirname, '../landing'), base: './', publicDir: false, logLevel: 'warn',
