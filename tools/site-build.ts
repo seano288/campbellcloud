@@ -48,8 +48,8 @@ const cashChaosIcon = () => `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 
   <rect x="5" y="18" width="6" height="10" rx="1.5"/><rect x="13" y="10" width="6" height="18" rx="1.5"/><rect x="21" y="4" width="6" height="24" rx="1.5"/>
 </g></svg>`;
 
-// Break Schedule, the California break-scheduling app, is hosted on its own site too. The art is its favicon's shift bars with gaps for breaks, on a tint of their teal.
-const breakScheduleIcon = () => `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><rect width="512" height="512" fill="#d9f2ef"/><g transform="translate(76 76) scale(11.25)" fill="#0d9488">
+// Break Schedule, the California break-scheduling app, is hosted on its own site too. The art is its favicon's shift bars with gaps for breaks, on a tint of their burnt orange.
+const breakScheduleIcon = () => `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><rect width="512" height="512" fill="#fbe4d8"/><g transform="translate(76 76) scale(11.25)" fill="#c2410c">
   <rect x="2" y="4" width="7" height="6" rx="2"/><rect x="13" y="4" width="17" height="6" rx="2"/>
   <rect x="2" y="13" width="13" height="6" rx="2"/><rect x="19" y="13" width="11" height="6" rx="2"/>
   <rect x="2" y="22" width="19" height="6" rx="2"/><rect x="25" y="22" width="5" height="6" rx="2"/>
