@@ -55,6 +55,9 @@ const breakScheduleIcon = () => `<svg xmlns="http://www.w3.org/2000/svg" viewBox
   <rect x="2" y="22" width="19" height="6" rx="2"/><rect x="25" y="22" width="5" height="6" rx="2"/>
 </g></svg>`;
 
+// Killr, the Senior Assassin game runner, is hosted on its own site too. The art is its favicon as-is: a crosshair on near-black, the brand's own colours.
+const killrIcon = () => `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><rect width="512" height="512" fill="#0b0b0a"/><circle cx="256" cy="256" r="150" fill="none" stroke="#efe8da" stroke-width="22"/><circle cx="256" cy="256" r="18" fill="#d8322a"/><path d="M256 70v120M256 322v120M70 256h120M322 256h120" stroke="#d8322a" stroke-width="26"/></svg>`;
+
 // Tiles with an href leave campbellcloud.com, so they open in a new tab.
 type Tile = { name: string; icon: (scale?: number) => string } & ({ path: string } | { href: string });
 
@@ -68,6 +71,7 @@ export const SECTIONS: readonly { title: string; games: readonly Tile[] }[] = [
     { path: 'hunch', name: 'Hunch', icon: hunchIcon },
     { path: 'purrdoku', name: 'Purrdoku', icon: purrdokuIcon },
     { href: 'https://playtaskforce.com/', name: 'Task Force', icon: taskForceIcon },
+    { href: 'https://killr.app/', name: 'Killr', icon: killrIcon },
   ] },
   { title: 'Tools', games: [
     { href: 'https://cashchaos.com/', name: 'Cash Chaos', icon: cashChaosIcon },
