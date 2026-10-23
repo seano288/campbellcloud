@@ -152,7 +152,7 @@ export function HelipadScreen({ goal: goalView, onShelf }: { goal: ComponentChil
                 const mine = owns(h), cls = h === heli ? 'on' : mine ? 'owned' : canAffordHeli(h) ? 'afford' : 'locked';
                 return (
                   <button key={h} class={`body-chip jet-chip heli-chip ${cls} ${wiggle === `heli:${h}` ? 'wiggle' : ''}`} aria-label={HELI_NAMES[h]} onClick={() => tapChip(h)}>
-                    <HeliArt heli={h} color={mine ? '#d6dde4' : '#6b7385'} />
+                    <HeliArt heli={h} color={mine ? '#d6dde4' : '#98a1b0'} />
                     {!mine && <span class="cost"><Bolt size={18} />{PRICES.heli}</span>}
                     {cls === 'locked' && <span class="lock">🔒</span>}
                     {!isStarter(h) && goal() === heliItem(h as BoughtHeli) && <span class="flag">🎯</span>}

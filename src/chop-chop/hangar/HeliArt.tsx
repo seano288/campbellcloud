@@ -1,6 +1,6 @@
 // A Helicopter seen from above, nose up, drawn as SVG from the same spec the 3D model is built from: fuselage and pods
 // from their sections, stub wings and tailplanes from their planforms, the canopy in glass blue, and each main rotor as
-// a soft disc with its blades.
+// a soft disc with faint blades under the body, so the helicopter's own outline is what shows.
 import type { HeliId } from './catalog';
 import { HELIS } from './helis';
 import { sectionAt } from '../../time-flies/hangar/three/geometry';
@@ -54,10 +54,10 @@ export function HeliArt({ heli, color = '#c9d1d9', class: cls = '' }: { heli: He
   const { d, glass, disc, blade, box } = paths(heli), pad = 0.4;
   return (
     <svg class={`heli-art ${cls}`} viewBox={`${box[0] - pad} ${box[1] - pad} ${box[2] + pad * 2} ${box[3] + pad * 2}`} aria-hidden="true">
-      <path d={disc} fill="#00000022" />
+      <path d={disc} fill="#00000014" />
+      <path d={blade} fill="#1b1d2133" />
       <path d={d} fill={color} stroke="#0008" stroke-width={0.1} stroke-linejoin="round" />
       {glass && <path d={glass} fill="#7cc8ff" stroke="#0006" stroke-width={0.08} />}
-      <path d={blade} fill="#1b1d21cc" />
     </svg>
   );
 }

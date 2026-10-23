@@ -2,6 +2,7 @@
 // are filled with bright crayon; pieces being talked about glow yellow, and while they're counted each shows its number.
 // Pieces can be tapped (Color the Part).
 import type { Picture as Pic } from './fraction';
+import { useId } from 'preact/hooks';
 import { rowsFor } from './problems';
 
 const S = 200, R = 92, C = S / 2;
@@ -36,9 +37,24 @@ function grid(pieces: readonly number[], rows: number, box: { x: number; y: numb
 }
 
 const BOX = { cake: { x: 14, y: 44, w: 172, h: 120 }, 'chocolate bar': { x: 20, y: 34, w: 160, h: 132 } } as const;
+const CORNER = { cake: 10, 'chocolate bar': 4 } as const;
 
 export function piecesOf(p: Pick<Pic, 'food' | 'pieces'>): Piece[] {
   return p.food === 'pizza' ? wedges(p.pieces) : grid(p.pieces, rowsFor(p.food, p.pieces.length), BOX[p.food]);
+}
+
+/** The knife's lines: only the cuts between pieces, so the crust, the cake's edge and the wrapper stay showing. */
+function cutsOf(p: Pick<Pic, 'food' | 'pieces'>): string {
+  if (p.pieces.length < 2) return '';
+  if (p.food === 'pizza') {
+    let a = -Math.PI / 2;
+    return p.pieces.map(w => { const t = a; a += w * Math.PI * 2; return `M${C} ${C}L${(C + Math.cos(t) * (R + 3)).toFixed(2)} ${(C + Math.sin(t) * (R + 3)).toFixed(2)}`; }).join('');
+  }
+  const b = BOX[p.food], rows = rowsFor(p.food, p.pieces.length), cols = p.pieces.length / rows;
+  let x = b.x, d = '';
+  for (let c = 0; c < cols - 1; c++) { x += p.pieces[c]! * rows * b.w; d += `M${x.toFixed(2)} ${b.y}V${b.y + b.h}`; }
+  for (let r = 1; r < rows; r++) d += `M${b.x} ${(b.y + (r * b.h) / rows).toFixed(2)}H${b.x + b.w}`;
+  return d;
 }
 
 /** The food under the pieces: crust and cheese, sponge and frosting, or a chocolate slab with little squares pressed in. */
@@ -83,19 +99,22 @@ export function Picture({ picture, colored, lit = [], labels, onTap, faded = [],
   faded?: readonly number[];
   class?: string;
 }) {
-  const pieces = piecesOf(picture), fill = colored ?? picture.shaded ?? [];
+  const clip = `clip-${useId().replace(/\W/g, '')}`, clipped = picture.food === 'pizza' ? undefined : `url(#${clip})`, pieces = piecesOf(picture), cuts = cutsOf(picture), fill = colored ?? picture.shaded ?? [];
   return (
     <svg class={`fraction ${onTap ? 'tappable' : ''} ${cls}`} viewBox={`0 0 ${S} ${S}`} aria-hidden="true">
+      {picture.food !== 'pizza' && ( // the pieces' colour stays inside the cake's or the slab's rounded corners
+        <clipPath id={clip}><rect x={BOX[picture.food].x} y={BOX[picture.food].y} width={BOX[picture.food].w} height={BOX[picture.food].h} rx={CORNER[picture.food]} /></clipPath>
+      )}
       <Base food={picture.food} />
       {picture.food === 'chocolate bar' && <Pressed pieces={pieces} />}
-      {pieces.map((p, i) => (
+      <g clip-path={clipped}>{pieces.map((p, i) => (
         <path key={`f${i}`} d={p.d} class={`piece ${fill.includes(i) ? 'colored' : ''} ${faded.includes(i) ? 'gone' : ''}`}
           fill={fill.includes(i) ? CRAYON : faded.includes(i) ? '#eef1f4' : 'transparent'}
           onPointerDown={onTap ? e => { e.preventDefault(); onTap(i); } : undefined} />
-      ))}
-      {pieces.map((p, i) => <path key={`c${i}`} d={p.d} fill="none" stroke="#fff" stroke-width="7" stroke-linejoin="round" pointer-events="none" />)}
-      {pieces.map((p, i) => <path key={`k${i}`} d={p.d} fill="none" stroke="#111" stroke-width="2.5" stroke-linejoin="round" pointer-events="none" />)}
-      {lit.map(i => pieces[i] && <path key={`l${i}`} d={pieces[i]!.d} fill="#ffd23f55" stroke="#ffd23f" stroke-width="7" stroke-linejoin="round" pointer-events="none" class="lit-piece" />)}
+      ))}</g>
+      {cuts && <path d={cuts} fill="none" stroke="#fff" stroke-width="7" stroke-linecap="round" pointer-events="none" />}
+      {cuts && <path d={cuts} fill="none" stroke="#111" stroke-width="2.5" stroke-linecap="round" pointer-events="none" />}
+      <g clip-path={clipped}>{lit.map(i => pieces[i] && <path key={`l${i}`} d={pieces[i]!.d} fill="#ffd23f55" stroke="#ffd23f" stroke-width="7" stroke-linejoin="round" pointer-events="none" class="lit-piece" />)}</g>
       {labels && Object.entries(labels).map(([i, t]) => pieces[+i] && (
         <g key={`t${i}`} pointer-events="none">
           <circle cx={pieces[+i]!.cx} cy={pieces[+i]!.cy} r="17" fill="#fff" stroke="#000" stroke-width="3" />
