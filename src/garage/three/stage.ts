@@ -11,6 +11,7 @@ import { GroundedSkybox } from 'three/addons/objects/GroundedSkybox.js';
 import type { BodyId, Fit, SlotId } from '../catalog';
 import { POINT_SCALE, PUFF } from './exhaust';
 import { buildTruck, type BuiltTruck } from './truck';
+import { reducedMotion } from '../../ui/motion';
 
 // Camera per Slot when its sheet opens: [x, z] direction from the Truck, polar angle
 const VIEWS: Record<SlotId, [number, number, number]> = { tires: [0.5, 1, 1.32], paint: [0.8, 1, 1.12], decals: [0, 1, 1.3], lights: [1, 0.4, 1.3], horn: [1, 0.7, 0.95], engine: [1, 0.3, 1], grille: [1, 0.15, 1.35], exhaust: [-1, 0.9, 1.1], topper: [-0.7, 1, 0.85], number: [0.25, 1, 1.3] };
@@ -289,12 +290,12 @@ export class GarageStage {
   private loop = (now: number) => {
     const { camera, controls } = this;
     if (this.tween) {
-      const tw = this.tween, k = Math.min(1, (now - tw.t0) / tw.dur), e = ease(k), a = tw.from, b = tw.to;
+      const tw = this.tween, k = reducedMotion() ? 1 : Math.min(1, (now - tw.t0) / tw.dur), e = ease(k), a = tw.from, b = tw.to;
       camera.position.setFromSpherical(new THREE.Spherical(a.r + (b.r - a.r) * e, a.phi + (b.phi - a.phi) * e, a.th + (b.th - a.th) * e)).add(controls.target);
       if (k === 1) this.tween = null;
     }
-    controls.autoRotate = !this.showing && !this.sheetOpen && !this.tween && now - this.lastTouch > IDLE_SPIN_MS;
-    if (this.showing) this.turntable.rotation.y += (now - this.lastFrame) * 0.0003; // about one turn in 20 s
+    controls.autoRotate = !reducedMotion() && !this.showing && !this.sheetOpen && !this.tween && now - this.lastTouch > IDLE_SPIN_MS;
+    if (this.showing && !reducedMotion()) this.turntable.rotation.y += (now - this.lastFrame) * 0.0003; // about one turn in 20 s
     controls.update();
     const land = this.stage.clientWidth > this.stage.clientHeight, tx = this.sheetOpen && land ? 0.24 : 0, ty = this.sheetOpen && !land ? 0.23 : 0;
     if (Math.abs(this.off.x - tx) + Math.abs(this.off.y - ty) > 0.001) { this.off.x += (tx - this.off.x) * 0.12; this.off.y += (ty - this.off.y) * 0.12; this.applyOffset(); }

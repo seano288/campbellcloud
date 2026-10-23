@@ -40,8 +40,7 @@ journey('Garage presentation rejects detached fitting and navigation controls', 
   await button(page, 'Garage').click();
   const oldBody = await button(page, 'Next truck').elementHandle();
   const oldHome = await button(page, 'Home').elementHandle();
-  const oldPlay = await button(page, 'Play').elementHandle();
-  assert.ok(oldBody && oldHome && oldPlay);
+  assert.ok(oldBody && oldHome);
   await button(page, 'Home').click();
   await button(page, 'Learn the Coins').click();
   const before = await saved(page);
@@ -51,7 +50,6 @@ journey('Garage presentation rejects detached fitting and navigation controls', 
   assert.equal(await page.locator('.round-screen').isVisible(), true);
   const oldAnswer = await (await correctChoice(page, 'learn')).elementHandle();
   assert.ok(oldAnswer);
-  await oldPlay.evaluate(element => element.dispatchEvent(new MouseEvent('click')));
   await oldAnswer.click();
   await page.locator('main .right').first().waitFor();
   assert.equal((await saved(page)).modes.learn.window.length, before.modes.learn.window.length + 1);

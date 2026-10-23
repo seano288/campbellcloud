@@ -131,12 +131,11 @@ journey('plays every committed progression and Trophy moment before opening all 
   const navigate = async () => {
     for (const name of ['Home', 'Garage', 'Play again']) await page.getByRole('button', { name, exact: true }).dispatchEvent('click');
   };
-  await navigate();
+  await navigate(); // in the first second a tap neither navigates nor skips
   assert.equal(await page.locator('#destination').textContent(), '');
   await page.clock.runFor(3000);
   assert.equal(await page.locator('.bigpile span').textContent(), '6');
-  await navigate();
-  assert.equal(await page.locator('#destination').textContent(), '');
+  assert.match(await page.locator('.btns').getAttribute('class') ?? '', /asleep/);
   await page.clock.runFor(14000);
   assert.deepEqual(await page.locator('.lines > div').allTextContents(), [
     'You earned 6 Bolts!', 'Level up!', 'Now you get quarters!', 'You opened Count the Cash!',
@@ -145,6 +144,24 @@ journey('plays every committed progression and Trophy moment before opening all 
   assert.equal(await page.locator('#saved-state').textContent(), await page.locator('#before-state').textContent());
   await navigate();
   assert.equal(await page.locator('#destination').textContent(), 'again');
+});
+
+journey('a tap after the first second skips the show to its end without navigating', async page => {
+  await controlAnimations(page);
+  await controlVoice(page);
+  await present(page, 'celebrationPresentation');
+  await page.clock.runFor(1500);
+  await page.locator('.reward').dispatchEvent('click');
+  assert.equal(await page.locator('#destination').textContent(), '');
+  assert.equal(await page.locator('.bigpile span').textContent(), '6');
+  assert.doesNotMatch(await page.locator('.btns').getAttribute('class') ?? '', /asleep/);
+  assert.deepEqual(await page.locator('.lines > div').allTextContents(), [
+    'You earned 6 Bolts!', 'Level up!', 'Now you get quarters!', 'You opened Count the Cash!',
+    'You earned Learn the Coins Level 2!', 'You earned 5 in a Row!', 'You earned Perfect Round!', 'You can build something new!',
+  ]);
+  await page.getByRole('button', { name: 'Home', exact: true }).click();
+  assert.equal(await page.locator('#destination').textContent(), 'home');
+  assert.equal(await page.locator('#saved-state').textContent(), await page.locator('#before-state').textContent());
 });
 
 journey('keeps navigation gated until the final recorded announcement finishes', async page => {

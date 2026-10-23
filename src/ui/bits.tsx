@@ -16,7 +16,9 @@ export function BoltPile({ count }: { count: number }) {
 
 /** One star per answered problem; one that wasn't right on the first try without help is only half lit. */
 export function Stars({ results }: { results: readonly Outcome[] }) {
-  return <div class="stars">{[0, 1, 2, 3, 4].map(i => <span key={i} class={results[i] === 'clean' ? 'on' : results[i] ? 'on half' : ''}>⭐</span>)}</div>;
+  const clean = results.filter(o => o === 'clean').length, half = results.length - clean;
+  const label = `${clean} of 5 stars${half ? `, ${half} half star${half > 1 ? 's' : ''}` : ''}`;
+  return <div class="stars" role="img" aria-label={label}>{[0, 1, 2, 3, 4].map(i => <span key={i} aria-hidden="true" class={results[i] === 'clean' ? 'on' : results[i] ? 'on half' : ''}>⭐</span>)}</div>;
 }
 
 /** One dot per Level, `of` in all, lit up to his. */

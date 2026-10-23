@@ -1,7 +1,8 @@
 // The Garage: "Tap the truck". The 3D Truck fills the stage with a hotspot on each Slot's part; tapping one
 // swings the camera there and opens that Slot's sheet of 5 Mods (bottom sheet in portrait, side panel in landscape).
 // Along the bottom, the Body switcher shows every Body, the locked ones with their Bolt price; it scrolls, and keeps
-// the Body he's driving in view. 📸 Show Off puts the Truck on stage, and 🏆 opens the Trophy Shelf. Once a Door
+// the Body he's driving in view. On a phone it waits behind a 🚚 button so the Truck has room. Hotspots on Slots with
+// nothing he can buy yet stay quieter, so the ones he can spend on stand out. 📸 Show Off puts the Truck on stage, and 🏆 opens the Trophy Shelf. Once a Door
 // Number style is fitted, its sheet has a button that swaps the Mods for two wheels to pick the number with. Its
 // hotspot steps away while the sheet is open, and every hotspot does while he picks, so none covers the number.
 // The Paint sheet has a row of Colour swatches under its Mods.
@@ -15,7 +16,6 @@ import { game } from '../game/store';
 import type { Commit } from '../save/store';
 import type { MoneyState } from '../app/save';
 import { fmt } from '../money/money';
-import { startRound } from '../round/round';
 import { Bolt, BoltPile, IconButton } from '../ui/bits';
 import { numberLine } from './phrases';
 import { useVoiceScope } from '../voice/context';
@@ -45,6 +45,7 @@ export function GarageScreen({ goal: goalView, Shelf }: { goal: ComponentChildre
   const [checkout, setCheckout] = useState<LegendaryCheckout | null>(null);
   const [showing, setShowing] = useState(false);
   const [shelf, setShelf] = useState(false);
+  const [trucks, setTrucks] = useState(false); // the Body switcher, on a phone
   const [wiggle, setWiggle] = useState<string | null>(null);
   const [blocked, setBlocked] = useState(false); // only for the length of an unlock jump
   const body = currentBody(), f = currentFit();
@@ -68,12 +69,12 @@ export function GarageScreen({ goal: goalView, Shelf }: { goal: ComponentChildre
   }, []);
 
   useEffect(() => { stage?.setTruck(body, f); }, [stage, body, JSON.stringify(f)]);
-  useEffect(() => { strip.current?.querySelector('.on')?.scrollIntoView({ inline: 'center', block: 'nearest', behavior: 'smooth' }); }, [body, showing]);
+  useEffect(() => { strip.current?.querySelector('.on')?.scrollIntoView({ inline: 'center', block: 'nearest', behavior: 'smooth' }); }, [body, showing, trucks]);
   useEffect(() => () => checkout?.close(), [checkout]);
 
   function openSheet(slot: SlotId) {
     if (!voice.active) return;
-    setSheet(slot); setPicking(false);
+    setSheet(slot); setPicking(false); setTrucks(false);
     stage?.focus(slot);
     if (slot === 'horn') HORNS[f.horn]!();
     if (slot === 'engine') { ENGINES[f.engine]!(); stage?.puff(); } // he revs it
@@ -168,9 +169,12 @@ export function GarageScreen({ goal: goalView, Shelf }: { goal: ComponentChildre
   }
 
   const bodyStep = (d: 1 | -1) => { if (voice.active) { stepBody(d); void say(BODY_NAMES[currentBody()]); } };
+  const bodyCanBuy = BODY_IDS.some(b => !owns(b) && canAffordBody(b));
+  const state = (fitted: boolean, mine: boolean, price: string, locked: boolean) =>
+    fitted ? 'on your truck' : mine ? 'yours' : locked ? `${price}, locked` : price;
 
   return (
-    <div class={`screen garage-screen ${sheet ? 'open' : ''} ${showing ? 'showing' : ''}`}>
+    <div class={`screen garage-screen ${sheet ? 'open' : ''} ${showing ? 'showing' : ''} ${trucks ? 'trucks' : ''}`}>
       <header class="garage-hud">
         <BoltPile count={game.value.bolts} />
         {goalView}
@@ -178,7 +182,6 @@ export function GarageScreen({ goal: goalView, Shelf }: { goal: ComponentChildre
         <IconButton label="Trophies" class="trophies" onClick={() => { if (voice.active) { closeSheet(); setShelf(true); } }}>🏆</IconButton>
         <IconButton label="Show Off" class="show" onClick={startShow}>📸</IconButton>
         <IconButton label="Home" onClick={() => { if (voice.active) screen.value = 'home'; }}>🏠</IconButton>
-        <IconButton label="Play" class="go" onClick={() => { if (voice.active) startRound(game.value.lastMode); }}>▶</IconButton>
       </header>
       <div class="garage-stage" ref={stageEl}>
         <canvas ref={canvas} />
@@ -188,14 +191,16 @@ export function GarageScreen({ goal: goalView, Shelf }: { goal: ComponentChildre
             <button class="arrow l" aria-label="Previous truck" onClick={() => bodyStep(-1)}>◀</button>
             <button class="arrow r" aria-label="Next truck" onClick={() => bodyStep(1)}>▶</button>
             {SLOTS.map(s => (
-              <button key={s.id} ref={el => { hots.current[s.id] = el; }} class={`hot hidden ${picker || (sheet === s.id && s.id === 'number') ? 'away' : sheet === s.id ? 'on' : ''} ${slotHasAffordable(s.id) ? 'aff' : ''}`} aria-label={s.name} onClick={() => openSheet(s.id)}>{s.icon}</button>
+              <button key={s.id} ref={el => { hots.current[s.id] = el; }} class={`hot hidden ${picker || (sheet === s.id && s.id === 'number') ? 'away' : sheet === s.id ? 'on' : ''} ${slotHasAffordable(s.id) ? 'aff' : 'quiet'}`} aria-label={s.name} onClick={() => openSheet(s.id)}>{s.icon}</button>
             ))}
+            <button class={`trucks-btn ${trucks ? 'on' : bodyCanBuy ? 'afford' : ''}`} aria-label={trucks ? 'Close trucks' : 'Trucks'} aria-expanded={trucks}
+              onClick={() => { if (voice.active) setTrucks(t => !t); }}>{trucks ? '✕' : '🚚'}</button>
             <div class="bodystrip" ref={strip}>
               {BODY_IDS.map(b => {
                 const mine = owns(b), price = isStarter(b) ? 0 : PRICES.body;
                 const cls = b === body ? 'on' : mine ? 'owned' : canAffordBody(b) ? 'afford' : 'locked';
                 return (
-                  <button key={b} class={`body-chip ${cls} ${wiggle === `body:${b}` ? 'wiggle' : ''}`} aria-label={BODY_NAMES[b]} onClick={() => tapBodyChip(b)}>
+                  <button key={b} class={`body-chip ${cls} ${wiggle === `body:${b}` ? 'wiggle' : ''}`} aria-label={BODY_NAMES[b]} aria-description={state(b === body, mine, `${price} Bolts`, cls === 'locked')} onClick={() => tapBodyChip(b)}>
                     <BodyArt body={b} color={mine ? '#e63946' : '#6b7385'} />
                     {!mine && <span class="cost"><Bolt size={18} />{price}</span>}
                     {cls === 'locked' && <span class="lock">🔒</span>}
@@ -232,19 +237,19 @@ export function GarageScreen({ goal: goalView, Shelf }: { goal: ComponentChildre
               if (legend) {
                 const wait = waitingFor(sheet), cls = fitted ? 'fitted' : un ? 'owned' : wait ? 'locked' : 'open';
                 return (
-                  <button key={r} class={`mod-tile legend ${cls} ${wiggle === `${sheet}:${r}` ? 'wiggle' : ''}`} aria-label={modName(sheet, r)} onClick={() => tap(sheet, r)}>
+                  <button key={r} class={`mod-tile legend ${cls} ${wiggle === `${sheet}:${r}` ? 'wiggle' : ''}`} aria-label={modName(sheet, r)} aria-description={`${state(fitted, un, fmt(legendaryPrice(sheet)), false)}${wait ? `, needs ${modName(sheet, TOP)} first` : ''}`} onClick={() => tap(sheet, r)}>
                     <div class="ico"><PartIcon slot={sheet} rung={r} /></div>
                     <div class="nm">{modName(sheet, r)}</div>
                     {!un && <div class="cost money">{fmt(legendaryPrice(sheet))}</div>}
                     {fitted && <div class="check">✓</div>}
-                    {wait && <><div class="lock">🔒</div><div class="wait" aria-label={`Needs ${modName(sheet, TOP)}`}><PartIcon slot={sheet} rung={TOP} /></div></>}
+                    {wait && <div class="wait"><PartIcon slot={sheet} rung={TOP} /><span class="lock">🔒</span></div>}
                   </button>
                 );
               }
               const aff = canAfford(sheet, r), price = r ? PRICES.rungs[r] : 0;
               const cls = fitted ? 'fitted' : un ? 'owned' : aff ? 'afford' : 'locked';
               return (
-                <button key={r} class={`mod-tile ${cls} ${wiggle === `${sheet}:${r}` ? 'wiggle' : ''}`} aria-label={modName(sheet, r)} onClick={() => tap(sheet, r)}>
+                <button key={r} class={`mod-tile ${cls} ${wiggle === `${sheet}:${r}` ? 'wiggle' : ''}`} aria-label={modName(sheet, r)} aria-description={state(fitted, un, `${price} Bolts`, cls === 'locked')} onClick={() => tap(sheet, r)}>
                   <div class="ico"><PartIcon slot={sheet} rung={r} /></div>
                   <div class="nm">{modName(sheet, r)}</div>
                   {!un && <div class="cost"><Bolt size={20} />{price}</div>}
@@ -261,7 +266,7 @@ export function GarageScreen({ goal: goalView, Shelf }: { goal: ComponentChildre
                 const mine = ownsColour(c.id), item = c.id === FREE_COLOUR ? null : colourItem(c.id);
                 const cls = f.colour === c.id ? 'fitted' : mine ? 'owned' : canAffordColour(c.id) ? 'afford' : 'locked';
                 return (
-                  <button key={c.id} class={`swatch ${cls} ${item && wiggle === item ? 'wiggle' : ''}`} style={{ background: c.hex }} aria-label={c.name} onClick={() => tapSwatch(c.id)}>
+                  <button key={c.id} class={`swatch ${cls} ${item && wiggle === item ? 'wiggle' : ''}`} style={{ background: c.hex }} aria-label={c.name} aria-description={state(cls === 'fitted', mine, `${PRICES.colour} Bolts`, cls === 'locked')} onClick={() => tapSwatch(c.id)}>
                     {!mine && <span class="cost"><Bolt size={16} />{PRICES.colour}</span>}
                     {cls === 'fitted' && <span class="check">✓</span>}
                     {cls === 'locked' && <span class="lock">🔒</span>}

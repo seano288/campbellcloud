@@ -27,9 +27,9 @@ export function GoalBar({ state, balance: bolts, context }: { state: GarageInven
   const g = goalOf(state), tap = () => void say(...goalLines(state, bolts, context));
   if (!g) {
     const l = nextLegendary(state, context);
-    if (!l) return <button class="goalchip done" aria-label="Goal" onClick={tap}>🏆</button>;
+    if (!l) return <button class="goalchip done" aria-label="Goal" aria-description="You built everything!" onClick={tap}>🏆</button>;
     return (
-      <button class="goalchip legend" aria-label="Goal" onClick={tap}>
+      <button class="goalchip legend" aria-label="Goal" aria-description={`${modName(l, LEGENDARY)}, ${fmt(priceOf(modId(l, LEGENDARY), context).cents)}`} onClick={tap}>
         <span class="gi"><PartIcon slot={l} rung={LEGENDARY} /></span>
         <span class="num">{fmt(priceOf(modId(l, LEGENDARY), context).cents)}</span>
       </button>
@@ -37,7 +37,7 @@ export function GoalBar({ state, balance: bolts, context }: { state: GarageInven
   }
   const cost = priceOf(g).bolts!;
   return (
-    <button class={`goalchip ${bolts >= cost ? 'ready' : ''}`} aria-label="Goal" onClick={tap}>
+    <button class={`goalchip ${bolts >= cost ? 'ready' : ''}`} aria-label="Goal" aria-description={`${buyableName(g)}, ${Math.min(bolts, cost)} of ${cost} Bolts`} onClick={tap}>
       <span class={`gi ${isBodyItem(g) ? 'body' : ''}`}>
         {isBodyItem(g) ? <BodyArt body={bodyOf(g)} color="#ffd23f" /> : isColourItem(g) ? <i class="dab" style={{ background: colourById(colourOf(g)).hex }} /> : <PartIcon {...parseMod(g)} />}
       </span>
