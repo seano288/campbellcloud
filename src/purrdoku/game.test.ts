@@ -1,5 +1,5 @@
 import { beforeEach, describe, expect, it } from 'vitest';
-import { CAT, CROSS, EMPTY, game, hint, LIVES, paint, placeCat, puzzle, restart, save, setPace, shownHint, shownMistake, start } from './game';
+import { CAT, CROSS, EMPTY, game, hint, LIVES, paint, placeCat, puzzle, restart, save, shownHint, shownMistake, start } from './game';
 import { BONUS_SIZE, BONUS_TIERS, levelBoard, STEPS, stepFor } from './ladder';
 import { BONUS } from './bonus';
 import { countSolutions, decode, rate } from './puzzle';
@@ -65,20 +65,18 @@ describe('playing Purrdoku', () => {
     expect(game.value!.status).toBe('playing');
   });
 
-  it('a faster pace climbs more rungs per level, from the next level on', () => {
-    setPace(3);
-    setPace(9); // not a pace: ignored
-    expect(save.value.pace).toBe(3);
+  it('each solved level climbs one rung, even for an old save that had a faster pace', () => {
+    save.value = { ...save.value, rung: 4, pace: 3 };
     answer().forEach(cell => placeCat(cell));
-    expect(save.value).toMatchObject({ level: 2, rung: 4 });
+    expect(save.value).toMatchObject({ level: 2, rung: 5 });
     start();
-    expect(game.value).toMatchObject(levelBoard(2, 4));
+    expect(game.value).toMatchObject(levelBoard(2, 5));
   });
 });
 
 describe('Purrdoku hints', () => {
   it('following hints alone solves a board without a wrong cat or a wrong ✕', () => {
-    for (const level of [1, 30, 91, 201]) {
+    for (const level of [1, 30, 91, 201, 357]) {
       save.value = { v: 2, level, solved: 0 };
       start();
       const right = new Set(answer());
@@ -87,6 +85,7 @@ describe('Purrdoku hints', () => {
         hint();
         const shown = shownHint.value!;
         expect(shown.why).toBeTruthy();
+        expect(shown.why).not.toMatch(/guess/);
         if (shown.kind === 'cat') expect(['cat', 'won']).toContain(placeCat(shown.cells[0]!));
         else {
           expect(shown.cells.some(cell => right.has(cell))).toBe(false);
@@ -118,6 +117,11 @@ describe('the level ladder', () => {
     expect(avg(0, 30)).toBeLessThan(avg(60, 100));
     expect(avg(60, 100)).toBeLessThan(avg(300, 400));
     expect(steps.slice(200).filter(s => s <= STEPS.length - 6).length).toBeGreaterThan(10); // breathers up top
+  });
+
+  it('never needs a guess: every step and every bonus board can be reasoned out', () => {
+    for (const [, tier] of STEPS) expect(tier).toBeLessThanOrEqual(3);
+    for (const tier of BONUS_TIERS) expect(tier).toBeLessThanOrEqual(3);
   });
 
   it("gives each level a board of its step's size and difficulty", () => {

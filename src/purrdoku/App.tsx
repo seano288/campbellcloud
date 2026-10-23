@@ -3,8 +3,8 @@ import { useEffect, useMemo, useRef, useState } from 'preact/hooks';
 import { BuildLabel } from '../ui/BuildLabel';
 import { catSvg } from './art';
 import type { Puzzle } from './puzzle';
-import { CAT, CROSS, EMPTY, LIVES, type Hint, canUndo, clock, game, hint, next, pace, paint, placeCat, puzzle, restart, setPace, shownHint, shownMistake, tick, undo } from './game';
-import { BONUS_SIZE, PACES } from './ladder';
+import { CAT, CROSS, EMPTY, LIVES, type Hint, canUndo, clock, game, hint, next, paint, placeCat, puzzle, restart, shownHint, shownMistake, tick, undo } from './game';
+import { BONUS_SIZE } from './ladder';
 import { haptic } from './haptics';
 import { sound } from './sounds';
 import { muted, newBoard, react, toggleMute } from './voice';
@@ -45,7 +45,6 @@ const ICONS = {
   hint: ['M15 14c.2-1 .7-1.7 1.5-2.5 1-.9 1.5-2.2 1.5-3.5A6 6 0 0 0 6 8c0 1 .2 2.2 1.5 3.5.7.7 1.3 1.5 1.5 2.5', 'M9 18h6', 'M10 22h4'],
   sound: [SPEAKER, 'M16 9a5 5 0 0 1 0 6', 'M19.4 18.4a9 9 0 0 0 0-12.7'],
   muted: [SPEAKER, 'M22 9l-6 6', 'M16 9l6 6'],
-  pace: ['m12 14 4-4', 'M3.3 19a10 10 0 1 1 17.4 0'],
 };
 const Icon = ({ name }: { name: keyof typeof ICONS }) => (
   <svg viewBox="0 0 24 24" aria-hidden="true">{ICONS[name].map(d => <path key={d} d={d} />)}</svg>
@@ -67,7 +66,6 @@ function Play() {
   const g = game.value!;
   const [shake, setShake] = useState(0);
   const [pop, setPop] = useState<number | null>(null);
-  const [pacing, setPacing] = useState(false);
   const shown = shownHint.value, mistake = shownMistake.value;
 
   useEffect(() => {
@@ -124,20 +122,7 @@ function Play() {
         <button class="nap-tool" aria-label="Undo" title="Undo" disabled={!canUndo.value || g.status !== 'playing'} onClick={undo}><Icon name="undo" /></button>
         <button class="nap-tool" aria-label="Clear ✕" title="Clear ✕" disabled={g.status !== 'playing'} onClick={() => paint(g.marks.flatMap((m, i) => (m === CROSS && !g.wrong?.includes(i) ? [i] : [])), EMPTY)}><Icon name="clear" /></button>
         <button class={`nap-tool${shown ? ' on' : ''}`} aria-label="Hint" title="Hint" aria-pressed={!!shown} disabled={g.status !== 'playing'} onClick={hint}><Icon name="hint" /></button>
-        <button class={`nap-tool${pacing ? ' on' : ''}`} aria-label="Climb speed" title="Climb speed" aria-pressed={pacing} onClick={() => setPacing(p => !p)}><Icon name="pace" /></button>
         <button class="nap-tool" aria-pressed={muted.value} aria-label={muted.value ? 'Sound off' : 'Sound on'} title={muted.value ? 'Sound off' : 'Sound on'} onClick={toggleMute}><Icon name={muted.value ? 'muted' : 'sound'} /></button>
-      </div>
-      <div class="nap-under">
-        {pacing && (
-          <label class="nap-pace">
-            <span aria-hidden="true">🐢</span>
-            {/* it shuts itself once a speed is picked (change fires on letting go) */}
-            <input type="range" min={PACES[0]} max={PACES.at(-1)} step={1} value={pace.value} aria-label="Climb speed"
-              onInput={e => setPace(Number(e.currentTarget.value))} onChange={() => setPacing(false)} />
-            <span aria-hidden="true">🐆</span>
-            <b title="Climb speed, from the next level on">{pace.value}×</b>
-          </label>
-        )}
       </div>
       <BuildLabel />
       {g.status === 'won' && (

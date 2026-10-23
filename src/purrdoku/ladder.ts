@@ -1,7 +1,8 @@
 // The level ladder: which board each level gets. Levels start small and easy and climb towards big, hard boards,
 // with an easier level thrown in now and then, and every tenth level is a big 12×12 bonus round. Boards come from pools
 // searched out ahead of time: seeds for the ladder (boards.ts), whole boards for the bonus rounds (bonus.ts).
-// How far up the ladder a level sits is its rung. Each solved level climbs one rung, or more at a faster pace.
+// Every board can be solved by reasoning alone (tier 3 at most, see rate), so a hint never has to say "guess".
+// How far up the ladder a level sits is its rung. Each solved level climbs one rung.
 import { BONUS } from './bonus';
 import { POOL } from './boards';
 import { rng } from './puzzle';
@@ -11,13 +12,9 @@ import { rng } from './puzzle';
  * more than the one before, so the climb slows down as the boards get harder.
  */
 export const STEPS: readonly (readonly [size: number, tier: number])[] = [
-  [5, 1], [5, 2], [6, 1], [6, 2], [7, 2], [6, 3], [7, 3], [8, 2], [8, 3], [7, 4], [9, 2], [9, 3], [8, 4], [10, 2], [10, 3],
-  [9, 4], [10, 4],
+  [5, 1], [5, 2], [6, 1], [6, 2], [7, 2], [6, 3], [7, 3], [8, 2], [8, 3], [9, 2], [9, 3], [10, 2], [10, 3],
 ];
 const stepLength = (step: number) => 3 + step;
-
-/** Rungs climbed per solved level, from the pace slider: 1 is the usual climb, 4 the steepest. */
-export const PACES = [1, 2, 3, 4] as const;
 
 /** Which step a rung sits on before any easing off. */
 function climb(rung: number) {
@@ -55,7 +52,7 @@ export interface LevelBoard { size: number; seed: number; turn: number; board?: 
 /**
  * A level's board, on the given rung. Each step works through its pool in a shuffled order; once the pool is used up
  * it goes round again with every board turned or flipped (8 ways), so a board doesn't come back for thousands of
- * levels. Rungs only go up, so skipping some at a faster pace never brings a board back either.
+ * levels.
  */
 export function levelBoard(level: number, rung = level): LevelBoard {
   if (isBonus(level)) {

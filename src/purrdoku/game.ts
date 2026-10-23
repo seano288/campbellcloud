@@ -1,7 +1,7 @@
 // Purrdoku's state: one endless run of levels, the board in progress and how many have been solved.
 // It is all kept in localStorage under its own key; the board itself isn't stored, it's remade from its seed.
 import { computed, effect, signal } from '@preact/signals';
-import { type LevelBoard, levelBoard, PACES } from './ladder';
+import { type LevelBoard, levelBoard } from './ladder';
 import { decode, generate, nextStep, settle, stuck, touches, turn, type Puzzle } from './puzzle';
 
 export const LIVES = 3;
@@ -33,7 +33,7 @@ export interface Save {
   solved: number;
   /** how far up the ladder the next level sits (see levelBoard); missing from older saves, where it's the level */
   rung?: number;
-  /** rungs climbed per solved level, one of PACES (missing means 1) */
+  /** how fast the ladder used to climb, before the climb-speed slider went (older saves only; ignored) */
   pace?: number;
   game?: Game;
 }
@@ -80,13 +80,6 @@ export function start() {
   canUndo.value = false;
   shownHint.value = shownMistake.value = null;
   setGame(newGame(level, levelBoard(level, save.value.rung ?? level)));
-}
-
-export const pace = computed(() => save.value.pace ?? 1);
-
-/** Sets how fast the ladder climbs from the next level on; the board in play stays as it is. */
-export function setPace(next: number) {
-  if ((PACES as readonly number[]).includes(next)) save.value = { ...save.value, pace: next };
 }
 
 export function restart() {
@@ -153,7 +146,7 @@ export function placeCat(cell: number): Placed | undefined {
   update(() => ({ marks, status: won ? 'won' : 'playing' }));
   if (won) {
     const s = save.value;
-    save.value = { ...s, level: g.level + 1, rung: (s.rung ?? g.level) + pace.value, solved: s.solved + 1 };
+    save.value = { ...s, level: g.level + 1, rung: (s.rung ?? g.level) + 1, solved: s.solved + 1 };
   }
   return won ? 'won' : 'cat';
 }
