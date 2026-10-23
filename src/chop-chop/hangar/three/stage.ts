@@ -50,10 +50,13 @@ export function spreadHotspots(places: Record<SlotId, HotspotPlace>, d: number) 
   }
 }
 
+/** The camera's height of view, kept on screens at least NARROW wide for each 1 tall; narrower ones see wider. */
+const FOV = 34, NARROW = 0.9;
+
 export class HelipadStage {
   private renderer: THREE.WebGLRenderer;
   private scene = new THREE.Scene();
-  private camera = new THREE.PerspectiveCamera(34, 1, 0.1, 1200);
+  private camera = new THREE.PerspectiveCamera(FOV, 1, 0.1, 1200);
   private controls: OrbitControls;
   private heli: BuiltHeli | null = null;
   private spec: HeliSpec | null = null;
@@ -384,6 +387,8 @@ export class HelipadStage {
     if (!w || !h) return;
     this.renderer.setSize(w, h, false);
     this.camera.aspect = w / h;
+    // on a narrow screen (a phone held upright) widen the view so the whole Aircraft still fits across, hotspots and all
+    this.camera.fov = THREE.MathUtils.radToDeg(2 * Math.atan(Math.tan(THREE.MathUtils.degToRad(FOV / 2)) * Math.max(1, NARROW / this.camera.aspect)));
     this.camera.updateProjectionMatrix();
     this.smoke.setScale(h * 1.2);
     this.weapons.setScale(h * 1.2);

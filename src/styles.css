@@ -94,6 +94,10 @@ button{font:inherit;color:inherit;border:0;background:none;padding:0;cursor:poin
 .reward .bigpile{display:flex;align-items:center;gap:12px;font:900 calc(64px*var(--u)) Nunito,sans-serif;color:var(--yellow)}
 .reward .lines{font:900 calc(24px*var(--u)) Nunito,sans-serif;display:flex;flex-direction:column;gap:6px}
 .reward .lines:empty{display:none}
+/* a phone on its side is too short for all of it: tighter, and it scrolls rather than pushing 🏠 off the bottom */
+.reward{overflow-y:auto;justify-content:safe center;padding:calc(16px + env(safe-area-inset-top)) 16px calc(16px + env(safe-area-inset-bottom))}
+.reward>*{flex:none}
+@media (max-height:520px){.reward{gap:8px}.reward .moment{height:calc(90px*var(--u))}.reward .bigpile svg{width:56px;height:56px}}
 .reward .btns{display:flex;gap:calc(20px*var(--u));flex-wrap:wrap;justify-content:center}
 .reward .btns .big-btn{font-size:calc(38px*var(--u));padding:calc(22px*var(--u)) calc(40px*var(--u))}
 
@@ -114,6 +118,10 @@ button{font:inherit;color:inherit;border:0;background:none;padding:0;cursor:poin
 @media (orientation:portrait){.bodies{flex-direction:column;align-items:center}}
 .body-card{flex:1;min-width:0;max-width:340px;width:100%;background:#fff;border:4px solid #000;border-radius:26px;box-shadow:0 7px 0 #000;padding:calc(12px*var(--u));display:flex;flex-direction:column;align-items:center;gap:6px}
 @media (orientation:portrait){.body-card{flex:none;width:min(70vw,340px)}}
+/* on a phone the three cards don't fit stacked at full size: they shrink (art first) so the title and ✓ stay on screen */
+.picker-screen>*{flex:none}
+.picker-screen>.bodies{flex:0 1 auto;min-height:0}
+@media (orientation:portrait){.body-card{flex:0 1 auto;min-height:0}.body-card .body-art{flex:0 1 auto;min-height:calc(40px*var(--u))}.body-card .nm{flex:none}}
 .body-card.on{background:var(--yellow);animation:pulse 1s infinite}
 .body-art{width:100%;max-height:22dvh}
 .body-card .nm{font:400 calc(26px*var(--u)) Bungee,sans-serif}

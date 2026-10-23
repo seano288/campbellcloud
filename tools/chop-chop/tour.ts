@@ -5,7 +5,9 @@ import { chromium, type Page } from 'playwright';
 
 const [url = 'http://localhost:5201/', out = '/tmp/chop-tour', rounds = '1'] = process.argv.slice(2);
 const browser = await chromium.launch({ args: ['--use-angle=swiftshader', '--enable-unsafe-swiftshader', '--autoplay-policy=no-user-gesture-required'] });
-const page = await browser.newPage({ viewport: { width: 1180, height: 820 }, deviceScaleFactor: 1 });
+// VIEWPORT=390x844 for an iPhone held upright (default: an iPad on its side)
+const [vw = 1180, vh = 820] = (process.env.VIEWPORT ?? '').split('x').map(Number).filter(Boolean);
+const page = await browser.newPage({ viewport: { width: vw, height: vh }, deviceScaleFactor: 1, hasTouch: vw < 700 || vh < 700 });
 const errors: string[] = [];
 page.on('pageerror', e => errors.push(e.message));
 page.on('console', m => { if (m.type() === 'error') errors.push(m.text()); });
