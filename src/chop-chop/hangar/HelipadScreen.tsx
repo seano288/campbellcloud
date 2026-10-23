@@ -1,7 +1,7 @@
 // The Helipad: "Tap the helicopter". Time Flies' Hangar screen for helicopters: the 3D Helicopter stands in a real hangar
 // with a hotspot on each Slot's part; tapping one swings the camera there and opens that Slot's sheet of 5 Mods (bottom
 // sheet in portrait, side panel in landscape). Along the bottom, the strip shows every Helicopter, the locked ones with
-// their Bolt price. 🚁 Lift Off flies it off the helipad into the sky, to fire its gun and rockets and land again; 🏆
+// their Bolt price. 🕹️ Lift Off flies it off the helipad into the sky, to fire its gun and rockets and land again; 🏆
 // opens the Trophy Shelf. Legendaries wait in the Fuel Lock, opened by filling the tank to the right part.
 import { useEffect, useRef, useState } from 'preact/hooks';
 import type { ComponentChildren } from 'preact';
@@ -133,7 +133,7 @@ export function HelipadScreen({ goal: goalView, onShelf }: { goal: ComponentChil
         {goalView}
         <div class="spacer" />
         <IconButton label="Trophies" class="trophies" onClick={() => { if (voice.active) { closeSheet(); onShelf(); } }}>🏆</IconButton>
-        <IconButton label="Lift Off" class="show" onClick={takeOff}>🚁</IconButton>
+        <IconButton label="Lift Off" class="show" onClick={takeOff}>🕹️</IconButton>
         <IconButton label="Home" onClick={() => { if (voice.active) screen.value = 'home'; }}>🏠</IconButton>
         <IconButton label="Play" class="go" onClick={() => { if (voice.active) startRound(); }}>▶</IconButton>
       </header>
@@ -152,7 +152,7 @@ export function HelipadScreen({ goal: goalView, onShelf }: { goal: ComponentChil
                 const mine = owns(h), cls = h === heli ? 'on' : mine ? 'owned' : canAffordHeli(h) ? 'afford' : 'locked';
                 return (
                   <button key={h} class={`body-chip jet-chip heli-chip ${cls} ${wiggle === `heli:${h}` ? 'wiggle' : ''}`} aria-label={HELI_NAMES[h]} onClick={() => tapChip(h)}>
-                    <HeliArt heli={h} color={mine ? '#d6dde4' : '#98a1b0'} />
+                    <HeliArt heli={h} color={HELIS[h].livery.factory.base} />
                     {!mine && <span class="cost"><Bolt size={18} />{PRICES.heli}</span>}
                     {cls === 'locked' && <span class="lock">🔒</span>}
                     {!isStarter(h) && goal() === heliItem(h as BoughtHeli) && <span class="flag">🎯</span>}
@@ -191,7 +191,7 @@ export function HelipadScreen({ goal: goalView, onShelf }: { goal: ComponentChil
                   <button key={r} class={`mod-tile legend ${cls} ${wiggle === `${sheet}:${r}` ? 'wiggle' : ''}`} aria-label={modName(sheet, r)} onClick={() => tap(sheet, r)}>
                     <div class="ico"><ModIcon slot={sheet} rung={r} heli={heli} /></div>
                     <div class="nm">{modName(sheet, r)}</div>
-                    {!un && <div class="cost vault">⏰</div>}
+                    {!un && <div class="cost vault">⛽</div>}
                     {fitted && <div class="check">✓</div>}
                     {wait && <><div class="lock">🔒</div><div class="wait" aria-label={`Needs ${modName(sheet, TOP)}`}><ModIcon slot={sheet} rung={TOP} heli={heli} /></div></>}
                   </button>

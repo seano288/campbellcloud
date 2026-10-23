@@ -25,7 +25,7 @@ export function Ask({ text, speech, quiet = false }: { text: string; speech: Ite
   );
 }
 
-const Help = ({ run }: { run(): void }) => <button class="help-btn" onClick={run}>🔎 Help</button>;
+const Help = ({ run }: { run(): void }) => <button class="help-btn" aria-label="Help" onClick={run}>🔎</button>;
 const all = (n: number) => Array.from({ length: n }, (_, i) => i);
 const litFor = (lesson: Lesson, i: number) => (lesson.pick.value === i ? lesson.lit.value : []);
 const labelsFor = (lesson: Lesson, i: number) => (lesson.pick.value === i ? lesson.labels.value ?? undefined : undefined);
@@ -68,7 +68,8 @@ export function MeetView({ current }: { current: ProblemInstance<MeetProblem, st
     <div class="game set">
       <Ask text={ready ? `Tap one ${name}` : `A new word: ${name}`} speech={ready ? [tapOne(p.d)] : []} quiet />
       <div class={`big-picture ${tapped !== null ? 'right' : ''}`}>
-        <Picture picture={equalPicture(p.food, lesson.cut.value)} colored={tapped === null ? [] : [tapped]} lit={lesson.lit.value}
+        <Picture picture={equalPicture(p.food, lesson.cut.value)} colored={tapped === null ? [] : [tapped]}
+          lit={ready && tapped === null && !lesson.lit.value.length ? all(p.d) : lesson.lit.value}
           labels={lesson.labels.value ?? undefined} onTap={ready ? tapPiece : undefined} />
       </div>
       <div class="helpers">

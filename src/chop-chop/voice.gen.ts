@@ -13,6 +13,7 @@ export const CLIPS = {
   "Touchdown!": "db4e6db05d8b.mp3",
   "Add Weapons on the Helipad to fire rockets!": "dc429067edb8.mp3",
   "The tank is full!": "4c2be961965a.mp3",
+  "You kept trying!": "2fbcceefc619.mp3",
   "Great job!": "15a17173d557.mp3",
   "You got it!": "44934a531c0e.mp3",
   "Piece of cake!": "dc836faebeba.mp3",

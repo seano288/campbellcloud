@@ -1,5 +1,5 @@
-// End of a Round: his helicopter flies in carrying the Bolts he earned, they drop onto his pile one by one, then each Level
-// up, newly opened kind, star and Trophy is announced. Only then do 🚁 Helipad, ▶ Play again and 🏠 wake up.
+// End of a Round: his helicopter flies in carrying the Bolts he earned, they drop onto his pile one by one, a round where
+// he had to try again says he kept trying, then each Level up, newly opened kind, star and Trophy is announced. Only then do 🚁 Helipad, ▶ Play again and 🏠 wake up.
 import { useEffect, useRef, useState } from 'preact/hooks';
 import { sChime, sClink, sFanfare, sWhoosh } from '../audio/sfx';
 import { confetti } from '../celebrate/effects';
@@ -38,6 +38,7 @@ export function EndOverlay({ result: r, hasAffordable, onHelipad, onAgain, onHom
       async () => {
         for (let k = 1; k <= r.earned && voice.active; k++) { setPile(r.beforeBalance + k); setBump(true); sClink(); await voice.wait(160); setBump(false); await voice.wait(90); }
         await voice.say(earnedBolts(r.earned));
+        if (r.results.some(o => o !== 'clean') && voice.active) { sChime(); setLines(ls => [...ls, 'You kept trying!']); await voice.say('You kept trying!'); }
       },
       async () => {
         for (const e of [...r.events].sort((a, b) => order(a) - order(b))) {

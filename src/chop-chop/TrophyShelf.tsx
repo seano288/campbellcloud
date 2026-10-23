@@ -1,5 +1,5 @@
 // The 🏆 shelf on the Helipad: one plank each for Learning, Skill and Sticking with it. Earned trophies shine; the rest
-// are grey silhouettes. Tapping one reads its name, or the hint for what earns it (or its next step).
+// are empty dashed outlines, spots on the shelf waiting to be filled. Tapping one reads its name, or the hint for what earns it (or its next step).
 import { useEffect } from 'preact/hooks';
 import { player } from './game';
 import type { Phrase } from './phrases';
@@ -21,14 +21,15 @@ function emblem(s: TrophyStep): [string, string] {
   }
 }
 function Cup({ color, step }: { color: string; step: TrophyStep }) {
-  const [icon, text] = emblem(step);
+  const [icon, text] = emblem(step), empty = color === GREY;
+  const line = empty ? { stroke: '#ffffff70', 'stroke-dasharray': '7 6' } : { stroke: '#000' }, fill = empty ? '#ffffff12' : color;
   return (
     <div class="trophy" style={{ width: 'calc(72px*var(--u))', height: 'calc(86px*var(--u))' }} aria-hidden="true">
       <svg viewBox="0 0 100 120">
-        <path d="M22 18 H8 Q6 46 30 50 M78 18 H92 Q94 46 70 50" fill="none" stroke={color} stroke-width="7" />
-        <path d="M20 8 H80 V36 Q80 70 50 72 Q20 70 20 36 Z" fill={color} stroke="#000" stroke-width="4" />
-        <rect x="43" y="72" width="14" height="18" fill={color} stroke="#000" stroke-width="4" />
-        <rect x="24" y="90" width="52" height="22" rx="4" fill={color} stroke="#000" stroke-width="4" />
+        <path d="M22 18 H8 Q6 46 30 50 M78 18 H92 Q94 46 70 50" fill="none" stroke={empty ? '#ffffff40' : color} stroke-width="7" />
+        <path d="M20 8 H80 V36 Q80 70 50 72 Q20 70 20 36 Z" fill={fill} stroke-width="4" {...line} />
+        <rect x="43" y="72" width="14" height="18" fill={fill} stroke-width="4" {...line} />
+        <rect x="24" y="90" width="52" height="22" rx="4" fill={fill} stroke-width="4" {...line} />
       </svg>
       <span class="ti">{icon}</span>
       {text && <span class="tt">{text}</span>}

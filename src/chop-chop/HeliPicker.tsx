@@ -5,6 +5,7 @@ import { setupHeli } from './game';
 import { nextFact } from './hangar/HelipadScreen';
 import { HELI_NAMES, STARTER_HELIS, type StarterHeli } from './hangar/catalog';
 import { HeliArt } from './hangar/HeliArt';
+import { HELIS } from './hangar/helis';
 import { useVoiceScope } from './voice';
 import { useEffect } from 'preact/hooks';
 
@@ -18,7 +19,7 @@ export function HeliPicker({ onDone }: { onDone(): void }) {
       <div class="bodies">
         {STARTER_HELIS.map(j => (
           <button key={j} class={`body-card ${chosen === j ? 'on' : ''}`} aria-label={HELI_NAMES[j]} onClick={() => { sClink(); setChosen(j); void voice.say(HELI_NAMES[j], nextFact(j)); }}>
-            <HeliArt heli={j} class="body-art" color="#c9d1d9" />
+            <HeliArt heli={j} class="body-art" color={HELIS[j].livery.factory.base} />
             <span class="nm">{HELI_NAMES[j]}</span>
           </button>
         ))}

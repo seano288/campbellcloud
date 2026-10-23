@@ -15,7 +15,7 @@ import { TROPHY_PHRASES } from './trophies';
 const GAME = [
   'Chop Chop!', "Let's go!", 'Pick your first helicopter!', 'Helipad!', 'Round done!', 'Lift off!', 'Wow!', 'Level up!',
   'You can build something new!', 'You built everything!', 'Tap your helicopter to do a trick!', 'Touchdown!',
-  'Add Weapons on the Helipad to fire rockets!', 'The tank is full!',
+  'Add Weapons on the Helipad to fire rockets!', 'The tank is full!', 'You kept trying!',
 ] as const;
 export const CHEERS = ['Great job!', 'You got it!', 'Piece of cake!', 'Super pilot!', 'Awesome!', 'Fair and square!'] as const;
 

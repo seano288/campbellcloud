@@ -1,7 +1,8 @@
 // A food cut into pieces, drawn as SVG: a pizza in wedges, a sheet cake or a chocolate bar in a grid. A part is shown as
 // the pieces left on the plate: the eaten ones are gone, leaving the empty plate, a dashed outline and a few crumbs.
 // Coloured pieces (Color the Part) are tinted with see-through crayon, so the food still shows under it; pieces being
-// talked about glow yellow, and while they're counted each shows its number. Pieces can be tapped (Color the Part).
+// talked about glow yellow, and while they're counted each shows its number. Pieces can be tapped (Color the Part), or
+// reached with the keyboard, a switch or VoiceOver, which then see each piece as a button.
 import type { Picture as Pic } from './fraction';
 import { useId } from 'preact/hooks';
 import { rowsFor } from './problems';
@@ -92,7 +93,7 @@ function Base({ food }: { food: Pic['food'] }) {
   }
   const b = BOX['chocolate bar'];
   return <>
-    <rect x={b.x - 6} y={b.y - 6} width={b.w + 12} height={b.h + 12} rx="8" fill="#e23b3b" stroke="#000" stroke-width="4" />
+    <rect x={b.x - 6} y={b.y - 6} width={b.w + 12} height={b.h + 12} rx="8" fill="#7b3fb8" stroke="#000" stroke-width="4" />
     <rect x={b.x} y={b.y} width={b.w} height={b.h} rx="4" fill="#6b3e26" />
   </>;
 }
@@ -120,7 +121,7 @@ export function Picture({ picture, colored, lit = [], labels, onTap, left, class
   const pieces = piecesOf(picture), cuts = cutsOf(picture), fill = colored ?? picture.shaded ?? [];
   const eaten = left ? pieces.map((_, i) => i).filter(i => !left.includes(i)) : [];
   return (
-    <svg class={`fraction ${onTap ? 'tappable' : ''} ${cls}`} viewBox={`0 0 ${S} ${S}`} aria-hidden="true">
+    <svg class={`fraction ${onTap ? 'tappable' : ''} ${cls}`} viewBox={`0 0 ${S} ${S}`} aria-hidden={onTap ? undefined : 'true'} role={onTap ? 'group' : undefined}>
       {picture.food !== 'pizza' && ( // the pieces' colour stays inside the cake's or the slab's rounded corners
         <clipPath id={clip}><rect x={BOX[picture.food].x} y={BOX[picture.food].y} width={BOX[picture.food].w} height={BOX[picture.food].h} rx={CORNER[picture.food]} /></clipPath>
       )}
@@ -140,7 +141,11 @@ export function Picture({ picture, colored, lit = [], labels, onTap, left, class
       <g clip-path={clipped}>{pieces.map((p, i) => (
         <path key={`f${i}`} d={p.d} class={`piece ${fill.includes(i) ? 'colored' : ''}`}
           fill={fill.includes(i) ? CRAYON : 'transparent'} fill-opacity={fill.includes(i) ? 0.6 : undefined}
-          onPointerDown={onTap ? e => { e.preventDefault(); onTap(i); } : undefined} />
+          onPointerDown={onTap ? e => { e.preventDefault(); onTap(i); } : undefined}
+          {...(onTap ? {
+            role: 'button', tabIndex: 0, 'aria-label': `Piece ${i + 1}`, 'aria-pressed': fill.includes(i),
+            onKeyDown: (e: KeyboardEvent) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); onTap(i); } },
+          } : {})} />
       ))}</g>
       {cuts && <path d={cuts} fill="none" stroke="#fff" stroke-width="7" stroke-linecap="round" pointer-events="none" />}
       {cuts && <path d={cuts} fill="none" stroke="#111" stroke-width="2.5" stroke-linecap="round" pointer-events="none" />}

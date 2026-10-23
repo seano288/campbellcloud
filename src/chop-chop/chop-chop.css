@@ -56,3 +56,70 @@ html,body{background:var(--night)}
 .tank-part{flex:1;border-top:4px solid #000;background:transparent;transition:background .15s}
 .tank-part:first-child{border-top:0}
 .tank-part.full{background:linear-gradient(90deg,#ff9b1a,#ffd23f 50%,#ff9b1a)}
+
+/* ---------- fixes from the 2026-10-23 critique ---------- */
+/* the start and picker skies are a shade deeper in the middle, so the white title stands out against them */
+.start,.picker-screen{background:radial-gradient(circle at 50% 20%,#2c86c6,#16324a 75%)}
+/* a star he got on a second try is still a gold star, just smaller than a first-try one */
+.stars span.on.half{filter:none;transform:scale(.8)}
+/* while the voice explains, the pictures stay bright: they're what he should be looking at */
+.card.thinking button:not(.help-btn){opacity:1}
+/* the end of a Round covers the question completely */
+.reward{background:radial-gradient(circle at 50% 30%,#1f5a86,#0b1a28 80%)}
+/* 🔎 Help is a round button like 🔊, not a word he can't read yet */
+.game .help-btn{width:calc(64px*var(--u));height:calc(64px*var(--u));min-width:52px;min-height:52px;padding:0;border-radius:50%;border-width:4px;font-size:calc(30px*var(--u));display:grid;place-items:center;background:var(--yellow)}
+/* Home: ▶ is the same big green button it is everywhere else */
+.t-play .e{display:grid;place-items:center;width:calc(110px*var(--u));height:calc(110px*var(--u));min-width:64px;min-height:64px;border-radius:50%;border:4px solid #000;background:var(--green);color:#fff;box-shadow:0 5px 0 #000;font-size:calc(56px*var(--u));padding-left:.12em}
+/* the savings goal is a bar filling up; "3/5" means nothing to him yet */
+.goalchip .num{display:none}
+.goalchip .track{display:block;width:calc(90px*var(--u));min-width:44px}
+/* the helicopter strip: each one in its own colours on a light chip, so they can be told apart */
+.heli-chip{background:#d4e6f3}
+.heli-chip.locked,.heli-chip.afford{background:#93a7b9}
+.heli-chip.on{background:#c4f2d8}
+.heli-chip .cost{background:#000c;border-radius:8px;padding:0 4px;text-shadow:none}
+
+/* on a phone the Helipad's top bar has four buttons to fit: the goal shrinks to just its picture there */
+@media (max-width:430px){.helipad-screen .goalchip .track,.helipad-screen .goalchip .bolt{display:none}.helipad-screen .goalchip{padding:4px 6px;flex:none}}
+/* the Trophy Shelf: trophies still to win are dashed empty outlines, spots waiting to be filled, not a wall of grey */
+.shelf-trophy:not(.earned) .ti{filter:grayscale(1);opacity:.5}
+.shelf-trophy:not(.earned) .tt{filter:none;color:#ffffff99}
+
+/* ---------- fingers, not mouse pointers: nothing he taps is smaller than 48px, even on a phone ---------- */
+.icon-btn,.say-btn,.hot,.sheethead .x,.shelfhead .x,.vault-card .x,.checkout-card .x{min-width:48px;min-height:48px}
+.goalchip{min-height:48px}
+.arrow{min-width:48px;min-height:64px}
+.body-chip{min-height:48px;min-width:72px}
+.choice{min-height:56px}
+.swatch{min-width:52px;min-height:52px}
+
+/* ---------- a phone held upright: the pictures stack and take the card's height ---------- */
+@media (orientation:portrait) and (max-width:600px){
+  .pictures{display:grid;grid-template-rows:repeat(3,minmax(0,1fr));justify-items:center;gap:calc(14px*var(--u))}
+  .pictures .pic-btn{height:100%;width:auto;max-width:100%;aspect-ratio:1;padding:4px}
+  .pictures.two{grid-template-rows:repeat(2,minmax(0,1fr))}
+  .pictures.two .pic-btn{width:min(100%,72vw);aspect-ratio:auto}
+  .pictures.two .pic-btn .fraction{flex:1 1 0;min-height:0;aspect-ratio:auto;height:auto}
+  .big-picture{width:min(42vh,82vw,400px)}
+  .game.words-q .big-picture{width:min(36vh,78vw,360px)}
+  .share-food{width:min(30vh,66vw,280px)}
+  /* the Helipad's arrows sit low, beside his thumbs and clear of the part buttons on the helicopter */
+  .helipad-screen .arrow{top:auto;bottom:calc(74px + env(safe-area-inset-bottom));transform:none;height:64px}
+}
+
+/* ---------- reduced motion: no pulsing, shaking or confetti; what pulsed for attention glows still instead ---------- */
+@media (prefers-reduced-motion:reduce){
+  *,*::before,*::after{animation-duration:.01ms!important;animation-iteration-count:1!important;transition-duration:.01ms!important;transition-delay:0s!important}
+  .confetti,.firework,.spark,.shatter{display:none!important}
+  .pulse,.goalchip.ready,.body-card.on,.kind.fresh{box-shadow:0 6px 0 #000,0 0 0 8px #ffd23f99}
+  .hot.aff::after{transform:scale(1.15);opacity:.7}
+  .fraction .lit-piece{opacity:1}
+}
+
+/* ---------- keyboard and switch focus: a thick orange ring, the same colour as "being read aloud" ---------- */
+button:focus-visible{outline:4px solid var(--orange);outline-offset:3px}
+.fraction.tappable .piece:focus-visible{outline:none;stroke:var(--orange);stroke-width:7}
+
+/* the shared styles tuck the vehicle strip behind a 🚚 button on a phone (Monster Truck Money's Garage); the Helipad has no
+   such button, so its helicopter strip stays out, with the arrows sitting just above it */
+@media (max-width:430px),(max-height:520px){.helipad-screen:not(.open):not(.showing) .bodystrip{display:flex}}
