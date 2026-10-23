@@ -77,3 +77,28 @@ tap launches the next store its Weapons Mod hangs under the wings (reloaded a fe
 the runway and returns to the Hangar.
 
 **Tail Number**: Time Flies' Door Number, painted on the fins.
+
+## Chop Chop
+
+Chop Chop reuses Time Flies' terms where they mean the same thing (Mixed Round, Mastery, Bolt, Slot, Mod, Rung, Goal,
+Trophy, Tail Number). These are its own:
+
+**Game Modes (Chop Chop)**: the six kinds of fraction question: Fair Shares, Name the Piece, Bigger Piece, Find the
+Part, Color the Part and Share It. Fair Shares, Find the Part and Share It are open from the start; Name the Piece opens
+when Fair Shares reaches Level 2, Bigger Piece after Name the Piece, and Color the Part after Find the Part. Mastery is
+16 of the last 20, or 10 in a row.
+
+**Part**: some of the equal pieces of a whole, said in words ("three quarters", "three of the four equal pieces").
+Fractions are never written as numbers in Chop Chop.
+_Avoid_: fraction notation, numerator, denominator
+
+**Helicopter**: one of the 17 on the Helipad, Chop Chop's Body. Three starters (UH-60 Black Hawk, MH-6 Little Bird,
+AH-1Z Viper); the rest cost 30 Bolts.
+
+**Helipad**: where he builds his Helicopter, Chop Chop's Garage.
+
+**Fuel Lock**: the vault that holds every Legendary in Chop Chop. Once a Slot's top Rung is his, tapping its Legendary
+asks him to fill the fuel tank to a part ("three quarters full"); it opens when he does.
+
+**Lift Off**: the Helipad's stage moment: the rotors spin up, it lifts straight off the helipad and flies into the sky,
+does a trick when tapped, fires its gun and rockets, and lands back on the pad.
