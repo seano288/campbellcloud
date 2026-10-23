@@ -17,6 +17,7 @@
     "build:site": "tsx tools/site-build.ts",
     "check:hunch": "tsx tools/hunch/play.ts",
     "dev:time-flies": "vite --config vite.time-flies.config.ts",
+    "dev:chop-chop": "vite --config vite.chop-chop.config.ts",
     "dev:hunch": "vite --config vite.hunch.config.ts",
     "dev:purrdoku": "vite --config vite.purrdoku.config.ts",
     "build:purrdoku-boards": "tsx tools/purrdoku-boards.ts"

@@ -3,6 +3,9 @@
 // blob, a stripe, a shark mouth or a tail number lands in the same place on fuselage, wings and fins alike. Marks are
 // placed in aircraft terms: x as a fraction of the length, heights in metres.
 import type { Fit } from '../catalog';
+
+/** What the painter reads from a Fit: the painted Mods (Chop Chop's helicopters share it). */
+export type PaintedFit = Pick<Fit, 'nose' | 'tail' | 'number' | 'tailNumber'>;
 import type { Station } from './geometry';
 
 export type Mark =
@@ -291,7 +294,7 @@ function eagle(g: CanvasRenderingContext2D, cx: number, cy: number, s: number, k
   g.restore();
 }
 
-function tailNumber(p: Pen, s: Shape, fit: Fit) {
+function tailNumber(p: Pen, s: Shape, fit: PaintedFit) {
   const style = fit.number;
   if (!style) return;
   const text = String(fit.tailNumber).padStart(2, '0');
@@ -430,7 +433,7 @@ export function shade(hex: string, k: number) {
 }
 
 /** Paints the scheme and the painted Mods onto the atlas canvas. */
-export function paintAtlas(canvas: HTMLCanvasElement | OffscreenCanvas, s: Shape, scheme: Scheme, fit: Fit) {
+export function paintAtlas(canvas: HTMLCanvasElement | OffscreenCanvas, s: Shape, scheme: Scheme, fit: PaintedFit) {
   canvas.width = canvas.height = ATLAS;
   const g = canvas.getContext('2d') as CanvasRenderingContext2D;
   const all = pens(g, s);

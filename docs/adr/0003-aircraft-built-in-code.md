@@ -22,3 +22,6 @@ Research: `.scratch/airplane-clock/research/` (rendering-modeling.md compares th
   aircraft, paint is clear-coated physical material with panel lines and weathering, and normals stay crisp at chines and
   edges. Fine details (rivets, antennas, gear doors) are simplified.
 - Many station values are estimates from three-views; each spec names its research note, and tuning a shape is a data edit.
+- Chop Chop's 17 helicopters are built the same way (`src/chop-chop/hangar/helis/*.ts`, builder `hangar/three/heli.ts`):
+  they reuse the lofting, livery, materials, stores and weapons here and add rotors (main, tail, canted, scissored,
+  ducted, coaxial, tandem and pusher), skids and a chin gun. Research: `.scratch/chop-chop/research/helis/`.

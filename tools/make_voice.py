@@ -4,6 +4,7 @@
   .venv/bin/python tools/make_voice.py --collection money --out public/voice --index src/voice/voice.gen.ts
   .venv/bin/python tools/make_voice.py --collection time-flies --out public/time-flies-voice --index src/time-flies/voice.gen.ts
   .venv/bin/python tools/make_voice.py --collection purrdoku --out public/purrdoku-voice --index src/purrdoku/voice.gen.ts
+  .venv/bin/python tools/make_voice.py --collection chop-chop --out public/chop-chop-voice --index src/chop-chop/voice.gen.ts
 
 Select phrases through tools/phrases.ts and write recordings and a typed index to explicit locations.
 Only missing clips are recorded. Cleanup touches only the selected directory, whose .voice-collection
@@ -25,6 +26,10 @@ def speakable(s):
                  # Time Flies: aircraft names said the way pilots say them
                  ('F/A-18', 'F A 18'), ('F-117', 'F one seventeen'), ('Lightning II', 'Lightning Two'), ('SR-71', 'S R 71'),
                  ('F4U', 'F 4 U'), ('AV-8B', 'A V 8 B'), ('X-29', 'X 29'),
+                 # Chop Chop: helicopter names said the way crews say them
+                 ('UH-60', 'U H 60'), ('MH-6', 'M H 6'), ('AH-1Z', 'A H 1 Z'), ('UH-1', 'U H 1'), ('AH-64', 'A H 64'),
+                 ('Mi-24', 'Mee 24'), ('Mi-26', 'Mee 26'), ('Ka-52', 'Kah 52'), ('CH-47', 'C H 47'), ('CH-53E', 'C H 53 E'),
+                 ('RAH-66', 'R A H 66'),
                  # Purrdoku: puns said as one word
                  ('Purr-fect', 'Purrfect'), ('Paw-some', 'Pawsome'), ('Meow-velous', 'Meowvelous'), ('Mm-hmm', 'Mm hmm')]:
         s = s.replace(a, b)
