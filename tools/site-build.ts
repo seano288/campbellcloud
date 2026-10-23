@@ -57,8 +57,8 @@ const breakScheduleIcon = () => `<svg xmlns="http://www.w3.org/2000/svg" viewBox
   <rect x="2" y="22" width="19" height="6" rx="2"/><rect x="25" y="22" width="5" height="6" rx="2"/>
 </g></svg>`;
 
-// Killr, the Senior Assassin game runner, is hosted on its own site too. The art is its favicon as-is: a crosshair on near-black, the brand's own colours.
-const killrIcon = () => `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><rect width="512" height="512" fill="#0b0b0a"/><circle cx="256" cy="256" r="150" fill="none" stroke="#efe8da" stroke-width="22"/><circle cx="256" cy="256" r="18" fill="#d8322a"/><path d="M256 70v120M256 322v120M70 256h120M322 256h120" stroke="#d8322a" stroke-width="26"/></svg>`;
+// Killr, the Senior Assassin game runner, is hosted on its own site too. The art is its favicon as-is: a red K on near-black, the brand's own colours.
+const killrIcon = () => `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><rect width="512" height="512" fill="#0b0b0a"/><path transform="translate(37.7 456) scale(0.5814)" d="M65 0L65-688L265-688L265 0ZM462 0L307-241L307-456L465-688L683-688L446-364L686 0Z" fill="#d8322a"/></svg>`;
 
 // Tiles with an href leave campbellcloud.com, so they open in a new tab. The blurb says in a few words what it is.
 type Tile = { name: string; blurb: string; icon: (scale?: number) => string } & ({ path: string } | { href: string });
