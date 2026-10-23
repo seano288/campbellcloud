@@ -25,15 +25,20 @@ meets the word first. A food appears whole and is cut while he watches: a quarte
 is a quarter cut in half, and a sixth is a third cut in half. The pieces are counted and named ("So one piece is one
 quarter. Half of a half is one quarter! Four quarters make the whole pizza!"). Then he taps any one piece ("Tap one
 quarter!"), and the question is asked. A kind that can't ask anything with his words yet sits out, so Name the Piece waits
-until he knows half and quarter. Before he knows a second word, Find the Part shows one half beside the whole thing
-coloured and nothing coloured.
+until he knows half and quarter. Before he knows a second word, Find the Part shows one half left beside the whole thing
+and an empty plate.
+
+**A part is the food that's left (2026-10-23).** Pink crayon over the food read as an empty gap, so Find the Part, Bigger
+Piece and Name the Piece show a part as the pieces left on a plate: the eaten pieces leave the empty plate with a dashed
+outline and a few crumbs. Find the Part asks "Find the pizza with one half left!". Color the Part's crayon is see-through,
+so a coloured piece still shows the food under it.
 
 | Kind | Opens | Level 1 | Level 2 | Level 3 |
 |---|---|---|---|---|
 | ⚖️ Fair Shares: which one is cut into equal pieces? | start | halves | thirds, quarters | quarters, sixths, eighths |
 | 🍕 Name the Piece: what is one piece called? | Fair Shares L2 | half or quarter (only those two offered) | + third | + sixth, eighth |
 | 🍰 Bigger Piece: which is bigger? | Name the Piece L2 | half vs quarter, pictures | half/eighth, thirds/sixths, quarters/eighths…, pictures | words only, and "the same" (two quarters = one half) |
-| 🔎 Find the Part: tap the picture showing "one half" | start | one half, one quarter | any unit part | "three quarters", "two thirds", "five eighths"… |
+| 🔎 Find the Part: "Find the pizza with one half left!" | start | one half, one quarter | any unit part | "three quarters", "two thirds", "five eighths"… |
 | 🖍️ Color the Part: colour one half of the cake | Find the Part L2 | half of 2 or 4, quarter of 4 | thirds, three quarters, half of 6 or 8 | two thirds, three eighths, five sixths… |
 | 🍪 Share It | start | N friends share a pizza: how many pieces? | half of a pile of cookies | a quarter or a third of a pile |
 

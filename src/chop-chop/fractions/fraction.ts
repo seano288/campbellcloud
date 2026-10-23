@@ -71,15 +71,15 @@ export const piecesAre = (d: Den) => `${cap(numberWord(d))} equal pieces are ${P
 export const onePieceIs = (d: Den) => `So one piece is ${fracWord(unit(d))}.` as `So one piece is ${string}.`;
 /** "Three quarters means three of the four equal pieces." */
 export const means = (f: Frac) => `${cap(fracWord(f))} means ${numberWord(f.n)} of the ${numberWord(f.d)} equal pieces.` as `${string} means ${string} of the ${string} equal pieces.`;
-/** "This one shows three quarters!" / "That one shows one third." */
-export const thisShows = (f: Frac) => `This one shows ${fracWord(f)}!` as `This one shows ${string}!`;
-export const thatShows = (f: Frac) => `That one shows ${fracWord(f)}.` as `That one shows ${string}.`;
+/** "This one has three quarters left!" / "That one has one third left." */
+export const thisShows = (f: Frac) => `This one has ${fracWord(f)} left!` as `This one has ${string} left!`;
+export const thatShows = (f: Frac) => `That one has ${fracWord(f)} left.` as `That one has ${string} left.`;
 /** What a wrong picture shows, including the whole thing and nothing (the other choices before he knows two words). */
-export const thatOne = (f: Frac) => (f.n === f.d ? 'That one is the whole thing.' : f.n === 0 ? 'Nothing is colored on that one.' : thatShows(f));
+export const thatOne = (f: Frac) => (f.n === f.d ? 'That one is the whole thing.' : f.n === 0 ? 'That one is all gone.' : thatShows(f));
 /** "The pizza is cut into four equal pieces." */
 export const cutInto = (food: Food, d: Den) => `The ${food} is cut into ${numberWord(d)} equal pieces.` as `The ${Food} is cut into ${string} equal pieces.`;
-/** "Find three quarters!" */
-export const findLine = (f: Frac) => `Find ${fracWord(f)}!` as `Find ${string}!`;
+/** "Find the pizza with three quarters left!" */
+export const findLine = (f: Frac, food: Food) => `Find the ${food} with ${fracWord(f)} left!` as `Find the ${Food} with ${string} left!`;
 /** "Color one half of the cake!" */
 export const colorLine = (f: Frac, food: Food) => `Color ${fracWord(f)} of the ${food}!` as `Color ${string} of the ${Food}!`;
 /** "You colored three of the eight pieces." */
@@ -140,7 +140,7 @@ export const FRACTION_LINES = [
   'Not quite!', 'Try again!', "Let's look together.", 'Look!', 'Tap the pieces to color them.', 'Color some pieces!',
   'Equal pieces are all the same size.', 'These pieces are all the same size!', 'These pieces are not the same size.',
   'What is one piece called?', 'More pieces means smaller pieces!', 'They are the same!', 'One piece for each friend!',
-  "Let's count the pieces.", 'Tap the tank to fill it.', 'A new word!', 'That one is the whole thing.', 'Nothing is colored on that one.',
+  "Let's count the pieces.", 'Tap the tank to fill it.', 'A new word!', 'That one is the whole thing.', 'That one is all gone.',
 ] as const;
 export type FractionLine = (typeof FRACTION_LINES)[number];
 export type FractionPhrase = FractionLine | FracWord | NumberPhrase

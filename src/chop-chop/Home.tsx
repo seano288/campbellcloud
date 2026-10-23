@@ -5,7 +5,7 @@ import { useEffect } from 'preact/hooks';
 import type { ComponentChildren } from 'preact';
 import { sBad } from '../audio/sfx';
 import { LevelDots } from '../ui/bits';
-import { equalPicture, Picture } from './fractions/Picture';
+import { equalPicture, leftOf, Picture } from './fractions/Picture';
 import { player } from './game';
 import { HELI_NAMES } from './hangar/catalog';
 import { HeliArt } from './hangar/HeliArt';
@@ -36,7 +36,7 @@ export function Home({ status }: { status: ComponentChildren }) {
           <span class="nm">🚁 Helipad</span>
         </button>
         <button class="tile t-play" aria-label="Play" onClick={() => { if (voice.active) startRound(); }}>
-          <span class="tile-clock"><Picture picture={equalPicture('pizza', 4, 1)} /></span>
+          <span class="tile-clock"><Picture picture={equalPicture('pizza', 4)} left={leftOf(3)} /></span>
           <span class="e">▶</span>
         </button>
         <div class="tile t-kinds" role="list" aria-label="My Levels">

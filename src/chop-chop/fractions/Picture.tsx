@@ -1,16 +1,17 @@
-// A food cut into pieces, drawn as SVG: a pizza in wedges, a sheet cake or a chocolate bar in a grid. Coloured pieces
-// are filled with bright crayon; pieces being talked about glow yellow, and while they're counted each shows its number.
-// Pieces can be tapped (Color the Part).
+// A food cut into pieces, drawn as SVG: a pizza in wedges, a sheet cake or a chocolate bar in a grid. A part is shown as
+// the pieces left on the plate: the eaten ones are gone, leaving the empty plate, a dashed outline and a few crumbs.
+// Coloured pieces (Color the Part) are tinted with see-through crayon, so the food still shows under it; pieces being
+// talked about glow yellow, and while they're counted each shows its number. Pieces can be tapped (Color the Part).
 import type { Picture as Pic } from './fraction';
 import { useId } from 'preact/hooks';
 import { rowsFor } from './problems';
 
-const S = 200, R = 92, C = S / 2;
+const S = 200, PIE_R = 92, R = PIE_R, C = S / 2;
 export const CRAYON = '#ff4fa3';
 
 type Piece = { d: string; cx: number; cy: number; box: [number, number, number, number] };
 
-function wedges(pieces: readonly number[]): Piece[] {
+function wedges(pieces: readonly number[], R = PIE_R): Piece[] {
   let a = -Math.PI / 2;
   return pieces.map(w => {
     const a0 = a, a1 = (a += w * Math.PI * 2), mid = (a0 + a1) / 2, large = a1 - a0 > Math.PI ? 1 : 0;
@@ -21,15 +22,17 @@ function wedges(pieces: readonly number[]): Piece[] {
   });
 }
 
-/** The cake and the chocolate bar: `rows` equal rows, the columns as wide as their pieces' shares. */
-function grid(pieces: readonly number[], rows: number, box: { x: number; y: number; w: number; h: number }): Piece[] {
+/** The cake and the chocolate bar: `rows` equal rows, the columns as wide as their pieces' shares. Pieces on the edge
+ * grow outwards by `bleed`, so a piece's shape can take the cake's shadow or the wrapper along with it. */
+function grid(pieces: readonly number[], rows: number, box: { x: number; y: number; w: number; h: number }, bleed = 0): Piece[] {
   const cols = pieces.length / rows, widths = pieces.slice(0, cols).map(w => w * rows);
   const out: Piece[] = [];
   for (let r = 0; r < rows; r++) {
     let x = box.x;
     for (let c = 0; c < cols; c++) {
       const w = widths[c]! * box.w, h = box.h / rows, y = box.y + r * h;
-      out.push({ d: `M${x.toFixed(2)} ${y.toFixed(2)}h${w.toFixed(2)}v${h.toFixed(2)}h${(-w).toFixed(2)}Z`, cx: x + w / 2, cy: y + h / 2, box: [x, y, w, h] });
+      const x0 = c === 0 ? x - bleed : x, y0 = r === 0 ? y - bleed : y, x1 = c === cols - 1 ? x + w + bleed : x + w, y1 = r === rows - 1 ? y + h + bleed : y + h;
+      out.push({ d: `M${x0.toFixed(2)} ${y0.toFixed(2)}H${x1.toFixed(2)}V${y1.toFixed(2)}H${x0.toFixed(2)}Z`, cx: x + w / 2, cy: y + h / 2, box: [x, y, w, h] });
       x += w;
     }
   }
@@ -41,6 +44,20 @@ const CORNER = { cake: 10, 'chocolate bar': 4 } as const;
 
 export function piecesOf(p: Pick<Pic, 'food' | 'pieces'>): Piece[] {
   return p.food === 'pizza' ? wedges(p.pieces) : grid(p.pieces, rowsFor(p.food, p.pieces.length), BOX[p.food]);
+}
+/** The pieces with their share of the crust, the cake's shadow or the wrapper: what goes when a piece is eaten. */
+const servingsOf = (p: Pick<Pic, 'food' | 'pieces'>): Piece[] =>
+  p.food === 'pizza' ? wedges(p.pieces, PIE_R + 10) : grid(p.pieces, rowsFor(p.food, p.pieces.length), BOX[p.food], 12);
+/** The eaten pieces' outlines: the crust's edge for the pizza, the cake's or the slab's for the others. */
+const outlinesOf = (p: Pick<Pic, 'food' | 'pieces'>): Piece[] =>
+  p.food === 'pizza' ? wedges(p.pieces, PIE_R + 4) : piecesOf(p);
+const CRUMB = { pizza: '#d68a3c', cake: '#c98a4b', 'chocolate bar': '#6b3e26' } as const;
+
+/** The empty plate the food sits on, showing where pieces have been eaten. */
+function Plate({ food }: { food: Pic['food'] }) {
+  if (food === 'pizza') return <circle cx={C} cy={C} r={R + 8} fill="#fbfaf7" stroke="#000" stroke-width="3" />;
+  const b = BOX[food];
+  return <rect x={b.x - 10} y={b.y - 10} width={b.w + 20} height={b.h + 24} rx="16" fill="#fbfaf7" stroke="#000" stroke-width="3" />;
 }
 
 /** The knife's lines: only the cuts between pieces, so the crust, the cake's edge and the wrapper stay showing. */
@@ -86,7 +103,7 @@ const Pressed = ({ pieces }: { pieces: Piece[] }) => <>{pieces.map((p, i) => {
   return <rect key={i} x={x + 7} y={y + 7} width={Math.max(w - 14, 2)} height={Math.max(h - 14, 2)} rx="5" fill="#7d4a2e" stroke="#4e2b18" stroke-width="3" pointer-events="none" />;
 })}</>;
 
-export function Picture({ picture, colored, lit = [], labels, onTap, faded = [], class: cls = '' }: {
+export function Picture({ picture, colored, lit = [], labels, onTap, left, class: cls = '' }: {
   picture: Pick<Pic, 'food' | 'pieces'> & { shaded?: readonly number[] };
   /** Pieces filled with crayon (default: the picture's shaded pieces). */
   colored?: readonly number[];
@@ -95,21 +112,34 @@ export function Picture({ picture, colored, lit = [], labels, onTap, faded = [],
   /** Numbers on pieces while they're counted. */
   labels?: Readonly<Record<number, string>>;
   onTap?: (i: number) => void;
-  /** Pieces eaten away (sharing): drawn as an empty plate. */
-  faded?: readonly number[];
+  /** The pieces still there: the rest have been eaten, leaving the empty plate (default: the whole food, no plate). */
+  left?: readonly number[];
   class?: string;
 }) {
-  const clip = `clip-${useId().replace(/\W/g, '')}`, clipped = picture.food === 'pizza' ? undefined : `url(#${clip})`, pieces = piecesOf(picture), cuts = cutsOf(picture), fill = colored ?? picture.shaded ?? [];
+  const id = useId().replace(/\W/g, ''), clip = `clip-${id}`, clipped = picture.food === 'pizza' ? undefined : `url(#${clip})`;
+  const pieces = piecesOf(picture), cuts = cutsOf(picture), fill = colored ?? picture.shaded ?? [];
+  const eaten = left ? pieces.map((_, i) => i).filter(i => !left.includes(i)) : [];
   return (
     <svg class={`fraction ${onTap ? 'tappable' : ''} ${cls}`} viewBox={`0 0 ${S} ${S}`} aria-hidden="true">
       {picture.food !== 'pizza' && ( // the pieces' colour stays inside the cake's or the slab's rounded corners
         <clipPath id={clip}><rect x={BOX[picture.food].x} y={BOX[picture.food].y} width={BOX[picture.food].w} height={BOX[picture.food].h} rx={CORNER[picture.food]} /></clipPath>
       )}
-      <Base food={picture.food} />
-      {picture.food === 'chocolate bar' && <Pressed pieces={pieces} />}
+      {left && <clipPath id={`left-${id}`}>{servingsOf(picture).map((p, i) => left.includes(i) && <path key={i} d={p.d} />)}</clipPath>}
+      {left && <Plate food={picture.food} />}
+      <g clip-path={left ? `url(#left-${id})` : undefined}>
+        <Base food={picture.food} />
+        {picture.food === 'chocolate bar' && <Pressed pieces={pieces} />}
+      </g>
+      {eaten.map(i => { // where an eaten piece was: its outline and a few crumbs
+        const o = outlinesOf(picture)[i]!, p = pieces[i]!;
+        return <g key={`e${i}`} pointer-events="none">
+          <path d={o.d} fill="none" stroke="#a8a29a" stroke-width="3" stroke-dasharray="8 7" stroke-linejoin="round" />
+          {[[-14, -9], [11, -4], [-3, 13]].map(([dx, dy], k) => <circle key={k} cx={p.cx + dx!} cy={p.cy + dy!} r={k === 1 ? 2.5 : 3.5} fill={CRUMB[picture.food]} opacity=".7" />)}
+        </g>;
+      })}
       <g clip-path={clipped}>{pieces.map((p, i) => (
-        <path key={`f${i}`} d={p.d} class={`piece ${fill.includes(i) ? 'colored' : ''} ${faded.includes(i) ? 'gone' : ''}`}
-          fill={fill.includes(i) ? CRAYON : faded.includes(i) ? '#eef1f4' : 'transparent'}
+        <path key={`f${i}`} d={p.d} class={`piece ${fill.includes(i) ? 'colored' : ''}`}
+          fill={fill.includes(i) ? CRAYON : 'transparent'} fill-opacity={fill.includes(i) ? 0.6 : undefined}
           onPointerDown={onTap ? e => { e.preventDefault(); onTap(i); } : undefined} />
       ))}</g>
       {cuts && <path d={cuts} fill="none" stroke="#fff" stroke-width="7" stroke-linecap="round" pointer-events="none" />}
@@ -128,3 +158,5 @@ export function Picture({ picture, colored, lit = [], labels, onTap, faded = [],
 /** Pieces of a whole: the drawing as cut into d equal pieces, with the first `shaded` coloured. */
 export const equalPicture = (food: Pic['food'], d: number, shaded = 0) =>
   ({ food, pieces: Array.from({ length: d }, () => 1 / d), shaded: Array.from({ length: shaded }, (_, i) => i) });
+/** A part as the food left on the plate: the first n of d equal pieces are there, the rest have been eaten. */
+export const leftOf = (n: number) => Array.from({ length: n }, (_, i) => i);

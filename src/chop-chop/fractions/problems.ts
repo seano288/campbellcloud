@@ -62,7 +62,7 @@ export function makeName(level: Level, rng: Rng, words: Words, avoid?: Den): Nam
   return { kind: 'name', picture: cut(food, d, 1), d, choices: [...others, d].sort((a, b) => a - b) };
 }
 
-// ---------- Find It: which picture shows the part he hears? ----------
+// ---------- Find It: which food has the part he hears left? ----------
 
 export const FIND_TARGETS: Record<Level, readonly SaidFrac[]> = {
   1: ['1/2', '1/4'], 2: ['1/2', '1/3', '1/4', '1/6', '1/8'], 3: ['2/3', '3/4', '3/8', '5/8', '5/6', '2/4'],
@@ -79,7 +79,7 @@ export function makeFind(level: Level, rng: Rng, words: Words, avoid?: Frac): Fi
   // the others never show the same amount (two quarters is one half too), nor the same amount as each other
   const pool = shuffle(rng, FIND_OTHERS[level].map(f).filter(c => knows(words, c))), others: Frac[] = [];
   for (const c of pool) if (others.length < 2 && !same(c, target) && !others.some(o => same(o, c))) others.push(c);
-  // too few words he knows yet: the whole thing coloured, or nothing, cut the same way
+  // too few words he knows yet: the whole thing, or all of it eaten, cut the same way
   for (const c of shuffle(rng, [{ n: target.d, d: target.d }, { n: 0, d: target.d }])) if (others.length < 2) others.push(c);
   // at Level 3 one of the others is cut the same way, so counting the pieces isn't enough
   if (level === 3 && !others.some(o => o.d === target.d)) {
@@ -191,7 +191,7 @@ export function problemPhrases(): FractionPhrase[] {
     for (let k = 1; k <= d; k++) out.push(coloredLine(k, d));
   }
   for (const l of [1, 2, 3] as const) {
-    for (const t of FIND_TARGETS[l]) out.push(findLine(f(t)));
+    for (const t of FIND_TARGETS[l]) for (const food of FOODS) out.push(findLine(f(t), food));
     for (const [t, d] of COLOR_TARGETS[l]) { for (const food of FOODS) out.push(colorLine(f(t), food)); out.push(partOf(f(t), d)); }
     for (const [x, y] of BIGGER_PAIRS[l]) {
       out.push(whichBigger(f(x), f(y)), whichBigger(f(y), f(x)));

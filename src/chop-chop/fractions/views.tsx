@@ -7,7 +7,7 @@ import {
   colorLine, cookiesAsk, findLine, fracWord, friendsShare, key, numberPhrase, PIECE_NAMES, same, tapOne, unit, whichBigger, whichFair, type Frac,
 } from './fraction';
 import { cutInto } from './fraction';
-import { equalPicture, Picture } from './Picture';
+import { equalPicture, leftOf, Picture } from './Picture';
 import { SAME, type BiggerProblem, type ColorProblem, type FairProblem, type FindProblem, type MeetProblem, type NameProblem, type ShareProblem } from './problems';
 import {
   clearLesson, helpWith, lessonFor, teachBigger, teachColor, teachFair, teachFind, teachMeet, teachName, teachShare, type Lesson,
@@ -97,14 +97,14 @@ export function FairView({ current }: { current: ProblemInstance<FairProblem, st
   );
 }
 
-/** Name the Piece: one food in equal pieces, one coloured; three names read aloud. */
+/** Name the Piece: one food in equal pieces, with one piece left; three names read aloud. */
 export function NameView({ current }: { current: ProblemInstance<NameProblem, string> }) {
   const p = current.problem, lesson = lessonFor(current.signal), { wrong, done, tap } = usePick(current);
   const speech: Item[] = [cutInto(p.picture.food, p.d), 'What is one piece called?', ...p.choices.map(d => ({ parts: [fracWord(unit(d))], light: `n${d}` }))];
   return (
     <div class="game words-q">
       <Ask text="What is one piece called?" speech={speech} />
-      <div class="big-picture"><Picture picture={p.picture} lit={lesson.lit.value} labels={lesson.labels.value ?? undefined} /></div>
+      <div class="big-picture"><Picture picture={p.picture} left={p.picture.shaded} colored={[]} lit={lesson.lit.value} labels={lesson.labels.value ?? undefined} /></div>
       <div class="choices words">
         {p.choices.map(d => {
           const a = `1/${d}`;
@@ -119,17 +119,17 @@ export function NameView({ current }: { current: ProblemInstance<NameProblem, st
   );
 }
 
-/** Find the Part: three pictures with some pieces coloured; one shows the part he hears. */
+/** Find the Part: three of the same food with some pieces eaten; one has the part he hears left. */
 export function FindView({ current }: { current: ProblemInstance<FindProblem, string> }) {
   const p = current.problem, lesson = lessonFor(current.signal), { wrong, done, tap } = usePick(current);
   return (
     <div class="game">
-      <Ask text={`Find ${fracWord(p.target)}`} speech={[findLine(p.target)]} />
+      <Ask text={`Find the ${p.food} with ${fracWord(p.target)} left`} speech={[findLine(p.target, p.food)]} />
       <div class="pictures">
         {p.choices.map((c, i) => (
           <button key={key(c)} class={`pic-btn ${wrong.includes(key(c)) ? 'wrong' : ''} ${done && same(c, p.target) ? 'right' : ''} ${lesson.pick.value === i ? 'lit' : ''}`}
             aria-label={`Picture ${i + 1}`} data-part={key(c)} disabled={wrong.includes(key(c))} onClick={() => tap(key(c))}>
-            <Picture picture={equalPicture(p.food, c.d, c.n)} lit={litFor(lesson, i)} labels={labelsFor(lesson, i)} />
+            <Picture picture={equalPicture(p.food, c.d)} left={leftOf(c.n)} lit={litFor(lesson, i)} labels={labelsFor(lesson, i)} />
           </button>
         ))}
       </div>
@@ -185,7 +185,7 @@ export function BiggerView({ current }: { current: ProblemInstance<BiggerProblem
           {parts.map(([f, k], i) => (
             <button key={k} class={`pic-btn ${wrong.includes(k) ? 'wrong' : ''} ${done && right === k ? 'right' : ''} ${lesson.pick.value === i ? 'lit' : ''}`}
               aria-label={fracWord(f)} disabled={p.words || wrong.includes(k)} onClick={() => tap(k)}>
-              <Picture picture={equalPicture(p.food, f.d, f.n)} lit={litFor(lesson, i)} />
+              <Picture picture={equalPicture(p.food, f.d)} left={leftOf(f.n)} lit={litFor(lesson, i)} />
               <span class="pic-name">{fracWord(f)}</span>
             </button>
           ))}
