@@ -15,7 +15,7 @@ export function FuelLock({ slot, onOpen, onClose }: { slot: SlotId; onOpen(): vo
   const voice = useVoiceScope(), learning = player.state.value.learning.modes;
   // as hard as his Color the Part (or Find the Part, until that opens)
   const level = (learning.color.opened ? learning.color.level : learning.find.level) as Level;
-  const p = useMemo(() => makeFuel(level, Math.random), []);
+  const p = useMemo(() => makeFuel(level, Math.random, player.state.value.learning.words), []);
   const [filled, setFilled] = useState(0);
   const [misses, setMisses] = useState(0);
   const [busy, setBusy] = useState(false);

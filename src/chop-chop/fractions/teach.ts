@@ -2,15 +2,15 @@
 // counted with a number on each, or fill with crayon: "Let's count the pieces. One, two, three, four. Four equal pieces
 // are quarters. So one piece is one quarter." Each problem has one Lesson (keyed by its lifetime), which the question
 // on screen reads. A first miss says what went wrong; once help steps in (the second miss, or the first when he's been
-// struggling) it teaches.
+// struggling) it teaches. Before any of that, each new word is met (teachMeet): shown on a food before it's asked.
 import { signal, type Signal } from '@preact/signals';
 import { sCount } from '../../audio/sfx';
 import { createVoiceTask, toast, type VoiceScope } from '../voice';
 import {
-  bigger, coloredLine, cutInto, eachGets, friendsNeed, isBigger, isSame, means, numberPhrase, onePieceIs, parseKey, partOf, piecesAre,
-  platesLine, same, thatShows, thisShows, youGet, type Frac,
+  bigger, coloredLine, cutEachInHalf, cutInto, eachGets, friendsNeed, HALF_OF, isBigger, isSame, makeTheWhole, means, MEET_CUTS, numberPhrase,
+  onePieceIs, parseKey, partOf, piecesAre, platesLine, same, thatOne, thisShows, wholeFood, youGet, type Frac,
 } from './fraction';
-import { piecesFor, type BiggerProblem, type ColorProblem, type FairProblem, type FindProblem, type NameProblem, type ShareProblem } from './problems';
+import { piecesFor, type BiggerProblem, type ColorProblem, type FairProblem, type FindProblem, type MeetProblem, type NameProblem, type ShareProblem } from './problems';
 
 export interface Lesson {
   /** Which of several pictures is being talked about. */
@@ -25,6 +25,8 @@ export interface Lesson {
   reveal: Signal<boolean>;
   /** Share It: how many cookies have been dealt onto the plates. */
   dealt: Signal<number>;
+  /** Meeting a word: how many pieces the food has been cut into so far. */
+  cut: Signal<number>;
   run: ReturnType<typeof createVoiceTask>;
 }
 
@@ -32,7 +34,7 @@ const lessons = new WeakMap<AbortSignal, Lesson>();
 export function lessonFor(lifetime: AbortSignal): Lesson {
   let l = lessons.get(lifetime);
   if (!l) {
-    l = { pick: signal(null), lit: signal([]), labels: signal(null), show: signal(null), reveal: signal(false), dealt: signal(0), run: createVoiceTask(lifetime) };
+    l = { pick: signal(null), lit: signal([]), labels: signal(null), show: signal(null), reveal: signal(false), dealt: signal(0), cut: signal(1), run: createVoiceTask(lifetime) };
     lessons.set(lifetime, l);
   }
   return l;
@@ -57,6 +59,30 @@ async function count(lesson: Lesson, voice: VoiceScope, pieces: readonly number[
     sCount(k + 1);
     await voice.say(numberPhrase(k + 1));
   }
+}
+
+// ---------- Meeting a new word ----------
+
+/**
+ * "A new word! Look! A whole pizza. The pizza is cut into two equal pieces. Two equal pieces are halves. Now cut each
+ * half in half! The pizza is cut into four equal pieces. Let's count the pieces. One, two, three, four. Four equal pieces
+ * are quarters. So one piece is one quarter. Half of a half is one quarter! Four quarters make the whole pizza!"
+ */
+export async function teachMeet(p: MeetProblem, lesson: Lesson, voice: VoiceScope) {
+  clearLesson(lesson);
+  await step(voice, () => { lesson.cut.value = 1; }, 'A new word!', wholeFood(p.food));
+  const cuts = MEET_CUTS[p.d];
+  for (const [i, d] of cuts.entries()) {
+    if (i > 0) await step(voice, () => { lesson.lit.value = []; }, cutEachInHalf(cuts[i - 1] as 2 | 3 | 4));
+    await step(voice, () => { lesson.cut.value = d; lesson.lit.value = []; lesson.labels.value = null; }, cutInto(p.food, d));
+    if (d !== p.d) { await step(voice, () => { lesson.lit.value = all(d); }, piecesAre(d)); continue; } // on the way to the new word
+    await voice.say("Let's count the pieces.");
+    await count(lesson, voice, all(d));
+    await step(voice, () => { lesson.labels.value = null; lesson.lit.value = all(d); }, piecesAre(d));
+    await step(voice, () => { lesson.lit.value = [0]; }, onePieceIs(d), ...(p.d in HALF_OF ? [HALF_OF[p.d as keyof typeof HALF_OF]] : []));
+    await step(voice, () => { lesson.lit.value = all(d); }, makeTheWhole(d, p.food));
+  }
+  if (voice.active) clearLesson(lesson);
 }
 
 // ---------- Fair Shares ----------
@@ -98,7 +124,7 @@ export async function teachFind(p: FindProblem, lesson: Lesson, voice: VoiceScop
 export async function explainFind(p: FindProblem, answer: string, teach: boolean, lifetime: AbortSignal) {
   const lesson = lessonFor(lifetime), voice = lesson.run.start(), wrong = parseKey(answer);
   if (!teach && wrong) {
-    await step(voice, () => { lesson.pick.value = p.choices.findIndex(c => same(c, wrong)); lesson.lit.value = all(wrong.n); }, thatShows(wrong), 'Try again!');
+    await step(voice, () => { lesson.pick.value = p.choices.findIndex(c => same(c, wrong)); lesson.lit.value = all(wrong.n); }, thatOne(wrong), 'Try again!');
     if (voice.active) clearLesson(lesson);
     return;
   }

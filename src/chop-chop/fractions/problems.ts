@@ -1,9 +1,12 @@
 // The six kinds of fraction question, Level by Level. Each starts with the idea and only later asks for the words:
 // first "are these pieces fair?", then what one piece is called, then finding, colouring and comparing parts, and
 // sharing a pile fairly. Every kind has three Levels; the tables below say what each Level asks.
+//
+// A question only uses the piece words he may hear (`words`: the ones he has met, and maybe the next one, which he meets
+// just before the question; see src/chop-chop/mix.ts). A kind that can't ask anything with those words returns null.
 import { pick, shuffle, type Rng } from '../../game/rng';
 import {
-  bigger, colorLine, cookiesAsk, cut, cutInto, DENS, eachGets, equalPieces, fillLine, filledLine, findLine, FOODS, FRAC_WORDS, fracWord,
+  bigger, colorLine, cutEachInHalf, HALF_OF, makeTheWhole, MEET_CUTS, tapOne, thatOne, wholeFood, WORD_ORDER, cookiesAsk, cut, cutInto, DENS, eachGets, equalPieces, fillLine, filledLine, findLine, FOODS, FRAC_WORDS, fracWord,
   friendsNeed, friendsShare, isBigger, isSame, key, means, numberPhrase, onePieceIs, parseKey, partOf, partsOfTank, piecesAre, platesLine,
   coloredLine, same, thatShows, thisShows, unit, whichBigger, whichFair, youGet,
   type Den, type Food, type Frac, type FractionPhrase, type Picture, type SaidFrac,
@@ -11,6 +14,9 @@ import {
 
 export type Level = 1 | 2 | 3;
 const f = (k: SaidFrac): Frac => parseKey(k)!;
+/** The piece words he may hear. */
+export type Words = readonly Den[];
+const knows = (words: Words, ...fracs: Frac[]) => fracs.every(x => words.includes(x.d));
 
 // ---------- Fair Shares: which one is cut into equal pieces? ----------
 
@@ -44,12 +50,15 @@ export function makeFair(level: Level, rng: Rng): FairProblem {
 // ---------- Name the Piece: what is one piece called? ----------
 
 export const NAME_DENS: Record<Level, readonly Den[]> = { 1: [2, 4], 2: [2, 3, 4], 3: [3, 4, 6, 8] };
-const NAME_CHOICES: Record<Level, readonly Den[]> = { 1: [2, 3, 4], 2: [2, 3, 4, 6], 3: DENS };
+const NAME_CHOICES: Record<Level, readonly Den[]> = { 1: [2, 4], 2: [2, 3, 4, 6], 3: DENS };
 export interface NameProblem { readonly kind: 'name'; readonly picture: Picture; readonly d: Den; readonly choices: readonly Den[] }
 
-export function makeName(level: Level, rng: Rng, avoid?: Den): NameProblem {
-  const food = pick(rng, FOODS), options = NAME_DENS[level].filter(d => d !== avoid), d = pick(rng, options.length ? options : NAME_DENS[level]);
-  const others = shuffle(rng, NAME_CHOICES[level].filter(x => x !== d)).slice(0, 2);
+export function makeName(level: Level, rng: Rng, words: Words, avoid?: Den): NameProblem | null {
+  const known = NAME_DENS[level].filter(d => words.includes(d)), options = known.filter(d => d !== avoid);
+  if (!known.length) return null;
+  const food = pick(rng, FOODS), d = pick(rng, options.length ? options : known);
+  const others = shuffle(rng, NAME_CHOICES[level].filter(x => x !== d && words.includes(x))).slice(0, 2);
+  if (!others.length) return null; // he knows only one word: nothing to choose between yet
   return { kind: 'name', picture: cut(food, d, 1), d, choices: [...others, d].sort((a, b) => a - b) };
 }
 
@@ -59,15 +68,19 @@ export const FIND_TARGETS: Record<Level, readonly SaidFrac[]> = {
   1: ['1/2', '1/4'], 2: ['1/2', '1/3', '1/4', '1/6', '1/8'], 3: ['2/3', '3/4', '3/8', '5/8', '5/6', '2/4'],
 };
 const FIND_OTHERS: Record<Level, readonly SaidFrac[]> = {
-  1: ['1/2', '1/3', '1/4'], 2: ['1/2', '1/3', '1/4', '1/6', '1/8'], 3: ['1/3', '1/4', '2/3', '3/4', '3/8', '5/8', '5/6', '1/8', '1/6', '2/6'],
+  1: ['1/2', '1/4'], 2: ['1/2', '1/3', '1/4', '1/6', '1/8'], 3: ['1/3', '1/4', '2/3', '3/4', '3/8', '5/8', '5/6', '1/8', '1/6', '2/6'],
 };
 export interface FindProblem { readonly kind: 'find'; readonly food: Food; readonly target: Frac; readonly choices: readonly Frac[] }
 
-export function makeFind(level: Level, rng: Rng, avoid?: Frac): FindProblem {
-  const options = FIND_TARGETS[level].map(f).filter(t => !avoid || !same(t, avoid)), target = pick(rng, options);
+export function makeFind(level: Level, rng: Rng, words: Words, avoid?: Frac): FindProblem | null {
+  const known = FIND_TARGETS[level].map(f).filter(t => knows(words, t)), options = known.filter(t => !avoid || !same(t, avoid));
+  if (!known.length) return null;
+  const target = pick(rng, options.length ? options : known);
   // the others never show the same amount (two quarters is one half too), nor the same amount as each other
-  const pool = shuffle(rng, FIND_OTHERS[level].map(f)), others: Frac[] = [];
+  const pool = shuffle(rng, FIND_OTHERS[level].map(f).filter(c => knows(words, c))), others: Frac[] = [];
   for (const c of pool) if (others.length < 2 && !same(c, target) && !others.some(o => same(o, c))) others.push(c);
+  // too few words he knows yet: the whole thing coloured, or nothing, cut the same way
+  for (const c of shuffle(rng, [{ n: target.d, d: target.d }, { n: 0, d: target.d }])) if (others.length < 2) others.push(c);
   // at Level 3 one of the others is cut the same way, so counting the pieces isn't enough
   if (level === 3 && !others.some(o => o.d === target.d)) {
     const n = target.n === 1 ? target.d - 1 : 1, alt = { n, d: target.d };
@@ -85,8 +98,10 @@ export const COLOR_TARGETS: Record<Level, readonly [SaidFrac, Den][]> = {
 };
 export interface ColorProblem { readonly kind: 'color'; readonly food: Food; readonly target: Frac; readonly d: Den }
 
-export function makeColor(level: Level, rng: Rng, avoid?: Frac): ColorProblem {
-  const options = COLOR_TARGETS[level].filter(([t]) => !avoid || !same(f(t), avoid)), [t, d] = pick(rng, options.length ? options : COLOR_TARGETS[level]);
+export function makeColor(level: Level, rng: Rng, words: Words, avoid?: Frac): ColorProblem | null {
+  const known = COLOR_TARGETS[level].filter(([t]) => knows(words, f(t))), options = known.filter(([t]) => !avoid || !same(f(t), avoid));
+  if (!known.length) return null;
+  const [t, d] = pick(rng, options.length ? options : known);
   return { kind: 'color', food: pick(rng, FOODS), target: f(t), d };
 }
 /** How many pieces make the part. */
@@ -95,17 +110,18 @@ export const piecesFor = (p: { target: Frac; d: Den }) => (p.target.n * p.d) / p
 // ---------- Bigger Piece: which part is bigger (or are they the same)? ----------
 
 export const BIGGER_PAIRS: Record<Level, readonly [SaidFrac, SaidFrac][]> = {
-  1: [['1/2', '1/4'], ['1/2', '1/8']],
-  2: [['1/3', '1/6'], ['1/4', '1/8'], ['1/2', '1/3'], ['1/3', '1/4'], ['1/2', '1/6'], ['1/4', '1/6']],
+  1: [['1/2', '1/4']],
+  2: [['1/2', '1/8'], ['1/3', '1/6'], ['1/4', '1/8'], ['1/2', '1/3'], ['1/3', '1/4'], ['1/2', '1/6'], ['1/4', '1/6']],
   3: [['1/3', '1/8'], ['1/6', '1/8'], ['1/4', '1/6'], ['2/4', '1/2'], ['2/6', '1/3'], ['2/8', '1/4'], ['4/8', '1/2'], ['3/4', '1/4'], ['2/3', '1/3']],
 };
 export const SAME = 'same';
 /** At Levels 1 and 2 he taps one of two pictures; at Level 3 he hears the parts and taps a word (or "the same"). */
 export interface BiggerProblem { readonly kind: 'bigger'; readonly food: Food; readonly a: Frac; readonly b: Frac; readonly words: boolean }
 
-export function makeBigger(level: Level, rng: Rng, avoid?: string): BiggerProblem {
-  const options = BIGGER_PAIRS[level].filter(([x, y]) => `${x}|${y}` !== avoid);
-  const [x, y] = pick(rng, options.length ? options : BIGGER_PAIRS[level]), [a, b] = rng() < 0.5 ? [x, y] : [y, x];
+export function makeBigger(level: Level, rng: Rng, words: Words, avoid?: string): BiggerProblem | null {
+  const known = BIGGER_PAIRS[level].filter(([x, y]) => knows(words, f(x), f(y))), options = known.filter(([x, y]) => `${x}|${y}` !== avoid);
+  if (!known.length) return null;
+  const [x, y] = pick(rng, options.length ? options : known), [a, b] = rng() < 0.5 ? [x, y] : [y, x];
   return { kind: 'bigger', food: pick(rng, FOODS), a: f(a), b: f(b), words: level === 3 };
 }
 export const biggerAnswer = (p: Pick<BiggerProblem, 'a' | 'b'>) => (same(p.a, p.b) ? SAME : key(bigger(p.a, p.b) ? p.a : p.b));
@@ -127,12 +143,14 @@ function numberChoices(answer: number, near: number[], rng: Rng) {
   return [answer, ...others].sort((a, b) => a - b);
 }
 
-export function makeShare(level: Level, rng: Rng, avoid?: number): ShareProblem {
-  if (level === 1) {
+export function makeShare(level: Level, rng: Rng, words: Words, avoid?: number): ShareProblem | null {
+  if (level === 1) { // no piece words: one piece for each friend
     const options = FRIENDS.filter(n => n !== avoid), friends = pick(rng, options);
     return { kind: 'share', friends, food: pick(rng, FOODS), answer: friends, choices: numberChoices(friends, [friends - 1, friends + 1, friends * 2], rng) };
   }
-  const options = COOKIES[level].filter(([t]) => t !== avoid), [total, d] = pick(rng, options.length ? options : COOKIES[level]), answer = total / d;
+  const known = COOKIES[level].filter(([, d]) => words.includes(d)), options = known.filter(([t]) => t !== avoid);
+  if (!known.length) return null;
+  const [total, d] = pick(rng, options.length ? options : known), answer = total / d;
   return { kind: 'share', total, d, answer, choices: numberChoices(answer, [total, answer + 1, answer - 1, total - answer, answer * 2], rng) };
 }
 
@@ -144,7 +162,18 @@ export const FUEL_TARGETS: Record<Level, readonly [SaidFrac, Den][]> = {
   3: [['2/3', 6], ['5/6', 6], ['3/8', 8], ['5/8', 8], ['1/4', 8]],
 };
 export interface FuelProblem { readonly target: Frac; readonly d: Den }
-export const makeFuel = (level: Level, rng: Rng): FuelProblem => { const [t, d] = pick(rng, FUEL_TARGETS[level]); return { target: f(t), d }; };
+export function makeFuel(level: Level, rng: Rng, words: Words): FuelProblem {
+  // the easiest Level he has the words for (one half, at the least)
+  const known = ([level, 2, 1] as const).map(l => FUEL_TARGETS[l].filter(([t]) => knows(words, f(t)))).find(k => k.length) ?? [['1/2', 2] as const];
+  const [t, d] = pick(rng, known);
+  return { target: f(t), d };
+}
+
+// ---------- meeting a new word ----------
+
+/** The word he meets, shown on one food before any question asks it. Any one piece he taps is right. */
+export interface MeetProblem { readonly kind: 'meet'; readonly food: Food; readonly d: Den }
+export const makeMeet = (d: Den, rng: Rng): MeetProblem => ({ kind: 'meet', food: pick(rng, FOODS), d });
 
 // ---------- everything these questions can say ----------
 
@@ -174,5 +203,8 @@ export function problemPhrases(): FractionPhrase[] {
   for (const n of FRIENDS) { out.push(friendsNeed(n)); for (const food of FOODS) out.push(friendsShare(n, food)); }
   for (const l of [2, 3] as const) for (const [total, d] of COOKIES[l]) out.push(cookiesAsk(total, unit(d)), platesLine(d), eachGets(total / d), youGet(total / d));
   for (let n = 1; n <= 12; n++) out.push(numberPhrase(n));
+  out.push(thatOne({ n: 2, d: 2 }), thatOne({ n: 0, d: 2 }), ...FOODS.map(wholeFood), ...([2, 3, 4] as const).map(cutEachInHalf), ...Object.values(HALF_OF));
+  for (const d of WORD_ORDER) { out.push(tapOne(d)); for (const food of FOODS) out.push(makeTheWhole(d, food)); }
+  for (const d of WORD_ORDER) for (const c of MEET_CUTS[d]) out.push(piecesAre(c));
   return out;
 }

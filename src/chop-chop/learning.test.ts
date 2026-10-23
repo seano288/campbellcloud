@@ -1,15 +1,18 @@
 import { describe, expect, it } from 'vitest';
 import type { SolvedProblem } from '../learning/session';
 import { seeded } from '../game/rng';
-import { FRAC_WORDS, isEqual, key, parseKey, same, type SaidFrac } from './fractions/fraction';
-import { BIGGER_PAIRS, biggerAnswer, COLOR_TARGETS, COOKIES, FIND_TARGETS, FUEL_TARGETS, makeFair, makeFind, makeShare, piecesFor, problemPhrases, SAME } from './fractions/problems';
-import { freshLearning, MODE_IDS, readLearning, recordSolved, type LearningState, type ModeId } from './learning';
-import { isRight, makeProblem, mixedSession, pickNext } from './mix';
+import { DENS, FRAC_WORDS, isEqual, key, parseKey, same, WORD_ORDER, type SaidFrac } from './fractions/fraction';
+import {
+  BIGGER_PAIRS, biggerAnswer, COLOR_TARGETS, COOKIES, FIND_TARGETS, FUEL_TARGETS, makeFair, makeFind, makeName, makeShare, piecesFor, problemPhrases, SAME,
+} from './fractions/problems';
+import { freshLearning, MODE_IDS, readLearning, recordSolved, WORD_GAP, wordsFor, type LearningState, type ModeId } from './learning';
+import { isRight, makeProblem, mixedSession, pickNext, wordsIn, type Problem } from './mix';
 
 const clean: SolvedProblem = { index: 1, outcome: 'clean', misses: 0, helped: false, replay: false };
 const push = (mode: ModeId) => ({ mode, push: true });
 const at = (s: LearningState, levels: Partial<Record<ModeId, 1 | 2 | 3>>): LearningState =>
-  ({ modes: Object.fromEntries(MODE_IDS.map(m => [m, { ...s.modes[m], opened: true, level: levels[m] ?? 1 }])) as LearningState['modes'] });
+  ({ ...s, modes: Object.fromEntries(MODE_IDS.map(m => [m, { ...s.modes[m], opened: true, level: levels[m] ?? 1 }])) as LearningState['modes'] });
+const every = [...DENS];
 const noExplain = async () => {};
 const explainers = { fair: noExplain, name: noExplain, bigger: noExplain, find: noExplain, color: noExplain, share: noExplain };
 
@@ -64,7 +67,7 @@ describe('the mix', () => {
   it('makes questions whose right answer checks right, at every Level', () => {
     const rng = seeded(7);
     for (const mode of MODE_IDS) for (const level of [1, 2, 3] as const) for (let i = 0; i < 40; i++) {
-      const p = makeProblem({ mode, level, push: true }, rng);
+      const p = makeProblem({ mode, level, push: true }, rng, every)!;
       const right = (() => {
         switch (p.mode) {
           case 'fair': return String(p.q.answer);
@@ -73,6 +76,7 @@ describe('the mix', () => {
           case 'color': return `${piecesFor(p.q)}/${p.q.d}`;
           case 'bigger': return biggerAnswer(p.q);
           case 'share': return String(p.q.answer);
+          case 'meet': return '0';
         }
       })();
       expect(isRight(p, right)).toBe(true);
@@ -80,7 +84,7 @@ describe('the mix', () => {
     }
   });
   it('turns away things that are not answers', () => {
-    const p = makeProblem({ mode: 'color', level: 1, push: true }, seeded(2));
+    const p = makeProblem({ mode: 'color', level: 1, push: true }, seeded(2), every)!;
     expect(isRight(p, 'banana')).toBe(null);
     expect(isRight(p, '1/7')).toBe(null);
   });
@@ -98,14 +102,14 @@ describe('fraction questions', () => {
   it('never offers two pictures showing the same amount', () => {
     const rng = seeded(4);
     for (const level of [1, 2, 3] as const) for (let i = 0; i < 60; i++) {
-      const p = makeFind(level, rng);
+      const p = makeFind(level, rng, every)!;
       expect(p.choices).toHaveLength(3);
       for (const a of p.choices) expect(p.choices.filter(b => same(a, b))).toHaveLength(1);
     }
   });
   it('shares cookies into whole numbers', () => {
     for (const l of [2, 3] as const) for (const [total, d] of COOKIES[l]) expect(Number.isInteger(total / d)).toBe(true);
-    const p = makeShare(1, seeded(5));
+    const p = makeShare(1, seeded(5), [])!;
     expect('friends' in p && p.choices).toContain(p.answer);
   });
   it('colours and fills only parts that are a whole number of pieces', () => {
@@ -123,5 +127,50 @@ describe('fraction questions', () => {
     expect(phrases).toContain('Which is bigger, two quarters or one half?');
     expect(phrases).toContain('One half of four pieces is two pieces.');
     expect(phrases).toContain('There are eight cookies. You get one quarter of them. How many cookies do you get?');
+  });
+});
+
+describe('meeting the words', () => {
+  const clean1: SolvedProblem = { ...clean };
+  it('meets one half before the first question that says it, then asks that question', () => {
+    const s = freshLearning(), session = mixedSession(() => s, explainers), rng = seeded(11);
+    const seen: Problem[] = [];
+    for (let i = 0; i < 30; i++) seen.push(session.makeProblem(rng));
+    const first = seen.findIndex(p => wordsIn(p).length);
+    expect(seen[first]).toMatchObject({ mode: 'meet', q: { d: 2 } });
+    expect(wordsIn(seen[first + 1]!)).toContain(2);
+    for (const p of seen) for (const d of wordsIn(p)) expect(d).toBe(2); // only half, until he's met it and practised
+    expect(seen.filter(p => p.mode === 'meet')).toHaveLength(1);
+  });
+  it('lets the next word come only after enough right answers, in order: half, quarter, third, eighth, sixth', () => {
+    let s = freshLearning();
+    expect(wordsFor(s)).toEqual([2]);
+    for (const d of WORD_ORDER) {
+      expect(wordsFor(s).at(-1)).toBe(d);
+      s = recordSolved(s, { meet: d }, clean1).state;
+      expect(wordsFor(s)).toEqual(s.words);
+      for (let i = 0; i < WORD_GAP; i++) s = recordSolved(s, { mode: 'fair', push: false }, clean1).state;
+    }
+    expect(s.words).toEqual([...WORD_ORDER]);
+    expect(readLearning(JSON.parse(JSON.stringify(s)))).toMatchObject({ words: s.words, sinceWord: WORD_GAP });
+  });
+  it('never asks a word he may not hear', () => {
+    const rng = seeded(12);
+    for (const level of [1, 2, 3] as const) for (const words of [[2], [2, 4], [2, 4, 3]] as const) for (const mode of MODE_IDS) for (let i = 0; i < 20; i++) {
+      const p = makeProblem({ mode, level, push: true }, rng, words);
+      if (p) for (const d of wordsIn(p)) expect(words).toContain(d);
+    }
+  });
+  it('waits to name pieces until he knows two words, and finds one half against the whole and nothing', () => {
+    expect(makeName(1, seeded(1), [2])).toBe(null);
+    expect(makeName(1, seeded(1), [2, 4])!.choices).toEqual([2, 4]);
+    const p = makeFind(1, seeded(3), [2])!;
+    expect(p.target).toEqual({ n: 1, d: 2 });
+    expect(p.choices.map(key).sort()).toEqual(['0/2', '1/2', '2/2']);
+  });
+  it('takes any one piece as right when meeting a word', () => {
+    const p: Problem = { mode: 'meet', level: 1, push: false, q: { kind: 'meet', food: 'pizza', d: 4 } };
+    expect(isRight(p, '3')).toBe(true);
+    expect(isRight(p, '4')).toBe(null);
   });
 });

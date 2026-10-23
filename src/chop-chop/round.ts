@@ -55,7 +55,7 @@ export function startRound(resume: readonly SolvedProblem[] = []) {
     solved: (roundId, fact) => {
       const asked = controller.display.peek().current.problem;
       session.note(fact.outcome);
-      const committed = practice.solve(roundId, fact, { mode: asked.mode, push: asked.push });
+      const committed = practice.solve(roundId, fact, asked.mode === 'meet' ? { meet: asked.q.d } : { mode: asked.mode, push: asked.push });
       if (committed.kind !== 'accepted') return;
       soFar = [...soFar, fact];
       place.round({ mode: 'mix', results: soFar });

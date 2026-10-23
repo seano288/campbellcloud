@@ -8,7 +8,8 @@ called, parts of a whole, bigger and smaller pieces, sharing) before any notatio
 pizzas, cakes, chocolate bars and cookies, and words like "one quarter" and "three of the four equal pieces". He spends
 the Bolts he earns building a helicopter in the 3D hangar.
 
-Research behind this spec: `research/BRIEF.md` and one note per helicopter in `research/helis/` (written by Haiku agents).
+Research behind this spec: `research/BRIEF.md`, `research/beginner-fractions.md` (teaching a total beginner) and one note per
+helicopter in `research/helis/` (written by Haiku agents).
 
 ## Learning: six kinds of question, three Levels each
 
@@ -17,11 +18,21 @@ are at that kind's Level and count toward Mastery; about one in three, and alway
 an easier Level. When he has been missing a lot, help steps in after a single miss. Mastery is 16 of the last 20 right on
 the first try without help, **or 10 in a row** (so a child who clearly has it isn't held back).
 
+**Every word is met before it's asked (2026-10-23).** He didn't know what "one quarter" meant, so no question uses a piece
+word he hasn't met. The words come one at a time, in this order: half, quarter, third, eighth, sixth. Half comes first.
+Each later word comes after 8 more questions right on the first try. When a question is about to use the next word, he
+meets the word first. A food appears whole and is cut while he watches: a quarter is a half cut in half again, an eighth
+is a quarter cut in half, and a sixth is a third cut in half. The pieces are counted and named ("So one piece is one
+quarter. Half of a half is one quarter! Four quarters make the whole pizza!"). Then he taps any one piece ("Tap one
+quarter!"), and the question is asked. A kind that can't ask anything with his words yet sits out, so Name the Piece waits
+until he knows half and quarter. Before he knows a second word, Find the Part shows one half beside the whole thing
+coloured and nothing coloured.
+
 | Kind | Opens | Level 1 | Level 2 | Level 3 |
 |---|---|---|---|---|
 | ⚖️ Fair Shares: which one is cut into equal pieces? | start | halves | thirds, quarters | quarters, sixths, eighths |
-| 🍕 Name the Piece: what is one piece called? | Fair Shares L2 | half or quarter | + third | + sixth, eighth |
-| 🍰 Bigger Piece: which is bigger? | Name the Piece L2 | half vs quarter/eighth, pictures | thirds/sixths, quarters/eighths…, pictures | words only, and "the same" (two quarters = one half) |
+| 🍕 Name the Piece: what is one piece called? | Fair Shares L2 | half or quarter (only those two offered) | + third | + sixth, eighth |
+| 🍰 Bigger Piece: which is bigger? | Name the Piece L2 | half vs quarter, pictures | half/eighth, thirds/sixths, quarters/eighths…, pictures | words only, and "the same" (two quarters = one half) |
 | 🔎 Find the Part: tap the picture showing "one half" | start | one half, one quarter | any unit part | "three quarters", "two thirds", "five eighths"… |
 | 🖍️ Color the Part: colour one half of the cake | Find the Part L2 | half of 2 or 4, quarter of 4 | thirds, three quarters, half of 6 or 8 | two thirds, three eighths, five sixths… |
 | 🍪 Share It | start | N friends share a pizza: how many pieces? | half of a pile of cookies | a quarter or a third of a pile |

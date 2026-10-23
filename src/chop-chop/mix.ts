@@ -2,20 +2,24 @@
 // one twice in a row, when there's a choice), then how hard: mostly at that kind's Level, which pushes him and counts
 // toward Mastery, with about one in three from an easier Level for a quick win. Right after a miss the next one is
 // always easier, and when he's been missing a lot help steps in after a single miss.
+//
+// No question uses a piece word he hasn't met. When one is about to use the next word (src/chop-chop/learning.ts says
+// when it may), he meets the word first: it's cut and named on a food (fractions/teach.ts, teachMeet), he taps one piece,
+// and then that question is asked.
 import { int, pick, shuffle, type Rng } from '../game/rng';
 import type { Check, LearningSession, Outcome } from '../learning/session';
 import { struggling } from '../modes/progress';
-import { key, parseKey, same } from './fractions/fraction';
+import { key, parseKey, same, WORD_ORDER, type Den } from './fractions/fraction';
 import {
-  biggerAnswer, makeBigger, makeColor, makeFair, makeFind, makeName, makeShare, piecesFor, SAME,
-  type BiggerProblem, type ColorProblem, type FairProblem, type FindProblem, type Level, type NameProblem, type ShareProblem,
+  biggerAnswer, makeBigger, makeColor, makeFair, makeFind, makeMeet, makeName, makeShare, piecesFor, SAME,
+  type BiggerProblem, type ColorProblem, type FairProblem, type FindProblem, type Level, type MeetProblem, type NameProblem, type ShareProblem, type Words,
 } from './fractions/problems';
-import { MODE_IDS, verdict, type Asked, type Explanation, type LearningState, type ModeId } from './learning';
+import { MODE_IDS, verdict, wordsFor, type Explanation, type LearningState, type ModeId } from './learning';
 
 /** About one question in three comes from an easier Level. */
 export const EASY_SHARE = 1 / 3;
 
-interface Base extends Asked { readonly level: Level }
+interface Base { readonly mode: ModeId; readonly push: boolean; readonly level: Level }
 interface Shape { readonly level: Level; readonly push: boolean }
 export type Problem =
   | Shape & { readonly mode: 'fair'; readonly q: FairProblem }
@@ -23,11 +27,12 @@ export type Problem =
   | Shape & { readonly mode: 'bigger'; readonly q: BiggerProblem }
   | Shape & { readonly mode: 'find'; readonly q: FindProblem }
   | Shape & { readonly mode: 'color'; readonly q: ColorProblem }
-  | Shape & { readonly mode: 'share'; readonly q: ShareProblem };
+  | Shape & { readonly mode: 'share'; readonly q: ShareProblem }
+  | Shape & { readonly mode: 'meet'; readonly q: MeetProblem };
 
 /** The kind and Level of the next question. `last`: the kind just asked, and whether he missed it. */
-export function pickNext(state: LearningState, rng: Rng, last?: { mode: ModeId; missed: boolean }): Base {
-  const open = MODE_IDS.filter(m => state.modes[m].opened);
+export function pickNext(state: LearningState, rng: Rng, last?: { mode: ModeId; missed: boolean }, skip: readonly ModeId[] = []): Base {
+  const open = MODE_IDS.filter(m => state.modes[m].opened && !skip.includes(m));
   const others = open.filter(m => m !== last?.mode);
   const mode = pick(rng, others.length ? others : open), top = state.modes[mode].level as Level;
   const easy = top > 1 && (last?.missed || rng() < EASY_SHARE);
@@ -42,9 +47,11 @@ export interface Explainers {
   color: Explanation<ColorProblem>;
   share: Explanation<ShareProblem>;
 }
+const explainMeet: Explanation<MeetProblem> = async () => {}; // any piece is right
 
 /** What the last question of each kind was, so the next one of that kind asks something else. */
 const avoidOf = (p: Problem | undefined) => {
+  if (p?.mode === 'meet') return undefined;
   if (!p) return undefined;
   switch (p.mode) {
     case 'name': return p.q.d;
@@ -55,15 +62,41 @@ const avoidOf = (p: Problem | undefined) => {
   }
 };
 
-export function makeProblem(base: Base, rng: Rng, last: Partial<Record<ModeId, Problem>> = {}): Problem {
+/** A question of this kind and Level, using only `words`; null when there's nothing it can ask with them yet. */
+export function makeProblem(base: Base, rng: Rng, words: Words, last: Partial<Record<ModeId, Problem>> = {}): Problem | null {
   const { level, push } = base, avoid = avoidOf(last[base.mode]) as never;
   switch (base.mode) {
     case 'fair': return { level, push, mode: 'fair', q: makeFair(level, rng) };
-    case 'name': return { level, push, mode: 'name', q: makeName(level, rng, avoid) };
-    case 'bigger': return { level, push, mode: 'bigger', q: makeBigger(level, rng, avoid) };
-    case 'find': return { level, push, mode: 'find', q: makeFind(level, rng, avoid) };
-    case 'color': return { level, push, mode: 'color', q: makeColor(level, rng, avoid) };
-    case 'share': return { level, push, mode: 'share', q: makeShare(level, rng, avoid) };
+    case 'name': { const q = makeName(level, rng, words, avoid); return q && { level, push, mode: 'name', q }; }
+    case 'bigger': { const q = makeBigger(level, rng, words, avoid); return q && { level, push, mode: 'bigger', q }; }
+    case 'find': { const q = makeFind(level, rng, words, avoid); return q && { level, push, mode: 'find', q }; }
+    case 'color': { const q = makeColor(level, rng, words, avoid); return q && { level, push, mode: 'color', q }; }
+    case 'share': { const q = makeShare(level, rng, words, avoid); return q && { level, push, mode: 'share', q }; }
+  }
+}
+
+/** The piece words a question says (or says when he misses). */
+export function wordsIn(p: Problem): Den[] {
+  switch (p.mode) {
+    case 'fair': return [];
+    case 'name': return [...p.q.choices];
+    case 'find': return p.q.choices.filter(c => c.n > 0 && c.n < c.d).map(c => c.d);
+    case 'color': return [p.q.target.d];
+    case 'bigger': return [p.q.a.d, p.q.b.d];
+    case 'share': return 'friends' in p.q ? [] : [p.q.d];
+    case 'meet': return [p.q.d];
+  }
+}
+
+/** The next question: a kind he has open that can ask something with the words he may hear (Fair Shares always can). */
+function nextQuestion(state: LearningState, rng: Rng, words: Words, last: Partial<Record<ModeId, Problem>>, prev?: { mode: ModeId; missed: boolean }): Problem {
+  const skip: ModeId[] = [];
+  for (;;) {
+    const base = pickNext(state, rng, prev, skip), top = state.modes[base.mode].level as Level;
+    const p = makeProblem(base, rng, words, last) ?? (base.level < top ? makeProblem({ ...base, level: top, push: true }, rng, words, last) : null);
+    if (p) return p;
+    skip.push(base.mode);
+    if (skip.length >= MODE_IDS.length) return makeProblem({ mode: 'fair', level: 1, push: false }, rng, words)!;
   }
 }
 
@@ -76,19 +109,28 @@ export function isRight(p: Problem, answer: string): boolean | null {
     case 'color': { const f = parseKey(answer); return f && f.d === p.q.d ? f.n === piecesFor(p.q) : null; }
     case 'bigger': return answer === SAME || answer === key(p.q.a) || answer === key(p.q.b) ? answer === biggerAnswer(p.q) : null;
     case 'share': { const n = Number(answer); return p.q.choices.includes(n) ? n === p.q.answer : null; }
+    case 'meet': { const i = Number(answer); return Number.isInteger(i) && i >= 0 && i < p.q.d ? true : null; }
   }
 }
 
 /** The Round's questions. `note` hears how each one went, so a miss is followed by an easier one. */
 export function mixedSession(read: () => LearningState, explain: Explainers): LearningSession<Problem, string> & { note(outcome: Outcome): void } {
-  let current: Problem | undefined, missed = false;
-  const last: Partial<Record<ModeId, Problem>> = {};
+  let current: Problem | undefined, missed = false, waiting: Problem | undefined;
+  const last: Partial<Record<ModeId, Problem>> = {}, met = new Set<Den>();
   return {
     makeProblem(rng) {
-      const next = pickNext(read(), rng, current && { mode: current.mode, missed });
-      current = makeProblem(next, rng, last);
-      last[current.mode] = current;
-      return current;
+      const state = read(), known = [...new Set([...state.words, ...met])];
+      const prev = current && current.mode !== 'meet' ? { mode: current.mode, missed } : undefined;
+      const next = waiting ?? nextQuestion(state, rng, wordsFor({ words: known, sinceWord: state.sinceWord }), last, prev);
+      waiting = undefined;
+      const fresh = WORD_ORDER.find(d => wordsIn(next).includes(d) && !known.includes(d));
+      if (fresh) { // meet the word, then ask the question
+        met.add(fresh);
+        waiting = next;
+        return (current = { level: 1, push: false, mode: 'meet', q: makeMeet(fresh, rng) });
+      }
+      if (next.mode !== 'meet') last[next.mode] = next;
+      return (current = next);
     },
     replay(p, rng) {
       // the same question again, its choices in a new order
@@ -99,10 +141,10 @@ export function mixedSession(read: () => LearningState, explain: Explainers): Le
     check(p, answer): Check {
       const right = isRight(p, answer);
       if (right === null) return { kind: 'not-an-answer' };
-      const e = explain[p.mode] as Explanation<Problem['q']>;
+      const e = (p.mode === 'meet' ? explainMeet : explain[p.mode]) as Explanation<Problem['q']>;
       return verdict(right, p.q, answer, e);
     },
-    needsEarlyHelp: () => !!current && struggling(read().modes[current.mode]),
+    needsEarlyHelp: () => !!current && current.mode !== 'meet' && struggling(read().modes[current.mode]),
     note(outcome) { missed = outcome !== 'clean'; },
   };
 }

@@ -74,6 +74,8 @@ export const means = (f: Frac) => `${cap(fracWord(f))} means ${numberWord(f.n)} 
 /** "This one shows three quarters!" / "That one shows one third." */
 export const thisShows = (f: Frac) => `This one shows ${fracWord(f)}!` as `This one shows ${string}!`;
 export const thatShows = (f: Frac) => `That one shows ${fracWord(f)}.` as `That one shows ${string}.`;
+/** What a wrong picture shows, including the whole thing and nothing (the other choices before he knows two words). */
+export const thatOne = (f: Frac) => (f.n === f.d ? 'That one is the whole thing.' : f.n === 0 ? 'Nothing is colored on that one.' : thatShows(f));
 /** "The pizza is cut into four equal pieces." */
 export const cutInto = (food: Food, d: Den) => `The ${food} is cut into ${numberWord(d)} equal pieces.` as `The ${Food} is cut into ${string} equal pieces.`;
 /** "Find three quarters!" */
@@ -111,6 +113,26 @@ export const partsOfTank = (f: Frac, d: Den) => {
   return `${cap(fracWord(f))} of ${numberWord(d)} parts is ${numberWord(k)} ${k === 1 ? 'part' : 'parts'}.` as `${string} of ${string} parts is ${string} ${'part' | 'parts'}.`;
 };
 
+// ---------- meeting a new word, before he is ever asked about it ----------
+// Each word is shown before it's asked: "Look! A whole pizza. The pizza is cut into two equal pieces. … Two equal pieces
+// are halves. So one piece is one half. Two halves make the whole pizza!" A quarter is met as half of a half, an eighth
+// as half of a quarter and a sixth as half of a third.
+
+/** The order he meets the words in: halves first, then quarters (half of a half), thirds, and eighths and sixths last. */
+export const WORD_ORDER = [2, 4, 3, 8, 6] as const satisfies readonly Den[];
+/** How a word is cut: straight into thirds, or by halving again (quarters are halves cut in half). */
+export const MEET_CUTS: Record<Den, readonly Den[]> = { 2: [2], 4: [2, 4], 3: [3], 8: [4, 8], 6: [3, 6] };
+/** "Look! A whole pizza." */
+export const wholeFood = (food: Food) => `Look! A whole ${food}.` as `Look! A whole ${Food}.`;
+/** "Now cut each half in half!" */
+export const cutEachInHalf = (d: 2 | 3 | 4) => `Now cut each ${PIECE_NAMES[d][0]} in half!` as `Now cut each ${'half' | 'third' | 'quarter'} in half!`;
+/** "Half of a half is one quarter!" */
+export const HALF_OF = { 4: 'Half of a half is one quarter!', 8: 'Half of a quarter is one eighth!', 6: 'Half of a third is one sixth!' } as const;
+/** "Four quarters make the whole pizza!" */
+export const makeTheWhole = (d: Den, food: Food) => `${cap(numberWord(d))} ${PIECE_NAMES[d][1]} make the whole ${food}!` as `${string} ${PiecePlural} make the whole ${Food}!`;
+/** "Tap one quarter!": any one piece is right. */
+export const tapOne = (d: Den) => `Tap ${fracWord(unit(d))}!` as `Tap ${string}!`;
+
 export type NumberPhrase = `${number}`;
 export const numberPhrase = (n: number) => String(n) as NumberPhrase;
 
@@ -118,7 +140,7 @@ export const FRACTION_LINES = [
   'Not quite!', 'Try again!', "Let's look together.", 'Look!', 'Tap the pieces to color them.', 'Color some pieces!',
   'Equal pieces are all the same size.', 'These pieces are all the same size!', 'These pieces are not the same size.',
   'What is one piece called?', 'More pieces means smaller pieces!', 'They are the same!', 'One piece for each friend!',
-  "Let's count the pieces.", 'Tap the tank to fill it.',
+  "Let's count the pieces.", 'Tap the tank to fill it.', 'A new word!', 'That one is the whole thing.', 'Nothing is colored on that one.',
 ] as const;
 export type FractionLine = (typeof FRACTION_LINES)[number];
 export type FractionPhrase = FractionLine | FracWord | NumberPhrase
@@ -126,4 +148,5 @@ export type FractionPhrase = FractionLine | FracWord | NumberPhrase
   | ReturnType<typeof cutInto> | ReturnType<typeof findLine> | ReturnType<typeof colorLine> | ReturnType<typeof coloredLine> | ReturnType<typeof partOf>
   | ReturnType<typeof whichBigger> | ReturnType<typeof isBigger> | ReturnType<typeof isSame> | ReturnType<typeof whichFair>
   | ReturnType<typeof friendsShare> | ReturnType<typeof friendsNeed> | ReturnType<typeof cookiesAsk> | ReturnType<typeof platesLine>
-  | ReturnType<typeof eachGets> | ReturnType<typeof youGet> | ReturnType<typeof fillLine> | ReturnType<typeof filledLine> | ReturnType<typeof partsOfTank>;
+  | ReturnType<typeof eachGets> | ReturnType<typeof youGet> | ReturnType<typeof fillLine> | ReturnType<typeof filledLine> | ReturnType<typeof partsOfTank>
+  | ReturnType<typeof wholeFood> | ReturnType<typeof cutEachInHalf> | (typeof HALF_OF)[keyof typeof HALF_OF] | ReturnType<typeof makeTheWhole> | ReturnType<typeof tapOne>;

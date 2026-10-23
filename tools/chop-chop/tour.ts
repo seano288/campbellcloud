@@ -18,6 +18,13 @@ const wait = (ms: number) => page.waitForTimeout(ms);
 const WORDS: Record<string, number> = { one: 1, two: 2, three: 3, four: 4, five: 5, six: 6, half: 2, third: 3, thirds: 3, quarter: 4, quarters: 4, sixth: 6, sixths: 6, eighth: 8, eighths: 8 };
 async function answer(page: Page, q: number) {
   const ask = (await page.locator('.ask h2').textContent()) ?? '';
+  if (ask.startsWith('A new word')) { // meeting a word: watch it cut and named, then tap any piece
+    await shot(`q${q}-meet`);
+    await page.locator('.fraction.tappable').waitFor({ timeout: 120000 });
+    await shot(`q${q}-met`);
+    await page.locator('.fraction.tappable .piece').first().click({ force: true });
+    return;
+  }
   if (await page.locator('.fraction.tappable').count()) { // Color the Part: colour n/d of the pieces
     const [, a, b] = /Color (\w+) (\w+)/.exec(ask) ?? [];
     const pieces = await page.locator('.fraction.tappable .piece').count(), k = (WORDS[a!]! * pieces) / WORDS[b!]!;

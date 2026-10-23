@@ -4,7 +4,7 @@ import type { ComponentChildren } from 'preact';
 import type { ProblemInstance } from '../learning/round';
 import { RoundScreen } from '../round/RoundScreen';
 import { IconButton, Stars } from '../ui/bits';
-import { BiggerView, ColorView, FairView, FindView, NameView, ShareView } from './fractions/views';
+import { BiggerView, ColorView, FairView, FindView, MeetView, NameView, ShareView } from './fractions/views';
 import { EndOverlay } from './EndOverlay';
 import type { Problem } from './mix';
 import { screen } from './nav';
@@ -20,7 +20,8 @@ function Question({ current }: { current: ProblemInstance<Problem, string> }) {
           : p.mode === 'bigger' ? <BiggerView current={as(p.q)} />
             : p.mode === 'find' ? <FindView current={as(p.q)} />
               : p.mode === 'color' ? <ColorView current={as(p.q)} />
-                : <ShareView current={as(p.q)} />}
+                : p.mode === 'meet' ? <MeetView current={as(p.q)} />
+                  : <ShareView current={as(p.q)} />}
     </VoiceBoundary>
   );
 }

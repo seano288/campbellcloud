@@ -1,21 +1,22 @@
-// The six fraction questions on screen. Every question is spoken as it appears (🔊 says it again), pictures are what he
+// The six fraction questions on screen, and meeting a new word. Every question is spoken as it appears (🔊 says it again), pictures are what he
 // taps wherever they can be, written answers read aloud while they light up, and 🔎 Help walks through the picture.
 import { useEffect, useState } from 'preact/hooks';
 import type { ProblemInstance } from '../../learning/round';
 import { speaking, useVoice, type Item } from '../voice';
 import {
-  colorLine, cookiesAsk, findLine, fracWord, friendsShare, key, numberPhrase, same, unit, whichBigger, whichFair, type Frac,
+  colorLine, cookiesAsk, findLine, fracWord, friendsShare, key, numberPhrase, PIECE_NAMES, same, tapOne, unit, whichBigger, whichFair, type Frac,
 } from './fraction';
 import { cutInto } from './fraction';
 import { equalPicture, Picture } from './Picture';
-import { SAME, type BiggerProblem, type ColorProblem, type FairProblem, type FindProblem, type NameProblem, type ShareProblem } from './problems';
+import { SAME, type BiggerProblem, type ColorProblem, type FairProblem, type FindProblem, type MeetProblem, type NameProblem, type ShareProblem } from './problems';
 import {
-  helpWith, lessonFor, teachBigger, teachColor, teachFair, teachFind, teachName, teachShare, type Lesson,
+  clearLesson, helpWith, lessonFor, teachBigger, teachColor, teachFair, teachFind, teachMeet, teachName, teachShare, type Lesson,
 } from './teach';
 
-export function Ask({ text, speech }: { text: string; speech: Item[] }) {
+/** The question, said as it appears (unless `quiet`) and again on 🔊. */
+export function Ask({ text, speech, quiet = false }: { text: string; speech: Item[]; quiet?: boolean }) {
   const { say } = useVoice();
-  useEffect(() => { void say(...speech); }, []);
+  useEffect(() => { if (!quiet) void say(...speech); }, []);
   return (
     <div class="ask">
       <button class="say-btn" aria-label="Say it again" onClick={() => void say(...speech)}>🔊</button>
@@ -41,6 +42,40 @@ function usePick(current: ProblemInstance<unknown, string>) {
     if (verdict === 'incorrect') setWrong([...wrong, answer]);
   }
   return { wrong, done, tap };
+}
+
+/** Meeting a new word: the food is cut and the pieces named while he watches, then he taps any one piece. */
+export function MeetView({ current }: { current: ProblemInstance<MeetProblem, string> }) {
+  const voice = useVoice(), p = current.problem, lesson = lessonFor(current.signal);
+  const [ready, setReady] = useState(false);
+  const [tapped, setTapped] = useState<number | null>(null);
+  useEffect(() => {
+    void (async () => {
+      await teachMeet(p, lesson, lesson.run.start());
+      if (current.signal.aborted) return;
+      clearLesson(lesson);
+      lesson.cut.value = p.d;
+      setReady(true);
+      await voice.say(tapOne(p.d));
+    })();
+  }, []);
+  function tapPiece(i: number) {
+    if (!ready || !voice.active || current.signal.aborted || tapped !== null) return;
+    if (current.actions.submit(String(i)) === 'correct') setTapped(i);
+  }
+  const name = PIECE_NAMES[p.d][0];
+  return (
+    <div class="game set">
+      <Ask text={ready ? `Tap one ${name}` : `A new word: ${name}`} speech={ready ? [tapOne(p.d)] : []} quiet />
+      <div class={`big-picture ${tapped !== null ? 'right' : ''}`}>
+        <Picture picture={equalPicture(p.food, lesson.cut.value)} colored={tapped === null ? [] : [tapped]} lit={lesson.lit.value}
+          labels={lesson.labels.value ?? undefined} onTap={ready ? tapPiece : undefined} />
+      </div>
+      <div class="helpers">
+        <Help run={() => current.actions.help(signal => helpWith(teachMeet)(p, signal).then(() => { if (!signal.aborted) lesson.cut.value = p.d; }))} />
+      </div>
+    </div>
+  );
 }
 
 /** Fair Shares: three of the same food, one cut into equal pieces. */
