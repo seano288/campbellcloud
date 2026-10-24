@@ -90,8 +90,11 @@ export function choicesFor(t: ClockTime, level: Level, rng: Rng, n = 3): ClockTi
 /** Snaps minutes to the Level's step (the long hand clicks between the marks it uses). */
 export const snap = (minutes: number, level: Level) => Math.round(minutes / STEP[level]) * STEP[level];
 
-/** A time to start a Set the Clock problem from: never the answer, and at Level 1 always o'clock. */
+/** A time to start a Set the Clock problem from: never the answer, and at Level 1 always o'clock (but never 12). */
 export const startingTime = (target: ClockTime, level: Level, rng: Rng): ClockTime => {
-  const start = level === 1 ? { hour: 12, minute: 0 } : fromMinutes(snap(int(rng, 0, 719), level));
-  return sameTime(start, target) ? shiftHour(start, 3) : start;
+  // never 12 o'clock at Level 1: there both hands point up, one hidden under the other
+  const start = level === 1 ? { hour: int(rng, 1, 11), minute: 0 } : fromMinutes(snap(int(rng, 0, 719), level));
+  if (!sameTime(start, target)) return start;
+  const moved = shiftHour(start, 3);
+  return level === 1 && moved.hour === 12 ? shiftHour(start, 4) : moved;
 };

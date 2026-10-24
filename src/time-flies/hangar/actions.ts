@@ -5,7 +5,7 @@ import { needBolts, type Phrase } from '../phrases';
 import type { Commit } from '../../save/store';
 import type { FliesState } from '../game';
 import {
-  BOUGHT_COLOURS, buyableName, colourItem, defaultFit, FREE_COLOUR, isStarter, JET_IDS, jetItem, LEGENDARY, modId, modName, BOLT_RUNGS,
+  BOUGHT_COLOURS, buyableName, colourItem, defaultFit, FREE_COLOUR, isColourItem, isJetItem, isStarter, JET_IDS, jetItem, LEGENDARY, modId, modName, BOLT_RUNGS, parseMod,
   type BoughtColour, type Buyable, type ColourId, type Fit, type JetId, type LegendaryId, type Rung, type SlotId, TOP,
 } from './catalog';
 import { affordable, boltsNeeded, chooseJet, fitColour, fitMod, goalOf, isLocked, openVault, selectGoal, setTailNumber as numberJet, waitingOn } from './hangar';
@@ -25,6 +25,10 @@ export const canAffordColour = (c: ColourId) => c !== FREE_COLOUR && canBuy(colo
 export const slotHasAffordable = (slot: SlotId) => BOLT_RUNGS.some(r => canAfford(slot, r)) || (slot === 'paint' && BOUGHT_COLOURS.some(canAffordColour));
 export const waitingFor = (slot: SlotId) => waitingOn(hangar(), modId(slot, LEGENDARY));
 export const goal = () => goalOf(hangar());
+/** The Goal, once he has the Bolts for it: the one thing in the Hangar that calls for a tap. */
+export const readyGoal = () => { const g = goal(); return g && canBuy(g) ? g : null; };
+/** The Slot whose hotspot leads to the ready Goal (a Colour is in Paint); null for an Aircraft or no ready Goal. */
+export const readyGoalSlot = (): SlotId | null => { const g = readyGoal(); return !g || isJetItem(g) ? null : isColourItem(g) ? 'paint' : parseMod(g).slot; };
 
 /** "Missiles. You need 4 more Bolts." */
 export const needLines = (x: Buyable): Phrase[] => [buyableName(x) as Phrase, needBolts(boltsNeeded(balance(), x))];

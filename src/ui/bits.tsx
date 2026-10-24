@@ -26,8 +26,8 @@ export function LevelDots({ level, of = 3 }: { level: number; of?: number }) {
   return <span class="lvl" aria-label={`Level ${level}`}>{Array.from({ length: of }, (_, i) => i + 1).map(i => <i key={i} class={i <= level ? 'on' : ''} />)}</span>;
 }
 
-export function IconButton({ onClick, label, class: cls = '', children }: { onClick: () => void; label: string; class?: string; children: ComponentChildren }) {
-  return <button class={`icon-btn ${cls}`} aria-label={label} onClick={onClick}>{children}</button>;
+export function IconButton({ onClick, label, class: cls = '', disabled, children }: { onClick: () => void; label: string; class?: string; disabled?: boolean; children: ComponentChildren }) {
+  return <button class={`icon-btn ${cls}`} aria-label={label} disabled={disabled} onClick={onClick}>{children}</button>;
 }
 
 /** The little red Truck drawn in 2D, for the Home tile and the celebration road. */

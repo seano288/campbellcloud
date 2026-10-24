@@ -35,7 +35,7 @@ export function QuizView({ current }: { current: ProblemInstance<QuizProblem, st
       {fact && <div class="fact">{fact}</div>}
       <div class="choices words">
         {p.choices.map(c => (
-          <button key={c} class={`choice ${wrong.includes(c) ? 'wrong' : ''} ${done && c === p.answer ? 'right' : ''} ${speaking.value === `q${c}` || lit === c ? 'speaking' : ''}`}
+          <button key={c} class={`choice ${wrong.includes(c) ? 'wrong' : ''} ${done && c === p.answer ? 'right' : ''} ${speaking.value === `q${c}` ? 'speaking' : ''} ${lit === c ? 'lit' : ''}`}
             disabled={wrong.includes(c)} onClick={() => tap(c)}>{c}</button>
         ))}
       </div>

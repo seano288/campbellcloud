@@ -14,7 +14,7 @@ export function JetPicker({ onDone }: { onDone(): void }) {
   useEffect(() => { void voice.say('Pick your first plane!'); }, []);
   return (
     <div class="screen picker-screen">
-      <h1 class="picker-title">✈️</h1>
+      <h1 class="picker-title">Pick your plane</h1>
       <div class="bodies">
         {STARTER_JETS.map(j => (
           <button key={j} class={`body-card ${chosen === j ? 'on' : ''}`} aria-label={JET_NAMES[j]} onClick={() => { sClink(); setChosen(j); void voice.say(JET_NAMES[j], nextFact(j)); }}>

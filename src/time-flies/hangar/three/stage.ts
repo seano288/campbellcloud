@@ -15,6 +15,7 @@ import { glow, Smoke, smokeColors } from './effects';
 import { buildJet, type BuiltJet } from './jet';
 import type { JetSpec } from './spec';
 import { Weapons, type FireResult } from './weapons';
+import { reducedMotion } from '../../motion';
 
 export interface HotspotPlace { x: number; y: number; visible: boolean }
 
@@ -52,7 +53,7 @@ export function spreadHotspots(places: Record<SlotId, HotspotPlace>, d: number) 
 }
 
 /** The camera's height of view, kept on screens at least NARROW wide for each 1 tall; narrower ones see wider. */
-const FOV = 34, NARROW = 0.9;
+const FOV = 34, NARROW = 1.25;
 
 export class HangarStage {
   private renderer: THREE.WebGLRenderer;
@@ -255,7 +256,7 @@ export class HangarStage {
     // the shorter way round
     while (to.theta - from.theta > Math.PI) to.theta -= Math.PI * 2;
     while (from.theta - to.theta > Math.PI) to.theta += Math.PI * 2;
-    this.tween = { t0: performance.now(), dur: 900, from, to, target0, target1 };
+    this.tween = { t0: performance.now(), dur: reducedMotion() ? 1 : 900, from, to, target0, target1 };
   }
 
   /** Runs the engines up for a moment: flames and spinning props, with the engine sound played by the caller. */

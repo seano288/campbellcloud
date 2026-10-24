@@ -27,7 +27,7 @@ export function GoalBar() {
   const tap = () => void say(...(bolts >= cost ? [`You can get ${buyableName(g)}!` as Phrase] : needLines(g)));
   return (
     <button class={`goalchip ${bolts >= cost ? 'ready' : ''}`} aria-label="Goal" onClick={tap}>
-      <span class={`gi ${isJetItem(g) ? 'body' : ''}`}><GoalIcon x={g} /></span>
+      <span class={`gi ${isJetItem(g) ? 'body' : ''}`}><GoalIcon x={g} /><span class="flag" aria-hidden="true">🎯</span></span>
       <span class="track"><i style={{ width: `${Math.min(100, (bolts / cost) * 100)}%` }} /></span>
       <span class="num">{Math.min(bolts, cost)}/{cost}</span>
       <Bolt size={20} />

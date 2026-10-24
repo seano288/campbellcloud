@@ -1,8 +1,9 @@
 // The Hangar: "Tap the plane". The 3D Aircraft stands in a real hangar with a hotspot on each Slot's part; tapping one
 // swings the camera there and opens that Slot's sheet of 5 Mods (bottom sheet in portrait, side panel in landscape).
-// Along the bottom, the Aircraft strip shows every Aircraft, the locked ones with their Bolt price. 🛫 Take Off flies it
-// off the runway into the sky, to fire its guns and weapons and land again; 🏆 opens the Trophy Shelf. Legendaries
-// wait in the Time Lock vault, opened by setting the clock.
+// Along the bottom, the Aircraft strip shows every Aircraft, the locked ones with their Bolt price. Only the Goal, once
+// he can buy it, pulses (its hotspot, tile or chip), so the Hangar asks for one tap at a time. 🛫 Take Off (on the stage)
+// flies it off the runway into the sky, to fire its guns and weapons and land again; 🏆 opens the Trophy Shelf. Paint
+// has two tabs, its Mods and the Colours. Legendaries wait in the Time Lock vault, opened by setting the clock.
 import { useEffect, useRef, useState } from 'preact/hooks';
 import type { ComponentChildren } from 'preact';
 import { sClink, sNope, sChime, sFanfare } from '../../audio/sfx';
@@ -15,10 +16,10 @@ import { FACTS, numberLine, type Phrase } from '../phrases';
 import { startRound } from '../round';
 import { useVoiceScope } from '../voice';
 import {
-  canAfford, canAffordColour, canAffordJet, currentFit, currentJet, goal, gotLine, isUnlocked, needLines, owns, ownsColour, setTailNumber, slotHasAffordable,
+  canAfford, canAffordColour, canAffordJet, currentFit, currentJet, goal, gotLine, isUnlocked, needLines, owns, ownsColour, readyGoal, readyGoalSlot, setTailNumber,
   stepJet, tapColour, tapJet, tapMod, vaultLine, waitingFor, waitLine,
 } from './actions';
-import { colourItem, COLOURS, FREE_COLOUR, isStarter, jetItem, JET_IDS, JET_NAMES, LEGENDARY, modId, modName, PROP_JETS, RUNGS, SLOTS, slotById, TOP, type ColourId, type JetId, type Rung, type SlotId } from './catalog';
+import { colourItem, COLOURS, isColourItem, FREE_COLOUR, isStarter, jetItem, JET_IDS, JET_NAMES, LEGENDARY, modId, modName, PROP_JETS, RUNGS, SLOTS, slotById, TOP, type ColourId, type JetId, type Rung, type SlotId } from './catalog';
 import { PRICES } from './hangar';
 import { JetArt } from './JetArt';
 import { JETS } from './jets';
@@ -38,6 +39,7 @@ export function HangarScreen({ goal: goalView, onShelf }: { goal: ComponentChild
   const hots = useRef<Partial<Record<SlotId, HTMLButtonElement | null>>>({});
   const [stage, setStage] = useState<HangarStage | null>(null);
   const [sheet, setSheet] = useState<SlotId | null>(null);
+  const [paintTab, setPaintTab] = useState<'mods' | 'colours'>('mods');
   const [picking, setPicking] = useState(false);
   const [flying, setFlying] = useState(false);
   const [vault, setVault] = useState<SlotId | null>(null);
@@ -50,7 +52,13 @@ export function HangarScreen({ goal: goalView, onShelf }: { goal: ComponentChild
     // three.js is in the main bundle, not a lazy chunk: an update can't leave the Hangar pointing at a chunk that's gone
     const st = new HangarStage(canvas.current!, stageEl.current!);
     st.onHotspots = places => {
-      spreadHotspots(places, (Object.values(hots.current).find(Boolean)?.offsetWidth ?? 66) + 8);
+      const d = Object.values(hots.current).find(Boolean)?.offsetWidth ?? 66, w = stageEl.current!.clientWidth, h = stageEl.current!.clientHeight;
+      // kept inside the stage and clear of the ◀ ▶ arrows (so none is cut off or covers one on a narrow phone), and spread
+      // apart again after each nudge inward so they don't pile up at the edge
+      const mx = d / 2 + (w < 600 ? 60 : 96), my = d / 2 + 10;
+      const clamp = () => { for (const p of Object.values(places)) { p.x = Math.min(Math.max(p.x, mx), w - mx); p.y = Math.min(Math.max(p.y, my), h - my); } };
+      for (let pass = 0; pass < 3; pass++) { clamp(); spreadHotspots(places, d + 8); }
+      clamp();
       for (const [slot, p] of Object.entries(places) as [SlotId, (typeof places)[SlotId]][]) {
         const el = hots.current[slot];
         if (!el) continue;
@@ -78,6 +86,7 @@ export function HangarScreen({ goal: goalView, onShelf }: { goal: ComponentChild
   function openSheet(slot: SlotId) {
     if (!voice.active) return;
     setSheet(slot); setPicking(false);
+    if (slot === 'paint') { const g = goal(); setPaintTab(g && isColourItem(g) ? 'colours' : 'mods'); }
     stage?.focus(slot);
     if (slot === 'engine') { engineSound(f.engine, prop); stage?.rev(); }
     if (slot === 'smoke') stage?.puff();
@@ -133,8 +142,6 @@ export function HangarScreen({ goal: goalView, onShelf }: { goal: ComponentChild
         <BoltPile count={bolts} />
         {goalView}
         <div class="spacer" />
-        <IconButton label="Trophies" class="trophies" onClick={() => { if (voice.active) { closeSheet(); onShelf(); } }}>🏆</IconButton>
-        <IconButton label="Take Off" class="show" onClick={takeOff}>🛫</IconButton>
         <IconButton label="Home" onClick={() => { if (voice.active) screen.value = 'home'; }}>🏠</IconButton>
         <IconButton label="Play" class="go" onClick={() => { if (voice.active) startRound(); }}>▶</IconButton>
       </header>
@@ -143,16 +150,18 @@ export function HangarScreen({ goal: goalView, onShelf }: { goal: ComponentChild
         {flying && stage ? <TakeOff stage={stage} canvas={canvas.current!} jet={jet} fit={f} onClose={() => setFlying(false)} /> : (
           <div class="garage-overlay">
             <button class="bodyname jetname" onClick={() => void say(JET_NAMES[jet], nextFact(jet))}>{JET_NAMES[jet]}</button>
+            <IconButton label="Trophies" class="trophies stage-btn tl" onClick={() => { if (voice.active) { closeSheet(); onShelf(); } }}>🏆</IconButton>
+            <IconButton label="Take Off" class="show stage-btn tr" onClick={takeOff}>🛫</IconButton>
             <button class="arrow l" aria-label="Previous plane" onClick={() => step(-1)}>◀</button>
             <button class="arrow r" aria-label="Next plane" onClick={() => step(1)}>▶</button>
             {SLOTS.map(s => (
-              <button key={s.id} ref={el => { hots.current[s.id] = el; }} class={`hot hidden ${picker || (sheet === s.id && s.id === 'number') ? 'away' : sheet === s.id ? 'on' : ''} ${slotHasAffordable(s.id) ? 'aff' : ''}`} aria-label={s.name} onClick={() => openSheet(s.id)}>{s.icon}</button>
+              <button key={s.id} ref={el => { hots.current[s.id] = el; }} class={`hot hidden ${picker || (sheet === s.id && s.id === 'number') ? 'away' : sheet === s.id ? 'on' : ''} ${readyGoalSlot() === s.id ? 'aff' : ''}`} aria-label={s.name} onClick={() => openSheet(s.id)}>{s.icon}</button>
             ))}
             <div class="bodystrip" ref={strip}>
               {JET_IDS.map(j => {
                 const mine = owns(j), cls = j === jet ? 'on' : mine ? 'owned' : canAffordJet(j) ? 'afford' : 'locked';
                 return (
-                  <button key={j} class={`body-chip jet-chip ${cls} ${wiggle === `jet:${j}` ? 'wiggle' : ''}`} aria-label={JET_NAMES[j]} onClick={() => tapChip(j)}>
+                  <button key={j} class={`body-chip jet-chip ${cls} ${!isStarter(j) && readyGoal() === jetItem(j as Exclude<JetId, 'p51' | 'f16' | 'f18'>) ? 'ready' : ''} ${wiggle === `jet:${j}` ? 'wiggle' : ''}`} aria-label={JET_NAMES[j]} onClick={() => tapChip(j)}>
                     <JetArt jet={j} color={mine ? '#d6dde4' : '#6b7385'} />
                     {!mine && <span class="cost"><Bolt size={18} />{PRICES.jet}</span>}
                     {cls === 'locked' && <span class="lock">🔒</span>}
@@ -167,7 +176,12 @@ export function HangarScreen({ goal: goalView, onShelf }: { goal: ComponentChild
       {sheet && !flying && (
         <div class={`sheet ${sheet === 'paint' ? 'paint' : ''}`}>
           <div class="sheethead">
-            <span>{slotById(sheet).icon}</span>{slotById(sheet).name}
+            {sheet === 'paint' ? (
+              <span class="tabs" role="tablist">
+                <button role="tab" aria-selected={paintTab === 'mods'} class={paintTab === 'mods' ? 'on' : ''} onClick={() => { setPaintTab('mods'); void say(slotById('paint').name); }}>{slotById('paint').icon} Paint</button>
+                <button role="tab" aria-selected={paintTab === 'colours'} class={paintTab === 'colours' ? 'on' : ''} onClick={() => setPaintTab('colours')}>🪣 Colours</button>
+              </span>
+            ) : <><span>{slotById(sheet).icon}</span>{slotById(sheet).name}</>}
             {canPick && (picker
               ? <button class="numpick done" aria-label="Done" onClick={() => setPicking(false)}>✓</button>
               : <button class="numpick" aria-label="Pick your number" onClick={() => { setPicking(true); void say(numberLine(f.tailNumber)); }}>{f.tailNumber}</button>)}
@@ -183,7 +197,7 @@ export function HangarScreen({ goal: goalView, onShelf }: { goal: ComponentChild
                 </div>
               ))}
             </div>
-          ) : <div class="sheettiles">
+          ) : (sheet !== 'paint' || paintTab === 'mods') && <div class="sheettiles">
             {([0, ...RUNGS] as const).map(r => {
               const un = isUnlocked(sheet, r), fitted = f[sheet] === r;
               if (r === LEGENDARY) {
@@ -201,7 +215,7 @@ export function HangarScreen({ goal: goalView, onShelf }: { goal: ComponentChild
               const aff = canAfford(sheet, r), price = r ? PRICES.rungs[r as 1 | 2 | 3] : 0;
               const cls = fitted ? 'fitted' : un ? 'owned' : aff ? 'afford' : 'locked';
               return (
-                <button key={r} class={`mod-tile ${cls} ${wiggle === `${sheet}:${r}` ? 'wiggle' : ''}`} aria-label={modName(sheet, r)} onClick={() => tap(sheet, r)}>
+                <button key={r} class={`mod-tile ${cls} ${r !== 0 && readyGoal() === modId(sheet, r as 1 | 2 | 3) ? 'ready' : ''} ${wiggle === `${sheet}:${r}` ? 'wiggle' : ''}`} aria-label={modName(sheet, r)} onClick={() => tap(sheet, r)}>
                   <div class="ico"><ModIcon slot={sheet} rung={r} jet={jet} /></div>
                   <div class="nm">{modName(sheet, r)}</div>
                   {!un && <div class="cost"><Bolt size={20} />{price}</div>}
@@ -212,13 +226,13 @@ export function HangarScreen({ goal: goalView, onShelf }: { goal: ComponentChild
               );
             })}
           </div>}
-          {sheet === 'paint' && (
+          {sheet === 'paint' && paintTab === 'colours' && (
             <div class="swatches">
               {COLOURS.map(c => {
                 const mine = ownsColour(c.id), cls = f.colour === c.id && f.paint === 0 ? 'fitted' : mine ? 'owned' : canAffordColour(c.id) ? 'afford' : 'locked';
                 const bg = c.id === FREE_COLOUR ? JETS[jet].livery.factory.base : c.hex;
                 return (
-                  <button key={c.id} class={`swatch ${cls} ${wiggle === `colour:${c.id}` ? 'wiggle' : ''}`} style={{ background: bg }} aria-label={c.name} onClick={() => tapSwatch(c.id)}>
+                  <button key={c.id} class={`swatch ${cls} ${c.id !== FREE_COLOUR && readyGoal() === colourItem(c.id) ? 'ready' : ''} ${wiggle === `colour:${c.id}` ? 'wiggle' : ''}`} style={{ background: bg }} aria-label={c.name} onClick={() => tapSwatch(c.id)}>
                     {c.id === FREE_COLOUR && <span class="factory">🏭</span>}
                     {!mine && <span class="cost"><Bolt size={16} />{PRICES.colour}</span>}
                     {cls === 'fitted' && <span class="check">✓</span>}

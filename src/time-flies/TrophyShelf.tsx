@@ -8,6 +8,7 @@ import { earnedCount, TROPHIES, trophyHint, trophyName, type Trophy, type Trophy
 import { speaking, useVoiceScope } from './voice';
 
 const KINDS = ['learning', 'skill', 'sticking'] as const;
+const KIND_NAMES: Record<(typeof KINDS)[number], string> = { learning: 'Learning', skill: 'Skill', sticking: 'Sticking with it' };
 const METALS = ['#cd7f32', '#d4dae3', '#ffd23f', '#7fe0d6', '#c9a4ff'], GOLD = METALS[2]!, GREY = '#4b5160';
 const cupColor = (t: Trophy, n: number) => (n === 0 ? GREY : t.steps.length === 1 ? GOLD : METALS[n - 1]!);
 function emblem(s: TrophyStep): [string, string] {
@@ -46,21 +47,24 @@ export function TrophyShelf({ onClose }: { onClose(): void }) {
   useEffect(() => { void voice.say('Trophies!'); }, []);
   return (
     <div class="shelf">
-      <div class="shelfhead"><span>🏆</span><button class="x" aria-label="Close" onClick={() => { voice.cancel(); onClose(); }}>✕</button></div>
+      <div class="shelfhead"><h2>Trophies</h2><button class="x" aria-label="Close" onClick={() => { voice.cancel(); onClose(); }}>✕</button></div>
       <div class="planks">
         {KINDS.map(kind => (
-          <div key={kind} class="plank">
-            {TROPHIES.filter(t => t.kind === kind).map(t => {
-              const n = earnedCount(t, earned), shown = t.steps[Math.max(n - 1, 0)]!;
-              return (
-                <button key={t.id} class={`shelf-trophy ${n ? 'earned' : ''} ${speaking.value === t.id ? 'speaking' : ''}`}
-                  aria-label={n ? trophyName(shown) : trophyHint(shown)} onClick={() => void voice.say({ parts: lines(t, n), light: t.id })}>
-                  <Cup color={cupColor(t, n)} step={shown} />
-                  {t.steps.length > 1 && <span class="pips">{t.steps.map((_, i) => <i key={i} class={i < n ? 'on' : ''} />)}</span>}
-                </button>
-              );
-            })}
-          </div>
+          <section key={kind}>
+            <h3 class="plankname">{KIND_NAMES[kind]}</h3>
+            <div class="plank">
+              {TROPHIES.filter(t => t.kind === kind).map(t => {
+                const n = earnedCount(t, earned), shown = t.steps[Math.max(n - 1, 0)]!;
+                return (
+                  <button key={t.id} class={`shelf-trophy ${n ? 'earned' : ''} ${speaking.value === t.id ? 'speaking' : ''}`}
+                    aria-label={n ? trophyName(shown) : trophyHint(shown)} onClick={() => void voice.say({ parts: lines(t, n), light: t.id })}>
+                    <Cup color={cupColor(t, n)} step={shown} />
+                    {t.steps.length > 1 && <span class="pips">{t.steps.map((_, i) => <i key={i} class={i < n ? 'on' : ''} />)}</span>}
+                  </button>
+                );
+              })}
+            </div>
+          </section>
         ))}
       </div>
     </div>

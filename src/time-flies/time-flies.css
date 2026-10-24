@@ -1,31 +1,36 @@
 /* Time Flies: the shared game styles (src/styles.css) in sky colours, plus the clock, the Hangar and the vault. */
-:root{--sky:#2f8fe0;--night:#0f2a4a}
+:root{--sky:#2f8fe0;--night:#0f2a4a;--go:#178046;--metal:radial-gradient(circle at 35% 30%,#7d8794,#3b424c 55%,#1c2027)}
 html,body{background:var(--night)}
 .start{background:radial-gradient(circle at 50% 20%,#4aa3ec,#0f2a4a 75%)}
 .start h1{color:#fff;text-shadow:3px 3px 0 #1f5fd1,6px 6px 0 #000}
 .start-art{font-size:calc(80px*var(--u))}
-.home-screen,.round-screen{background:linear-gradient(#3d93dc,#1b4f86 60%,#163e69)}
-.home-head h1{color:#fff;text-shadow:2px 2px 0 #1f5fd1,4px 4px 0 #000}
-.t-hangar{background:linear-gradient(#cfd6dd,#8d98a3)!important}
-.t-hangar .home-jet{flex:1;min-height:0;width:min(70%,420px);filter:drop-shadow(0 8px 6px #0006)}
-.tile-clock{width:calc(110px*var(--u));height:calc(110px*var(--u));flex:none;pointer-events:none}
-.tile-clock .clock{width:100%;height:100%}
-@media (orientation:landscape){.tile.mode .tile-clock{width:calc(84px*var(--u));height:calc(84px*var(--u))}}
+.round-screen{background:linear-gradient(#3d93dc,#1b4f86 60%,#163e69)}
 
 /* ---------- the clock ---------- */
 .clock{display:block;width:100%;height:100%;overflow:visible;touch-action:none}
 .clock.turnable{cursor:grab}
-.cf-num{font:900 21px Nunito,system-ui,sans-serif}
+.cf-num{font:900 21px Nunito,system-ui,sans-serif;stroke-width:8px;stroke-linejoin:round;paint-order:stroke}
 .cf-min{font:900 8.5px Nunito,system-ui,sans-serif;fill:#ffd23f}
 .cf-min.on{font-size:12px;fill:#fff}
-.clocks{display:flex;gap:calc(18px*var(--u));justify-content:center;width:100%;flex:1;min-height:0;align-items:center}
-.clock-btn{flex:1;max-width:min(30vw,300px);aspect-ratio:1;border-radius:50%;padding:4px;transition:transform .2s,box-shadow .2s}
+/* Find the Clock: three clocks in a row, or stacked when the card is tall and narrow (a phone held upright), each as big
+   as the card allows */
+.clocks{width:100%;flex:1;min-height:0;container-type:size}
+.clocks-in{width:100%;height:100%;display:flex;gap:calc(18px*var(--u));justify-content:center;align-items:center}
+.clock-btn{flex:none;width:min(calc((100cqw - 36px*var(--u)) / 3),92cqh,300px);aspect-ratio:1;border-radius:50%;padding:4px;transition:transform .2s,box-shadow .2s}
+@container (aspect-ratio < 4/5){
+  .clocks-in{flex-direction:column}
+  .clock-btn{width:min(80cqw,calc((100cqh - 36px*var(--u)) / 3),300px)}
+}
 .clock-btn:active{transform:scale(.95)}
 .clock-btn.wrong{opacity:.35;filter:grayscale(1);animation:shake .4s}
 .clock-btn.right{box-shadow:0 0 0 8px var(--green),0 0 30px 8px var(--green)}
 .clock-btn.lit{box-shadow:0 0 0 8px var(--yellow),0 0 30px 8px var(--yellow)}
-.big-clock{width:min(46vh,62vw,420px);aspect-ratio:1;flex:none;border-radius:50%;transition:box-shadow .3s}
-.game.read .big-clock{width:min(38vh,56vw,380px)}
+/* while a miss is explained the card fades its buttons, but never the clocks (they're what's being taught); a missed
+   clock lit up to show what it says comes back to full colour while it's talked about */
+.card.thinking .clock-btn:not(.wrong),.card.thinking .clock-btn.lit,.card.thinking .choice.lit,.card.thinking .choice.right{opacity:1;filter:none}
+.clock-btn.wrong.lit{opacity:1;filter:none}
+.big-clock{width:min(46vh,86vw,440px);aspect-ratio:1;flex:none;border-radius:50%;transition:box-shadow .3s}
+.game.read .big-clock{width:min(40vh,86vw,400px)}
 .big-clock.right{box-shadow:0 0 0 10px var(--green),0 0 40px 10px var(--green)}
 .choices.times{grid-template-columns:repeat(3,1fr);width:min(100%,640px)}
 .choices.times .choice{font-size:calc(40px*var(--u));padding:calc(12px*var(--u)) 6px}
@@ -79,28 +84,6 @@ html,body{background:var(--night)}
 .fire-btn.missiles{right:calc(22px + env(safe-area-inset-right))}
 @keyframes pop-in{from{transform:scale(0)}to{transform:scale(1)}}
 
-/* ---------- Home: Hangar, Play and his Level in each kind of question ---------- */
-.home.flies{grid-template-areas:"g g" "p k";grid-template-rows:1fr 1fr;grid-template-columns:1fr 1.6fr}
-@media (orientation:landscape){.home.flies{grid-template-areas:"p g" "k g";grid-template-rows:1fr 1.2fr;grid-template-columns:1fr 1.2fr}}
-.t-play{grid-area:p;background:#ffd23f;flex-direction:column}
-.t-play .e{font-size:calc(56px*var(--u));line-height:1}
-.t-kinds{grid-area:k;background:#7cc8ff;display:grid;grid-template-columns:repeat(2,1fr);grid-template-rows:auto;grid-auto-rows:1fr;column-gap:calc(14px*var(--u));padding:calc(8px*var(--u)) calc(14px*var(--u)) calc(10px*var(--u));align-items:stretch;box-shadow:inset 0 4px 0 #0002}
-/* a chart, not buttons: flat panel with a heading, rows split by thin rules, no raised edges and no press-down */
-.t-kinds:active{transform:none;box-shadow:inset 0 4px 0 #0002}
-.kinds-head{grid-column:1/-1;margin:0 0 calc(2px*var(--u));font:400 calc(16px*var(--u)) Bungee,sans-serif;text-align:center;letter-spacing:.04em;color:#0009}
-.kind{position:relative;display:flex;align-items:center;gap:8px;border-top:2px solid #0002;padding:2px 2px;min-height:0;text-align:left;cursor:default;user-select:none;-webkit-user-select:none}
-.kind .ki{font-size:calc(28px*var(--u));line-height:1}
-.kind .kb{flex:1;min-width:0;display:flex;flex-direction:column;gap:3px}
-.kind .kn{font:400 calc(12px*var(--u)) Bungee,sans-serif;line-height:1.1}
-/* his Level as a three-part bar, sunk into the board */
-.kind .lvl{gap:0;width:100%;max-width:calc(110px*var(--u));height:calc(10px*var(--u));border-radius:99px;overflow:hidden;background:#0002;box-shadow:inset 0 2px 2px #0003}
-.kind .lvl i{flex:1;width:auto;height:100%;border:0;border-radius:0;background:none}
-.kind .lvl i+i{border-left:2px solid #7cc8ff}
-.kind .lvl i.on{background:var(--orange)}
-.kind.locked{filter:grayscale(.9) brightness(.8);opacity:.7}
-.kind.fresh{animation:pulse 1s infinite}
-.kind .badge{position:absolute;right:-4px;top:2px;font-size:calc(18px*var(--u))}
-
 /* ---------- calendar questions ---------- */
 .game.quiz .ask h2{font-size:calc(24px*var(--u));max-width:min(90vw,820px)}
 .choices.words{grid-template-columns:repeat(3,1fr);width:min(100%,760px)}
@@ -111,3 +94,175 @@ html,body{background:var(--night)}
 .strip .chip b{font-size:calc(14px*var(--u));color:#1f5fd1}
 .strip .chip.lit{background:var(--yellow);transform:scale(1.15)}
 .fact{font:900 calc(28px*var(--u)) Nunito,sans-serif;background:#fff3c4;border:3px solid #000;border-radius:16px;padding:10px 18px}
+
+/* ---------- Home: the cockpit ---------- */
+/* a windshield of sky over the instrument panel; the clock gauge is Play */
+.cockpit{background:#1c2027}
+.windshield{position:relative;flex:none;display:flex;flex-wrap:wrap;align-items:center;gap:8px 12px;overflow:hidden;
+  padding:calc(14px*var(--u)) calc(16px + 30px*var(--u)) calc(30px*var(--u));min-height:calc(120px*var(--u));
+  background:linear-gradient(#3d93dc,#86c5f3 70%,#cfe9fb)}
+/* the canopy frame: a post at each side */
+.windshield::before,.windshield::after{content:"";position:absolute;top:-10px;bottom:-10px;width:calc(46px*var(--u));background:#1c2027;border:4px solid #000}
+.windshield::before{left:calc(-18px*var(--u));transform:skewX(12deg)}
+.windshield::after{right:calc(-18px*var(--u));transform:skewX(-12deg)}
+.windshield .cloud{position:absolute;bottom:calc(6px*var(--u));height:min(36%,48px);width:auto}
+.windshield .cloud.a{left:12%}
+.windshield .cloud.b{left:56%;height:min(26%,34px);bottom:calc(30px*var(--u))}
+.windshield h1{position:relative;z-index:1;margin:0;flex:1 1 auto;font:400 max(24px,calc(40px*var(--u))) Bungee,sans-serif;color:#fff;text-shadow:2px 2px 0 #1f5fd1,4px 4px 0 #000;white-space:nowrap}
+.windshield .status{position:relative;z-index:1;display:flex;align-items:center;gap:8px;margin-left:auto}
+.windshield .goalchip{background:#0d1622}
+.panel{position:relative;flex:1;min-height:0;display:grid;gap:calc(14px*var(--u)) calc(14px*var(--u));
+  padding:calc(34px*var(--u)) 16px calc(16px*var(--u));
+  grid-template-areas:"p p p" ". go h" "l l l";grid-template-columns:1fr auto 1fr;grid-template-rows:minmax(0,1fr) auto auto;
+  background:
+    radial-gradient(circle at 14px calc(100% - 14px),#9aa3ad 0 4px,#20252c 4.5px 6px,#0000 6.5px),
+    radial-gradient(circle at calc(100% - 14px) calc(100% - 14px),#9aa3ad 0 4px,#20252c 4.5px 6px,#0000 6.5px),
+    radial-gradient(130% 90% at 50% 0%,#4a525d,#2a3038 55%,#1c2027)}
+/* the glare shield over the instruments */
+.panel::before{content:"";position:absolute;left:0;right:0;top:0;height:calc(22px*var(--u));background:#11151a;box-shadow:0 4px 0 #000;border-radius:0 0 50% 50%/0 0 100% 100%}
+@media (orientation:landscape){
+  .windshield{min-height:calc(100px*var(--u))}
+  .panel{grid-template-areas:"l p h";grid-template-columns:1.1fr 1.35fr .9fr;grid-template-rows:minmax(0,1fr)}
+}
+.gauge{position:relative;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:calc(10px*var(--u));min-width:0;min-height:0;color:#fff}
+.gauge.play{grid-area:p;container-type:size}
+@media (orientation:portrait){.gauge.play{justify-content:flex-end}.windshield .cloud.b{display:none}}
+.gauge-clock{display:block;width:min(calc(100cqw - 32px),calc(100cqh - 32px),520px);aspect-ratio:1;border-radius:50%;transition:transform .15s;
+  box-shadow:0 0 0 calc(7px*var(--u)) var(--go),0 0 0 calc(7px*var(--u) + 4px) #000,0 calc(9px*var(--u)) 0 calc(7px*var(--u) + 4px) #000;animation:breathe 2.4s ease-in-out infinite}
+@keyframes breathe{50%{box-shadow:0 0 0 calc(7px*var(--u)) var(--go),0 0 0 calc(7px*var(--u) + 4px) #000,0 calc(9px*var(--u)) 0 calc(7px*var(--u) + 4px) #000,0 0 0 calc(7px*var(--u) + 16px) #3ddc8455}}
+.gauge.play:active .gauge-clock,.gauge.play.going .gauge-clock{transform:scale(.97);animation:none}
+.placard{display:inline-flex;align-items:center;justify-content:center;gap:.4em;font:400 max(14px,calc(18px*var(--u))) Bungee,sans-serif;letter-spacing:.02em;color:#fff;background:#14181d;border:3px solid #000;border-radius:12px;padding:calc(5px*var(--u)) calc(14px*var(--u));box-shadow:inset 0 1px 0 #ffffff26,0 4px 0 #000;white-space:nowrap}
+.placard.go{grid-area:go;justify-self:center;align-self:start;margin-top:calc(-4px*var(--u));background:var(--go);font-size:max(22px,calc(34px*var(--u)));padding:calc(8px*var(--u)) calc(34px*var(--u));min-height:52px;border-width:4px;border-radius:18px;box-shadow:0 6px 0 #000}
+.placard.go:active,.gauge.play:active .placard.go.inner{transform:translateY(4px);box-shadow:0 2px 0 #000}
+.placard.go.inner{display:none;align-self:center;margin-top:calc(6px*var(--u))}
+@media (orientation:landscape){.placard.go.inner{display:inline-flex}}
+.gauge.hangar{grid-area:h;gap:6px;justify-self:end}
+.porthole{display:block;width:max(96px,calc(150px*var(--u)));aspect-ratio:1;border-radius:50%;padding:calc(8px*var(--u));background:var(--metal);border:3px solid #0b0d10;box-shadow:0 6px 0 #000;transition:transform .15s}
+.gauge.hangar:active .porthole{transform:translateY(4px);box-shadow:0 2px 0 #000}
+.porthole .home-jet{display:block;width:100%;height:100%;padding:16%;border-radius:50%;background:radial-gradient(circle at 50% 30%,#d9dfe5,#8d98a3);border:2.5px solid #11151a}
+@media (orientation:landscape){
+  .gauge.hangar{container-type:size}
+  .gauge.hangar{justify-self:stretch}
+  .porthole{width:min(calc(100cqw - 12px),calc(100cqh - 70px),300px,34vh)}
+}
+/* his Level in each kind: a lamp panel, three amber lamps a row */
+.levels{grid-area:l;display:flex;flex-direction:column;gap:calc(8px*var(--u));min-height:0;background:#11151a;border:3px solid #000;border-radius:18px;padding:calc(10px*var(--u)) calc(10px*var(--u)) calc(8px*var(--u));box-shadow:inset 0 3px 8px #0009}
+.levels .placard.small{align-self:center;background:none;border:0;box-shadow:none;padding:0;color:#aeb6c2;font-size:max(14px,calc(15px*var(--u)))}
+.lamp-rows{flex:1;min-height:0;display:grid;grid-template-columns:1fr 1fr;grid-auto-rows:minmax(44px,1fr);gap:4px calc(10px*var(--u))}
+@media (orientation:landscape){.lamp-rows{grid-template-columns:1fr}}
+.lamp-row{position:relative;display:flex;align-items:center;gap:8px;min-width:0;min-height:44px;padding:4px 8px;border-radius:12px;text-align:left;color:#e8edf2;background:#1c2128;border:2px solid #2c333d}
+.lamp-row:active{background:#262c35}
+.lamp-row .ki{flex:none;font-size:max(20px,calc(28px*var(--u)));line-height:1}
+.lamp-row .kb{flex:1;min-width:0;display:flex;flex-direction:column;gap:4px}
+.lamp-row .kn{font:900 max(14px,calc(19px*var(--u)))/1.1 Nunito,sans-serif}
+.lamps{display:flex;gap:5px}
+.lamps i{width:max(10px,calc(14px*var(--u)));height:max(10px,calc(14px*var(--u)));border-radius:50%;background:#3b2c12;border:2px solid #000;box-shadow:inset 0 2px 2px #0008}
+.lamps i.on{background:radial-gradient(circle at 40% 35%,#ffe9a8,#ffb000 60%,#e07800);box-shadow:0 0 6px 1px #ffb000aa}
+.lamp-row.locked{color:#7d8794}
+.lamp-row.locked .ki{filter:grayscale(1);opacity:.7}
+.lamp-row.fresh{border-color:#ffb000;animation:lampring 1.2s ease-in-out infinite}
+@keyframes lampring{50%{box-shadow:0 0 0 5px #ffb00066}}
+.lamp-row .badge{position:absolute;right:6px;top:50%;translate:0 -50%;font-size:max(18px,calc(22px*var(--u)))}
+
+/* ---------- the Round: easier reading, bigger targets ---------- */
+/* an early reader: questions in sentence case, Bungee kept for titles */
+.ask h2{font:900 max(22px,calc(34px*var(--u)))/1.15 Nunito,sans-serif;text-wrap:balance}
+.game.quiz .ask h2{font-size:max(20px,calc(30px*var(--u)));text-align:left}
+.say-btn{width:max(48px,calc(58px*var(--u)));height:max(48px,calc(58px*var(--u)))}
+.icon-btn{width:max(46px,calc(56px*var(--u)));height:max(46px,calc(56px*var(--u)));font-size:max(22px,calc(26px*var(--u)))}
+.help-btn{min-height:48px;font-size:max(16px,calc(20px*var(--u)))}
+.goalchip{height:max(46px,calc(52px*var(--u)))}
+.goalchip .num{font-size:max(14px,1em)}
+.goalchip .gi{position:relative}
+.goalchip .flag{position:absolute;right:-6px;top:-6px;font-size:max(14px,calc(16px*var(--u)));line-height:1}
+/* white on the Play green reads at 5:1 */
+.big-btn.go,.icon-btn.go{background:var(--go)}
+/* a star won with help is half lit, left half bright */
+.stars span.on.half{filter:none;transform:none;-webkit-mask-image:linear-gradient(90deg,#000 50%,#0005 50%);mask-image:linear-gradient(90deg,#000 50%,#0005 50%)}
+/* the answer being taught glows like a taught clock; the orange ring only means "being read aloud" */
+.choice.lit{box-shadow:0 0 0 6px var(--yellow),0 0 24px 8px var(--yellow)}
+/* "Not quite!" sits over the top bar, not over the question */
+.toast{top:calc(6px + env(safe-area-inset-top))}
+@media (max-width:500px){.choices.words{grid-template-columns:1fr;width:min(100%,340px)}}
+/* end of a Round: a night sky, solid, so the last question doesn't show through */
+.reward{background:radial-gradient(circle at 50% 30%,#1b4f86,#0b1a2e 70%)}
+
+/* ---------- Trophy Shelf: labels on the planks ---------- */
+.shelfhead h2{margin:0;font:400 max(24px,calc(36px*var(--u))) Bungee,sans-serif;color:var(--yellow);text-shadow:2px 2px 0 #000}
+.plankname{margin:0 0 -4px;font:400 max(14px,calc(16px*var(--u))) Bungee,sans-serif;color:#e6c79c;text-align:center;letter-spacing:.03em}
+.shelf .x{width:max(46px,calc(60px*var(--u)));height:max(46px,calc(60px*var(--u)))}
+.shelf-trophy:not(.earned) .trophy{opacity:.55}
+
+/* ---------- picking the first plane: a heading he can read ---------- */
+.picker-title{font:400 max(24px,calc(40px*var(--u))) Bungee,sans-serif;color:#fff;text-shadow:2px 2px 0 #1f5fd1,4px 4px 0 #000;text-align:center}
+
+/* ---------- the Hangar: one thing pulses at a time ---------- */
+/* everything he can afford keeps its gold frame; only the Goal, once he can buy it, pulses */
+.body-chip.afford,.mod-tile.afford,.swatch.afford{animation:none}
+.body-chip.ready,.mod-tile.ready,.swatch.ready{animation:tilepulse 1.2s infinite}
+.hot{width:max(50px,calc(66px*var(--u)));height:max(50px,calc(66px*var(--u)));font-size:max(24px,calc(32px*var(--u)))}
+.jetname{min-height:44px;padding:0 60px}
+.stage-btn{position:absolute;top:10px;z-index:4}
+.stage-btn.tl{left:10px}.stage-btn.tr{right:10px}
+.garage-screen.open .stage-btn{display:none}
+/* the shared Garage tucks its switcher behind a 🚚 button on phones; the Hangar has no such button and keeps its
+   plane strip showing */
+@media (max-width:430px),(max-height:520px){.hangar-screen:not(.open) .bodystrip{display:flex}}
+/* a phone held upright: the sheet covers the bottom of the stage, so the other hotspots step back while it's open */
+@media (orientation:portrait){.garage-screen.open .hot:not(.on){opacity:0;pointer-events:none}}
+.big-btn .btn-jet{display:block;width:calc(70px*var(--u));height:calc(70px*var(--u))}
+/* the plane strip fades at its edges, so a strip wider than the screen shows there's more */
+.bodystrip{-webkit-mask-image:linear-gradient(90deg,#0000,#000 18px,#000 calc(100% - 28px),#0000);mask-image:linear-gradient(90deg,#0000,#000 18px,#000 calc(100% - 28px),#0000);padding-inline:14px 24px}
+.body-chip .cost{font-size:max(14px,calc(15px*var(--u)))}
+.body-chip .lock,.body-chip .flag{font-size:max(14px,calc(14px*var(--u)))}
+.mod-tile .nm{font-size:max(14px,calc(16px*var(--u)))}
+.mod-tile .cost{font-size:max(14px,calc(20px*var(--u)))}
+.mod-tile .flag{top:auto;bottom:22px}
+.mod-tile .wait{bottom:auto;top:4px;left:28px}
+.sheethead .x{width:max(46px,calc(56px*var(--u)));height:max(46px,calc(56px*var(--u)))}
+.tabs{display:flex;gap:6px}
+.tabs button{min-height:44px;padding:0 14px;border-radius:14px;background:#2d3650;color:#cfd6e6;font:400 max(14px,calc(20px*var(--u))) Bungee,sans-serif;border:3px solid transparent}
+.tabs button.on{background:#16181c;border-color:#ffc53d;color:#fff}
+/* held upright: Mods three to a row (phones get the shared 3 + 2 layout), Colours four to a row */
+@media (orientation:portrait) and (min-width:431px){.sheettiles{grid-template-columns:repeat(3,1fr);grid-auto-rows:1fr}}
+@media (orientation:portrait){
+  .sheet.paint .swatches{flex:1;min-height:0;display:grid;grid-template-columns:repeat(4,1fr);grid-auto-rows:1fr;overflow-y:auto}
+  .sheet.paint .swatch{width:auto;height:auto;min-height:56px}
+}
+@media (orientation:landscape){.sheet.paint .swatches{display:grid}}
+
+/* ---------- Reduce Motion: no pulsing, shaking, falling or spinning ---------- */
+@media (prefers-reduced-motion:reduce){
+  *,*::before,*::after{animation-duration:.01ms!important;animation-iteration-count:1!important;transition-duration:.01ms!important}
+  .pulse,.goalchip.ready,.kind.fresh,.lamp-row.fresh,.body-chip.ready,.mod-tile.ready,.swatch.ready{box-shadow:0 0 0 5px #ffd23f}
+  .hot.aff::after{animation:none;transform:none;opacity:1}
+  .confetti,.firework,.spark,.shatter{display:none}
+  .flyby{transition:none}
+}
+/* a phone on its side: too short for six rows, so the lamps go two to a row and the windshield shrinks */
+@media (orientation:landscape) and (max-height:520px){
+  .windshield{min-height:0;padding-block:8px 18px}
+  .panel{padding-top:24px}
+  .levels{grid-column:auto}
+  .lamp-rows{grid-template-columns:1fr 1fr}
+  .lamp-row{padding:2px 6px;gap:6px}
+  .lamp-row .ki{font-size:20px}
+}
+/* a small phone held upright (iPhone SE): a lower windshield and a smaller porthole, so the clock keeps its size */
+@media (orientation:portrait) and (max-height:700px){
+  .windshield{min-height:0;padding-block:8px 20px}
+  .panel{padding-top:26px;row-gap:10px}
+  .porthole{width:78px}
+  .gauge.hangar .placard{font-size:14px;padding:2px 10px}
+  .windshield h1{font-size:22px}
+  .levels{padding-top:6px}
+  .levels .placard.small{position:absolute;width:1px;height:1px;overflow:hidden;clip-path:inset(50%)}
+  .placard.go{min-height:48px;padding-block:4px}
+}
+/* a narrow phone held upright: Play sits centred under the gauge, so the porthole beside it is a little smaller */
+@media (orientation:portrait) and (max-width:430px){.panel{column-gap:8px}.porthole{width:84px}.gauge.hangar .placard{font-size:14px;padding:2px 10px}}
+/* on its side the gauge and its Play placard are one button, centred together */
+@media (orientation:landscape){
+  .placard.go:not(.inner){display:none}
+  .gauge-clock{width:min(calc(100cqw - 32px),calc(100cqh - 32px - max(52px,calc(66px*var(--u)))),520px)}
+}

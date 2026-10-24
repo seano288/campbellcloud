@@ -40,14 +40,14 @@ export function FindView({ current, level }: { current: ProblemInstance<ChoicePr
   return (
     <div class="game">
       <Ask text={`Find ${digital(p.target)}`} speech={['Find this time!', timePhrase(p.target)]} />
-      <div class="clocks">
+      <div class="clocks"><div class="clocks-in">
         {p.choices.map((c, i) => (
           <button key={digital(c)} class={`clock-btn ${wrong.includes(i) ? 'wrong' : ''} ${done && i === right ? 'right' : ''} ${picked === i ? 'lit' : ''}`}
             aria-label={`Clock ${i + 1}`} data-time={digital(c)} disabled={wrong.includes(i)} onClick={() => tap(i)}>
             <ClockFace minutes={minutesOf(c)} lesson={picked === i ? lesson : undefined} minuteLabels={level === 3 && picked === i && lesson.fives.value > 0} />
           </button>
         ))}
-      </div>
+      </div></div>
       <div class="helpers"><Help current={current} target={p.target} /></div>
     </div>
   );

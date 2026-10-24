@@ -4,6 +4,7 @@
 // drag either hand; they are geared together like a real clock.
 import { useRef } from 'preact/hooks';
 import { tone } from '../../audio/sfx';
+import { reducedMotion } from '../motion';
 import type { Lesson } from './teach';
 
 const R = 92;
@@ -66,7 +67,7 @@ export function ClockFace({ minutes, lesson, minuteLabels, glide = true, onTurn,
   }
 
   const dragging = !!drag.current;
-  const handStyle = (deg: number) => ({ transform: `rotate(${deg}deg)`, transition: glide && !dragging ? 'transform .6s cubic-bezier(.3,1.4,.5,1)' : 'none' });
+  const handStyle = (deg: number) => ({ transform: `rotate(${deg}deg)`, transition: glide && !dragging && !reducedMotion() ? 'transform .6s cubic-bezier(.3,1.4,.5,1)' : 'none' });
   return (
     <svg ref={svg} class={`clock ${onTurn ? 'turnable' : ''}`} viewBox="-110 -110 220 220" role="img" aria-label={label}
       onPointerDown={down} onPointerMove={move} onPointerUp={up} onPointerCancel={up}>
@@ -84,15 +85,6 @@ export function ClockFace({ minutes, lesson, minuteLabels, glide = true, onTurn,
         return <line key={i} x1={x1} y1={y1} x2={x2} y2={y2} stroke="#1d1d1f" stroke-width={major ? 3 : 1.2} stroke-linecap="round" />;
       })}
       {Array.from({ length: 12 }, (_, i) => {
-        const n = i + 1, [x, y] = polar(n * 30, 70), on = lit.includes(n);
-        return (
-          <g key={n}>
-            {on && <circle cx={x} cy={y} r="15" fill="#ffd23f" filter="url(#cf-glow)" />}
-            <text x={x} y={y} dy="7.5" text-anchor="middle" class="cf-num" fill={on ? '#000' : '#1d1d1f'}>{n}</text>
-          </g>
-        );
-      })}
-      {Array.from({ length: 12 }, (_, i) => {
         const k = i + 1, shown = minuteLabels || (fives > 0 && k <= fives);
         if (!shown) return null;
         const [x, y] = polar(k * 30, 100), on = fives === k;
@@ -105,6 +97,16 @@ export function ClockFace({ minutes, lesson, minuteLabels, glide = true, onTurn,
       <g style={handStyle(minuteDeg)} filter={hand === 'minute' ? 'url(#cf-glow)' : 'url(#cf-shadow)'}>
         <path d="M-4 16 L-3.2 -70 L0 -82 L3.2 -70 L4 16 Z" fill="#1f5fd1" stroke={hand === 'minute' ? '#ffd23f' : '#0b2a66'} stroke-width={hand === 'minute' ? 4 : 1.6} stroke-linejoin="round" />
       </g>
+      {/* the numbers sit over the hands, ringed in the dial's white, so the long hand never hides the 12 */}
+      {Array.from({ length: 12 }, (_, i) => {
+        const n = i + 1, [x, y] = polar(n * 30, 70), on = lit.includes(n);
+        return (
+          <g key={n}>
+            {on && <circle cx={x} cy={y} r="15" fill="#ffd23f" filter="url(#cf-glow)" />}
+            <text x={x} y={y} dy="7.5" text-anchor="middle" class="cf-num" fill={on ? '#000' : '#1d1d1f'} stroke={on ? '#ffd23f' : '#f7f5ef'}>{n}</text>
+          </g>
+        );
+      })}
       <circle r="8" fill="#2a2f36" stroke="#000" stroke-width="2" />
       <circle r="3" fill="#c9ced6" />
       {onTurn && <circle r="108" fill="transparent" />}
