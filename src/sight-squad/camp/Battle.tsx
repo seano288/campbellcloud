@@ -1,7 +1,8 @@
 // The Battle: a troop of wind-up toy robots clanks across the mat and lines up facing his army. When they're ready, a big
 // "go" (the word, to read) appears; tapping it sends his army forward throwing its Boom. Robots that are hit topple over
 // and bounce back up dented, and go poof in confetti the second time; his soldiers that are hit fall over and spring right
-// back up. It always ends with all the robots gone and his army jumping for joy. ✕ goes back to the Camp at any time.
+// back up. It always ends with all the robots gone and his army jumping for joy, and a big ⛺ to march back to the Camp.
+// ✕ goes back to the Camp at any time.
 import { useEffect, useRef, useState } from 'preact/hooks';
 import { sCheer, sFanfare } from '../../audio/sfx';
 import { confetti } from '../../celebrate/effects';
@@ -41,6 +42,7 @@ export function Battle({ stage, boom, onClose }: { stage: CampStage; boom: numbe
       <div class="showname">{phase === 'won' ? '🏆' : '💥'}</div>
       <button class="show-x" aria-label="Back to Camp" onClick={onClose}>✕</button>
       {phase === 'ready' && <button class="word-btn order go-word pulse" aria-label="go" onClick={go}><span class="sw">go</span></button>}
+      {phase === 'won' && <button class="big-btn garage back-camp" aria-label="Back to Camp" onClick={() => { if (voice.active) { voice.cancel(); onClose(); } }}><span class="e">⛺</span></button>}
     </div>
   );
 }

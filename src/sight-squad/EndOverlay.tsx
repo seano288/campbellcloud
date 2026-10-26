@@ -1,4 +1,5 @@
-// End of a Round: a few of his soldiers march in carrying the Bolts he earned, they drop onto his pile one by one, a round
+// End of a Round: a few of his soldiers march in carrying the Bolts he earned, they drop onto his pile one by one (the squad
+// hops as each one lands, and its load gets lighter), a round
 // where he had to try again says he kept trying, then each Level up, newly opened kind, star and Trophy is announced. Only then
 // do ⛺ Camp, ▶ Play again and 🏠 wake up.
 import { useEffect, useRef, useState } from 'preact/hooks';
@@ -62,9 +63,9 @@ export function EndOverlay({ result: r, hasAffordable, onCamp, onAgain, onHome }
       <h2>Round done!</h2>
       <div class="bigpile"><Bolt size={80} /><span class={bump ? 'bump' : ''}>{pile}</span></div>
       <div class="moment">
-        <div ref={plane} class={`marchby ${flying ? 'go' : ''}`}>
+        <div ref={plane} class={`marchby ${flying ? 'go' : ''} ${bump ? 'hop' : ''}`}>
           <Squad colour={colour} count={Math.min(5, 1 + Math.floor(r.earned / 2))} />
-          <div class="load">{Array.from({ length: r.earned }, (_, i) => <Bolt key={i} size={26} />)}</div>
+          <div class="load">{Array.from({ length: Math.max(0, r.earned - (pile - r.beforeBalance)) }, (_, i) => <Bolt key={i} size={26} />)}</div>
         </div>
       </div>
       <div class="lines">{lines.map((l, i) => <div key={i}>{l}</div>)}</div>

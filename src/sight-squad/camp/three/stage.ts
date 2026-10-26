@@ -167,7 +167,8 @@ export class CampStage {
     const reach = this.mode === 'parade' ? this.track.half + this.track.r + 1 : this.mode === 'battle' ? Math.max(this.extent * 1.4, this.mat.size * 0.2) + 2 : 0;
     // the camp: far enough back that the widest row fits across the screen, with a margin
     const across = Math.tan(THREE.MathUtils.degToRad(this.camera.fov / 2)) * this.camera.aspect;
-    const r = wide ? Math.max(8, reach * 2.3) : Math.max(6, (this.rows.halfW / across) * 1.08 + this.rows.halfD * 0.6);
+    // the parade track and the battle line are wider than they are deep: on a screen held upright, step back until they fit across
+    const r = wide ? Math.max(8, (reach * 2.3) / Math.min(1, Math.max(0.45, this.camera.aspect))) : Math.max(6, (this.rows.halfW / across) * 1.08 + this.rows.halfD * 0.6);
     const to = new THREE.Spherical(r, wide ? 0.95 : 1.05, wide ? 0.25 : 0.18);
     const target = new THREE.Vector3(0, 0.4, 0);
     if (!animate || reducedMotion()) { this.tween = null; this.controls.target.copy(target); this.camera.position.setFromSpherical(to).add(target); this.touch(); return; }

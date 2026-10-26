@@ -13,7 +13,7 @@ import { GAP_TEXTS, SENTENCES, type GapText, type SentenceText } from './words/s
 // ---------- around the game ----------
 const GAME = [
   'Sight Squad!', "Let's go!", "Pick your army's color!", 'Camp!', 'Round done!', 'Wow!', 'Level up!',
-  'You can build something new!', 'You built everything!', 'You kept trying!',
+  'You can build something new!', 'You built everything!', 'You kept trying!', 'Tap again to go home.',
 ] as const;
 export const CHEERS = ['Great job!', 'You got it!', 'Super reader!', 'Awesome!', 'Way to go, soldier!', 'You can read it!'] as const;
 

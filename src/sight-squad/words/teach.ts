@@ -22,8 +22,10 @@ export interface Panel {
 export interface Lesson {
   /** The big word being taught, letter by letter. */
   panel: Signal<Panel | null>;
-  /** Which choices, cards or words of the sentence glow. */
+  /** Which choices, cards or words of the sentence glow yellow: the right answer, or the word being met. */
   lit: Signal<readonly number[]>;
+  /** The miss being named ("That one says who."): ringed in orange, the colour for "being read aloud", never yellow. */
+  named: Signal<readonly number[]>;
   /** Meeting a word: its sentence is showing. */
   sentence: Signal<boolean>;
   run: ReturnType<typeof createVoiceTask>;
@@ -33,12 +35,12 @@ const lessons = new WeakMap<AbortSignal, Lesson>();
 export function lessonFor(lifetime: AbortSignal): Lesson {
   let l = lessons.get(lifetime);
   if (!l) {
-    l = { panel: signal(null), lit: signal([]), sentence: signal(false), run: createVoiceTask(lifetime) };
+    l = { panel: signal(null), lit: signal([]), named: signal([]), sentence: signal(false), run: createVoiceTask(lifetime) };
     lessons.set(lifetime, l);
   }
   return l;
 }
-export function clearLesson(l: Lesson) { l.panel.value = null; l.lit.value = []; }
+export function clearLesson(l: Lesson) { l.panel.value = null; l.lit.value = []; l.named.value = []; }
 
 type Line = Parameters<VoiceScope['say']>[number];
 async function step(voice: VoiceScope, run: () => void, ...lines: Line[]) {
@@ -75,7 +77,7 @@ function explainer<P>(wrongWord: (p: P, answer: string) => Line[], target: (p: P
   return async (p: P, answer: string, teach: boolean, lifetime: AbortSignal) => {
     const lesson = lessonFor(lifetime), voice = lesson.run.start(), said = wrongWord(p, answer), at = wrongAt?.(p, answer) ?? null;
     if (!teach) {
-      await step(voice, () => { lesson.lit.value = at === null ? [] : [at]; }, ...said, 'Try again!');
+      await step(voice, () => { lesson.named.value = at === null ? [] : [at]; }, ...said, 'Try again!');
       if (voice.active) clearLesson(lesson);
       return;
     }

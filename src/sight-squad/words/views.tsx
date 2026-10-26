@@ -102,7 +102,7 @@ export function HearView({ current }: { current: ProblemInstance<HearProblem, st
       <TeachPanel lesson={lesson} />
       <div class={`words n${p.choices.length}`}>
         {p.choices.map((w, i) => (
-          <button key={w} class={cls('word-btn', wrong.includes(i) && 'wrong', done === i && 'right', lesson.lit.value.includes(i) && 'lit')}
+          <button key={w} class={cls('word-btn', wrong.includes(i) && 'wrong', done === i && 'right', lesson.lit.value.includes(i) && 'lit', lesson.named.value.includes(i) && 'named')}
             disabled={wrong.includes(i)} onClick={() => tap(i)}><span class="sw">{w}</span></button>
         ))}
       </div>
@@ -112,7 +112,7 @@ export function HearView({ current }: { current: ProblemInstance<HearProblem, st
 }
 
 /** 👀 Read It: one word on screen, not said; three are read aloud while their buttons light up, and he taps the one it is. */
-const READ_ICONS = ['🪖', '⭐', '🚩'];
+const READ_ICONS = ['🪖', '⭐', '🚩'], READ_NAMES = ['Helmet', 'Star', 'Flag'];
 export function ReadView({ current }: { current: ProblemInstance<ReadProblem, string> }) {
   const p = current.problem, lesson = lessonFor(current.signal), { wrong, done, tap } = usePick(current);
   const speech: Item[] = ['Which word is this?', ...p.choices.map((w, i) => ({ parts: [w], light: `r${i}` }))];
@@ -123,8 +123,8 @@ export function ReadView({ current }: { current: ProblemInstance<ReadProblem, st
       <div class={cls('big-word', done !== null && 'right')}><Letters word={p.target} lit={panel?.letter ?? null} heart={!!panel?.heart} /></div>
       <div class="said">
         {p.choices.map((w, i) => (
-          <button key={w} class={cls('said-btn', wrong.includes(i) && 'wrong', done === i && 'right', lesson.lit.value.includes(i) && 'lit', speaking.value === `r${i}` && 'speaking')}
-            aria-label={`Choice ${i + 1}`} disabled={wrong.includes(i)} onClick={() => tap(i)}>
+          <button key={w} class={cls('said-btn', wrong.includes(i) && 'wrong', done === i && 'right', lesson.lit.value.includes(i) && 'lit', lesson.named.value.includes(i) && 'named', speaking.value === `r${i}` && 'speaking')}
+            aria-label={done === i || wrong.includes(i) ? w : READ_NAMES[i]} disabled={wrong.includes(i)} onClick={() => tap(i)}>
             <span class="e">{READ_ICONS[i]}</span>
             {(done === i || wrong.includes(i)) && <span class="sw said-word">{w}</span>}
           </button>
@@ -154,7 +154,7 @@ export function HuntView({ current }: { current: ProblemInstance<HuntProblem, st
       <TeachPanel lesson={lesson} />
       <div class={`hunt-grid n${p.cards.length}`}>
         {p.cards.map((c, i) => (
-          <button key={i} class={cls('word-btn', 'card-btn', found.includes(i) && 'found', wrong.includes(i) && 'wrong', lesson.lit.value.includes(i) && !found.includes(i) && 'lit')}
+          <button key={i} class={cls('word-btn', 'card-btn', found.includes(i) && 'found', wrong.includes(i) && 'wrong', lesson.lit.value.includes(i) && !found.includes(i) && 'lit', lesson.named.value.includes(i) && 'named')}
             disabled={wrong.includes(i) || found.includes(i)} onClick={() => tap(i)}>
             <span class="sw">{c.shown}</span>{found.includes(i) && <span class="stamp">✓</span>}
           </button>
@@ -214,7 +214,7 @@ export function SentenceView({ current }: { current: ProblemInstance<SentencePro
       <TeachPanel lesson={lesson} />
       <div class="sentence big">
         {s.tokens.map((t, i) => (
-          <button key={i} class={cls('tok', 'tok-btn', wrong.includes(i) && 'wrong', done === i && 'right', lesson.lit.value.includes(i) && 'lit')}
+          <button key={i} class={cls('tok', 'tok-btn', wrong.includes(i) && 'wrong', done === i && 'right', lesson.lit.value.includes(i) && 'lit', lesson.named.value.includes(i) && 'named')}
             disabled={wrong.includes(i)} onClick={() => tap(i)}><span class="sw">{t.shown}</span></button>
         ))}
       </div>
@@ -238,7 +238,7 @@ export function FillView({ current }: { current: ProblemInstance<FillProblem, st
       </div>
       <div class={`words n${p.choices.length}`}>
         {p.choices.map((w, i) => (
-          <button key={w} class={cls('word-btn', wrong.includes(i) && 'wrong', done === i && 'right', lesson.lit.value.includes(i) && 'lit')}
+          <button key={w} class={cls('word-btn', wrong.includes(i) && 'wrong', done === i && 'right', lesson.lit.value.includes(i) && 'lit', lesson.named.value.includes(i) && 'named')}
             disabled={wrong.includes(i)} onClick={() => tap(i)}><span class="sw">{w}</span></button>
         ))}
       </div>

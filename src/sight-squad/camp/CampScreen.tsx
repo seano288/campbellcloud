@@ -118,7 +118,7 @@ export function CampScreen({ goal: goalView, onShelf }: { goal: ComponentChildre
   const tabs: { id: Sheet; label: string; icon: ComponentChildren; aff: boolean }[] = [
     { id: 'squads', label: 'Squads', icon: <UnitArt unit="rifleman" color={team} />, aff: squadsAffordable() },
     ...SLOTS.map(s => ({ id: s.id as Sheet, label: s.name, icon: <span class="tab-emoji">{s.icon}</span>, aff: slotHasAffordable(s.id) })),
-    { id: 'colour', label: 'Colours', icon: <i class="dab" style={{ background: team }} />, aff: coloursAffordable() },
+    { id: 'colour', label: 'Colors', icon: <i class="dab" style={{ background: team }} />, aff: coloursAffordable() },
   ];
   return (
     <div class={`screen garage-screen hangar-screen camp-screen ${sheet ? 'open' : ''} ${show ? 'showing' : ''}`}>
@@ -154,8 +154,8 @@ export function CampScreen({ goal: goalView, onShelf }: { goal: ComponentChildre
       {sheet && !show && (
         <div class={`sheet ${sheet === 'squads' ? 'squads' : ''}`}>
           <div class="sheethead">
-            <span>{sheet === 'squads' ? '🪖' : sheet === 'colour' ? '🎨' : slotById(sheet).icon}</span>
-            {sheet === 'squads' ? 'Squads' : sheet === 'colour' ? 'Colours' : slotById(sheet).name}
+            <span class="sheet-ico">{sheet === 'squads' ? <UnitArt unit="rifleman" color={team} /> : sheet === 'colour' ? '🎨' : slotById(sheet).icon}</span>
+            {sheet === 'squads' ? 'Squads' : sheet === 'colour' ? 'Colors' : slotById(sheet).name}
             <button class="x" aria-label="Close" onClick={() => setSheet(null)}>✕</button>
           </div>
           {sheet === 'squads' ? (

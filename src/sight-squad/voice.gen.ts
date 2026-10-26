@@ -9,6 +9,7 @@ export const CLIPS = {
   "You can build something new!": "4ded2ceba33a.mp3",
   "You built everything!": "e3116beca75f.mp3",
   "You kept trying!": "2fbcceefc619.mp3",
+  "Tap again to go home.": "ab4f3e0ca5b0.mp3",
   "Great job!": "15a17173d557.mp3",
   "You got it!": "44934a531c0e.mp3",
   "Super reader!": "423dc92d09cc.mp3",

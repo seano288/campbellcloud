@@ -1,5 +1,6 @@
-// The 🏆 shelf in the Camp: one plank each for Learning, Skill and Sticking with it. Earned trophies shine; the rest
-// are empty dashed outlines, spots on the shelf waiting to be filled. Tapping one reads its name, or the hint for what earns it (or its next step).
+// The 🏆 shelf in the Camp: one plank each for Learning, Skill and Sticking with it. Earned trophies shine; after them each
+// plank keeps two empty dashed spots for the next ones to win, so an empty shelf says "two to win here" rather than a row
+// of everything he hasn't got. Tapping one reads its name, or the hint for what earns it (or its next step).
 import { useEffect } from 'preact/hooks';
 import { player } from './game';
 import type { Phrase } from './phrases';
@@ -23,11 +24,11 @@ function emblem(s: TrophyStep): [string, string] {
 }
 function Cup({ color, step }: { color: string; step: TrophyStep }) {
   const [icon, text] = emblem(step), empty = color === GREY;
-  const line = empty ? { stroke: '#ffffff70', 'stroke-dasharray': '7 6' } : { stroke: '#000' }, fill = empty ? '#ffffff12' : color;
+  const line = empty ? { stroke: '#ffffffb0', 'stroke-dasharray': '7 6' } : { stroke: '#000' }, fill = empty ? '#ffffff12' : color;
   return (
     <div class="trophy" style={{ width: 'calc(72px*var(--u))', height: 'calc(86px*var(--u))' }} aria-hidden="true">
       <svg viewBox="0 0 100 120">
-        <path d="M22 18 H8 Q6 46 30 50 M78 18 H92 Q94 46 70 50" fill="none" stroke={empty ? '#ffffff40' : color} stroke-width="7" />
+        <path d="M22 18 H8 Q6 46 30 50 M78 18 H92 Q94 46 70 50" fill="none" stroke={empty ? '#ffffff80' : color} stroke-width="7" />
         <path d="M20 8 H80 V36 Q80 70 50 72 Q20 70 20 36 Z" fill={fill} stroke-width="4" {...line} />
         <rect x="43" y="72" width="14" height="18" fill={fill} stroke-width="4" {...line} />
         <rect x="24" y="90" width="52" height="22" rx="4" fill={fill} stroke-width="4" {...line} />
@@ -43,6 +44,13 @@ function lines(t: Trophy, n: number): Phrase[] {
   return next ? [trophyName(t.steps[n - 1]!), trophyHint(next)] : [trophyName(t.steps[n - 1]!)];
 }
 
+/** Every trophy on a plank he has a step of, then the first two he hasn't started. */
+const SPOTS = 2;
+function nextUp(ts: readonly Trophy[], earned: Parameters<typeof earnedCount>[1]): Trophy[] {
+  const won = ts.filter(t => earnedCount(t, earned) > 0);
+  return [...won, ...ts.filter(t => earnedCount(t, earned) === 0).slice(0, SPOTS)];
+}
+
 export function TrophyShelf({ onClose }: { onClose(): void }) {
   const voice = useVoiceScope(), earned = player.state.value.trophies.earned;
   useEffect(() => { void voice.say('Trophies!'); }, []);
@@ -52,7 +60,7 @@ export function TrophyShelf({ onClose }: { onClose(): void }) {
       <div class="planks">
         {KINDS.map(kind => (
           <div key={kind} class="plank">
-            {TROPHIES.filter(t => t.kind === kind).map(t => {
+            {nextUp(TROPHIES.filter(t => t.kind === kind), earned).map(t => {
               const n = earnedCount(t, earned), shown = t.steps[Math.max(n - 1, 0)]!;
               return (
                 <button key={t.id} class={`shelf-trophy ${n ? 'earned' : ''} ${speaking.value === t.id ? 'speaking' : ''}`}
