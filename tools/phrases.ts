@@ -13,6 +13,7 @@ const collections = {
   'time-flies': async () => (await import('../src/time-flies/phrases')).PHRASES,
   purrdoku: async () => (await import('../src/purrdoku/phrases')).PHRASES,
   'chop-chop': async () => (await import('../src/chop-chop/phrases')).PHRASES,
+  'sight-squad': async () => (await import('../src/sight-squad/phrases')).PHRASES,
 };
 if (!name || !Object.hasOwn(collections, name)) throw new Error(`Select --collection ${Object.keys(collections).join('|')}`);
 const phrases = await collections[name as keyof typeof collections]();

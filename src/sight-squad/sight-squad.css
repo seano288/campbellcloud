@@ -1,0 +1,196 @@
+/* Sight Squad: Time Flies' styles (imported before this file) in army olive and khaki, plus the word cards, letter tiles and
+   sentences, and the Camp. Every word he reads is in Andika, a school font with a single-storey a and g. */
+:root{--olive:#4f7a2a;--olive-deep:#23331a;--khaki:#e8d9a8;--paper:#fffdf4;--heart:#e63946}
+html,body{background:var(--olive-deep)}
+.sw{font-family:Andika,"Comic Sans MS",system-ui,sans-serif;font-weight:700;letter-spacing:.01em;text-transform:none}
+.start{background:radial-gradient(circle at 50% 20%,#7aa34a,#23331a 75%)}
+.start h1{text-shadow:3px 3px 0 #4f7a2a,6px 6px 0 #000}
+.start-art{display:flex;gap:calc(10px*var(--u));justify-content:center}
+.start-art .unit-art{width:calc(110px*var(--u));height:calc(110px*var(--u))}
+.home-screen,.round-screen{background:linear-gradient(#7aa34a,#3f6324 60%,#23331a)}
+.home-head h1{color:var(--khaki);text-shadow:2px 2px 0 #4f7a2a,4px 4px 0 #000}
+.picker-screen{background:radial-gradient(circle at 50% 20%,#7aa34a,#23331a 75%)}
+.picker-title{font-size:calc(70px*var(--u))}
+.body-card .trio{display:flex;justify-content:center;width:100%}
+.body-card .trio .unit-art{width:33%;max-height:22dvh}
+.unit-art{display:block}
+
+/* ---------- Home: the Camp, Play and his Level in each kind of question ---------- */
+.home.squad{grid-template-areas:"g g" "p k";grid-template-rows:1fr 1fr;grid-template-columns:1fr 1.6fr}
+@media (orientation:landscape){.home.squad{grid-template-areas:"p g" "k g";grid-template-rows:1fr 1.2fr;grid-template-columns:1fr 1.2fr}}
+.t-camp{grid-area:g;background:linear-gradient(#bfe3f7 0 58%,#e2c48e 58%);flex-direction:column;color:#000}
+.home-army{flex:1;min-height:0;width:100%;display:flex;align-items:flex-end;justify-content:center;gap:2%}
+.home-army{flex-wrap:wrap;align-content:flex-end}
+.home-army .unit-art{height:min(48%,18dvh);width:auto;aspect-ratio:1;flex:0 1 17%;margin:0 -2%}
+.t-camp .nm{font-size:calc(30px*var(--u))}
+.t-play{grid-area:p;background:#ffd23f;flex-direction:column}
+.tile-word{display:grid;place-items:center;min-width:60%;padding:calc(6px*var(--u)) calc(22px*var(--u));background:var(--paper);border:4px solid #000;border-radius:18px;box-shadow:0 5px 0 #000;font-size:calc(54px*var(--u));line-height:1.1}
+.t-play .e{display:grid;place-items:center;width:calc(96px*var(--u));height:calc(96px*var(--u));min-width:64px;min-height:64px;border-radius:50%;border:4px solid #000;background:var(--green);color:#fff;box-shadow:0 5px 0 #000;font-size:calc(50px*var(--u));padding-left:.12em}
+.t-kinds{grid-area:k;background:#cfe3a8;display:grid;grid-template-columns:repeat(2,1fr);grid-template-rows:auto;grid-auto-rows:1fr;column-gap:calc(14px*var(--u));padding:calc(8px*var(--u)) calc(14px*var(--u)) calc(10px*var(--u));align-items:stretch;box-shadow:inset 0 4px 0 #0002}
+.t-kinds:active{transform:none;box-shadow:inset 0 4px 0 #0002}
+.kinds-head{grid-column:1/-1;margin:0 0 calc(2px*var(--u));font:400 calc(16px*var(--u)) Bungee,sans-serif;text-align:center;letter-spacing:.04em;color:#0009}
+.kind{position:relative;display:flex;align-items:center;gap:8px;border-top:2px solid #0002;padding:2px 2px;min-height:0;text-align:left;cursor:default;user-select:none;-webkit-user-select:none}
+.kind .ki{font-size:calc(28px*var(--u));line-height:1}
+.kind .kb{flex:1;min-width:0;display:flex;flex-direction:column;gap:3px}
+.kind .kn{font:400 calc(12px*var(--u)) Bungee,sans-serif;line-height:1.1}
+.kind .lvl{gap:0;width:100%;max-width:calc(110px*var(--u));height:calc(10px*var(--u));border-radius:99px;overflow:hidden;background:#0002;box-shadow:inset 0 2px 2px #0003}
+.kind .lvl i{flex:1;width:auto;height:100%;border:0;border-radius:0;background:none}
+.kind .lvl i+i{border-left:2px solid #cfe3a8}
+.kind .lvl i.on{background:var(--orange)}
+.kind.locked{filter:grayscale(.9) brightness(.8);opacity:.7}
+.kind.fresh{animation:pulse 1s infinite}
+.kind .badge{position:absolute;right:-4px;top:2px;font-size:calc(18px*var(--u))}
+.kind.words-met{grid-column:1/-1;justify-content:center}
+.kind.words-met .kb{flex:none}
+.kind.words-met .kn{font-size:calc(16px*var(--u))}
+
+/* ---------- words ---------- */
+.card{position:relative}
+.ask h2{font-size:max(20px,calc(28px*var(--u)))}
+.word-btn{position:relative;display:grid;place-items:center;min-height:max(64px,calc(96px*var(--u)));padding:calc(10px*var(--u)) calc(18px*var(--u));background:var(--paper);border:4px solid #000;border-radius:20px;box-shadow:0 6px 0 #000;font-size:max(34px,calc(58px*var(--u)));line-height:1;color:#111;transition:transform .15s,box-shadow .2s,background .2s}
+.word-btn:active{transform:translateY(4px);box-shadow:0 2px 0 #000}
+.word-btn.wrong{background:#ddd;color:#888;animation:shake .4s}
+.word-btn.right,.word-btn.found{background:#c7f0d4;box-shadow:0 0 0 6px var(--green),0 6px 0 #000}
+.word-btn.lit{box-shadow:0 0 0 7px var(--yellow),0 0 26px 8px var(--yellow),0 6px 0 #000}
+.word-btn:disabled{opacity:1}
+.words{display:grid;gap:calc(16px*var(--u));width:min(100%,820px)}
+.words.n2{grid-template-columns:repeat(2,1fr);width:min(100%,620px)}
+.words.n3{grid-template-columns:repeat(3,1fr)}
+.words.n4{grid-template-columns:repeat(4,1fr)}
+.hunt-grid{display:grid;gap:calc(12px*var(--u));width:min(100%,860px);flex:1;min-height:0;align-content:center}
+.hunt-grid.n6,.hunt-grid.n9{grid-template-columns:repeat(3,1fr)}
+.hunt-grid.n12{grid-template-columns:repeat(4,1fr)}
+.card-btn{min-height:max(54px,calc(74px*var(--u)));font-size:max(28px,calc(44px*var(--u)))}
+.card-btn .stamp{position:absolute;right:6px;top:2px;font:900 calc(26px*var(--u)) Nunito,sans-serif;color:var(--green)}
+.meet-word{display:grid;place-items:center;padding:calc(14px*var(--u)) calc(40px*var(--u));background:var(--paper);border:5px solid #000;border-radius:26px;box-shadow:0 8px 0 #000;font-size:max(64px,calc(120px*var(--u)));line-height:1.05}
+.meet-word.right{box-shadow:0 0 0 8px var(--green),0 8px 0 #000;background:#c7f0d4}
+.big-word{display:grid;place-items:center;padding:calc(10px*var(--u)) calc(40px*var(--u));background:var(--paper);border:5px solid #000;border-radius:26px;box-shadow:0 8px 0 #000;font-size:max(64px,calc(110px*var(--u)));line-height:1.05}
+.big-word.right{box-shadow:0 0 0 8px var(--green),0 8px 0 #000}
+
+/* a word letter by letter: the one being named lights up, a heart word's tricky letters wear a heart */
+.letters{display:inline-flex;align-items:flex-end}
+.ltr{position:relative;display:inline-block;padding:0 .02em;border-radius:.12em;transition:transform .15s,background .15s}
+.ltr.lit{background:var(--yellow);transform:scale(1.18);box-shadow:0 0 0 .05em #000}
+.ltr.heart{color:var(--heart)}
+.ltr.heart::before{content:"❤️";position:absolute;left:50%;top:-.42em;translate:-50% 0;font-size:.34em;line-height:1}
+.teach-panel{position:absolute;z-index:5;left:50%;top:calc(76px*var(--u));translate:-50% 0;padding:calc(10px*var(--u)) calc(36px*var(--u));background:var(--paper);border:5px solid #000;border-radius:26px;box-shadow:0 10px 0 #000,0 0 0 9999px #0005;font-size:max(64px,calc(118px*var(--u)));line-height:1.1;animation:pop-in .25s ease-out}
+.teach-panel.inline{position:static;translate:none;box-shadow:0 8px 0 #000;font-size:max(48px,calc(80px*var(--u)))}
+
+/* sentences */
+.sentence{display:flex;flex-wrap:wrap;justify-content:center;align-items:baseline;gap:calc(10px*var(--u)) calc(16px*var(--u));max-width:min(96%,900px);font-size:max(30px,calc(46px*var(--u)));line-height:1.2;color:#111}
+.sentence.big{font-size:max(34px,calc(56px*var(--u)))}
+.tok{display:inline-block;padding:calc(2px*var(--u)) calc(6px*var(--u));border-radius:14px;transition:background .2s,box-shadow .2s}
+.tok.lit{background:var(--yellow);box-shadow:0 0 0 4px #000}
+.tok-btn{background:var(--paper);border:3px solid #0003;box-shadow:0 4px 0 #0003;font-size:inherit;color:inherit;padding:calc(4px*var(--u)) calc(12px*var(--u))}
+.tok-btn:active{transform:translateY(3px);box-shadow:0 1px 0 #0003}
+.tok-btn.wrong{background:#ddd;color:#888;animation:shake .4s}
+.tok-btn.right{background:#c7f0d4;border-color:var(--green)}
+.tok-btn.lit{background:var(--yellow);border-color:#000}
+.tok.gap{min-width:3.2em;border-bottom:5px solid #000;border-radius:6px 6px 0 0;background:#fff3c4;text-align:center}
+.tok.gap.filled{background:#c7f0d4}
+
+/* Build It: slots for the word, letter tiles to tap */
+.slots{display:flex;gap:calc(10px*var(--u));justify-content:center}
+.slot{display:grid;place-items:center;width:max(56px,calc(88px*var(--u)));height:max(68px,calc(104px*var(--u)));border:4px dashed #0006;border-radius:16px;background:#fff;font-size:max(44px,calc(72px*var(--u)));line-height:1;transition:background .2s,transform .15s}
+.slot.filled{border:4px solid #000;background:#c7f0d4;box-shadow:0 4px 0 #000}
+.slot.lit{background:var(--yellow);transform:scale(1.08)}
+.slots.right .slot{box-shadow:0 0 0 4px var(--green),0 4px 0 #000}
+.ghost{color:#0003}
+.tiles{display:flex;flex-wrap:wrap;gap:calc(12px*var(--u));justify-content:center;max-width:min(100%,760px)}
+.tile-btn{display:grid;place-items:center;width:max(60px,calc(92px*var(--u)));height:max(60px,calc(92px*var(--u)));background:var(--yellow);border:4px solid #000;border-radius:18px;box-shadow:0 6px 0 #000;font-size:max(40px,calc(64px*var(--u)));line-height:1;color:#111}
+.tile-btn:active{transform:translateY(4px);box-shadow:0 2px 0 #000}
+.tile-btn.used{visibility:hidden}
+.tile-btn.wiggle{animation:shake .4s;background:#ffd0d0}
+
+/* Read It: three spoken choices, each a big round button that lights while it's read */
+.said{display:flex;gap:calc(24px*var(--u));justify-content:center}
+.said-btn{position:relative;display:grid;place-items:center;width:max(84px,calc(128px*var(--u)));height:max(84px,calc(128px*var(--u)));border-radius:50%;background:var(--khaki);border:5px solid #000;box-shadow:0 6px 0 #000;transition:transform .15s,box-shadow .2s}
+.said-btn .e{font-size:max(40px,calc(60px*var(--u)))}
+.said-btn.speaking{transform:scale(1.12);box-shadow:0 0 0 7px var(--orange),0 6px 0 #000}
+.said-btn.lit{box-shadow:0 0 0 7px var(--yellow),0 0 26px 8px var(--yellow),0 6px 0 #000}
+.said-btn.right{background:#c7f0d4;box-shadow:0 0 0 7px var(--green),0 6px 0 #000}
+.said-btn.wrong{filter:grayscale(1);opacity:.5}
+.said-word{position:absolute;bottom:-1.3em;font-size:max(22px,calc(30px*var(--u)));color:#fff;text-shadow:0 2px 0 #000}
+.card .said-word{color:#111;text-shadow:none}
+
+/* ---------- the end of a Round: his soldiers march in with the Bolts ---------- */
+.reward{background:radial-gradient(circle at 50% 30%,#4f7a2a,#141d0e 80%)}
+.reward h2{color:var(--khaki)}
+.marchby{position:absolute;left:-60%;top:6%;transition:left 1.1s cubic-bezier(.3,.7,.4,1)}
+.marchby.go{left:30%}
+.marchby .load{display:flex;flex-wrap:wrap;gap:2px;justify-content:center;max-width:calc(240px*var(--u))}
+.squad-row{display:flex;gap:calc(4px*var(--u));padding:calc(8px*var(--u)) calc(14px*var(--u)) calc(4px*var(--u));background:#e8d9a8;border:4px solid #000;border-radius:18px;box-shadow:0 5px 0 #000}
+.squad-row .unit-art{width:calc(80px*var(--u));height:calc(80px*var(--u))}
+.unit-art.marching{animation:march .5s ease-in-out infinite alternate}
+.unit-art.marching:nth-child(2n){animation-delay:-.25s}
+@keyframes march{from{transform:translateY(0) rotate(-3deg)}to{transform:translateY(-6px) rotate(3deg)}}
+
+/* ---------- the Camp ---------- */
+.camp-screen{background:#23331a}
+.armyname{pointer-events:auto!important;width:auto;left:50%;right:auto;translate:-50% 0;padding:0 18px;min-height:48px;background:#000a;border-radius:99px;color:#fff;font:400 calc(26px*var(--u)) Bungee,sans-serif}
+.tabstrip{display:flex}
+.tab-chip{width:max(64px,calc(80px*var(--u)));height:max(60px,calc(72px*var(--u)));padding:6px;background:#e8d9a8;display:grid;place-items:center}
+.tab-chip .unit-art{width:100%;height:100%}
+.tab-chip .tab-emoji{font-size:max(28px,calc(38px*var(--u)));line-height:1}
+.tab-chip .dab{display:block;width:70%;height:70%;border-radius:12px;border:3px solid #000}
+.tab-chip.on{background:#c4f2d8;box-shadow:0 0 0 4px #3ddc84,0 5px 0 #000}
+.tab-chip.aff::after{content:"";position:absolute;top:-4px;right:-4px;width:16px;height:16px;border-radius:50%;background:#ffc53d;border:2px solid #000}
+.sheet.squads{height:56%}
+.squad-tiles{grid-template-columns:repeat(5,1fr);grid-template-rows:none;grid-auto-rows:minmax(0,1fr);overflow-y:auto}
+@media (orientation:landscape){.squad-tiles{grid-template-columns:repeat(4,1fr)}}
+.squad-tile .ico .unit-art{width:100%;height:100%}
+.squad-tile .count{position:absolute;left:6px;bottom:calc(30px*var(--u));font:900 max(15px,calc(20px*var(--u))) Nunito,sans-serif;color:#fff;text-shadow:0 2px 0 #000}
+.squad-tile .count small{font-size:.65em;opacity:.8}
+.squad-tile.fitted{background:#1f4a39}
+.swatches.big{flex-wrap:wrap;overflow:visible;justify-content:center}
+.goalchip .gi .unit-art{width:100%;height:100%}
+
+.show-btns{display:flex;gap:10px}
+.camp-screen.open .stage-btn{display:none}
+
+/* the Parade and the Battle: orders are written words, nothing else */
+.show-overlay .orders{position:absolute;left:0;right:0;bottom:calc(14px + env(safe-area-inset-bottom));display:flex;flex-wrap:wrap;gap:calc(12px*var(--u));justify-content:center;padding:0 12px;pointer-events:none}
+.show-overlay .order{pointer-events:auto;min-height:max(60px,calc(80px*var(--u)));min-width:max(90px,calc(130px*var(--u)));font-size:max(32px,calc(48px*var(--u)))}
+.show-overlay .go-word{position:absolute;left:50%;bottom:calc(24px + env(safe-area-inset-bottom));translate:-50% 0;min-width:max(160px,calc(220px*var(--u)));min-height:max(100px,calc(130px*var(--u)));font-size:max(60px,calc(88px*var(--u)));background:var(--yellow)}
+.showname{color:#fff;text-shadow:3px 3px 0 #4f7a2a,5px 5px 0 #000}
+
+/* the Password Lock */
+.password-card .slots{margin:calc(6px*var(--u)) 0}
+.password-card .tiles{max-width:min(90vw,640px)}
+
+/* ---------- a phone held upright ---------- */
+@media (orientation:portrait) and (max-width:600px){
+  .words.n4{grid-template-columns:repeat(2,1fr)}
+  .words.n3{grid-template-columns:1fr;width:min(100%,320px)}
+  .hunt-grid.n12{grid-template-columns:repeat(3,1fr)}
+  .word-btn{font-size:max(30px,calc(48px*var(--u)))}
+  .card-btn{font-size:max(24px,calc(36px*var(--u)));padding:6px}
+  .squad-tiles{grid-template-columns:repeat(3,1fr);grid-auto-rows:minmax(104px,auto)}
+  .squad-tiles>*,.squad-tiles>:nth-child(n+4){grid-column:auto}
+  .sentence.big{font-size:max(28px,calc(44px*var(--u)))}
+}
+@media (max-width:430px){
+  .camp-screen .goalchip .track,.camp-screen .goalchip .bolt,.home-screen .goalchip .track,.home-screen .goalchip .bolt,.round-screen .goalchip .track,.round-screen .goalchip .bolt{display:none}
+  .camp-screen .goalchip,.home-screen .goalchip,.round-screen .goalchip{padding:4px 6px;flex:none}
+  .home-head h1{font-size:22px}
+}
+@media (max-width:430px),(max-height:520px){.camp-screen:not(.open):not(.showing) .bodystrip{display:flex}}
+
+/* ---------- fixes Chop Chop learned: big taps, a still screen for Reduce Motion, orange focus rings ---------- */
+.stars span.on.half{filter:none;transform:scale(.8)}
+.card.thinking button:not(.help-btn){opacity:1}
+.game .help-btn{width:calc(64px*var(--u));height:calc(64px*var(--u));min-width:52px;min-height:52px;padding:0;border-radius:50%;border-width:4px;font-size:calc(30px*var(--u));display:grid;place-items:center;background:var(--yellow)}
+.goalchip .num{display:none}
+.goalchip .track{display:block;width:calc(90px*var(--u));min-width:44px}
+.icon-btn,.say-btn,.sheethead .x,.shelfhead .x,.vault-card .x{min-width:48px;min-height:48px}
+.goalchip{min-height:48px}
+.body-chip{min-height:48px;min-width:64px}
+.swatch{min-width:52px;min-height:52px}
+.shelf-trophy:not(.earned) .ti{filter:grayscale(1);opacity:.5}
+.shelf-trophy:not(.earned) .tt{filter:none;color:#ffffff99}
+@media (prefers-reduced-motion:reduce){
+  *,*::before,*::after{animation-duration:.01ms!important;animation-iteration-count:1!important;transition-duration:.01ms!important;transition-delay:0s!important}
+  .confetti,.firework,.spark,.shatter{display:none!important}
+  .pulse,.goalchip.ready,.body-card.on,.kind.fresh{box-shadow:0 6px 0 #000,0 0 0 8px #ffd23f99}
+}
+button:focus-visible{outline:4px solid var(--orange);outline-offset:3px}

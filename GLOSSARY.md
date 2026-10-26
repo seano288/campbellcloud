@@ -107,3 +107,54 @@ asks him to fill the fuel tank to a part ("three quarters full"); it opens when 
 
 **Lift Off**: the Helipad's stage moment: the rotors spin up, it lifts straight off the helipad and flies into the sky,
 does a trick when tapped, fires its gun and rockets, and lands back on the pad.
+
+## Sight Squad
+
+Sight Squad reuses Chop Chop's terms where they mean the same thing (Mixed Round, Mastery, Bolt, Slot, Mod, Rung, Goal,
+Trophy). These are its own:
+
+**Sight word**: one of the 100 common words he learns (Dolch pre-primer and primer, Fry's first hundred), met one at a
+time in a fixed order of 20 sets of 5. Look-alikes (was/saw, on/no, the/then) are never in the same set.
+_Avoid_: vocabulary word, spelling word
+
+**Heart word**: a sight word with letters that don't say what they usually say (the *ai* in *said*), its **heart part**.
+Those letters get a heart when it's taught, to be learned "by heart"; the rest of the word is read the usual way.
+
+**Meeting a word**: the moment a new word arrives, before any question uses it: it's shown big, said, spelled letter by
+letter ("Say it, spell it, say it"), its heart part shown, used in a sentence, and then he taps it.
+
+**Strength**: how well he knows one word, 0 to 5: up one on a first-try answer, down two on a miss. Weak and new words
+come up more often. The next word waits while more than two are shaky (below 2).
+_Avoid_: Level (a Level belongs to a kind of question, not a word)
+
+**Game Modes (Sight Squad)**: the six kinds of question: Find It (hear a word, tap it), Word Hunt (tap every copy in a
+grid), Build It (tap its letters in order), Read It (read a word, pick which of three spoken words it is), Sentence Hunt
+(find the word in a sentence read to him) and Fill the Gap (pick the missing word of a sentence). Find It, Word Hunt and
+Build It are open from the start; each opens the one below it on Home at Level 2.
+
+**Army**: his toy soldiers, green plastic army men on a play-mat, Sight Squad's Body. It's many figures, not one.
+
+**Squad**: one kind of figure in the Army (Rifleman, Scout, Drummer, Medic, Rocket Trooper, Army Dog, Paratrooper, Jeep,
+Cannon, Tank). Riflemen are his from the start; the rest are unlocked once with Bolts, and the first soldier comes with it.
+_Avoid_: unit type, class
+
+**Recruit**: one more soldier of a Squad he has, bought with Bolts (2 to 12) and bought again as often as he likes, up to
+the Squad's maximum. It marches onto the mat. Recruits are never the Goal.
+
+**Gear**: the Mods the whole Army wears, one Rung per Slot: Helmet, Pack, Flag, Finish, Mat (the play-mat itself) and Boom
+(what it throws in a Battle).
+
+**Team Colour**: the one colour of plastic the whole Army is made of. Army Green, Tan and Grey are free (he picks one on
+first launch); nine more cost 3 Bolts.
+_Avoid_: paint, Colour (in Sight Squad it's always the Team Colour)
+
+**Camp**: where he builds his Army, Sight Squad's Garage.
+
+**Password Lock**: the vault that holds every Legendary in Sight Squad. Once a Slot's top Rung is his, tapping its
+Legendary asks him to build a password, a word he has met, from letter tiles.
+
+**Parade**: one of the Camp's two stage moments: the Army marches round the mat in a column, and does what the command words
+he taps say (go, stop, run, jump, look, come, down, up, play: only the ones he has met, written only).
+
+**Battle**: the other stage moment: a toy battle against wind-up robots. Robots that are hit topple over and bounce back up,
+then go poof; his soldiers that are hit fall over and spring back up. He always wins. Never "kill", "shoot" or "destroy".

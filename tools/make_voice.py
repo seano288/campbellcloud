@@ -5,6 +5,7 @@
   .venv/bin/python tools/make_voice.py --collection time-flies --out public/time-flies-voice --index src/time-flies/voice.gen.ts
   .venv/bin/python tools/make_voice.py --collection purrdoku --out public/purrdoku-voice --index src/purrdoku/voice.gen.ts
   .venv/bin/python tools/make_voice.py --collection chop-chop --out public/chop-chop-voice --index src/chop-chop/voice.gen.ts
+  .venv/bin/python tools/make_voice.py --collection sight-squad --out public/sight-squad-voice --index src/sight-squad/voice.gen.ts
 
 Select phrases through tools/phrases.ts and write recordings and a typed index to explicit locations.
 Only missing clips are recorded. Cleanup touches only the selected directory, whose .voice-collection
@@ -20,7 +21,14 @@ VOICES = {'purrdoku': ('en-GB-RyanNeural', '-5%')}
 ROOT = Path(__file__).resolve().parent.parent
 
 
+# Sight Squad spells words aloud letter by letter: each "Letter X" clip is the letter's name, spelled so the voice says it
+LETTER_NAMES = dict(zip('ABCDEFGHIJKLMNOPQRSTUVWXYZ', ['ay', 'bee', 'see', 'dee', 'ee', 'eff', 'jee', 'aitch', 'eye', 'jay', 'kay', 'el',
+                    'em', 'en', 'oh', 'pee', 'cue', 'ar', 'ess', 'tee', 'you', 'vee', 'double you', 'ex', 'why', 'zee']))
+
+
 def speakable(s):
+    if s.startswith('Letter ') and s[7:] in LETTER_NAMES:
+        return LETTER_NAMES[s[7:]]
     for a, b in [('$1 Bill', 'one dollar bill'), ('$5 Bill', 'five dollar bill'), ('$1', 'one dollar'), ('$5', 'five dollars'),
                  ('VROOM', 'Vroom'), ('Truck-tastic', 'Truck tastic'),
                  # Time Flies: aircraft names said the way pilots say them

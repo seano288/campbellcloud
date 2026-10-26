@@ -18,11 +18,13 @@
     "check:hunch": "tsx tools/hunch/play.ts",
     "dev:time-flies": "vite --config vite.time-flies.config.ts",
     "dev:chop-chop": "vite --config vite.chop-chop.config.ts",
+    "dev:sight-squad": "vite --config vite.sight-squad.config.ts",
     "dev:hunch": "vite --config vite.hunch.config.ts",
     "dev:purrdoku": "vite --config vite.purrdoku.config.ts",
     "build:purrdoku-boards": "tsx tools/purrdoku-boards.ts"
   },
   "dependencies": {
+    "@fontsource/andika": "^5.3.0",
     "@fontsource/bungee": "^5.3.0",
     "@fontsource/jetbrains-mono": "^5.3.0",
     "@fontsource/nunito": "^5.3.0",

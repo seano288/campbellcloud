@@ -25,3 +25,7 @@ Research: `.scratch/airplane-clock/research/` (rendering-modeling.md compares th
 - Chop Chop's 17 helicopters are built the same way (`src/chop-chop/hangar/helis/*.ts`, builder `hangar/three/heli.ts`):
   they reuse the lofting, livery, materials, stores and weapons here and add rotors (main, tail, canted, scissored,
   ducted, coaxial, tandem and pusher), skids and a chin gun. Research: `.scratch/chop-chop/research/helis/`.
+- Sight Squad's army is built the same way, from primitives as data (`src/sight-squad/camp/three/figures.ts`), but because
+  it's dozens of figures rather than one vehicle, each part of each Squad is one `InstancedMesh` and every figure's pose is a
+  matrix per part, with no skeletons (`army.ts`). Its studio light is three.js's `RoomEnvironment`, so it downloads nothing.
+  Research: `.scratch/sight-squad/research/army-display.md`.
