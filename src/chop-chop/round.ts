@@ -7,7 +7,7 @@ import { pick } from '../game/rng';
 import { createRound, type RoundDisplay } from '../learning/round';
 import type { Outcome, RoundResult, SolvedProblem } from '../learning/session';
 import { ROUND_LENGTH } from '../round/rules';
-import { explainBigger, explainColor, explainFair, explainFind, explainName, explainShare } from './fractions/teach';
+import { explainBigger, explainColor, explainFair, explainFind, explainName, explainShare, explainWrite } from './fractions/teach';
 import { practice, player } from './game';
 import type { LearningChange } from './learning';
 import { mixedSession, type Problem } from './mix';
@@ -48,14 +48,14 @@ export function startRound(resume: readonly SolvedProblem[] = []) {
   let soFar = [...resume];
   place.round({ mode: 'mix', results: soFar });
   const voice = createVoiceScope(screenVoice.peek().signal);
-  const session = mixedSession(() => player.state.peek().learning, { fair: explainFair, name: explainName, bigger: explainBigger, find: explainFind, color: explainColor, share: explainShare });
+  const session = mixedSession(() => player.state.peek().learning, { fair: explainFair, name: explainName, bigger: explainBigger, find: explainFind, color: explainColor, share: explainShare, write: explainWrite });
   const controller = createRound({
     roundId: started.roundId, session, rng: Math.random, signal: voice.signal, resume,
     interrupt: fact => { practice.interrupt(fact.roundId, fact.index, fact.outcome); },
     solved: (roundId, fact) => {
       const asked = controller.display.peek().current.problem;
       session.note(fact.outcome);
-      const committed = practice.solve(roundId, fact, asked.mode === 'meet' ? { meet: asked.q.d } : { mode: asked.mode, push: asked.push });
+      const committed = practice.solve(roundId, fact, asked.mode === 'meet' ? { meet: asked.q.d } : asked.mode === 'meetWriting' ? { writing: true } : { mode: asked.mode, push: asked.push });
       if (committed.kind !== 'accepted') return;
       soFar = [...soFar, fact];
       place.round({ mode: 'mix', results: soFar });

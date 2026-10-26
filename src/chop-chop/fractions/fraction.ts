@@ -1,6 +1,6 @@
-// Fractions as a 6-year-old meets them: no notation, only things cut into pieces and the words for the pieces. A
-// fraction here is "n of the d equal pieces", said as words ("three quarters"), and drawn as a pizza, a cake or a
-// chocolate bar. Every sentence is a whole recorded phrase (tools/make_voice.py), so the voice never stitches a number
+// Fractions as a 6-year-old meets them: first only things cut into pieces and the words for the pieces, and later the
+// numbers we write them with. A fraction here is "n of the d equal pieces", said as words ("three quarters"), drawn as a
+// pizza, a cake or a chocolate bar, and, once he has met writing, written as a top number over a bottom number. Every sentence is a whole recorded phrase (tools/make_voice.py), so the voice never stitches a number
 // into the middle of a sentence.
 
 /** How many equal pieces a whole is cut into. */
@@ -133,6 +133,23 @@ export const makeTheWhole = (d: Den, food: Food) => `${cap(numberWord(d))} ${PIE
 /** "Tap one quarter!": any one piece is right. */
 export const tapOne = (d: Den) => `Tap ${fracWord(unit(d))}!` as `Tap ${string}!`;
 
+// ---------- writing it with numbers, once he knows the words ----------
+// "A new way to write it! … We write one quarter like this. The bottom number says how many equal pieces. … The top
+// number says how many pieces are left. …" The written fraction is never said as "one over four": its numbers are read
+// with the words he already knows.
+
+/** "We write one quarter like this." */
+export const writeLike = (f: Frac) => `We write ${fracWord(f)} like this.` as `We write ${string} like this.`;
+/** "These numbers say three quarters." / "Those numbers say one third." */
+export const numbersSay = (f: Frac) => `These numbers say ${fracWord(f)}!` as `These numbers say ${string}!`;
+export const thoseSay = (f: Frac) => `Those numbers say ${fracWord(f)}.` as `Those numbers say ${string}.`;
+/** "Find the pizza these numbers show!": the part isn't said, so he has to read it. */
+export const findWritten = (food: Food) => `Find the ${food} these numbers show!` as `Find the ${Food} these numbers show!`;
+export const WRITING_LINES = [
+  'A new way to write it!', 'The bottom number says how many equal pieces.', 'The top number says how many pieces are left.',
+  'Which numbers show what is left?', 'Tap the numbers!',
+] as const;
+
 export type NumberPhrase = `${number}`;
 export const numberPhrase = (n: number) => String(n) as NumberPhrase;
 
@@ -140,7 +157,7 @@ export const FRACTION_LINES = [
   'Not quite!', 'Try again!', "Let's look together.", 'Look!', 'Tap the pieces to color them.', 'Color some pieces!',
   'Equal pieces are all the same size.', 'These pieces are all the same size!', 'These pieces are not the same size.',
   'What is one piece called?', 'More pieces means smaller pieces!', 'They are the same!', 'One piece for each friend!',
-  "Let's count the pieces.", 'Tap the tank to fill it.', 'A new word!', 'That one is the whole thing.', 'That one is all gone.',
+  "Let's count the pieces.", 'Tap the tank to fill it.', 'A new word!', 'That one is the whole thing.', 'That one is all gone.', ...WRITING_LINES,
 ] as const;
 export type FractionLine = (typeof FRACTION_LINES)[number];
 export type FractionPhrase = FractionLine | FracWord | NumberPhrase
@@ -149,4 +166,5 @@ export type FractionPhrase = FractionLine | FracWord | NumberPhrase
   | ReturnType<typeof whichBigger> | ReturnType<typeof isBigger> | ReturnType<typeof isSame> | ReturnType<typeof whichFair>
   | ReturnType<typeof friendsShare> | ReturnType<typeof friendsNeed> | ReturnType<typeof cookiesAsk> | ReturnType<typeof platesLine>
   | ReturnType<typeof eachGets> | ReturnType<typeof youGet> | ReturnType<typeof fillLine> | ReturnType<typeof filledLine> | ReturnType<typeof partsOfTank>
-  | ReturnType<typeof wholeFood> | ReturnType<typeof cutEachInHalf> | (typeof HALF_OF)[keyof typeof HALF_OF] | ReturnType<typeof makeTheWhole> | ReturnType<typeof tapOne>;
+  | ReturnType<typeof wholeFood> | ReturnType<typeof cutEachInHalf> | (typeof HALF_OF)[keyof typeof HALF_OF] | ReturnType<typeof makeTheWhole> | ReturnType<typeof tapOne>
+  | ReturnType<typeof writeLike> | ReturnType<typeof numbersSay> | ReturnType<typeof thoseSay> | ReturnType<typeof findWritten>;

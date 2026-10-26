@@ -1,5 +1,6 @@
 // Plays through Chop Chop in a headless browser and screenshots each screen, for checking the look:
 //   npx tsx tools/chop-chop/tour.ts <url> <outDir> [rounds]     (LEVEL=2 or 3 starts with every kind open at that Level)
+// ONLY=write (any kind) opens just that kind, with half, quarter and third already met; WRITTEN=1 has met writing too.
 // It answers by looking: a part he's asked to colour is worked out from the words; anything else it taps until one is right.
 import { chromium, type Page } from 'playwright';
 
@@ -25,6 +26,13 @@ async function answer(page: Page, q: number) {
     await page.locator('.fraction.tappable .piece').first().click({ force: true });
     return;
   }
+  if (ask.startsWith('A new way to write')) { // meeting writing: watch the numbers read, then tap them
+    await shot(`q${q}-writing`);
+    await page.locator('.numbers-btn:not([disabled])').waitFor({ timeout: 120000 });
+    await shot(`q${q}-written`);
+    await page.locator('.numbers-btn').click();
+    return;
+  }
   if (await page.locator('.fraction.tappable').count()) { // Color the Part: colour n/d of the pieces
     const [, a, b] = /Color (\w+) (\w+)/.exec(ask) ?? [];
     const pieces = await page.locator('.fraction.tappable .piece').count(), k = (WORDS[a!]! * pieces) / WORDS[b!]!;
@@ -44,12 +52,12 @@ async function answer(page: Page, q: number) {
 }
 
 const level = Number(process.env.LEVEL ?? 0);
-if (level) await page.addInitScript(l => { // a save with every kind of question open at one Level
+if (level) await page.addInitScript(([l, only, writing]) => { // a save with every kind of question open at one Level
   if (localStorage.getItem('chop-chop-save')) return;
   const mode = { level: l, window: [], opened: true, starred: false, introPending: false, fresh: false };
-  const modes = Object.fromEntries(['fair', 'name', 'bigger', 'find', 'color', 'share'].map(m => [m, mode]));
-  localStorage.setItem('chop-chop-save', JSON.stringify({ version: 1, bolts: 40, learning: { modes } }));
-}, level);
+  const modes = Object.fromEntries(['fair', 'name', 'bigger', 'find', 'color', 'share', 'write'].map(m => [m, { ...mode, opened: !only || m === only }]));
+  localStorage.setItem('chop-chop-save', JSON.stringify({ version: 1, bolts: 40, learning: { modes, writing, ...(only ? { words: [2, 4, 3], sinceWord: 0 } : {}) } }));
+}, [level, process.env.ONLY ?? '', !!process.env.WRITTEN] as const);
 await page.goto(url);
 await wait(800); await shot('start');
 await page.getByLabel('Start').click({ timeout: 120000 }); await wait(1200); await shot('picker');

@@ -1,9 +1,9 @@
 import { describe, expect, it } from 'vitest';
 import type { SolvedProblem } from '../learning/session';
 import { seeded } from '../game/rng';
-import { DENS, FRAC_WORDS, isEqual, key, parseKey, same, WORD_ORDER, type SaidFrac } from './fractions/fraction';
+import { DENS, FRAC_WORDS, isEqual, key, parseKey, same, WORD_ORDER, type Den, type SaidFrac } from './fractions/fraction';
 import {
-  BIGGER_PAIRS, biggerAnswer, COLOR_TARGETS, COOKIES, FIND_TARGETS, FUEL_TARGETS, makeFair, makeFind, makeName, makeShare, piecesFor, problemPhrases, SAME,
+  BIGGER_PAIRS, biggerAnswer, COLOR_TARGETS, COOKIES, FIND_TARGETS, FUEL_TARGETS, makeFair, makeFind, makeName, makeShare, makeWrite, piecesFor, problemPhrases, SAME,
 } from './fractions/problems';
 import { freshLearning, MODE_IDS, readLearning, recordSolved, WORD_GAP, wordsFor, type LearningState, type ModeId } from './learning';
 import { isRight, makeProblem, mixedSession, pickNext, wordsIn, type Problem } from './mix';
@@ -14,7 +14,7 @@ const at = (s: LearningState, levels: Partial<Record<ModeId, 1 | 2 | 3>>): Learn
   ({ ...s, modes: Object.fromEntries(MODE_IDS.map(m => [m, { ...s.modes[m], opened: true, level: levels[m] ?? 1 }])) as LearningState['modes'] });
 const every = [...DENS];
 const noExplain = async () => {};
-const explainers = { fair: noExplain, name: noExplain, bigger: noExplain, find: noExplain, color: noExplain, share: noExplain };
+const explainers = { fair: noExplain, name: noExplain, bigger: noExplain, find: noExplain, color: noExplain, share: noExplain, write: noExplain };
 
 describe('kinds of question', () => {
   it('opens Fair Shares, Find the Part and Share It at first', () => {
@@ -72,11 +72,12 @@ describe('the mix', () => {
         switch (p.mode) {
           case 'fair': return String(p.q.answer);
           case 'name': return `1/${p.q.d}`;
-          case 'find': return key(p.q.target);
+          case 'find': case 'write': return key(p.q.target);
           case 'color': return `${piecesFor(p.q)}/${p.q.d}`;
           case 'bigger': return biggerAnswer(p.q);
           case 'share': return String(p.q.answer);
           case 'meet': return '0';
+          case 'meetWriting': return `1/${p.q.d}`;
         }
       })();
       expect(isRight(p, right)).toBe(true);
@@ -172,5 +173,43 @@ describe('meeting the words', () => {
     const p: Problem = { mode: 'meet', level: 1, push: false, q: { kind: 'meet', food: 'pizza', d: 4 } };
     expect(isRight(p, '3')).toBe(true);
     expect(isRight(p, '4')).toBe(null);
+  });
+});
+
+describe('writing it with numbers', () => {
+  it('opens Top and Bottom once he can name pieces', () => {
+    let s = freshLearning();
+    expect(s.modes.write.opened).toBe(false);
+    for (let i = 0; i < 10; i++) s = recordSolved(s, push('fair'), clean).state;
+    for (let i = 0; i < 10; i++) s = recordSolved(s, push('name'), clean).state;
+    expect(s.modes.write).toMatchObject({ opened: true, fresh: true });
+  });
+  it('meets writing once, just before the first Top and Bottom question, and remembers it', () => {
+    const s = { ...at(freshLearning(), {}), words: [2, 4, 3] as Den[], sinceWord: 0 };
+    const only = { ...s, modes: Object.fromEntries(MODE_IDS.map(m => [m, { ...s.modes[m], opened: m === 'write' }])) as LearningState['modes'] };
+    const session = mixedSession(() => only, explainers), rng = seeded(21);
+    const seen = Array.from({ length: 6 }, () => session.makeProblem(rng));
+    expect(seen[0]).toMatchObject({ mode: 'meetWriting', q: { d: 4 } });
+    expect(seen[1]!.mode).toBe('write');
+    expect(seen.filter(p => p.mode === 'meetWriting')).toHaveLength(1);
+    expect(isRight(seen[0]!, '1/4')).toBe(true);
+    const after = recordSolved(only, { writing: true }, clean).state;
+    expect(after.writing).toBe(true);
+    expect(readLearning(JSON.parse(JSON.stringify(after))).writing).toBe(true);
+    expect(readLearning({}).writing).toBe(false);
+    expect(mixedSession(() => after, explainers).makeProblem(seeded(21)).mode).toBe('write');
+  });
+  it('asks only parts he has the words for, never two that are the same amount, and has to be read at Level 3', () => {
+    const rng = seeded(22);
+    expect(makeWrite(1, rng, [2])).toBe(null); // one word: nothing to tell apart
+    for (const level of [1, 2, 3] as const) for (let i = 0; i < 60; i++) {
+      const p = makeWrite(level, rng, every)!;
+      expect(p.choices).toContainEqual(p.target);
+      for (const a of p.choices) expect(p.choices.filter(b => same(a, b))).toHaveLength(1);
+      expect(p.read).toBe(level === 1 ? true : level === 2 ? false : p.read);
+      if (level === 3) expect(p.choices.some(c => c.d === p.target.d && c.n !== p.target.n)).toBe(true);
+      else expect(p.target.n).toBe(1);
+    }
+    expect(problemPhrases()).toContain('These numbers say five eighths!');
   });
 });

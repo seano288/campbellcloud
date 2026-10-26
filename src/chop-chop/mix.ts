@@ -5,14 +5,15 @@
 //
 // No question uses a piece word he hasn't met. When one is about to use the next word (src/chop-chop/learning.ts says
 // when it may), he meets the word first: it's cut and named on a food (fractions/teach.ts, teachMeet), he taps one piece,
-// and then that question is asked.
+// and then that question is asked. The first Top and Bottom question waits the same way while he meets writing (teachMeetWriting).
 import { int, pick, shuffle, type Rng } from '../game/rng';
 import type { Check, LearningSession, Outcome } from '../learning/session';
 import { struggling } from '../modes/progress';
 import { key, parseKey, same, WORD_ORDER, type Den } from './fractions/fraction';
 import {
-  biggerAnswer, makeBigger, makeColor, makeFair, makeFind, makeMeet, makeName, makeShare, piecesFor, SAME,
-  type BiggerProblem, type ColorProblem, type FairProblem, type FindProblem, type Level, type MeetProblem, type NameProblem, type ShareProblem, type Words,
+  biggerAnswer, makeBigger, makeColor, makeFair, makeFind, makeMeet, makeMeetWriting, makeName, makeShare, makeWrite, piecesFor, SAME,
+  type BiggerProblem, type ColorProblem, type FairProblem, type FindProblem, type Level, type MeetProblem, type MeetWritingProblem, type NameProblem,
+  type ShareProblem, type Words, type WriteProblem,
 } from './fractions/problems';
 import { MODE_IDS, verdict, wordsFor, type Explanation, type LearningState, type ModeId } from './learning';
 
@@ -28,7 +29,11 @@ export type Problem =
   | Shape & { readonly mode: 'find'; readonly q: FindProblem }
   | Shape & { readonly mode: 'color'; readonly q: ColorProblem }
   | Shape & { readonly mode: 'share'; readonly q: ShareProblem }
-  | Shape & { readonly mode: 'meet'; readonly q: MeetProblem };
+  | Shape & { readonly mode: 'write'; readonly q: WriteProblem }
+  | Shape & { readonly mode: 'meet'; readonly q: MeetProblem }
+  | Shape & { readonly mode: 'meetWriting'; readonly q: MeetWritingProblem };
+/** Meeting a word or writing: not a kind of question, nothing to get wrong. */
+export const isMeeting = (p: Problem): p is Extract<Problem, { mode: 'meet' | 'meetWriting' }> => p.mode === 'meet' || p.mode === 'meetWriting';
 
 /** The kind and Level of the next question. `last`: the kind just asked, and whether he missed it. */
 export function pickNext(state: LearningState, rng: Rng, last?: { mode: ModeId; missed: boolean }, skip: readonly ModeId[] = []): Base {
@@ -46,16 +51,16 @@ export interface Explainers {
   find: Explanation<FindProblem>;
   color: Explanation<ColorProblem>;
   share: Explanation<ShareProblem>;
+  write: Explanation<WriteProblem>;
 }
-const explainMeet: Explanation<MeetProblem> = async () => {}; // any piece is right
+const explainMeet: Explanation<unknown> = async () => {}; // any piece is right
 
 /** What the last question of each kind was, so the next one of that kind asks something else. */
 const avoidOf = (p: Problem | undefined) => {
-  if (p?.mode === 'meet') return undefined;
-  if (!p) return undefined;
+  if (!p || isMeeting(p)) return undefined;
   switch (p.mode) {
     case 'name': return p.q.d;
-    case 'find': case 'color': return p.q.target;
+    case 'find': case 'color': case 'write': return p.q.target;
     case 'bigger': return `${key(p.q.a)}|${key(p.q.b)}`;
     case 'share': return 'friends' in p.q ? p.q.friends : p.q.total;
     default: return undefined;
@@ -72,6 +77,7 @@ export function makeProblem(base: Base, rng: Rng, words: Words, last: Partial<Re
     case 'find': { const q = makeFind(level, rng, words, avoid); return q && { level, push, mode: 'find', q }; }
     case 'color': { const q = makeColor(level, rng, words, avoid); return q && { level, push, mode: 'color', q }; }
     case 'share': { const q = makeShare(level, rng, words, avoid); return q && { level, push, mode: 'share', q }; }
+    case 'write': { const q = makeWrite(level, rng, words, avoid); return q && { level, push, mode: 'write', q }; }
   }
 }
 
@@ -80,11 +86,11 @@ export function wordsIn(p: Problem): Den[] {
   switch (p.mode) {
     case 'fair': return [];
     case 'name': return [...p.q.choices];
-    case 'find': return p.q.choices.filter(c => c.n > 0 && c.n < c.d).map(c => c.d);
+    case 'find': case 'write': return p.q.choices.filter(c => c.n > 0 && c.n < c.d).map(c => c.d);
     case 'color': return [p.q.target.d];
     case 'bigger': return [p.q.a.d, p.q.b.d];
     case 'share': return 'friends' in p.q ? [] : [p.q.d];
-    case 'meet': return [p.q.d];
+    case 'meet': case 'meetWriting': return [p.q.d];
   }
 }
 
@@ -105,22 +111,23 @@ export function isRight(p: Problem, answer: string): boolean | null {
   switch (p.mode) {
     case 'fair': { const i = Number(answer); return Number.isInteger(i) && i >= 0 && i < p.q.pictures.length ? i === p.q.answer : null; }
     case 'name': { const f = parseKey(answer); return f && f.n === 1 && p.q.choices.includes(f.d) ? f.d === p.q.d : null; }
-    case 'find': { const f = parseKey(answer); return f && p.q.choices.some(c => key(c) === answer) ? same(f, p.q.target) : null; }
+    case 'find': case 'write': { const f = parseKey(answer); return f && p.q.choices.some(c => key(c) === answer) ? same(f, p.q.target) : null; }
     case 'color': { const f = parseKey(answer); return f && f.d === p.q.d ? f.n === piecesFor(p.q) : null; }
     case 'bigger': return answer === SAME || answer === key(p.q.a) || answer === key(p.q.b) ? answer === biggerAnswer(p.q) : null;
     case 'share': { const n = Number(answer); return p.q.choices.includes(n) ? n === p.q.answer : null; }
     case 'meet': { const i = Number(answer); return Number.isInteger(i) && i >= 0 && i < p.q.d ? true : null; }
+    case 'meetWriting': return answer === key({ n: 1, d: p.q.d }) ? true : null;
   }
 }
 
 /** The Round's questions. `note` hears how each one went, so a miss is followed by an easier one. */
 export function mixedSession(read: () => LearningState, explain: Explainers): LearningSession<Problem, string> & { note(outcome: Outcome): void } {
-  let current: Problem | undefined, missed = false, waiting: Problem | undefined;
+  let current: Problem | undefined, missed = false, waiting: Problem | undefined, metWriting = false;
   const last: Partial<Record<ModeId, Problem>> = {}, met = new Set<Den>();
   return {
     makeProblem(rng) {
       const state = read(), known = [...new Set([...state.words, ...met])];
-      const prev = current && current.mode !== 'meet' ? { mode: current.mode, missed } : undefined;
+      const prev = current && !isMeeting(current) ? { mode: current.mode, missed } : undefined;
       const next = waiting ?? nextQuestion(state, rng, wordsFor({ words: known, sinceWord: state.sinceWord }), last, prev);
       waiting = undefined;
       const fresh = WORD_ORDER.find(d => wordsIn(next).includes(d) && !known.includes(d));
@@ -129,22 +136,27 @@ export function mixedSession(read: () => LearningState, explain: Explainers): Le
         waiting = next;
         return (current = { level: 1, push: false, mode: 'meet', q: makeMeet(fresh, rng) });
       }
-      if (next.mode !== 'meet') last[next.mode] = next;
+      if (next.mode === 'write' && !state.writing && !metWriting) { // meet writing, then ask the question
+        metWriting = true;
+        waiting = next;
+        return (current = { level: 1, push: false, mode: 'meetWriting', q: makeMeetWriting(known, rng) });
+      }
+      if (!isMeeting(next)) last[next.mode] = next;
       return (current = next);
     },
     replay(p, rng) {
       // the same question again, its choices in a new order
       if (p.mode === 'fair') { const pictures = shuffle(rng, p.q.pictures); return (current = { ...p, q: { ...p.q, pictures, answer: pictures.indexOf(p.q.pictures[p.q.answer]!) } }); }
-      if (p.mode === 'find') return (current = { ...p, q: { ...p.q, choices: shuffle(rng, p.q.choices) } });
+      if (p.mode === 'find' || p.mode === 'write') return (current = { ...p, q: { ...p.q, choices: shuffle(rng, p.q.choices) } } as Problem);
       return (current = p);
     },
     check(p, answer): Check {
       const right = isRight(p, answer);
       if (right === null) return { kind: 'not-an-answer' };
-      const e = (p.mode === 'meet' ? explainMeet : explain[p.mode]) as Explanation<Problem['q']>;
+      const e = (isMeeting(p) ? explainMeet : explain[p.mode]) as Explanation<Problem['q']>;
       return verdict(right, p.q, answer, e);
     },
-    needsEarlyHelp: () => !!current && current.mode !== 'meet' && struggling(read().modes[current.mode]),
+    needsEarlyHelp: () => !!current && !isMeeting(current) && struggling(read().modes[current.mode]),
     note(outcome) { missed = outcome !== 'clean'; },
   };
 }

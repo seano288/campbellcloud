@@ -1,29 +1,40 @@
-// The six fraction questions on screen, and meeting a new word. Every question is spoken as it appears (🔊 says it again), pictures are what he
-// taps wherever they can be, written answers read aloud while they light up, and 🔎 Help walks through the picture.
+// The seven fraction questions on screen, and meeting a new word or writing. Every question is spoken as it appears (🔊 says it again), pictures are
+// what he taps wherever they can be, written answers read aloud while they light up, and 🔎 Help walks through the picture. Once he has
+// met writing, a part's numbers are shown beside its words wherever the words are on screen.
 import { useEffect, useState } from 'preact/hooks';
 import type { ProblemInstance } from '../../learning/round';
+import type { ComponentChildren } from 'preact';
+import { player } from '../game';
 import { speaking, useVoice, type Item } from '../voice';
 import {
-  colorLine, cookiesAsk, findLine, fracWord, friendsShare, key, numberPhrase, PIECE_NAMES, same, tapOne, unit, whichBigger, whichFair, type Frac,
+  colorLine, cookiesAsk, findLine, findWritten, fracWord, friendsShare, key, numberPhrase, PIECE_NAMES, same, tapOne, unit, whichBigger, whichFair, type Frac,
 } from './fraction';
 import { cutInto } from './fraction';
 import { equalPicture, leftOf, Picture } from './Picture';
-import { SAME, type BiggerProblem, type ColorProblem, type FairProblem, type FindProblem, type MeetProblem, type NameProblem, type ShareProblem } from './problems';
 import {
-  clearLesson, helpWith, lessonFor, teachBigger, teachColor, teachFair, teachFind, teachMeet, teachName, teachShare, type Lesson,
+  SAME, type BiggerProblem, type ColorProblem, type FairProblem, type FindProblem, type MeetProblem, type MeetWritingProblem, type NameProblem,
+  type ShareProblem, type WriteProblem,
+} from './problems';
+import {
+  clearLesson, helpWith, lessonFor, teachBigger, teachColor, teachFair, teachFind, teachMeet, teachMeetWriting, teachName, teachShare, teachWrite, type Lesson,
 } from './teach';
+import { Written } from './Written';
 
 /** The question, said as it appears (unless `quiet`) and again on 🔊. */
-export function Ask({ text, speech, quiet = false }: { text: string; speech: Item[]; quiet?: boolean }) {
+export function Ask({ text, speech, quiet = false, children }: { text: string; speech: Item[]; quiet?: boolean; children?: ComponentChildren }) {
   const { say } = useVoice();
   useEffect(() => { if (!quiet) void say(...speech); }, []);
   return (
     <div class="ask">
       <button class="say-btn" aria-label="Say it again" onClick={() => void say(...speech)}>🔊</button>
       <h2>{text}</h2>
+      {children}
     </div>
   );
 }
+
+/** A part's numbers beside its words, once he has met writing. */
+const Also = ({ f }: { f: Frac }) => (player.state.value.learning.writing ? <Written f={f} class="also" /> : null);
 
 const Help = ({ run }: { run(): void }) => <button class="help-btn" aria-label="Help" onClick={run}>🔎</button>;
 const all = (n: number) => Array.from({ length: n }, (_, i) => i);
@@ -111,7 +122,7 @@ export function NameView({ current }: { current: ProblemInstance<NameProblem, st
           const a = `1/${d}`;
           return (
             <button key={d} class={`choice ${wrong.includes(a) ? 'wrong' : ''} ${done && d === p.d ? 'right' : ''} ${speaking.value === `n${d}` ? 'speaking' : ''}`}
-              disabled={wrong.includes(a)} onClick={() => tap(a)}>{fracWord(unit(d))}</button>
+              disabled={wrong.includes(a)} onClick={() => tap(a)}>{fracWord(unit(d))}<Also f={unit(d)} /></button>
           );
         })}
       </div>
@@ -125,7 +136,7 @@ export function FindView({ current }: { current: ProblemInstance<FindProblem, st
   const p = current.problem, lesson = lessonFor(current.signal), { wrong, done, tap } = usePick(current);
   return (
     <div class="game">
-      <Ask text={`Find the ${p.food} with ${fracWord(p.target)} left`} speech={[findLine(p.target, p.food)]} />
+      <Ask text={`Find the ${p.food} with ${fracWord(p.target)} left`} speech={[findLine(p.target, p.food)]}><Also f={p.target} /></Ask>
       <div class="pictures">
         {p.choices.map((c, i) => (
           <button key={key(c)} class={`pic-btn ${wrong.includes(key(c)) ? 'wrong' : ''} ${done && same(c, p.target) ? 'right' : ''} ${lesson.pick.value === i ? 'lit' : ''}`}
@@ -158,7 +169,7 @@ export function ColorView({ current }: { current: ProblemInstance<ColorProblem, 
   }
   return (
     <div class="game set">
-      <Ask text={`Color ${fracWord(p.target)}`} speech={[colorLine(p.target, p.food)]} />
+      <Ask text={`Color ${fracWord(p.target)}`} speech={[colorLine(p.target, p.food)]}><Also f={p.target} /></Ask>
       <div class={`big-picture ${done ? 'right' : ''}`}>
         <Picture picture={equalPicture(p.food, p.d)} colored={colored} labels={lesson.labels.value ?? undefined} onTap={tapPiece} />
       </div>
@@ -187,16 +198,16 @@ export function BiggerView({ current }: { current: ProblemInstance<BiggerProblem
             <button key={k} class={`pic-btn ${wrong.includes(k) ? 'wrong' : ''} ${done && right === k ? 'right' : ''} ${lesson.pick.value === i ? 'lit' : ''}`}
               aria-label={fracWord(f)} disabled={p.words || wrong.includes(k)} onClick={() => tap(k)}>
               <Picture picture={equalPicture(p.food, f.d)} left={leftOf(f.n)} lit={litFor(lesson, i)} />
-              <span class="pic-name">{fracWord(f)}</span>
+              <span class="pic-name">{fracWord(f)}<Also f={f} /></span>
             </button>
           ))}
         </div>
       )}
       {p.words && (
         <div class="choices words">
-          {[...parts.map(([f, k]) => [fracWord(f), k] as const), ['the same', SAME] as const].map(([text, a]) => (
+          {[...parts.map(([f, k]) => [fracWord(f), k, f] as const), ['the same', SAME, null] as const].map(([text, a, f]) => (
             <button key={a} class={`choice ${wrong.includes(a) ? 'wrong' : ''} ${done && right === a ? 'right' : ''} ${speaking.value === `b${a}` ? 'speaking' : ''}`}
-              disabled={wrong.includes(a)} onClick={() => tap(a)}>{text}</button>
+              disabled={wrong.includes(a)} onClick={() => tap(a)}>{text}{f && <Also f={f} />}</button>
           ))}
         </div>
       )}
@@ -239,6 +250,79 @@ export function ShareView({ current }: { current: ProblemInstance<ShareProblem, 
         ))}
       </div>
       <div class="helpers"><Help run={() => current.actions.help(signal => helpWith(teachShare)(p, signal))} /></div>
+    </div>
+  );
+}
+
+/** Meeting writing: one piece of the food is left, its numbers appear and are read, then he taps them. */
+export function MeetWritingView({ current }: { current: ProblemInstance<MeetWritingProblem, string> }) {
+  const voice = useVoice(), p = current.problem, lesson = lessonFor(current.signal), f = unit(p.d);
+  const [ready, setReady] = useState(false);
+  const [tapped, setTapped] = useState(false);
+  useEffect(() => {
+    void (async () => {
+      await teachMeetWriting(p, lesson, lesson.run.start());
+      if (current.signal.aborted) return;
+      clearLesson(lesson);
+      lesson.reveal.value = true;
+      setReady(true);
+      await voice.say('Tap the numbers!');
+    })();
+  }, []);
+  function tapNumbers() {
+    if (!ready || !voice.active || current.signal.aborted || tapped) return;
+    if (current.actions.submit(key(f)) === 'correct') setTapped(true);
+  }
+  return (
+    <div class="game set writing">
+      <Ask text={ready ? 'Tap the numbers' : 'A new way to write it'} speech={ready ? ['Tap the numbers!'] : []} quiet />
+      <div class="written-scene">
+        <div class="big-picture"><Picture picture={equalPicture(p.food, p.d)} left={leftOf(1)} lit={lesson.lit.value} labels={lesson.labels.value ?? undefined} /></div>
+        {lesson.reveal.value && (
+          <button class={`numbers-btn ${tapped ? 'right' : ''} ${ready && !tapped ? 'pulse' : ''}`} aria-label={fracWord(f)} disabled={!ready} onClick={tapNumbers}>
+            <Written f={f} mark={lesson.mark.value} class="big" />
+          </button>
+        )}
+      </div>
+      <div class="helpers">
+        <Help run={() => current.actions.help(signal => helpWith(teachMeetWriting)(p, signal).then(() => { if (!signal.aborted) lesson.reveal.value = true; }))} />
+      </div>
+    </div>
+  );
+}
+
+/** Top and Bottom: the food left and three sets of numbers to choose from, or the numbers and three foods. The part isn't said. */
+export function WriteView({ current }: { current: ProblemInstance<WriteProblem, string> }) {
+  const p = current.problem, lesson = lessonFor(current.signal), { wrong, done, tap } = usePick(current);
+  const cls = (c: Frac, i: number) => `${wrong.includes(key(c)) ? 'wrong' : ''} ${done && same(c, p.target) ? 'right' : ''} ${lesson.pick.value === i ? 'lit' : ''}`;
+  if (p.read) {
+    return (
+      <div class="game words-q writing">
+        <Ask text="Which numbers show what is left?" speech={['Which numbers show what is left?']} />
+        <div class="big-picture"><Picture picture={equalPicture(p.food, p.target.d)} left={leftOf(p.target.n)} lit={lesson.lit.value} labels={lesson.labels.value ?? undefined} /></div>
+        <div class="choices numbers written-choices">
+          {p.choices.map((c, i) => (
+            <button key={key(c)} class={`choice ${cls(c, i)}`} aria-label={fracWord(c)} data-part={key(c)} disabled={wrong.includes(key(c))} onClick={() => tap(key(c))}>
+              <Written f={c} mark={lesson.pick.value === i ? lesson.mark.value : null} />
+            </button>
+          ))}
+        </div>
+        <div class="helpers"><Help run={() => current.actions.help(signal => helpWith(teachWrite)(p, signal))} /></div>
+      </div>
+    );
+  }
+  return (
+    <div class="game writing">
+      <Ask text={`Find the ${p.food} these numbers show`} speech={[findWritten(p.food)]} />
+      <div class="shown-numbers"><Written f={p.target} mark={lesson.mark.value} class="shown" /></div>
+      <div class="pictures">
+        {p.choices.map((c, i) => (
+          <button key={key(c)} class={`pic-btn ${cls(c, i)}`} aria-label={`Picture ${i + 1}`} data-part={key(c)} disabled={wrong.includes(key(c))} onClick={() => tap(key(c))}>
+            <Picture picture={equalPicture(p.food, c.d)} left={leftOf(c.n)} lit={litFor(lesson, i)} labels={labelsFor(lesson, i)} />
+          </button>
+        ))}
+      </div>
+      <div class="helpers"><Help run={() => current.actions.help(signal => helpWith(teachWrite)(p, signal))} /></div>
     </div>
   );
 }

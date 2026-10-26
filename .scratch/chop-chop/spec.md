@@ -4,14 +4,15 @@ Status: built, awaiting iPad acceptance (2026-10-23).
 
 A third learning game on the family site, built the same way as Time Flies, for the same young player (6, not yet
 reading, so everything is spoken from recorded clips). He learns what fractions *are* (fair pieces, what a piece is
-called, parts of a whole, bigger and smaller pieces, sharing) before any notation: no "1/4" is ever shown or said, only
-pizzas, cakes, chocolate bars and cookies, and words like "one quarter" and "three of the four equal pieces". He spends
-the Bolts he earns building a helicopter in the 3D hangar.
+called, parts of a whole, bigger and smaller pieces, sharing) before any notation: pizzas, cakes, chocolate bars and
+cookies, and words like "one quarter" and "three of the four equal pieces". Only once he can name pieces does he meet the
+numbers a part is written with (Top and Bottom, 2026-10-26). He spends the Bolts he earns building a helicopter in the 3D
+hangar.
 
 Research behind this spec: `research/BRIEF.md`, `research/beginner-fractions.md` (teaching a total beginner) and one note per
 helicopter in `research/helis/` (written by Haiku agents).
 
-## Learning: six kinds of question, three Levels each
+## Learning: seven kinds of question, three Levels each
 
 Every Round mixes all the kinds he has opened (as Time Flies does), never the same kind twice in a row. Most questions
 are at that kind's Level and count toward Mastery; about one in three, and always the one right after a miss, comes from
@@ -41,11 +42,22 @@ so a coloured piece still shows the food under it.
 | 🔎 Find the Part: "Find the pizza with one half left!" | start | one half, one quarter | any unit part | "three quarters", "two thirds", "five eighths"… |
 | 🖍️ Color the Part: colour one half of the cake | Find the Part L2 | half of 2 or 4, quarter of 4 | thirds, three quarters, half of 6 or 8 | two thirds, three eighths, five sixths… |
 | 🍪 Share It | start | N friends share a pizza: how many pieces? | half of a pile of cookies | a quarter or a third of a pile |
+| 🔢 Top and Bottom | Name the Piece L2 | one piece left: tap its numbers (1/2, 1/3, 1/4…) | read the numbers, tap the food (one piece, any word) | either way, "3/4", "2/3", "5/8"…, with one choice cut the same way |
 
 Teaching (after two misses, or one when struggling, or 🔎 Help) speaks while the picture shows it: pieces glow and are
 counted with numbers on them ("Let's count the pieces. One, two, three, four. Four equal pieces are quarters. So one
 piece is one quarter."), unfair pieces are pointed out, the right number of pieces colours itself in, cookies are dealt
 onto plates one at a time.
+
+**Writing it with numbers (2026-10-26).** The user asked for real fraction notation once the ideas are in place. It
+is its own kind, Top and Bottom, opening with Bigger Piece when Name the Piece reaches Level 2. Before its first question
+he meets writing, the way he meets a word: one piece of a food is left, "We write one quarter like this", the numbers
+appear, the bottom number glows while the pieces are counted ("The bottom number says how many equal pieces"), then the
+top number while the pieces left are counted ("The top number says how many pieces are left"), and he taps the numbers.
+The question never says the part, so he has to read it; a miss says what the tapped numbers (or food) show, and help
+counts the pieces against the glowing numbers again. A written part is always read with the words he knows ("three
+quarters"), never "three over four". Once he has met writing, the numbers are shown beside the words in Name the Piece,
+Bigger Piece, Find the Part, Color the Part and the Fuel Lock.
 
 ## Reward: the Helipad
 

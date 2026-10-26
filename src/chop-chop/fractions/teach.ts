@@ -2,15 +2,19 @@
 // counted with a number on each, or fill with crayon: "Let's count the pieces. One, two, three, four. Four equal pieces
 // are quarters. So one piece is one quarter." Each problem has one Lesson (keyed by its lifetime), which the question
 // on screen reads. A first miss says what went wrong; once help steps in (the second miss, or the first when he's been
-// struggling) it teaches. Before any of that, each new word is met (teachMeet): shown on a food before it's asked.
+// struggling) it teaches. Before any of that, each new word is met (teachMeet): shown on a food before it's asked, and so
+// is writing a part with numbers (teachMeetWriting), before the first Top and Bottom question.
 import { signal, type Signal } from '@preact/signals';
 import { sCount } from '../../audio/sfx';
 import { createVoiceTask, toast, type VoiceScope } from '../voice';
 import {
   bigger, coloredLine, cutEachInHalf, cutInto, eachGets, friendsNeed, HALF_OF, isBigger, isSame, makeTheWhole, means, MEET_CUTS, numberPhrase,
-  onePieceIs, parseKey, partOf, piecesAre, platesLine, same, thatOne, thisShows, wholeFood, youGet, type Frac,
+  numbersSay, onePieceIs, parseKey, partOf, piecesAre, platesLine, same, thatOne, thisShows, thoseSay, unit, wholeFood, writeLike, youGet, type Frac,
 } from './fraction';
-import { piecesFor, type BiggerProblem, type ColorProblem, type FairProblem, type FindProblem, type MeetProblem, type NameProblem, type ShareProblem } from './problems';
+import {
+  piecesFor, type BiggerProblem, type ColorProblem, type FairProblem, type FindProblem, type MeetProblem, type MeetWritingProblem, type NameProblem,
+  type ShareProblem, type WriteProblem,
+} from './problems';
 
 export interface Lesson {
   /** Which of several pictures is being talked about. */
@@ -27,6 +31,8 @@ export interface Lesson {
   dealt: Signal<number>;
   /** Meeting a word: how many pieces the food has been cut into so far. */
   cut: Signal<number>;
+  /** Written numbers: which of them glows while it's talked about. */
+  mark: Signal<Mark>;
   run: ReturnType<typeof createVoiceTask>;
 }
 
@@ -34,12 +40,13 @@ const lessons = new WeakMap<AbortSignal, Lesson>();
 export function lessonFor(lifetime: AbortSignal): Lesson {
   let l = lessons.get(lifetime);
   if (!l) {
-    l = { pick: signal(null), lit: signal([]), labels: signal(null), show: signal(null), reveal: signal(false), dealt: signal(0), cut: signal(1), run: createVoiceTask(lifetime) };
+    l = { pick: signal(null), lit: signal([]), labels: signal(null), show: signal(null), reveal: signal(false), dealt: signal(0), cut: signal(1), mark: signal(null), run: createVoiceTask(lifetime) };
     lessons.set(lifetime, l);
   }
   return l;
 }
-export function clearLesson(l: Lesson) { l.pick.value = null; l.lit.value = []; l.labels.value = null; }
+export function clearLesson(l: Lesson) { l.pick.value = null; l.lit.value = []; l.labels.value = null; l.mark.value = null; }
+export type Mark = 'top' | 'bottom' | 'both' | null;
 
 const all = (n: number) => Array.from({ length: n }, (_, i) => i);
 type Line = Parameters<VoiceScope['say']>[number];
@@ -83,6 +90,51 @@ export async function teachMeet(p: MeetProblem, lesson: Lesson, voice: VoiceScop
     await step(voice, () => { lesson.lit.value = all(d); }, makeTheWhole(d, p.food));
   }
   if (voice.active) clearLesson(lesson);
+}
+
+// ---------- Meeting writing ----------
+
+/** The bottom number counted as the pieces, the top as the pieces left; then what the numbers say. */
+async function readNumbers(f: Frac, lesson: Lesson, voice: VoiceScope) {
+  await step(voice, () => { lesson.mark.value = 'bottom'; lesson.lit.value = []; }, 'The bottom number says how many equal pieces.');
+  await count(lesson, voice, all(f.d));
+  await step(voice, () => { lesson.mark.value = 'top'; lesson.labels.value = null; lesson.lit.value = []; }, 'The top number says how many pieces are left.');
+  await count(lesson, voice, all(f.n));
+  await step(voice, () => { lesson.mark.value = 'both'; lesson.labels.value = null; lesson.lit.value = all(f.n); }, numbersSay(f));
+}
+
+/**
+ * "A new way to write it! This one has one quarter left! We write one quarter like this. The bottom number says how many
+ * equal pieces. One, two, three, four. The top number says how many pieces are left. One. These numbers say one quarter!"
+ */
+export async function teachMeetWriting(p: MeetWritingProblem, lesson: Lesson, voice: VoiceScope) {
+  const f = unit(p.d);
+  clearLesson(lesson);
+  lesson.reveal.value = false;
+  await step(voice, () => { lesson.lit.value = [0]; }, 'A new way to write it!', thisShows(f));
+  await step(voice, () => { lesson.reveal.value = true; lesson.lit.value = []; lesson.mark.value = 'both'; }, writeLike(f));
+  await readNumbers(f, lesson, voice);
+  if (voice.active) clearLesson(lesson);
+}
+
+// ---------- Top and Bottom ----------
+
+/** The right numbers glow (or, when he's finding the food, the right food), and are read from the picture. */
+export async function teachWrite(p: WriteProblem, lesson: Lesson, voice: VoiceScope) {
+  lesson.pick.value = p.choices.findIndex(c => same(c, p.target));
+  await readNumbers(p.target, lesson, voice);
+}
+export async function explainWrite(p: WriteProblem, answer: string, teach: boolean, lifetime: AbortSignal) {
+  const lesson = lessonFor(lifetime), voice = lesson.run.start(), wrong = parseKey(answer);
+  if (!teach && wrong) {
+    const i = p.choices.findIndex(c => same(c, wrong));
+    if (p.read) await step(voice, () => { lesson.pick.value = i; lesson.mark.value = 'both'; }, thoseSay(wrong), 'Try again!');
+    else await step(voice, () => { lesson.pick.value = i; lesson.lit.value = all(wrong.n); }, thatOne(wrong), 'Try again!');
+    if (voice.active) clearLesson(lesson);
+    return;
+  }
+  await toast(voice, 'Not quite!', 'Not quite!', "Let's look together.");
+  if (voice.active) { clearLesson(lesson); await teachWrite(p, lesson, voice); }
 }
 
 // ---------- Fair Shares ----------

@@ -13,6 +13,31 @@ html,body{background:var(--night)}
 .heli-chip .heli-art,.goalchip .gi .heli-art,.mod-tile .ico .mod-heli,.goalchip .gi .mod-heli,.vault-prize .mod-heli{width:100%;height:100%}
 .flyby .heli-art{width:100%;display:block}
 
+/* ---------- Home: Helipad, Play and his Level in each kind of question ----------
+   Time Flies' Home became a cockpit (2026-10-23) and took these shared rules with it, so Chop Chop keeps its own copy. */
+.t-hangar{background:linear-gradient(#cfd6dd,#8d98a3)!important}
+.t-hangar .home-jet{flex:1;min-height:0;width:min(70%,420px);filter:drop-shadow(0 8px 6px #0006)}
+.tile-clock{width:calc(110px*var(--u));height:calc(110px*var(--u));flex:none;pointer-events:none}
+.home.flies{grid-template-areas:"g g" "p k";grid-template-rows:1fr 1fr;grid-template-columns:1fr 1.6fr}
+@media (orientation:landscape){.home.flies{grid-template-areas:"p g" "k g";grid-template-rows:1fr 1.2fr;grid-template-columns:1fr 1.2fr}}
+.t-play{grid-area:p;background:#ffd23f;flex-direction:column}
+.t-kinds{grid-area:k;background:#7cc8ff;display:grid;grid-template-columns:repeat(2,1fr);grid-template-rows:auto;grid-auto-rows:1fr;column-gap:calc(14px*var(--u));padding:calc(8px*var(--u)) calc(14px*var(--u)) calc(10px*var(--u));align-items:stretch;box-shadow:inset 0 4px 0 #0002}
+/* a chart, not buttons: flat panel with a heading, rows split by thin rules, no raised edges and no press-down */
+.t-kinds:active{transform:none;box-shadow:inset 0 4px 0 #0002}
+.kinds-head{grid-column:1/-1;margin:0 0 calc(2px*var(--u));font:400 calc(16px*var(--u)) Bungee,sans-serif;text-align:center;letter-spacing:.04em;color:#0009}
+.kind{position:relative;display:flex;align-items:center;gap:8px;border-top:2px solid #0002;padding:2px 2px;min-height:0;text-align:left;cursor:default;user-select:none;-webkit-user-select:none}
+.kind .ki{font-size:calc(28px*var(--u));line-height:1}
+.kind .kb{flex:1;min-width:0;display:flex;flex-direction:column;gap:3px}
+.kind .kn{font:400 calc(12px*var(--u)) Bungee,sans-serif;line-height:1.1}
+/* his Level as a three-part bar, sunk into the board */
+.kind .lvl{gap:0;width:100%;max-width:calc(110px*var(--u));height:calc(10px*var(--u));border-radius:99px;overflow:hidden;background:#0002;box-shadow:inset 0 2px 2px #0003}
+.kind .lvl i{flex:1;width:auto;height:100%;border:0;border-radius:0;background:none}
+.kind .lvl i+i{border-left:2px solid #7cc8ff}
+.kind .lvl i.on{background:var(--orange)}
+.kind.locked{filter:grayscale(.9) brightness(.8);opacity:.7}
+.kind.fresh{animation:pulse 1s infinite}
+.kind .badge{position:absolute;right:-4px;top:2px;font-size:calc(18px*var(--u))}
+
 /* ---------- fraction pictures ---------- */
 .fraction{display:block;width:100%;height:100%;overflow:visible}
 .fraction .piece{transition:fill .15s}
@@ -36,6 +61,26 @@ html,body{background:var(--night)}
 .choices.words .choice{font-size:calc(28px*var(--u))}
 .choices.numbers{grid-template-columns:repeat(3,1fr);width:min(100%,560px)}
 .choices.numbers .choice{font-size:calc(44px*var(--u));padding:calc(10px*var(--u)) 6px}
+
+/* ---------- a part written with numbers: the top number over the bottom number ---------- */
+.written{display:inline-flex;flex-direction:column;align-items:center;font:900 1em/1 Nunito,system-ui,sans-serif;color:#1b1d21;vertical-align:middle}
+.written .num{padding:0 .12em;border-radius:.18em;transition:background .2s,color .2s}
+.written .num.marked{background:var(--yellow);box-shadow:0 0 0 .08em #000}
+.written .bar{align-self:stretch;height:max(.09em,3px);margin:.06em 0;background:currentColor;border-radius:2px}
+.written.also{font-size:.62em;margin-left:.4em}
+.ask .written.also{margin-left:.35em;font-size:calc(26px*var(--u))}
+.shown-numbers{flex:none;display:flex;justify-content:center}
+.written.shown{font-size:calc(64px*var(--u));padding:2px 18px;border-radius:18px;background:#fff;border:4px solid #000;box-shadow:0 5px 0 #000}
+.written.big{font-size:calc(96px*var(--u))}
+.choices.written-choices .choice{font-size:calc(46px*var(--u));padding:calc(6px*var(--u)) 6px}
+.choices.written-choices .choice.lit{box-shadow:0 0 0 6px var(--yellow)}
+.written-scene{display:flex;align-items:center;justify-content:center;gap:calc(24px*var(--u));flex:1;min-height:0;width:100%}
+.written-scene .big-picture{width:min(40vh,48vw,380px)}
+.numbers-btn{padding:calc(10px*var(--u)) calc(26px*var(--u));border-radius:24px;background:#fff;border:5px solid #000;box-shadow:0 6px 0 #000;transition:box-shadow .3s,transform .2s}
+.numbers-btn:disabled{opacity:1}
+.numbers-btn:active{transform:scale(.95)}
+.numbers-btn.right{box-shadow:0 0 0 10px var(--green),0 0 40px 10px var(--green)}
+@media (orientation:portrait) and (max-width:600px){.written-scene{flex-direction:column}.written-scene .big-picture{width:min(34vh,72vw,340px)}}
 
 /* ---------- Share It ---------- */
 .game.share .ask h2{font-size:calc(24px*var(--u))}

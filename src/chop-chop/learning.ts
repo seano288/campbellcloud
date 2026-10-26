@@ -5,25 +5,28 @@
 //
 // Every piece word ("half", "quarter", …) is met before any question asks it (src/chop-chop/mix.ts). The first one is half;
 // the next joins once he has answered WORD_GAP more questions right on the first try, so the words come one at a time.
+// Writing a part with numbers (Top and Bottom) is met the same way, once, before its first question; from then on the
+// numbers are shown beside the words everywhere.
 import type { Check, Outcome, Progression } from '../learning/session';
 import { recordOutcome, type MasteryRule } from '../modes/progress';
 import type { ModeProgress } from '../modes/state';
 import { DENS, WORD_ORDER, type Den } from './fractions/fraction';
 import type { Level, Words } from './fractions/problems';
 
-/** Shown on Home in this order: the chain that starts with fair pieces, the one that starts with finding parts, and sharing. */
-export const MODE_IDS = ['fair', 'name', 'bigger', 'find', 'color', 'share'] as const;
+/** Shown on Home in this order: the chain that starts with fair pieces, the one that starts with finding parts, sharing, and writing. */
+export const MODE_IDS = ['fair', 'name', 'bigger', 'find', 'color', 'share', 'write'] as const;
 export type ModeId = (typeof MODE_IDS)[number];
 export const MODE_NAMES = {
   fair: 'Fair Shares', name: 'Name the Piece', bigger: 'Bigger Piece',
-  find: 'Find the Part', color: 'Color the Part', share: 'Share It',
+  find: 'Find the Part', color: 'Color the Part', share: 'Share It', write: 'Top and Bottom',
 } as const;
 export type ModeName = (typeof MODE_NAMES)[ModeId];
-/** A kind opens when the one before it reaches Level 2; the rest are open from the start. */
-export const OPENS_AFTER: Record<ModeId, ModeId | null> = { fair: null, name: 'fair', bigger: 'name', find: null, color: 'find', share: null };
+/** A kind opens when the one before it reaches Level 2; the rest are open from the start. Numbers wait until he can name pieces. */
+export const OPENS_AFTER: Record<ModeId, ModeId | null> = { fair: null, name: 'fair', bigger: 'name', find: null, color: 'find', share: null, write: 'name' };
 /** Spoken when he taps a kind that is still locked. */
 export const LOCKED_HINTS = {
   name: 'Play more Fair Shares to open this!', bigger: 'Name more pieces to open this!', color: 'Find more parts to open this!',
+  write: 'Name more pieces to open this!',
 } as const;
 export type LockedHint = (typeof LOCKED_HINTS)[keyof typeof LOCKED_HINTS];
 
@@ -33,6 +36,8 @@ export interface LearningState {
   words: Den[];
   /** Questions right on the first try since he met the last word. */
   sinceWord: number;
+  /** He has met writing a part with numbers. */
+  writing: boolean;
 }
 
 /** Right answers on the first try, after meeting one word, before the next may come. */
@@ -48,7 +53,7 @@ export const FRACTION_RULE: MasteryRule = { window: 20, mastery: 16, streak: 10,
 
 export const freshMode = (id: ModeId): ModeProgress => ({ level: 1, window: [], opened: OPENS_AFTER[id] === null, starred: false, introPending: false, fresh: false });
 const eachMode = (f: (id: ModeId) => ModeProgress) => Object.fromEntries(MODE_IDS.map(id => [id, f(id)])) as Record<ModeId, ModeProgress>;
-export const freshLearning = (): LearningState => ({ modes: eachMode(freshMode), words: [], sinceWord: 0 });
+export const freshLearning = (): LearningState => ({ modes: eachMode(freshMode), words: [], sinceWord: 0, writing: false });
 
 type Raw = Record<string, unknown>;
 const isRecord = (x: unknown): x is Raw => typeof x === 'object' && x !== null && !Array.isArray(x);
@@ -69,7 +74,7 @@ export function readLearning(raw: unknown): LearningState {
   const data = isRecord(raw) ? raw : {}, modes = isRecord(data.modes) ? data.modes : {};
   const words = Array.isArray(data.words) ? [...new Set(data.words.filter((d): d is Den => DENS.includes(d as Den)))] : [];
   const sinceWord = typeof data.sinceWord === 'number' && Number.isInteger(data.sinceWord) && data.sinceWord >= 0 ? data.sinceWord : 0;
-  return { modes: eachMode(id => readMode(id, modes[id])), words, sinceWord };
+  return { modes: eachMode(id => readMode(id, modes[id])), words, sinceWord, writing: bool(data.writing, false) };
 }
 
 /** A Round starts: newly opened kinds have been seen. */
@@ -81,10 +86,11 @@ export type LearningChange =
   | { kind: 'open'; mode: ModeId }
   | { kind: 'star'; mode: ModeId };
 
-/** Which kind of question was solved, and whether it was asked at his Level (`push`) or was an easier one; or the word he just met. */
-export type Asked = { readonly mode: ModeId; readonly push: boolean } | { readonly meet: Den };
+/** Which kind of question was solved, and whether it was asked at his Level (`push`) or was an easier one; or the word he just met, or writing. */
+export type Asked = { readonly mode: ModeId; readonly push: boolean } | { readonly meet: Den } | { readonly writing: true };
 
 export const recordSolved: Progression<LearningState, Asked, LearningChange> = (prior, asked, result) => {
+  if ('writing' in asked) return { state: { ...prior, writing: true }, changes: [] };
   if ('meet' in asked) return { state: { ...prior, words: prior.words.includes(asked.meet) ? prior.words : [...prior.words, asked.meet], sinceWord: 0 }, changes: [] };
   const { mode: id, push } = asked, state = result.outcome === 'clean' ? { ...prior, sinceWord: prior.sinceWord + 1 } : prior;
   if (!push) return { state, changes: [] };

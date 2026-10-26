@@ -7,6 +7,7 @@ import { fillLine, filledLine, fracWord, means, partsOfTank } from '../fractions
 import { makeFuel, piecesFor, type Level } from '../fractions/problems';
 import { player } from '../game';
 import { useVoiceScope } from '../voice';
+import { Written } from '../fractions/Written';
 import { unlockLegendary } from './actions';
 import { LEGENDARY, modName, type SlotId } from './catalog';
 import { ModIcon } from './ModIcon';
@@ -56,6 +57,7 @@ export function FuelLock({ slot, onOpen, onClose }: { slot: SlotId; onOpen(): vo
           <span class="vault-prize"><ModIcon slot={slot} rung={LEGENDARY} heli={heli} /></span>
           <button class="say-btn" aria-label="Say it again" onClick={() => void ask()}>🔊</button>
           <h2>{fracWord(p.target)}</h2>
+          {player.state.value.learning.writing && <Written f={p.target} class="also" />}
         </div>
         <div class="tank" role="group" aria-label="Fuel tank">
           {Array.from({ length: p.d }, (_, i) => p.d - 1 - i).map(k => (

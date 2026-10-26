@@ -1,6 +1,6 @@
-// The six kinds of fraction question, Level by Level. Each starts with the idea and only later asks for the words:
+// The seven kinds of fraction question, Level by Level. Each starts with the idea and only later asks for the words:
 // first "are these pieces fair?", then what one piece is called, then finding, colouring and comparing parts, and
-// sharing a pile fairly. Every kind has three Levels; the tables below say what each Level asks.
+// sharing a pile fairly. Last come the numbers a part is written with (Top and Bottom), once he knows the words. Every kind has three Levels; the tables below say what each Level asks.
 //
 // A question only uses the piece words he may hear (`words`: the ones he has met, and maybe the next one, which he meets
 // just before the question; see src/chop-chop/mix.ts). A kind that can't ask anything with those words returns null.
@@ -8,7 +8,7 @@ import { pick, shuffle, type Rng } from '../../game/rng';
 import {
   bigger, colorLine, cutEachInHalf, HALF_OF, makeTheWhole, MEET_CUTS, tapOne, thatOne, wholeFood, WORD_ORDER, cookiesAsk, cut, cutInto, DENS, eachGets, equalPieces, fillLine, filledLine, findLine, FOODS, FRAC_WORDS, fracWord,
   friendsNeed, friendsShare, isBigger, isSame, key, means, numberPhrase, onePieceIs, parseKey, partOf, partsOfTank, piecesAre, platesLine,
-  coloredLine, same, thatShows, thisShows, unit, whichBigger, whichFair, youGet,
+  coloredLine, findWritten, numbersSay, same, thatShows, thisShows, thoseSay, unit, whichBigger, whichFair, writeLike, youGet,
   type Den, type Food, type Frac, type FractionPhrase, type Picture, type SaidFrac,
 } from './fraction';
 
@@ -87,6 +87,37 @@ export function makeFind(level: Level, rng: Rng, words: Words, avoid?: Frac): Fi
     if (!same(alt, target) && !others.some(o => same(o, alt))) others[0] = alt;
   }
   return { kind: 'find', food: pick(rng, FOODS), target, choices: shuffle(rng, [target, ...others]) };
+}
+
+// ---------- Top and Bottom: the numbers a part is written with ----------
+
+/**
+ * Level 1: one piece is left, and he taps the numbers that show it. Level 2: he reads the numbers and taps the food they
+ * show. Level 3: either way round, with parts of more than one piece, and one of the others cut the same way, so he has
+ * to read the top number as well as the bottom one. The part is never said aloud: he reads it.
+ */
+export const WRITE_TARGETS: Record<Level, readonly SaidFrac[]> = {
+  1: ['1/2', '1/3', '1/4'], 2: ['1/2', '1/3', '1/4', '1/6', '1/8'], 3: ['2/3', '3/4', '3/8', '5/8', '5/6'],
+};
+const WRITE_OTHERS: Record<Level, readonly SaidFrac[]> = {
+  1: ['1/2', '1/3', '1/4'], 2: ['1/2', '1/3', '1/4', '1/6', '1/8'], 3: FIND_OTHERS[3],
+};
+/** `read`: the food is shown and he taps the numbers; otherwise the numbers are shown and he taps the food. */
+export interface WriteProblem { readonly kind: 'write'; readonly food: Food; readonly target: Frac; readonly choices: readonly Frac[]; readonly read: boolean }
+
+export function makeWrite(level: Level, rng: Rng, words: Words, avoid?: Frac): WriteProblem | null {
+  const known = WRITE_TARGETS[level].map(f).filter(t => knows(words, t)), options = known.filter(t => !avoid || !same(t, avoid));
+  if (!known.length) return null;
+  const target = pick(rng, options.length ? options : known);
+  const pool = shuffle(rng, WRITE_OTHERS[level].map(f).filter(c => knows(words, c))), others: Frac[] = [];
+  if (level === 3) { // one cut the same way: counting the pieces isn't enough, the top number matters too
+    const alt = { n: target.n === 1 ? target.d - 1 : 1, d: target.d };
+    if (!same(alt, target)) others.push(alt);
+  }
+  for (const c of pool) if (others.length < 2 && !same(c, target) && !others.some(o => same(o, c))) others.push(c);
+  if (!others.length) return null; // he knows only one word: nothing to tell apart yet
+  const read = level === 1 || (level === 3 && rng() < 0.5);
+  return { kind: 'write', food: pick(rng, FOODS), target, choices: shuffle(rng, [target, ...others]), read };
 }
 
 // ---------- Color It: colour the part he hears ----------
@@ -169,11 +200,15 @@ export function makeFuel(level: Level, rng: Rng, words: Words): FuelProblem {
   return { target: f(t), d };
 }
 
-// ---------- meeting a new word ----------
+// ---------- meeting a new word, and meeting writing ----------
 
 /** The word he meets, shown on one food before any question asks it. Any one piece he taps is right. */
 export interface MeetProblem { readonly kind: 'meet'; readonly food: Food; readonly d: Den }
 export const makeMeet = (d: Den, rng: Rng): MeetProblem => ({ kind: 'meet', food: pick(rng, FOODS), d });
+/** Meeting writing: one piece of a food left, and the numbers that show it. Tapping the numbers is right. */
+export interface MeetWritingProblem { readonly kind: 'meetWriting'; readonly food: Food; readonly d: Den }
+/** Shown with one quarter when he knows it (a top and a bottom number that are easy to tell apart), else one half. */
+export const makeMeetWriting = (words: Words, rng: Rng): MeetWritingProblem => ({ kind: 'meetWriting', food: pick(rng, FOODS), d: words.includes(4) ? 4 : 2 });
 
 // ---------- everything these questions can say ----------
 
@@ -206,5 +241,6 @@ export function problemPhrases(): FractionPhrase[] {
   out.push(thatOne({ n: 2, d: 2 }), thatOne({ n: 0, d: 2 }), ...FOODS.map(wholeFood), ...([2, 3, 4] as const).map(cutEachInHalf), ...Object.values(HALF_OF));
   for (const d of WORD_ORDER) { out.push(tapOne(d)); for (const food of FOODS) out.push(makeTheWhole(d, food)); }
   for (const d of WORD_ORDER) for (const c of MEET_CUTS[d]) out.push(piecesAre(c));
+  out.push(...fracs.map(numbersSay), ...fracs.map(thoseSay), ...WORD_ORDER.map(d => writeLike(unit(d))), ...FOODS.map(findWritten));
   return out;
 }

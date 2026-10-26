@@ -83,14 +83,19 @@ the runway and returns to the Hangar.
 Chop Chop reuses Time Flies' terms where they mean the same thing (Mixed Round, Mastery, Bolt, Slot, Mod, Rung, Goal,
 Trophy, Tail Number). These are its own:
 
-**Game Modes (Chop Chop)**: the six kinds of fraction question: Fair Shares, Name the Piece, Bigger Piece, Find the
-Part, Color the Part and Share It. Fair Shares, Find the Part and Share It are open from the start; Name the Piece opens
-when Fair Shares reaches Level 2, Bigger Piece after Name the Piece, and Color the Part after Find the Part. Mastery is
-16 of the last 20, or 10 in a row.
+**Game Modes (Chop Chop)**: the seven kinds of fraction question: Fair Shares, Name the Piece, Bigger Piece, Find the
+Part, Color the Part, Share It and Top and Bottom. Fair Shares, Find the Part and Share It are open from the start; Name
+the Piece opens when Fair Shares reaches Level 2, Bigger Piece and Top and Bottom after Name the Piece, and Color the Part
+after Find the Part. Mastery is 16 of the last 20, or 10 in a row.
 
-**Part**: some of the equal pieces of a whole, said in words ("three quarters", "three of the four equal pieces").
-Fractions are never written as numbers in Chop Chop.
-_Avoid_: fraction notation, numerator, denominator
+**Part**: some of the equal pieces of a whole, said in words ("three quarters", "three of the four equal pieces"), and,
+once he has met writing, also written as numbers.
+
+**Top and Bottom**: a part written with numbers, the top number over the bottom number (3 over 4). The bottom number is
+"how many equal pieces" and the top number is "how many pieces are left". It's always read aloud with the words he knows
+("three quarters"), never as "three over four" or "three fourths". Writing is met once, before the first Top and Bottom
+question; after that the numbers are shown beside the words everywhere.
+_Avoid_: numerator, denominator (to him; fine in code comments)
 
 **Helicopter**: one of the 17 on the Helipad, Chop Chop's Body. Three starters (UH-60 Black Hawk, MH-6 Little Bird,
 AH-1Z Viper); the rest cost 30 Bolts.
