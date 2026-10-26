@@ -50,16 +50,6 @@ const cashChaosIcon = () => `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 
   <rect x="5" y="18" width="6" height="10" rx="1.5"/><rect x="13" y="10" width="6" height="18" rx="1.5"/><rect x="21" y="4" width="6" height="24" rx="1.5"/>
 </g></svg>`;
 
-// Break Schedule, the California break-scheduling app, is hosted on its own site too. The art is its favicon's shift bars with gaps for breaks, on a tint of their burnt orange.
-const breakScheduleIcon = () => `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><rect class="tint" width="512" height="512" fill="#fbe4d8" style="--dark:#2b170d"/><g transform="translate(76 76) scale(11.25)" fill="#c2410c">
-  <rect x="2" y="4" width="7" height="6" rx="2"/><rect x="13" y="4" width="17" height="6" rx="2"/>
-  <rect x="2" y="13" width="13" height="6" rx="2"/><rect x="19" y="13" width="11" height="6" rx="2"/>
-  <rect x="2" y="22" width="19" height="6" rx="2"/><rect x="25" y="22" width="5" height="6" rx="2"/>
-</g></svg>`;
-
-// Killr, the Senior Assassin game runner, is hosted on its own site too. The art is its favicon as-is: a red K on near-black, the brand's own colours.
-const killrIcon = () => `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><rect width="512" height="512" fill="#0b0b0a"/><path transform="translate(37.7 456) scale(0.5814)" d="M65 0L65-688L265-688L265 0ZM462 0L307-241L307-456L465-688L683-688L446-364L686 0Z" fill="#d8322a"/></svg>`;
-
 // Tiles with an href leave campbellcloud.com, so they open in a new tab. The blurb says in a few words what it is.
 type Tile = { name: string; blurb: string; icon: (scale?: number) => string } & ({ path: string } | { href: string });
 
@@ -78,9 +68,7 @@ export const SECTIONS: readonly { title: string; games: readonly Tile[] }[] = [
   ] },
   { title: 'Elsewhere', games: [
     { href: 'https://playtaskforce.com/', name: 'Task Force', blurb: 'A social deduction game for your house', icon: taskForceIcon },
-    { href: 'https://killr.app/', name: 'Killr', blurb: 'Run Senior Assassin from everyone\'s phone', icon: killrIcon },
     { href: 'https://cashchaos.com/', name: 'Cash Chaos', blurb: 'The family budget', icon: cashChaosIcon },
-    { href: 'https://breakschedule.com/', name: 'Break Schedule', blurb: 'California break scheduling', icon: breakScheduleIcon },
   ] },
 ];
 // The games this site builds and hosts itself (not the ones it only links out to).
