@@ -176,8 +176,11 @@ function Board({ shake, pop, onCat, children }: { shake: number; pop: number | n
     return () => el.removeEventListener('touchend', stop);
   }, []);
   // shaken in place rather than remade: a board remade under the finger loses the touchend that iOS haptics wait for
+  // a new board mounts with the last board's count, so only a change while this board is up shakes it
+  const shookAt = useRef(shake);
   useEffect(() => {
-    if (shake) ref.current!.animate(SHAKE, 400);
+    if (shake !== shookAt.current) ref.current!.animate(SHAKE, 400);
+    shookAt.current = shake;
   }, [shake]);
   const playing = g.status === 'playing';
   const colours = useMemo(() => patchColours(board), [board]);
