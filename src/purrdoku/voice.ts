@@ -1,7 +1,7 @@
 // Purrdoku's narrator: a cheeky line after every cat laid down. Each pool is dealt like a shuffled deck, so no line
 // comes round again until the rest of its pool has been said. The mute switch is remembered on the device.
 import { effect, signal } from '@preact/signals';
-import { unlockAudio } from '../audio/context';
+import { resumeAudio, wakeAudio } from '../audio/context';
 import { recordedAudio } from '../audio/recorded';
 import { createPlayback } from '../voice/playback';
 import type { Placed } from './game';
@@ -62,16 +62,17 @@ export function react(placed: Placed) {
 }
 export const newBoard = () => narrate.reset();
 
-/** iPad Safari only lets sound play once a tap has ended, so the first one unlocks it and fetches every line. */
+/** iPad Safari only lets sound play once a tap has ended, so the first one unlocks it and fetches every line. It also
+ * pauses the sound whenever the screen locks or the app goes away, so every tap after that wakes it again. */
 export function listen() {
+  let loaded = false;
   const unlock = () => {
-    removeEventListener('pointerup', unlock, true);
-    removeEventListener('touchend', unlock, true);
-    unlockAudio();
-    void playback.preload(PHRASES);
+    wakeAudio();
+    if (!loaded) { loaded = true; void playback.preload(PHRASES); }
   };
   addEventListener('pointerup', unlock, true);
   addEventListener('touchend', unlock, true);
+  document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'visible') resumeAudio(); });
 }
 
 export function toggleMute() {
