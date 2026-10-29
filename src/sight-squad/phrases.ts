@@ -5,6 +5,9 @@ import {
   type BoughtColour, type BoughtUnit, type ColourName, type ModName, type SlotName, type UnitId, type UnitName,
 } from './camp/catalog';
 import { PRICES } from './camp/camp';
+import { earnedLine, needLine, type EarnedLine, type NeedLine } from '../currency/kind';
+import { MAX_BOLTS } from '../round/rules';
+import { SQUAD_CURRENCY } from './branding';
 import { LOCKED_HINTS, MODE_IDS, MODE_NAMES, type ModeName } from './learning';
 import { TROPHY_PHRASES } from './trophies';
 import { LETTER_PHRASES, NOUNS, WORDS, type AnyWord, type Noun, type Word } from './words/list';
@@ -17,8 +20,7 @@ const GAME = [
 ] as const;
 export const CHEERS = ['Great job!', 'You got it!', 'Super reader!', 'Awesome!', 'Way to go, soldier!', 'You can read it!'] as const;
 
-type EarnedPhrase = 'You earned 1 Bolt!' | `You earned ${number} Bolts!`;
-export const earnedBolts = (n: number): EarnedPhrase => (n === 1 ? 'You earned 1 Bolt!' : `You earned ${n} Bolts!`);
+type EarnedPhrase = EarnedLine<typeof SQUAD_CURRENCY>;
 type ModePhrase = ModeName | `You are a ${ModeName} star!` | `You opened ${ModeName}!`;
 const modePhrases = (): ModePhrase[] => MODE_IDS.flatMap(m => [MODE_NAMES[m], `You are a ${MODE_NAMES[m]} star!`, `You opened ${MODE_NAMES[m]}!`] as const);
 
@@ -43,18 +45,17 @@ const TEACHING = [
 
 // ---------- the Camp ----------
 type Mods<I extends number> = (typeof SLOTS)[number]['mods'][I];
-type BoltModName = Mods<1 | 2 | 3>;
-type BoughtName = BoltModName | (typeof UNITS)[BoughtUnit]['name'] | Extract<(typeof COLOURS)[number], { id: BoughtColour }>['name'];
-type BoltsPhrase = 'You need 1 more Bolt.' | `You need ${number} more Bolts.`;
+type BuyModName = Mods<1 | 2 | 3>;
+type BoughtName = BuyModName | (typeof UNITS)[BoughtUnit]['name'] | Extract<(typeof COLOURS)[number], { id: BoughtColour }>['name'];
+type NeedPhrase = NeedLine<typeof SQUAD_CURRENCY>;
 type VaultPhrase = 'This one is in the Password Lock!' | `Get ${Mods<3>} first!` | `You got ${Mods<4>}!`;
 type ArmyPhrase = 'You have 1 soldier!' | `You have ${number} soldiers!`;
 type RecruitPhrase = `A new ${UnitName}!` | `The ${UnitName} squad is full!`;
-export type CampPhrase = UnitName | SlotName | ModName | ColourName | `You got ${BoughtName}!` | `You can get ${BoughtName}!` | BoltsPhrase
+export type CampPhrase = UnitName | SlotName | ModName | ColourName | `You got ${BoughtName}!` | `You can get ${BoughtName}!` | NeedPhrase
   | VaultPhrase | ArmyPhrase | RecruitPhrase;
 
-/** The most Bolts anything costs. */
+/** The most Ammo anything costs. */
 export const MAX_PRICE = Math.max(...Object.values(PRICES.rungs), PRICES.colour, ...UNIT_IDS.map(u => Math.max(UNITS[u].unlock, UNITS[u].recruit)));
-export const needBolts = (n: number): BoltsPhrase => (n === 1 ? 'You need 1 more Bolt.' : `You need ${n} more Bolts.`);
 export const armyLine = (n: number): ArmyPhrase => (n === 1 ? 'You have 1 soldier!' : `You have ${n} soldiers!`);
 export const newSoldier = (u: UnitId) => `A new ${UNITS[u].name}!` as RecruitPhrase;
 export const fullLine = (u: UnitId) => `The ${UNITS[u].name} squad is full!` as RecruitPhrase;
@@ -67,13 +68,13 @@ const CAMP = [
 
 function campPhrases(): CampPhrase[] {
   const bought: BoughtName[] = [
-    ...SLOTS.flatMap(s => s.mods.slice(1, 4) as BoltModName[]), ...BOUGHT_UNITS.map(u => UNITS[u].name as BoughtName),
+    ...SLOTS.flatMap(s => s.mods.slice(1, 4) as BuyModName[]), ...BOUGHT_UNITS.map(u => UNITS[u].name as BoughtName),
     ...BOUGHT_COLOURS.map(c => colourById(c).name as BoughtName),
   ];
   return [
     ...UNIT_IDS.map(u => UNITS[u].name), ...SLOTS.map(s => s.name), ...SLOTS.flatMap(s => s.mods), ...COLOURS.map(c => c.name),
     ...bought.map(m => `You got ${m}!` as const), ...bought.map(m => `You can get ${m}!` as const),
-    ...Array.from({ length: MAX_PRICE }, (_, i) => needBolts(i + 1)),
+    ...Array.from({ length: MAX_PRICE }, (_, i) => needLine(SQUAD_CURRENCY, i + 1)),
     ...Array.from({ length: ARMY_MAX }, (_, i) => armyLine(i + 1)),
     ...UNIT_IDS.flatMap(u => [newSoldier(u), fullLine(u)]),
     ...SLOTS.map(s => `Get ${s.mods[3]} first!` as const), ...SLOTS.map(s => `You got ${s.mods[4]}!` as const),
@@ -100,7 +101,7 @@ export type Phrase = (typeof GAME)[number] | (typeof CHEERS)[number] | EarnedPhr
   | CampPhrase | (typeof CAMP)[number] | Fact | (typeof TROPHY_PHRASES)[number];
 
 export const PHRASES = [
-  ...GAME, ...CHEERS, ...Array.from({ length: 6 }, (_, i) => earnedBolts(i + 1)), ...modePhrases(), ...Object.values(LOCKED_HINTS),
+  ...GAME, ...CHEERS, ...Array.from({ length: MAX_BOLTS }, (_, i) => earnedLine(SQUAD_CURRENCY, i + 1)), ...modePhrases(), ...Object.values(LOCKED_HINTS),
   ...wordPhrases(), ...TEACHING, ...LETTER_PHRASES, ...SENTENCES.map(s => s.text), ...GAP_TEXTS,
   ...campPhrases(), ...CAMP, ...Object.values(FACTS).flat(), ...TROPHY_PHRASES,
 ] as const satisfies readonly Phrase[];

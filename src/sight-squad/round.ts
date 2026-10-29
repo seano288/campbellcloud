@@ -1,5 +1,5 @@
 // A Round: 5 correct answers on the shared Round engine (src/learning/round.ts), each question any kind he has opened
-// (src/sight-squad/mix.ts), then a Bolt for each one right on the first try and one for finishing. Level ups, opened kinds,
+// (src/sight-squad/mix.ts), then one Ammo for each one right on the first try and one for finishing. Level ups, opened kinds,
 // stars and Trophies are celebrated at the end.
 import { signal } from '@preact/signals';
 import { sBad, sGood } from '../audio/sfx';

@@ -2,7 +2,8 @@
 // and the Camp.
 import { useState } from 'preact/hooks';
 import { unlockAudio } from '../audio/context';
-import { BoltPile } from '../ui/bits';
+import { CurrencyPile } from '../ui/currency';
+import { SQUAD_CURRENCY } from './branding';
 import { HoldForProgress } from '../ui/MoveProgress';
 import { BuildLabel } from '../ui/BuildLabel';
 import { hasAffordable } from './camp/camp';
@@ -21,7 +22,7 @@ import { Toast, useVoice, VoiceContext } from './voice';
 export function App() {
   const [shelf, setShelf] = useState(false);
   const s = player.state.value, balance = s.currency.balance;
-  const status = <><GoalBar /><BoltPile count={balance} /></>;
+  const status = <><GoalBar /><CurrencyPile kind={SQUAD_CURRENCY} count={balance} /></>;
   return (
     <VoiceContext.Provider key={screen.value} value={screenVoice.value}>
       {screen.value === 'start' && <Start />}

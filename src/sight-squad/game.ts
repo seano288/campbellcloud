@@ -32,11 +32,11 @@ export const squadSave: SaveAdapter<SquadState> = {
   decode(raw) {
     const data = isRecord(raw) && raw.version === SAVE_VERSION ? raw : {};
     return {
-      learning: readLearning(data.learning), currency: readCurrency(data.bolts),
+      learning: readLearning(data.learning), currency: readCurrency(data.balance ?? data.bolts), // older saves kept it as bolts
       camp: readCamp(data.camp), trophies: readTrophies(data.trophies, STEP_IDS),
     };
   },
-  encode: state => ({ version: SAVE_VERSION, bolts: state.currency.balance, learning: state.learning, camp: state.camp, trophies: state.trophies }),
+  encode: state => ({ version: SAVE_VERSION, balance: state.currency.balance, learning: state.learning, camp: state.camp, trophies: state.trophies }),
 };
 
 export const player = createStore({ key: SAVE_KEY, adapter: squadSave, backing: browserStorage });

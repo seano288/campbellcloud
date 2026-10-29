@@ -1,7 +1,7 @@
 // The Camp's parts: ten Squads of green plastic toy soldiers (the Riflemen are his from the start, the rest unlocked with
-// Bolts), six Slots of Gear the whole army wears, each with a free default plus four Mods (Rungs 1-3 bought with Bolts and
+// Ammo), six Slots of Gear the whole army wears, each with a free default plus four Mods (Rungs 1-3 bought with Ammo and
 // a Legendary Rung 4 kept in the Password Lock), and twelve Team Colours. Prices follow the other games: Mods cost 5, 15
-// and 30 Bolts by Rung, a Colour 3.
+// and 30 Ammo by Rung, a Colour 3.
 export const UNIT_IDS = ['rifleman', 'scout', 'drummer', 'medic', 'rocket', 'dog', 'para', 'jeep', 'cannon', 'tank'] as const;
 export type UnitId = (typeof UNIT_IDS)[number];
 export const STARTER_UNIT = 'rifleman' satisfies UnitId;
@@ -10,9 +10,9 @@ export const STARTING_ARMY = 3;
 
 export interface UnitInfo {
   readonly name: string;
-  /** Bolts to unlock the Squad (the first soldier comes with it); 0 for the starter. */
+  /** Ammo to unlock the Squad (the first soldier comes with it); 0 for the starter. */
   readonly unlock: number;
-  /** Bolts for each soldier after that. */
+  /** Ammo for each soldier after that. */
   readonly recruit: number;
   /** The most of them the army can have. */
   readonly max: number;
@@ -46,11 +46,11 @@ export type Slot = (typeof SLOTS)[number];
 export type SlotId = Slot['id'];
 export type SlotName = Slot['name'];
 export type ModName = Slot['mods'][number];
-/** 0 is the Slot's free default; 1-3 are the first, second and top Rung, bought with Bolts; 4 is Legendary, from the Password Lock. */
+/** 0 is the Slot's free default; 1-3 are the first, second and top Rung, bought with Ammo; 4 is Legendary, from the Password Lock. */
 export type Rung = 0 | 1 | 2 | 3 | 4;
 export type BuyRung = Exclude<Rung, 0>;
 export const RUNGS = [1, 2, 3, 4] as const;
-export const BOLT_RUNGS = [1, 2, 3] as const;
+export const BUY_RUNGS = [1, 2, 3] as const;
 export const LEGENDARY = 4;
 export const TOP = 3;
 
@@ -62,7 +62,7 @@ export const isLegendary = (mod: ModId) => parseMod(mod).rung === LEGENDARY;
 export type LegendaryId = `${SlotId}:${typeof LEGENDARY}`;
 
 /** Real army men come in one colour of plastic each; his whole army is one Team Colour. He picks one of the first three
- * when he starts, and the rest cost 3 Bolts each. */
+ * when he starts, and the rest cost 3 Ammo each. */
 export const COLOURS = [
   { id: 'green', name: 'Army Green', hex: '#4f7a2a' },
   { id: 'tan', name: 'Tan', hex: '#c8a46a' },

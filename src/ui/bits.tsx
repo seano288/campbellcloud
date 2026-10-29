@@ -1,18 +1,11 @@
 import type { ComponentChildren } from 'preact';
+import { BOLT } from '../currency/kind';
 import type { Outcome } from '../learning/session';
+import { CurrencyIcon, CurrencyPile } from './currency';
 
-export function Bolt({ size }: { size: number }) {
-  return (
-    <svg class="bolt" width={size} height={size} viewBox="0 0 40 40" aria-hidden="true">
-      <polygon points="20,2 36,11 36,29 20,38 4,29 4,11" fill="#ffc21a" stroke="#7a5200" stroke-width="3" />
-      <circle cx="20" cy="20" r="7" fill="#e0a000" stroke="#7a5200" stroke-width="2.5" />
-    </svg>
-  );
-}
-
-export function BoltPile({ count }: { count: number }) {
-  return <div class="pilebox" aria-label={`${count} Bolts`}><Bolt size={34} /><span>{count}</span></div>;
-}
+/** The vehicle games' Bolt; any currency is CurrencyIcon. */
+export const Bolt = ({ size }: { size: number }) => <CurrencyIcon kind={BOLT} size={size} />;
+export const BoltPile = ({ count }: { count: number }) => <CurrencyPile kind={BOLT} count={count} />;
 
 /** One star per answered problem; one that wasn't right on the first try without help is only half lit. */
 export function Stars({ results }: { results: readonly Outcome[] }) {

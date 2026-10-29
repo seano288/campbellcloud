@@ -1,13 +1,15 @@
 // What tapping things in the Camp does to the saved game, and what is said: recruit a soldier, unlock a Squad, fit a Mod
 // or Colour he owns, buy one he can afford (it's fitted straight away), and open the Password Lock.
 import { buy, player, updateCamp, type SquadState } from '../game';
-import { needBolts, type Phrase } from '../phrases';
+import { needLine } from '../../currency/kind';
+import { SQUAD_CURRENCY } from '../branding';
+import type { Phrase } from '../phrases';
 import type { Commit } from '../../save/store';
 import {
-  BOLT_RUNGS, BOUGHT_COLOURS, buyableName, colourById, colourItem, LEGENDARY, modId, modName, recruit, TOP, unitItem, UNITS,
+  BUY_RUNGS, BOUGHT_COLOURS, buyableName, colourById, colourItem, LEGENDARY, modId, modName, recruit, TOP, unitItem, UNITS,
   type BoughtColour, type BoughtUnit, type Buyable, type ColourId, type LegendaryId, type Purchase, type Rung, type SlotId, type UnitId,
 } from './catalog';
-import { affordable, boltPrice, boltsNeeded, canRecruit, fitColour, fitMod, goalOf, isFull, isLocked, openVault, ownsColour as owns, selectGoal, waitingOn, type CampState } from './camp';
+import { affordable, priceOf, stillNeeded, canRecruit, fitColour, fitMod, goalOf, isFull, isLocked, openVault, ownsColour as owns, selectGoal, waitingOn, type CampState } from './camp';
 
 const camp = () => player.state.value.camp;
 const balance = () => player.state.value.currency.balance;
@@ -22,14 +24,14 @@ export const canAfford = (slot: SlotId, rung: Rung) => rung !== 0 && rung !== LE
 export const canAffordUnit = (u: UnitId) => !hasUnit(u) && canBuy(unitItem(u as BoughtUnit));
 export const canAffordRecruit = (u: UnitId) => canRecruit(camp(), u) && balance() >= UNITS[u].recruit;
 export const canAffordColour = (c: ColourId) => !ownsColour(c) && canBuy(colourItem(c as BoughtColour));
-export const slotHasAffordable = (slot: SlotId) => BOLT_RUNGS.some(r => canAfford(slot, r));
+export const slotHasAffordable = (slot: SlotId) => BUY_RUNGS.some(r => canAfford(slot, r));
 export const coloursAffordable = () => BOUGHT_COLOURS.some(canAffordColour);
 export const squadsAffordable = () => (Object.keys(UNITS) as UnitId[]).some(u => canAffordUnit(u) || canAffordRecruit(u));
 export const waitingFor = (slot: SlotId) => waitingOn(camp(), modId(slot, LEGENDARY));
 export const goal = () => goalOf(camp());
 
-/** "Missiles. You need 4 more Bolts." */
-export const needLines = (x: Purchase, name: Phrase): Phrase[] => [name, needBolts(boltsNeeded(balance(), x))];
+/** "Missiles. You need 4 more Ammo." */
+export const needLines = (x: Purchase, name: Phrase): Phrase[] => [name, needLine(SQUAD_CURRENCY, stillNeeded(balance(), x))];
 export const gotLine = (x: Buyable) => `You got ${buyableName(x)}!` as Phrase;
 
 type Done<K extends string> = { kind: K; state: SquadState } | { kind: 'rejected' };
@@ -67,7 +69,7 @@ export function tapUnit(u: UnitId): UnitTap {
   }
   if (isFull(camp(), u)) return { kind: 'full' };
   const item = recruit(u);
-  if (balance() >= boltPrice(item)) return done('recruited', buy(item));
+  if (balance() >= priceOf(item)) return done('recruited', buy(item));
   return { kind: 'need', item };
 }
 

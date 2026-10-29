@@ -1,6 +1,6 @@
 // The Camp on the saved game: his army (how many of each Squad), which Squads, Mods and Colours he owns, the Gear it wears,
 // its Team Colour, and the Goal. The Goal is the cheapest locked Squad or Mod unless he tapped another; a Colour only once
-// nothing else bought with Bolts is left. A Legendary is never bought with Bolts: it waits for the top Rung, then the
+// nothing else bought with Ammo is left. A Legendary is never bought with Ammo: it waits for the top Rung, then the
 // Password Lock opens it. Recruits are bought one at a time, as often as he likes, up to each Squad's maximum.
 import { isAmount } from '../../currency/amount';
 import type { PurchaseProposal } from '../../rewards/purchase';
@@ -34,9 +34,9 @@ export const PRICES = { rungs: { 1: 5, 2: 15, 3: 30 }, colour: 3 } as const;
 export const armySize = (c: Pick<CampState, 'army'>) => UNIT_IDS.reduce((n, u) => n + c.army[u], 0);
 export const isFull = (c: Pick<CampState, 'army'>, u: UnitId) => c.army[u] >= UNITS[u].max;
 
-/** Bolts buy everything but a Legendary. */
-export const forBolts = (x: Buyable) => !(isModItem(x) && isLegendary(x));
-export function boltPrice(x: Purchase): number {
+/** Ammo buy everything but a Legendary. */
+export const forCurrency = (x: Buyable) => !(isModItem(x) && isLegendary(x));
+export function priceOf(x: Purchase): number {
   if (isRecruit(x)) return UNITS[recruitOf(x)].recruit;
   if (isUnitItem(x)) return UNITS[unitOf(x)].unlock;
   if (isColourItem(x)) return PRICES.colour;
@@ -55,23 +55,23 @@ export function waitingOn(c: CampInventory, mod: ModId): ModId | null {
   const { slot, rung } = parseMod(mod), top = modId(slot, TOP);
   return rung === LEGENDARY && isLocked(c, top) ? top : null;
 }
-const lockedForBolts = (c: CampInventory) => ALL_BUYABLES.filter(forBolts).filter(x => isLocked(c, x));
+const lockedForCurrency = (c: CampInventory) => ALL_BUYABLES.filter(forCurrency).filter(x => isLocked(c, x));
 /** The one he chose while it's locked, otherwise the cheapest locked Squad or Mod; a Colour only once nothing else is left. */
 export function goalOf(c: CampInventory): Buyable | null {
-  if (c.goal && isLocked(c, c.goal) && forBolts(c.goal)) return c.goal;
-  const locked = lockedForBolts(c), rest = locked.filter(x => !isColourItem(x));
+  if (c.goal && isLocked(c, c.goal) && forCurrency(c.goal)) return c.goal;
+  const locked = lockedForCurrency(c), rest = locked.filter(x => !isColourItem(x));
   let best: Buyable | null = null;
-  for (const x of rest.length ? rest : locked) if (!best || boltPrice(x) < boltPrice(best)) best = x;
+  for (const x of rest.length ? rest : locked) if (!best || priceOf(x) < priceOf(best)) best = x;
   return best;
 }
 /** New things he could buy now (not counting more Recruits). */
-export const affordable = (c: CampInventory, balance: number) => (isAmount(balance) ? lockedForBolts(c).filter(x => boltPrice(x) <= balance) : []);
+export const affordable = (c: CampInventory, balance: number) => (isAmount(balance) ? lockedForCurrency(c).filter(x => priceOf(x) <= balance) : []);
 export const hasAffordable = (c: CampInventory, balance: number) => affordable(c, balance).length > 0;
 export const becameAffordable = (c: CampInventory, before: number, after: number) =>
   isAmount(before) && isAmount(after) && affordable(c, after).length > affordable(c, before).length;
 export const canRecruit = (c: Pick<CampState, 'army' | 'units'>, u: UnitId) => c.units.includes(u) && !isFull(c, u);
-export const boltsNeeded = (balance: number, x: Purchase) => Math.max(0, boltPrice(x) - balance);
-/** The next Legendary still in the Password Lock, once everything bought with Bolts is his. */
+export const stillNeeded = (balance: number, x: Purchase) => Math.max(0, priceOf(x) - balance);
+/** The next Legendary still in the Password Lock, once everything bought with Ammo is his. */
 export const nextLegendary = (c: CampInventory): SlotId | null => SLOTS.map(s => s.id).find(id => isLocked(c, modId(id, LEGENDARY))) ?? null;
 export const builtEverything = (c: CampInventory) => ALL_BUYABLES.every(x => !isLocked(c, x));
 
@@ -89,7 +89,7 @@ export function fitColour(state: CampState, colour: ColourId): CampState {
 export const chooseFirstColour = (state: CampState, colour: ColourId): CampState | null =>
   (state.colour === null && isStarterColour(colour) ? { ...state, colour } : null);
 export function selectGoal(state: CampState, item: Buyable): CampState {
-  if (!forBolts(item) || !isLocked(state, item)) throw new Error('Goal must be a locked Bolt item');
+  if (!forCurrency(item) || !isLocked(state, item)) throw new Error('Goal must be a locked item bought with Ammo');
   return { ...state, goal: item };
 }
 
@@ -113,9 +113,9 @@ export function proposePurchase(state: CampState, item: Purchase, balance: numbe
   } else {
     if (!ALL_BUYABLES.includes(item)) return { kind: 'rejected', reason: 'invalid-item' };
     if (!isLocked(state, item)) return { kind: 'rejected', reason: 'already-owned' };
-    if (!forBolts(item)) return { kind: 'rejected', reason: 'vault' };
+    if (!forCurrency(item)) return { kind: 'rejected', reason: 'vault' };
   }
-  const cost = boltPrice(item);
+  const cost = priceOf(item);
   if (balance < cost) return { kind: 'rejected', reason: 'insufficient-funds' };
   return { kind: 'ready', cost, state: grant(state, item) };
 }
@@ -153,5 +153,5 @@ export function readCamp(raw: unknown): CampState {
   const colour = colourId && (isStarterColour(colourId) || colours.includes(colourId as BoughtColour)) ? colourId : colourId ? 'green' : null;
   const goal = ALL_BUYABLES.find(x => x === data.goal) ?? null;
   const state: CampState = { ...f, colour, army, units, unlocked, colours, gear, goal };
-  return { ...state, goal: goal && forBolts(goal) && isLocked(state, goal) ? goal : null };
+  return { ...state, goal: goal && forCurrency(goal) && isLocked(state, goal) ? goal : null };
 }

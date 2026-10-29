@@ -8,7 +8,9 @@ import { useEffect, useRef, useState } from 'preact/hooks';
 import type { ComponentChildren } from 'preact';
 import { sChime, sClink, sFanfare, sNope } from '../../audio/sfx';
 import { confetti, sparks } from '../../celebrate/effects';
-import { Bolt, BoltPile, IconButton } from '../../ui/bits';
+import { IconButton } from '../../ui/bits';
+import { CurrencyIcon, CurrencyPile } from '../../ui/currency';
+import { SQUAD_CURRENCY } from '../branding';
 import { player } from '../game';
 import { screen } from '../nav';
 import { armyLine, FACTS, fullLine, newSoldier, type Phrase } from '../phrases';
@@ -44,7 +46,7 @@ export function CampScreen({ goal: goalView, onShelf }: { goal: ComponentChildre
   const [vault, setVault] = useState<SlotId | null>(null);
   const [wiggle, setWiggle] = useState<string | null>(null);
   const [blocked, setBlocked] = useState(false);
-  const camp = player.state.value.camp, bolts = player.state.value.currency.balance, team = colourHex(camp), size = armySize(camp);
+  const camp = player.state.value.camp, balance = player.state.value.currency.balance, team = colourHex(camp), size = armySize(camp);
 
   useEffect(() => {
     // three.js is in the main bundle, not a lazy chunk: an update can't leave the Camp pointing at a chunk that's gone
@@ -123,7 +125,7 @@ export function CampScreen({ goal: goalView, onShelf }: { goal: ComponentChildre
   return (
     <div class={`screen garage-screen hangar-screen camp-screen ${sheet ? 'open' : ''} ${show ? 'showing' : ''}`}>
       <header class="garage-hud">
-        <BoltPile count={bolts} />
+        <CurrencyPile kind={SQUAD_CURRENCY} count={balance} />
         {goalView}
         <div class="spacer" />
         <IconButton label="Home" onClick={() => { if (voice.active) screen.value = 'home'; }}>🏠</IconButton>
@@ -169,7 +171,7 @@ export function CampScreen({ goal: goalView, onShelf }: { goal: ComponentChildre
                     <div class="ico"><UnitArt unit={u} color={mine ? team : '#5b6270'} /></div>
                     <div class="nm">{UNITS[u].name}</div>
                     {mine && <div class="count">{n}<small>/{UNITS[u].max}</small></div>}
-                    {!full && <div class="cost">{mine ? '+' : ''}<Bolt size={20} />{price}</div>}
+                    {!full && <div class="cost">{mine ? '+' : ''}<CurrencyIcon kind={SQUAD_CURRENCY} size={20} />{price}</div>}
                     {!mine && !aff && <div class="lock">🔒</div>}
                     {!mine && goal() === unitItem(u as BoughtUnit) && <div class="flag">🎯</div>}
                   </button>
@@ -182,7 +184,7 @@ export function CampScreen({ goal: goalView, onShelf }: { goal: ComponentChildre
                 const mine = ownsColour(c.id), cls = camp.colour === c.id ? 'fitted' : mine ? 'owned' : canAffordColour(c.id) ? 'afford' : 'locked';
                 return (
                   <button key={c.id} class={`swatch ${cls} ${wiggle === `colour:${c.id}` ? 'wiggle' : ''}`} style={{ background: c.hex }} aria-label={c.name} onClick={() => tapSwatch(c.id)}>
-                    {!mine && <span class="cost"><Bolt size={16} />{PRICES.colour}</span>}
+                    {!mine && <span class="cost"><CurrencyIcon kind={SQUAD_CURRENCY} size={16} />{PRICES.colour}</span>}
                     {cls === 'fitted' && <span class="check">✓</span>}
                     {cls === 'locked' && <span class="lock">🔒</span>}
                     {!isStarterColour(c.id) && goal() === colourItem(c.id as BoughtColour) && <span class="flag">🎯</span>}
@@ -212,9 +214,9 @@ export function CampScreen({ goal: goalView, onShelf }: { goal: ComponentChildre
                   <button key={r} class={`mod-tile ${cls} ${wiggle === `${s}:${r}` ? 'wiggle' : ''}`} aria-label={modName(s, r)} onClick={() => tap(s, r)}>
                     <div class="ico"><ModIcon slot={s} rung={r} /></div>
                     <div class="nm">{modName(s, r)}</div>
-                    {!un && <div class="cost"><Bolt size={20} />{price}</div>}
+                    {!un && <div class="cost"><CurrencyIcon kind={SQUAD_CURRENCY} size={20} />{price}</div>}
                     {fitted && <div class="check">✓</div>}
-                    {cls === 'locked' && <><div class="lock">🔒</div><div class="prog"><i style={{ width: `${Math.min(100, (bolts / price) * 100)}%` }} /></div></>}
+                    {cls === 'locked' && <><div class="lock">🔒</div><div class="prog"><i style={{ width: `${Math.min(100, (balance / price) * 100)}%` }} /></div></>}
                     {r !== 0 && goal() === modId(s, r as 1 | 2 | 3) && <div class="flag">🎯</div>}
                   </button>
                 );

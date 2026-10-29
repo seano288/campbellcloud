@@ -110,8 +110,12 @@ does a trick when tapped, fires its gun and rockets, and lands back on the pad.
 
 ## Sight Squad
 
-Sight Squad reuses Chop Chop's terms where they mean the same thing (Mixed Round, Mastery, Bolt, Slot, Mod, Rung, Goal,
+Sight Squad reuses Chop Chop's terms where they mean the same thing (Mixed Round, Mastery, Slot, Mod, Rung, Goal,
 Trophy). These are its own:
+
+**Ammo**: Sight Squad's Bolt, drawn as a brass bullet, earned and spent exactly as Bolts are, because an army runs on
+ammunition, not machine parts. Every game names its currency in `src/currency/kind.ts`.
+_Avoid_: Bolt (in Sight Squad it's always Ammo)
 
 **Sight word**: one of the 100 common words he learns (Dolch pre-primer and primer, Fry's first hundred), met one at a
 time in a fixed order of 20 sets of 5. Look-alikes (was/saw, on/no, the/then) are never in the same set.
@@ -135,17 +139,17 @@ Build It are open from the start; each opens the one below it on Home at Level 2
 **Army**: his toy soldiers, green plastic army men on a play-mat, Sight Squad's Body. It's many figures, not one.
 
 **Squad**: one kind of figure in the Army (Rifleman, Scout, Drummer, Medic, Rocket Trooper, Army Dog, Paratrooper, Jeep,
-Cannon, Tank). Riflemen are his from the start; the rest are unlocked once with Bolts, and the first soldier comes with it.
+Cannon, Tank). Riflemen are his from the start; the rest are unlocked once with Ammo, and the first soldier comes with it.
 _Avoid_: unit type, class
 
-**Recruit**: one more soldier of a Squad he has, bought with Bolts (2 to 12) and bought again as often as he likes, up to
+**Recruit**: one more soldier of a Squad he has, bought with Ammo (2 to 12) and bought again as often as he likes, up to
 the Squad's maximum. It marches onto the mat. Recruits are never the Goal.
 
 **Gear**: the Mods the whole Army wears, one Rung per Slot: Helmet, Pack, Flag, Finish, Mat (the play-mat itself) and Boom
 (what it throws in a Battle).
 
 **Team Colour**: the one colour of plastic the whole Army is made of. Army Green, Tan and Grey are free (he picks one on
-first launch); nine more cost 3 Bolts.
+first launch); nine more cost 3 Ammo.
 _Avoid_: paint, Colour (in Sight Squad it's always the Team Colour)
 
 **Camp**: where he builds his Army, Sight Squad's Garage.

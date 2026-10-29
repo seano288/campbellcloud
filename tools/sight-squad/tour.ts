@@ -1,6 +1,6 @@
 // Plays through Sight Squad in a headless browser and screenshots each screen, for checking the look:
 //   npx tsx tools/sight-squad/tour.ts <url> <outDir> [rounds]
-// LEVEL=2 or 3 starts with every kind open at that Level and 40 words met; BOLTS=n starts with that many Bolts and a big army.
+// LEVEL=2 or 3 starts with every kind open at that Level and 40 words met; AMMO=n starts with that many Ammo and a big army.
 // It answers by trying: Build It at Level 1 reads the faint letters in the slots, anything else it taps until one is right.
 import { chromium, type Page } from 'playwright';
 
@@ -52,11 +52,11 @@ async function answer(page: Page, q: number) {
   }
 }
 
-const level = Number(process.env.LEVEL ?? 0), bolts = Number(process.env.BOLTS ?? 0);
+const level = Number(process.env.LEVEL ?? 0), ammo = Number(process.env.AMMO ?? 0);
 await page.addInitScript(([l, b]) => { // a save with every kind of question open at one Level, or a rich army
   if (localStorage.getItem('sight-squad-save')) return;
   const words = ['I', 'a', 'see', 'go', 'up', 'the', 'can', 'run', 'my', 'look', 'is', 'we', 'jump', 'down', 'and', 'it', 'you', 'me', 'play', 'come', 'to', 'in', 'big', 'little', 'said', 'here', 'not', 'stop', 'help', 'yes', 'he', 'like', 'are', 'on', 'all', 'was', 'at', 'they', 'have', 'good'];
-  const save: Record<string, unknown> = { version: 1, bolts: b };
+  const save: Record<string, unknown> = { version: 1, balance: b };
   if (l) {
     const mode = { level: l, window: [], opened: true, starred: false, introPending: false, fresh: false };
     save.learning = { modes: Object.fromEntries(['hear', 'hunt', 'spell', 'read', 'sentence', 'fill'].map(m => [m, mode])), words, sinceWord: 0, strength: Object.fromEntries(words.map(w => [w, 1])) };
@@ -65,7 +65,7 @@ await page.addInitScript(([l, b]) => { // a save with every kind of question ope
     army: { rifleman: 14, scout: 4, drummer: 3, medic: 2, rocket: 4, dog: 2, para: 3, jeep: 1, cannon: 1, tank: 2 },
     unlocked: ['helmet:1', 'helmet:2', 'pack:1', 'flag:1', 'flag:2', 'flag:3'], gear: { helmet: 2, pack: 1, flag: 3, finish: 0, mat: 0, boom: 0 } };
   if (l || b) localStorage.setItem('sight-squad-save', JSON.stringify(save));
-}, [level, bolts] as const);
+}, [level, ammo] as const);
 await page.goto(url);
 await wait(800); await shot('start');
 await page.getByLabel('Start').click({ timeout: 120000 }); await wait(1200);

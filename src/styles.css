@@ -22,7 +22,7 @@ button{font:inherit;color:inherit;border:0;background:none;padding:0;cursor:poin
 .start-btn{font-size:calc(48px*var(--u));padding:calc(24px*var(--u)) calc(64px*var(--u))}
 
 /* ---------- shared bits ---------- */
-.bolt{display:inline-block;vertical-align:middle;flex:none}
+.currency{display:inline-block;vertical-align:middle;flex:none}
 .pilebox{display:flex;align-items:center;gap:6px;background:#000;color:var(--yellow);border:3px solid var(--yellow);border-radius:999px;padding:3px 14px 3px 6px;font:900 calc(24px*var(--u)) Nunito,sans-serif;flex:none}
 .icon-btn{width:max(var(--tap),calc(56px*var(--u)));height:max(var(--tap),calc(56px*var(--u)));border-radius:50%;background:#000;border:3px solid var(--yellow);font-size:calc(26px*var(--u));display:grid;place-items:center;flex:none}
 .icon-btn.go{background:var(--green)}

@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { PHRASES } from '../phrases';
-import { armySize, boltPrice, chooseFirstColour, freshCamp, goalOf, openVault, proposePurchase, readCamp, type CampState } from './camp';
+import { armySize, priceOf, chooseFirstColour, freshCamp, goalOf, openVault, proposePurchase, readCamp, type CampState } from './camp';
 import { ARMY_MAX, modId, recruit, unitItem, UNIT_IDS, UNITS } from './catalog';
 
 const buy = (state: CampState, item: Parameters<typeof proposePurchase>[1], balance = 999) => {
@@ -31,13 +31,13 @@ describe('the Camp', () => {
     expect(proposePurchase(c, recruit('tank'), 99)).toMatchObject({ kind: 'rejected', reason: 'locked-unit' });
     c = buy(c, unitItem('tank'));
     expect(c.army.tank).toBe(1);
-    expect(boltPrice(recruit('tank'))).toBe(UNITS.tank.recruit);
+    expect(priceOf(recruit('tank'))).toBe(UNITS.tank.recruit);
     expect(buy(c, recruit('tank')).army.tank).toBe(2);
   });
   it('aims for the cheapest Squad or Mod, never a Recruit or a Legendary', () => {
     const g = goalOf(freshCamp());
     expect(g === 'helmet:1' || g === 'unit:scout' || g?.endsWith(':1')).toBe(true);
-    expect(boltPrice(g!)).toBe(5);
+    expect(priceOf(g!)).toBe(5);
   });
   it('keeps each Legendary in the Password Lock until its top Rung is his', () => {
     let c = freshCamp();

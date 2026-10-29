@@ -26,7 +26,7 @@ const camp = (gear: Record<string, number>, unlocked: string[], colour = 'green'
 // meeting a heart word: "said" is next once every word before it is known well
 {
   const strength = Object.fromEntries(WORDS.map(w => [w, 4]));
-  const page = await open(browser, { version: 1, bolts: 0, learning: { modes: allOpen(1), words: WORDS, sinceWord: 9, strength }, camp: camp({}, []) });
+  const page = await open(browser, { version: 1, balance: 0, learning: { modes: allOpen(1), words: WORDS, sinceWord: 9, strength }, camp: camp({}, []) });
   await page.getByLabel('Play').first().click();
   await page.waitForTimeout(9000); await page.screenshot({ path: `${out}/meet-said-spelling.png` });
   await page.locator('.meet-word.pulse').waitFor({ timeout: 120000 }); await page.screenshot({ path: `${out}/meet-said-sentence.png` });
@@ -35,7 +35,7 @@ const camp = (gear: Record<string, number>, unlocked: string[], colour = 'green'
 // teaching: 🔎 Help spells the word out over the question
 {
   const strength = Object.fromEntries(WORDS.map(w => [w, 1]));
-  const page = await open(browser, { version: 1, bolts: 0, learning: { modes: allOpen(2), words: WORDS, sinceWord: 0, strength }, camp: camp({}, []) });
+  const page = await open(browser, { version: 1, balance: 0, learning: { modes: allOpen(2), words: WORDS, sinceWord: 0, strength }, camp: camp({}, []) });
   await page.getByLabel('Play').first().click(); await page.waitForTimeout(3000);
   await page.getByLabel('Help').click(); await page.waitForTimeout(3800);
   await page.screenshot({ path: `${out}/teaching.png` });
@@ -46,7 +46,7 @@ const camp = (gear: Record<string, number>, unlocked: string[], colour = 'green'
 // Legendary Gear on the Moon, and the Password Lock
 {
   const unlocked = ['helmet', 'pack', 'flag', 'finish', 'mat', 'boom'].flatMap(s => [1, 2, 3, 4].map(r => `${s}:${r}`)).filter(m => m !== 'helmet:4');
-  const page = await open(browser, { version: 1, bolts: 99, learning: { modes: allOpen(2), words: WORDS, sinceWord: 0, strength: {} }, camp: camp({ helmet: 3, pack: 3, flag: 4, finish: 4, mat: 4, boom: 4 }, unlocked) });
+  const page = await open(browser, { version: 1, balance: 99, learning: { modes: allOpen(2), words: WORDS, sinceWord: 0, strength: {} }, camp: camp({ helmet: 3, pack: 3, flag: 4, finish: 4, mat: 4, boom: 4 }, unlocked) });
   await page.getByLabel('Camp').first().click(); await page.waitForTimeout(7000);
   await page.screenshot({ path: `${out}/moon-gold.png` });
   await page.getByLabel('Helmet').first().click(); await page.waitForTimeout(800);
@@ -62,7 +62,7 @@ const camp = (gear: Record<string, number>, unlocked: string[], colour = 'green'
 // an iPhone held upright
 {
   const strength = Object.fromEntries(WORDS.map(w => [w, 1]));
-  const page = await open(browser, { version: 1, bolts: 40, learning: { modes: allOpen(3), words: WORDS, sinceWord: 0, strength }, camp: camp({ helmet: 1, flag: 2 }, ['helmet:1', 'flag:1', 'flag:2'], 'tan') }, { width: 390, height: 844 });
+  const page = await open(browser, { version: 1, balance: 40, learning: { modes: allOpen(3), words: WORDS, sinceWord: 0, strength }, camp: camp({ helmet: 1, flag: 2 }, ['helmet:1', 'flag:1', 'flag:2'], 'tan') }, { width: 390, height: 844 });
   await page.screenshot({ path: `${out}/phone-home.png` });
   await page.getByLabel('Play').first().click();
   for (let k = 0; k < 3; k++) { await page.waitForTimeout(3500); await page.screenshot({ path: `${out}/phone-q${k}.png` }); await page.locator('.words .word-btn, .said-btn, .tok-btn, .tile-btn, .card-btn').first().click().catch(() => {}); await page.waitForTimeout(3000); }
