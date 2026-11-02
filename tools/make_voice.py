@@ -17,18 +17,26 @@ from pathlib import Path
 VOICE = 'en-US-AvaNeural'
 RATE = '-8%'
 # Purrdoku's sarcastic narrator: a dry British voice, a touch slow so the deadpan lines land
-VOICES = {'purrdoku': ('en-GB-RyanNeural', '-5%')}
+VOICES = {'purrdoku': ('en-GB-RyanNeural', '-5%'),
+          # Sight Squad teaches reading, so short vowels must be crisp: Ava blurs them ("did" sounds like "dead", "hat" like "hot")
+          'sight-squad': ('en-US-AriaNeural', '-8%')}
 ROOT = Path(__file__).resolve().parent.parent
 
 
-# Sight Squad spells words aloud letter by letter: each "Letter X" clip is the letter's name, spelled so the voice says it
-LETTER_NAMES = dict(zip('ABCDEFGHIJKLMNOPQRSTUVWXYZ', ['ay', 'bee', 'see', 'dee', 'ee', 'eff', 'jee', 'aitch', 'eye', 'jay', 'kay', 'el',
-                    'em', 'en', 'oh', 'pee', 'cue', 'ar', 'ess', 'tee', 'you', 'vee', 'double you', 'ex', 'why', 'zee']))
+# Sight Squad spells words aloud letter by letter: each "Letter X" clip is just the capital letter and a full stop ("R."),
+# which the voice names cleanly. Phonetic spellings misfire: "ay" is read as "eye", "eff" as "E F F" and "ar" as "A R".
+LETTERS = set('ABCDEFGHIJKLMNOPQRSTUVWXYZ')
+
+
+# Whole phrases the voice mangles when read as written
+SAID_AS = {'cat': 'cat!'}  # a lone "cat" comes out as "Kate"
 
 
 def speakable(s):
-    if s.startswith('Letter ') and s[7:] in LETTER_NAMES:
-        return LETTER_NAMES[s[7:]]
+    if s.startswith('Letter ') and s[7:] in LETTERS:
+        return s[7:] + '.'
+    if s in SAID_AS:
+        return SAID_AS[s]
     for a, b in [('$1 Bill', 'one dollar bill'), ('$5 Bill', 'five dollar bill'), ('$1', 'one dollar'), ('$5', 'five dollars'),
                  ('VROOM', 'Vroom'), ('Truck-tastic', 'Truck tastic'),
                  # Time Flies: aircraft names said the way pilots say them
@@ -38,6 +46,8 @@ def speakable(s):
                  ('UH-60', 'U H 60'), ('MH-6', 'M H 6'), ('AH-1Z', 'A H 1 Z'), ('UH-1', 'U H 1'), ('AH-64', 'A H 64'),
                  ('Mi-24', 'Mee 24'), ('Mi-26', 'Mee 26'), ('Ka-52', 'Kah 52'), ('CH-47', 'C H 47'), ('CH-53E', 'C H 53 E'),
                  ('RAH-66', 'R A H 66'),
+                 # Sight Squad: "Word Hunt Level 2" drops the n ("Word Hut") without a breath before Level
+                 (' Hunt Level', ' Hunt, Level'),
                  # Purrdoku: puns said as one word
                  ('Purr-fect', 'Purrfect'), ('Paw-some', 'Pawsome'), ('Meow-velous', 'Meowvelous'), ('Mm-hmm', 'Mm hmm')]:
         s = s.replace(a, b)
