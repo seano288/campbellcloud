@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { PHRASES } from '../phrases';
-import { armySize, priceOf, chooseFirstColour, freshCamp, goalOf, openVault, proposePurchase, readCamp, type CampState } from './camp';
-import { ARMY_MAX, modId, recruit, unitItem, UNIT_IDS, UNITS } from './catalog';
+import { armySize, canLevelUp, levelUp, maxOf, priceOf, chooseFirstColour, freshCamp, goalOf, openVault, proposePurchase, readCamp, type CampState } from './camp';
+import { ARMY_LEVELS, ARMY_MAX, modId, recruit, unitItem, UNIT_IDS, UNITS } from './catalog';
 
 const buy = (state: CampState, item: Parameters<typeof proposePurchase>[1], balance = 999) => {
   const r = proposePurchase(state, item, balance);
@@ -25,6 +25,24 @@ describe('the Camp', () => {
     expect(c.army.rifleman).toBe(4);
     c = { ...c, army: { ...c.army, rifleman: UNITS.rifleman.max } };
     expect(proposePurchase(c, recruit('rifleman'), 99)).toMatchObject({ kind: 'rejected', reason: 'full' });
+  });
+  it('levels the army up once every Squad is full, and every Squad can grow', () => {
+    const full = (c: CampState): CampState => ({ ...c, units: [...UNIT_IDS], army: Object.fromEntries(UNIT_IDS.map(u => [u, maxOf(c, u)])) as CampState['army'] });
+    let c = freshCamp();
+    expect(canLevelUp(c)).toBe(false);
+    expect(levelUp(c)).toBeNull();
+    c = full(c);
+    expect(canLevelUp({ ...c, army: { ...c.army, tank: 2 } })).toBe(false); // one Squad still has room
+    expect(proposePurchase(c, recruit('rifleman'), 99)).toMatchObject({ kind: 'rejected', reason: 'full' });
+    c = levelUp(c)!;
+    expect(c.level).toBe(2);
+    expect(maxOf(c, 'rifleman')).toBe(UNITS.rifleman.max * 2);
+    expect(buy(c, recruit('rifleman')).army.rifleman).toBe(UNITS.rifleman.max + 1);
+    expect(readCamp(JSON.parse(JSON.stringify(buy(c, recruit('rifleman'))))).army.rifleman).toBe(UNITS.rifleman.max + 1);
+    while (c.level < ARMY_LEVELS) c = levelUp(full(c))!;
+    expect(armySize(full(c))).toBe(ARMY_MAX);
+    expect(levelUp(full(c))).toBeNull(); // the top Level
+    expect(readCamp({ level: 99 }).level).toBe(1);
   });
   it('unlocks a Squad with its first soldier, and only then recruits more', () => {
     let c = freshCamp();

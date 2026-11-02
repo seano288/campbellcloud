@@ -1,7 +1,7 @@
 // The single typed list of everything Sight Squad says. tools/make_voice.py records a clip for each entry, the build fails
 // if one is missing, and say() accepts only these.
 import {
-  ARMY_MAX, BOUGHT_COLOURS, BOUGHT_UNITS, colourById, COLOURS, SLOTS, UNIT_IDS, UNITS,
+  ARMY_MAX, BOUGHT_COLOURS, LEVEL_NUMBERS, BOUGHT_UNITS, colourById, COLOURS, SLOTS, UNIT_IDS, UNITS,
   type BoughtColour, type BoughtUnit, type ColourName, type ModName, type SlotName, type UnitId, type UnitName,
 } from './camp/catalog';
 import { PRICES } from './camp/camp';
@@ -51,18 +51,21 @@ type NeedPhrase = NeedLine<typeof SQUAD_CURRENCY>;
 type VaultPhrase = 'This one is in the Password Lock!' | `Get ${Mods<3>} first!` | `You got ${Mods<4>}!`;
 type ArmyPhrase = 'You have 1 soldier!' | `You have ${number} soldiers!`;
 type RecruitPhrase = `A new ${UnitName}!` | `The ${UnitName} squad is full!`;
+type LevelPhrase = `Army Level ${(typeof LEVEL_NUMBERS)[number]}!`;
 export type CampPhrase = UnitName | SlotName | ModName | ColourName | `You got ${BoughtName}!` | `You can get ${BoughtName}!` | NeedPhrase
-  | VaultPhrase | ArmyPhrase | RecruitPhrase;
+  | VaultPhrase | ArmyPhrase | RecruitPhrase | LevelPhrase;
 
 /** The most Ammo anything costs. */
 export const MAX_PRICE = Math.max(...Object.values(PRICES.rungs), PRICES.colour, ...UNIT_IDS.map(u => Math.max(UNITS[u].unlock, UNITS[u].recruit)));
 export const armyLine = (n: number): ArmyPhrase => (n === 1 ? 'You have 1 soldier!' : `You have ${n} soldiers!`);
 export const newSoldier = (u: UnitId) => `A new ${UNITS[u].name}!` as RecruitPhrase;
+export const levelLine = (n: (typeof LEVEL_NUMBERS)[number]): LevelPhrase => `Army Level ${n}!`;
 export const fullLine = (u: UnitId) => `The ${UNITS[u].name} squad is full!` as RecruitPhrase;
 
 const CAMP = [
   'This one is in the Password Lock!', 'Build the password!', 'The lock is open!', 'Squads!', 'Tap a soldier!',
   'Parade!', 'Forward, march!', 'Tap a word to give an order!', 'Halt!',
+  'Your whole army is full!', 'Tap the star to level up!', 'Your squads can grow bigger!',
   'Battle!', 'Here come the robots!', 'Tap go to start!', 'Charge!', 'Poof!', 'Bounce back!', 'You won!', 'Hooray!',
 ] as const;
 
@@ -76,7 +79,7 @@ function campPhrases(): CampPhrase[] {
     ...bought.map(m => `You got ${m}!` as const), ...bought.map(m => `You can get ${m}!` as const),
     ...Array.from({ length: MAX_PRICE }, (_, i) => needLine(SQUAD_CURRENCY, i + 1)),
     ...Array.from({ length: ARMY_MAX }, (_, i) => armyLine(i + 1)),
-    ...UNIT_IDS.flatMap(u => [newSoldier(u), fullLine(u)]),
+    ...UNIT_IDS.flatMap(u => [newSoldier(u), fullLine(u)]), ...LEVEL_NUMBERS.map(levelLine),
     ...SLOTS.map(s => `Get ${s.mods[3]} first!` as const), ...SLOTS.map(s => `You got ${s.mods[4]}!` as const),
   ];
 }

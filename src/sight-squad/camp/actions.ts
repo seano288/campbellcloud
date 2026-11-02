@@ -9,7 +9,7 @@ import {
   BUY_RUNGS, BOUGHT_COLOURS, buyableName, colourById, colourItem, LEGENDARY, modId, modName, recruit, TOP, unitItem, UNITS,
   type BoughtColour, type BoughtUnit, type Buyable, type ColourId, type LegendaryId, type Purchase, type Rung, type SlotId, type UnitId,
 } from './catalog';
-import { affordable, priceOf, stillNeeded, canRecruit, fitColour, fitMod, goalOf, isFull, isLocked, openVault, ownsColour as owns, selectGoal, waitingOn, type CampState } from './camp';
+import { affordable, canLevelUp as levelReady, levelUp, priceOf, stillNeeded, canRecruit, fitColour, fitMod, goalOf, isFull, isLocked, openVault, ownsColour as owns, selectGoal, waitingOn, type CampState } from './camp';
 
 const camp = () => player.state.value.camp;
 const balance = () => player.state.value.currency.balance;
@@ -23,10 +23,11 @@ const canBuy = (x: Buyable) => affordable(camp(), balance()).includes(x);
 export const canAfford = (slot: SlotId, rung: Rung) => rung !== 0 && rung !== LEGENDARY && canBuy(modId(slot, rung as 1 | 2 | 3));
 export const canAffordUnit = (u: UnitId) => !hasUnit(u) && canBuy(unitItem(u as BoughtUnit));
 export const canAffordRecruit = (u: UnitId) => canRecruit(camp(), u) && balance() >= UNITS[u].recruit;
+export const canLevelUp = () => levelReady(camp());
 export const canAffordColour = (c: ColourId) => !ownsColour(c) && canBuy(colourItem(c as BoughtColour));
 export const slotHasAffordable = (slot: SlotId) => BUY_RUNGS.some(r => canAfford(slot, r));
 export const coloursAffordable = () => BOUGHT_COLOURS.some(canAffordColour);
-export const squadsAffordable = () => (Object.keys(UNITS) as UnitId[]).some(u => canAffordUnit(u) || canAffordRecruit(u));
+export const squadsAffordable = () => canLevelUp() || (Object.keys(UNITS) as UnitId[]).some(u => canAffordUnit(u) || canAffordRecruit(u));
 export const waitingFor = (slot: SlotId) => waitingOn(camp(), modId(slot, LEGENDARY));
 export const goal = () => goalOf(camp());
 
@@ -72,6 +73,9 @@ export function tapUnit(u: UnitId): UnitTap {
   if (balance() >= priceOf(item)) return done('recruited', buy(item));
   return { kind: 'need', item };
 }
+
+/** The ⭐ Level Up tile, once every Squad is full. */
+export const tapLevelUp = (): Done<'levelled'> => done('levelled', updateCamp(levelUp));
 
 /** The Password Lock opens once the password is built: the Legendary is his, and fitted. */
 export const unlockLegendary = (slot: SlotId) => updateCamp(c => openVault(c, modId(slot, LEGENDARY) as LegendaryId));

@@ -1,7 +1,7 @@
 // The Camp: "Tap a soldier". His army stands in rows on its play-mat in 3D, and he orbits it with a finger; tapping a
 // soldier says what it is and a true fact, and its whole Squad jumps. Along the bottom, a strip of tabs opens a sheet
 // (bottom sheet in portrait, side panel in landscape): Squads (unlock one, or recruit one more soldier; new recruits march
-// in from the corner), a sheet of five Mods for each Gear Slot, and the Team Colours. 🎺 Parade marches the army round the
+// in from the corner; once every Squad is full, a ⭐ Level Up tile lets them all grow bigger), a sheet of five Mods for each Gear Slot, and the Team Colours. 🎺 Parade marches the army round the
 // mat to his orders, 💥 Battle sends it against the wind-up robots, 🏆 opens the Trophy Shelf. Legendaries wait in the
 // Password Lock, opened by building a word.
 import { useEffect, useRef, useState } from 'preact/hooks';
@@ -13,14 +13,14 @@ import { CurrencyIcon, CurrencyPile } from '../../ui/currency';
 import { SQUAD_CURRENCY } from '../branding';
 import { player } from '../game';
 import { screen } from '../nav';
-import { armyLine, FACTS, fullLine, newSoldier, type Phrase } from '../phrases';
+import { armyLine, FACTS, fullLine, levelLine, newSoldier, type Phrase } from '../phrases';
 import { startRound } from '../round';
 import { useVoiceScope } from '../voice';
 import {
-  canAfford, canAffordColour, canAffordRecruit, canAffordUnit, colourHex, coloursAffordable, goal, gotLine, hasUnit, isUnlocked, needLines, ownsColour,
-  slotHasAffordable, squadsAffordable, tapColour, tapMod, tapUnit, vaultLine, waitingFor, waitLine,
+  canAfford, canAffordColour, canAffordRecruit, canAffordUnit, canLevelUp, colourHex, coloursAffordable, goal, gotLine, hasUnit, isUnlocked, needLines, ownsColour,
+  slotHasAffordable, squadsAffordable, tapColour, tapLevelUp, tapMod, tapUnit, vaultLine, waitingFor, waitLine,
 } from './actions';
-import { armySize, PRICES } from './camp';
+import { armySize, canLevelUp as levelReady, maxOf, PRICES } from './camp';
 import { colourItem, COLOURS, isStarterColour, LEGENDARY, modId, modName, RUNGS, SLOTS, slotById, TOP, UNIT_IDS, UNITS, unitItem, type BoughtColour, type BoughtUnit, type ColourId, type Rung, type SlotId, type UnitId } from './catalog';
 import { Battle } from './Battle';
 import { ModIcon } from './ModIcon';
@@ -52,7 +52,8 @@ export function CampScreen({ goal: goalView, onShelf }: { goal: ComponentChildre
     // three.js is in the main bundle, not a lazy chunk: an update can't leave the Camp pointing at a chunk that's gone
     const st = new CampStage(canvas.current!, stageEl.current!);
     setStage(st);
-    void say('Camp!', armyLine(armySize(player.state.peek().camp)));
+    const c = player.state.peek().camp;
+    void say('Camp!', armyLine(armySize(c)), ...(levelReady(c) ? ['Your whole army is full!', 'Tap the star to level up!'] as const : []));
     return () => st.dispose();
   }, []);
   useEffect(() => { stage?.setArmy(camp); }, [stage, JSON.stringify(camp)]);
@@ -92,9 +93,20 @@ export function CampScreen({ goal: goalView, onShelf }: { goal: ComponentChildre
     const result = tapUnit(u), name = UNITS[u].name;
     if (result.kind === 'rejected') return;
     if (result.kind === 'unlocked') { stage?.cheer(u); celebrate(gotLine(unitItem(u as BoughtUnit)), nextFact(u)); }
-    else if (result.kind === 'recruited') { sRecruit(); stage?.cheer(u); void say(newSoldier(u), armyLine(armySize(result.state.camp))); }
-    else if (result.kind === 'full') { nope(`unit:${u}`); void say(fullLine(u)); }
+    else if (result.kind === 'recruited') {
+      sRecruit(); stage?.cheer(u);
+      const c = result.state.camp;
+      void say(newSoldier(u), armyLine(armySize(c)), ...(levelReady(c) ? ['Your whole army is full!', 'Tap the star to level up!'] as const : []));
+    }
+    else if (result.kind === 'full') { nope(`unit:${u}`); void say(fullLine(u), ...(canLevelUp() ? ['Tap the star to level up!'] as const : [])); }
     else if (result.kind === 'need') { nope(`unit:${u}`); void say(...needLines(result.item, name)); }
+  }
+  function levelUpArmy() {
+    if (!voice.active) return;
+    const result = tapLevelUp();
+    if (result.kind === 'rejected') return;
+    for (const u of UNIT_IDS) stage?.cheer(u);
+    celebrate('Level up!', levelLine(result.state.camp.level), 'Your squads can grow bigger!');
   }
   function tap(slot: SlotId, rung: Rung) {
     if (!voice.active) return;
@@ -142,7 +154,9 @@ export function CampScreen({ goal: goalView, onShelf }: { goal: ComponentChildre
                   <IconButton label="Parade" class="show" onClick={() => startShow('parade')}>🎺</IconButton>
                   <IconButton label="Battle" class="show" onClick={() => startShow('battle')}>💥</IconButton>
                 </div>
-                <button class="bodyname jetname armyname" onClick={() => void say(armyLine(size))}>🪖 {size}</button>
+                <button class="bodyname jetname armyname" onClick={() => void say(...(camp.level > 1 ? [levelLine(camp.level)] : []), armyLine(size))}>
+                  🪖 {size}{camp.level > 1 && <span class="armylevel">⭐{camp.level}</span>}
+                </button>
                 <div class="bodystrip tabstrip">
                   {tabs.map(t => (
                     <button key={t.id} class={`body-chip tab-chip ${sheet === t.id ? 'on' : ''} ${t.aff ? 'aff' : ''}`} aria-label={t.label} onClick={() => openSheet(t.id)}>
@@ -162,15 +176,21 @@ export function CampScreen({ goal: goalView, onShelf }: { goal: ComponentChildre
           </div>
           {sheet === 'squads' ? (
             <div class="sheettiles squad-tiles">
+              {canLevelUp() && (
+                <button class="mod-tile squad-tile legend open levelup" aria-label="Level up" onClick={levelUpArmy}>
+                  <div class="ico star">⭐</div>
+                  <div class="nm">Level {camp.level + 1}!</div>
+                </button>
+              )}
               {UNIT_IDS.map(u => {
-                const mine = hasUnit(u), n = camp.army[u], full = n >= UNITS[u].max;
+                const mine = hasUnit(u), n = camp.army[u], max = maxOf(camp, u), full = n >= max;
                 const price = mine ? UNITS[u].recruit : UNITS[u].unlock, aff = mine ? canAffordRecruit(u) : canAffordUnit(u);
                 const cls = !mine ? (aff ? 'afford' : 'locked') : full ? 'fitted' : aff ? 'owned afford' : 'owned';
                 return (
                   <button key={u} class={`mod-tile squad-tile ${cls} ${wiggle === `unit:${u}` ? 'wiggle' : ''}`} aria-label={UNITS[u].name} onClick={() => tapSquad(u)}>
                     <div class="ico"><UnitArt unit={u} color={mine ? team : '#5b6270'} /></div>
                     <div class="nm">{UNITS[u].name}</div>
-                    {mine && <div class="count">{n}<small>/{UNITS[u].max}</small></div>}
+                    {mine && <div class="count">{n}<small>/{max}</small></div>}
                     {!full && <div class="cost">{mine ? '+' : ''}<CurrencyIcon kind={SQUAD_CURRENCY} size={20} />{price}</div>}
                     {!mine && !aff && <div class="lock">🔒</div>}
                     {!mine && goal() === unitItem(u as BoughtUnit) && <div class="flag">🎯</div>}

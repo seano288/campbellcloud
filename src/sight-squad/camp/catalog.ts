@@ -14,7 +14,7 @@ export interface UnitInfo {
   readonly unlock: number;
   /** Ammo for each soldier after that. */
   readonly recruit: number;
-  /** The most of them the army can have. */
+  /** The most of them the army can have at Army Level 1. */
   readonly max: number;
 }
 export const UNITS = {
@@ -32,7 +32,15 @@ export const UNITS = {
 export type UnitName = (typeof UNITS)[UnitId]['name'];
 export type BoughtUnit = Exclude<UnitId, typeof STARTER_UNIT>;
 export const BOUGHT_UNITS = UNIT_IDS.filter((u): u is BoughtUnit => u !== STARTER_UNIT);
-export const ARMY_MAX = UNIT_IDS.reduce((n, u) => n + UNITS[u].max, 0);
+/** Army Levels: once every Squad is full he can level his army up, and each Squad can then hold its base size times the
+ * Level (Level 2 has 48 Riflemen and 6 Tanks). */
+export const ARMY_LEVELS = 5;
+export type ArmyLevel = 1 | 2 | 3 | 4 | 5;
+export const LEVEL_NUMBERS = [1, 2, 3, 4, 5] as const satisfies readonly ArmyLevel[];
+export const squadMax = (u: UnitId, level: ArmyLevel) => UNITS[u].max * level;
+export const armyMaxAt = (level: ArmyLevel) => UNIT_IDS.reduce((n, u) => n + squadMax(u, level), 0);
+/** The biggest army there can be, at the top Level. */
+export const ARMY_MAX = armyMaxAt(ARMY_LEVELS);
 
 export const SLOTS = [
   { id: 'helmet', name: 'Helmet', icon: '🪖', mods: ['Soft Cap', 'Helmet', 'Star Helmet', 'Plume Helmet', 'Viking Horns'] },

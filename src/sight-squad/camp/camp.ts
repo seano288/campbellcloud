@@ -2,12 +2,13 @@
 // its Team Colour, and the Goal. The Goal is the cheapest locked Squad or Mod unless he tapped another; a Colour only once
 // nothing else bought with Ammo is left. A Legendary is never bought with Ammo: it waits for the top Rung, then the
 // Password Lock opens it. Recruits are bought one at a time, as often as he likes, up to each Squad's maximum.
+// Once every Squad is full, he can level the army up and every Squad can grow bigger.
 import { isAmount } from '../../currency/amount';
 import type { PurchaseProposal } from '../../rewards/purchase';
 import {
   ALL_BUYABLES, ALL_MODS, BOUGHT_COLOURS, BOUGHT_UNITS, colourOf, defaultGear, isColourItem, isLegendary, isModItem, isRecruit, isStarterColour,
-  isUnitItem, LEGENDARY, modId, parseMod, recruitOf, SLOTS, STARTER_UNIT, STARTING_ARMY, TOP, UNIT_IDS, UNITS, unitOf, COLOURS,
-  type BoughtColour, type Buyable, type ColourId, type Gear, type LegendaryId, type ModId, type Purchase, type Rung, type SlotId, type UnitId,
+  isUnitItem, ARMY_LEVELS, LEGENDARY, modId, parseMod, recruitOf, SLOTS, STARTER_UNIT, STARTING_ARMY, TOP, UNIT_IDS, UNITS, unitOf, COLOURS, squadMax,
+  type ArmyLevel, type BoughtColour, type Buyable, type ColourId, type Gear, type LegendaryId, type ModId, type Purchase, type Rung, type SlotId, type UnitId,
 } from './catalog';
 
 export interface CampState {
@@ -15,6 +16,8 @@ export interface CampState {
   colour: ColourId | null;
   /** How many soldiers of each Squad are in his army. */
   army: Record<UnitId, number>;
+  /** His Army Level: how big each Squad can grow. */
+  level: ArmyLevel;
   /** The Squads he has unlocked (the Riflemen always). */
   units: UnitId[];
   unlocked: ModId[];
@@ -26,13 +29,17 @@ export type CampInventory = Pick<CampState, 'units' | 'unlocked' | 'colours' | '
 
 const noArmy = () => Object.fromEntries(UNIT_IDS.map(u => [u, 0])) as Record<UnitId, number>;
 export const freshCamp = (): CampState => ({
-  colour: null, army: { ...noArmy(), [STARTER_UNIT]: STARTING_ARMY }, units: [STARTER_UNIT], unlocked: [], colours: [], gear: defaultGear(), goal: null,
+  colour: null, level: 1, army: { ...noArmy(), [STARTER_UNIT]: STARTING_ARMY }, units: [STARTER_UNIT], unlocked: [], colours: [], gear: defaultGear(), goal: null,
 });
 
 export const PRICES = { rungs: { 1: 5, 2: 15, 3: 30 }, colour: 3 } as const;
 
 export const armySize = (c: Pick<CampState, 'army'>) => UNIT_IDS.reduce((n, u) => n + c.army[u], 0);
-export const isFull = (c: Pick<CampState, 'army'>, u: UnitId) => c.army[u] >= UNITS[u].max;
+export const maxOf = (c: Pick<CampState, 'level'>, u: UnitId) => squadMax(u, c.level);
+export const isFull = (c: Pick<CampState, 'army' | 'level'>, u: UnitId) => c.army[u] >= maxOf(c, u);
+/** Every Squad unlocked and full. */
+export const armyFull = (c: Pick<CampState, 'army' | 'level' | 'units'>) => UNIT_IDS.every(u => c.units.includes(u) && isFull(c, u));
+export const canLevelUp = (c: Pick<CampState, 'army' | 'level' | 'units'>) => c.level < ARMY_LEVELS && armyFull(c);
 
 /** Ammo buy everything but a Legendary. */
 export const forCurrency = (x: Buyable) => !(isModItem(x) && isLegendary(x));
@@ -69,7 +76,7 @@ export const affordable = (c: CampInventory, balance: number) => (isAmount(balan
 export const hasAffordable = (c: CampInventory, balance: number) => affordable(c, balance).length > 0;
 export const becameAffordable = (c: CampInventory, before: number, after: number) =>
   isAmount(before) && isAmount(after) && affordable(c, after).length > affordable(c, before).length;
-export const canRecruit = (c: Pick<CampState, 'army' | 'units'>, u: UnitId) => c.units.includes(u) && !isFull(c, u);
+export const canRecruit = (c: Pick<CampState, 'army' | 'level' | 'units'>, u: UnitId) => c.units.includes(u) && !isFull(c, u);
 export const stillNeeded = (balance: number, x: Purchase) => Math.max(0, priceOf(x) - balance);
 /** The next Legendary still in the Password Lock, once everything bought with Ammo is his. */
 export const nextLegendary = (c: CampInventory): SlotId | null => SLOTS.map(s => s.id).find(id => isLocked(c, modId(id, LEGENDARY))) ?? null;
@@ -92,6 +99,9 @@ export function selectGoal(state: CampState, item: Buyable): CampState {
   if (!forCurrency(item) || !isLocked(state, item)) throw new Error('Goal must be a locked item bought with Ammo');
   return { ...state, goal: item };
 }
+
+/** The whole army is full: up a Level, and every Squad can grow. */
+export const levelUp = (state: CampState): CampState | null => (canLevelUp(state) ? { ...state, level: (state.level + 1) as ArmyLevel } : null);
 
 function grant(state: CampState, item: Purchase): CampState {
   if (isRecruit(item)) { const u = recruitOf(item); return { ...state, army: { ...state.army, [u]: state.army[u] + 1 } }; }
@@ -131,18 +141,21 @@ export function openVault(state: CampState, item: LegendaryId): CampState | null
 type Raw = Record<string, unknown>;
 const isRecord = (x: unknown): x is Raw => typeof x === 'object' && x !== null && !Array.isArray(x);
 
+const LEVEL_OK = (n: unknown): n is ArmyLevel => typeof n === 'number' && Number.isInteger(n) && n >= 1 && n <= ARMY_LEVELS;
+
 export function readCamp(raw: unknown): CampState {
   const data = isRecord(raw) ? raw : {}, f = freshCamp();
   const unlocked = Array.isArray(data.unlocked) ? [...new Set(data.unlocked.filter((m): m is ModId => ALL_MODS.includes(m as ModId)))] : [];
   const colours = Array.isArray(data.colours) ? [...new Set(data.colours.filter((c): c is BoughtColour => BOUGHT_COLOURS.includes(c as BoughtColour)))] : [];
   const bought = Array.isArray(data.units) ? data.units.filter((u): u is UnitId => BOUGHT_UNITS.includes(u as never)) : [];
   const units = UNIT_IDS.filter(u => u === STARTER_UNIT || bought.includes(u));
+  const level = LEVEL_OK(data.level) ? data.level : 1;
   const rawArmy = isRecord(data.army) ? data.army : {};
   const army = Object.fromEntries(UNIT_IDS.map(u => {
     const n = rawArmy[u];
     if (!units.includes(u)) return [u, 0];
     const fallback = u === STARTER_UNIT ? STARTING_ARMY : 1;
-    return [u, typeof n === 'number' && Number.isInteger(n) ? Math.min(Math.max(n, u === STARTER_UNIT ? 0 : 1), UNITS[u].max) : fallback];
+    return [u, typeof n === 'number' && Number.isInteger(n) ? Math.min(Math.max(n, u === STARTER_UNIT ? 0 : 1), squadMax(u, level)) : fallback];
   })) as Record<UnitId, number>;
   const rawGear = isRecord(data.gear) ? data.gear : {}, gear = defaultGear();
   for (const { id } of SLOTS) {
@@ -152,6 +165,6 @@ export function readCamp(raw: unknown): CampState {
   const colourId = COLOURS.find(c => c.id === data.colour)?.id ?? null;
   const colour = colourId && (isStarterColour(colourId) || colours.includes(colourId as BoughtColour)) ? colourId : colourId ? 'green' : null;
   const goal = ALL_BUYABLES.find(x => x === data.goal) ?? null;
-  const state: CampState = { ...f, colour, army, units, unlocked, colours, gear, goal };
+  const state: CampState = { ...f, colour, level, army, units, unlocked, colours, gear, goal };
   return { ...state, goal: goal && forCurrency(goal) && isLocked(state, goal) ? goal : null };
 }
