@@ -10,7 +10,7 @@ import { MAX_BOLTS } from '../round/rules';
 import { SQUAD_CURRENCY } from './branding';
 import { LOCKED_HINTS, MODE_IDS, MODE_NAMES, type ModeName } from './learning';
 import { TROPHY_PHRASES } from './trophies';
-import { LETTER_PHRASES, NOUNS, WORDS, type AnyWord, type Noun, type Word } from './words/list';
+import { isSaidLike, LETTER_PHRASES, NOUNS, SAID_LIKE, WORDS, type AnyWord, type Noun, type SaidLikeWord, type Word } from './words/list';
 import { GAP_TEXTS, SENTENCES, type GapText, type SentenceText } from './words/sentences';
 
 // ---------- around the game ----------
@@ -25,12 +25,20 @@ type ModePhrase = ModeName | `You are a ${ModeName} star!` | `You opened ${ModeN
 const modePhrases = (): ModePhrase[] => MODE_IDS.flatMap(m => [MODE_NAMES[m], `You are a ${MODE_NAMES[m]} star!`, `You opened ${MODE_NAMES[m]}!`] as const);
 
 // ---------- the words ----------
-/** "Find the word said." and the other lines about one word. */
-export const findLine = (w: Word) => `Find the word ${w}.` as const;
-export const huntLine = (w: Word) => `Find every word that says ${w}.` as const;
-export const makeLine = (w: Word) => `Make the word ${w}.` as const;
-export const meetLine = (w: Word) => `This word is ${w}.` as const;
-export const thisOne = (w: Word) => `This one says ${w}.` as const;
+/**
+ * "Find the word said." and the other lines about one word. A word that sounds like another one gets its example sentence
+ * too: "Find the word where, as in: Where is the dog?"
+ */
+type Asked<P extends string> =
+  | `${P} ${Exclude<Word, SaidLikeWord>}.`
+  | { [W in SaidLikeWord]: `${P} ${W}, as in: ${(typeof SAID_LIKE)[W]}` }[SaidLikeWord];
+const asked = <P extends string>(prefix: P) => (w: Word): Asked<P> =>
+  (isSaidLike(w) ? `${prefix} ${w}, as in: ${SAID_LIKE[w]}` : `${prefix} ${w}.`) as Asked<P>;
+export const findLine = asked('Find the word');
+export const huntLine = asked('Find every word that says');
+export const makeLine = asked('Make the word');
+export const meetLine = asked('This word is');
+export const thisOne = asked('This one says');
 export const thatOne = (w: AnyWord) => `That one says ${w}.` as const;
 type WordPhrase = AnyWord | ReturnType<typeof findLine | typeof huntLine | typeof makeLine | typeof meetLine | typeof thisOne> | `That one says ${AnyWord}.`;
 const wordPhrases = (): WordPhrase[] => [

@@ -105,6 +105,33 @@ export const NEVER_FITS: Record<Role, readonly Role[]> = {
 /** Words that sound the same, so they're never offered together when he has to tell them apart by ear. */
 export const SOUND_ALIKE: readonly (readonly Word[])[] = [['to', 'two']];
 export const soundsAlike = (a: Word, b: Word) => SOUND_ALIKE.some(group => group.includes(a) && group.includes(b));
+/**
+ * Sight words that sound like another word (where / wear, to / two / too, see / sea). A line that asks for one by ear says
+ * an example sentence after it, so he knows which spelling is meant: "Make the word where, as in: Where is the dog?"
+ */
+export const SAID_LIKE = {
+  I: 'I can jump!',
+  see: 'I see a dog.',
+  to: 'We go to the park.',
+  two: 'I have two dogs.',
+  one: 'I have one cat.',
+  here: 'Come here!',
+  not: 'It is not big.',
+  no: 'No, thank you!',
+  for: 'This cake is for you.',
+  by: 'Sit by me.',
+  new: 'I have a new hat.',
+  our: 'This is our dog.',
+  some: 'I want some cake.',
+  red: 'My hat is red.',
+  blue: 'The sky is blue.',
+  so: 'I am so happy!',
+  where: 'Where is the dog?',
+  there: 'The dog is over there.',
+  your: 'Is this your hat?',
+} as const satisfies Partial<Record<Word, string>>;
+export type SaidLikeWord = keyof typeof SAID_LIKE;
+export const isSaidLike = (w: Word): w is SaidLikeWord => Object.hasOwn(SAID_LIKE, w);
 export const ROLELESS = () => WORDS.filter(w => !(Object.values(ROLE_WORDS) as Word[][]).some(ws => ws.includes(w)));
 
 // ---------- look-alikes ----------

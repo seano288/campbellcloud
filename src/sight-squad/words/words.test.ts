@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { seeded } from '../../game/rng';
 import { PHRASES } from '../phrases';
-import { infoOf, likeness, NEVER_FITS, ROLELESS, roleOf, SET_SIZE, WORD_INFO, WORDS, type Word } from './list';
+import { infoOf, isSaidLike, likeness, NEVER_FITS, ROLELESS, roleOf, SAID_LIKE, SET_SIZE, WORD_INFO, WORDS, type Word } from './list';
 import { canFill, huntTargets, makeFill, makeHear, makeHunt, makeMeet, makeRead, makeSentence, makeSpell, sentenceOf, wrongWords } from './problems';
 import { GAP_TEXTS, gapText, meetSentence, readable, SENTENCES, WORDS_WITHOUT_SENTENCES } from './sentences';
 
@@ -122,8 +122,15 @@ describe('the questions', () => {
   it('wrong words are never the right one', () => {
     for (const w of WORDS) expect(wrongWords(w, 3, 3, rng, known)).not.toContain(w);
   });
+  it('every sound-alike example sentence uses its word', () => {
+    for (const [w, ex] of Object.entries(SAID_LIKE)) expect(ex.toLowerCase().replace(/[^a-z ]/g, '').split(' '), w).toContain(w.toLowerCase());
+  });
   it('says every word in every way a question asks it', () => {
-    for (const w of WORDS) for (const line of [w, `Find the word ${w}.`, `Find every word that says ${w}.`, `Make the word ${w}.`, `This word is ${w}.`, `This one says ${w}.`, `That one says ${w}.`]) expect(said.has(line), line).toBe(true);
+    for (const w of WORDS) {
+      const tail = isSaidLike(w) ? `, as in: ${SAID_LIKE[w]}` : '.';
+      const lines = [w, `Find the word ${w}${tail}`, `Find every word that says ${w}${tail}`, `Make the word ${w}${tail}`, `This word is ${w}${tail}`, `This one says ${w}${tail}`, `That one says ${w}.`];
+      for (const line of lines) expect(said.has(line), line).toBe(true);
+    }
     for (const c of 'abcdefghijklmnopqrstuvwxyz') expect(said.has(`Letter ${c.toUpperCase()}`)).toBe(true);
   });
 });
