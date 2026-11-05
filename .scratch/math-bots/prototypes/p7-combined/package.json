@@ -1,0 +1,7 @@
+{
+  "name": "p7-combined",
+  "private": true,
+  "version": "0.0.0",
+  "type": "module",
+  "dependencies": { "@dimforge/rapier3d-compat": "0.21.0" }
+}

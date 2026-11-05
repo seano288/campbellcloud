@@ -19,7 +19,7 @@ Truck Money alone into `dist/` for the existing browser checks.
   cached page. The landing page's worker replaces it at the same URL (`sw.js`) and never answers a navigation into a game
   folder (`navigateFallbackDenylist`), so the games load from the network until their own workers take over.
 - **Saves carry over**: `localStorage` is per origin, so `mtm2-save` is still there at the new path. Time Flies uses its own
-  key, `time-flies-save`, Chop Chop `chop-chop-save`, Sight Squad `sight-squad-save`, and Purrdoku `purrdoku-save`.
+  key, `time-flies-save`, Chop Chop `chop-chop-save`, Sight Squad `sight-squad-save`, Math Bots `math-bots-save`, and Purrdoku `purrdoku-save`.
 - **Home Screen**: the app already installed from the site root now opens the landing page, which works offline. Each game
   becomes available offline after its first online visit at its new folder.
 

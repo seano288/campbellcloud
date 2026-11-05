@@ -1,0 +1,10 @@
+import { createRequire } from 'module';
+const require = createRequire(import.meta.url);
+const { chromium } = require('/Users/seancampbell/.t3/worktrees/campbellcloud/t3-579a7c1d/node_modules/playwright');
+const b = await chromium.launch({ headless: false, args: ['--use-angle=metal', '--enable-gpu', '--ignore-gpu-blocklist', '--enable-unsafe-webgpu', '--enable-features=Vulkan,WebGPU'] });
+const p = await b.newPage({ viewport: { width: 800, height: 450 } });
+p.on('console', m => { if (m.type() === 'error') console.log('[err]', m.text().slice(0, 300)); });
+await p.goto(`http://localhost:5197/p7-combined/dist/?shot=4&seed=7`);
+await p.waitForFunction(() => window.__ready || window.__error, { timeout: 120000 });
+console.log(await p.evaluate(process.argv[2]));
+await b.close();

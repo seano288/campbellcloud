@@ -13,6 +13,7 @@ import { iconSvg as squadIcon } from '../src/sight-squad/icon';
 import { squadBuild } from './sight-squad-build';
 import { iconSvg as hunchIcon } from '../src/hunch/icon';
 import { hunchBuild } from './hunch-build';
+import { mathBuild } from './math-bots-build';
 import { iconSvg as purrdokuIcon } from '../src/purrdoku/art';
 import { purrdokuBuild } from './purrdoku-build';
 import { favicon, homeScreenIcons } from './icons';
@@ -76,6 +77,8 @@ export const SECTIONS: readonly { title: string; games: readonly Tile[] }[] = [
 ];
 // The games this site builds and hosts itself (not the ones it only links out to).
 export const GAMES = SECTIONS.flatMap(s => s.games.filter(g => 'path' in g));
+// Built and hosted, but with no tile on the landing page yet.
+export const UNLISTED = [{ path: 'math-bots' }];
 
 function landing(): InlineConfig {
   const tiles: Plugin = {
@@ -117,7 +120,7 @@ function landing(): InlineConfig {
         },
         workbox: {
           globPatterns: ['**/*.{js,css,html,png,svg,woff2}'], cleanupOutdatedCaches: true, skipWaiting: true, clientsClaim: true,
-          navigateFallbackDenylist: GAMES.map(g => new RegExp(`/${g.path}(/|$)`)),
+          navigateFallbackDenylist: [...GAMES, ...UNLISTED].map(g => new RegExp(`/${g.path}(/|$)`)),
         },
       }),
     ],
@@ -130,6 +133,7 @@ await build({ ...staticBuild({ ...moneyBuild, outDir: `${SITE}/monster-truck-mon
 await build({ ...staticBuild(fliesBuild), logLevel: 'warn' });
 await build({ ...staticBuild(chopBuild), logLevel: 'warn' });
 await build({ ...staticBuild(squadBuild), logLevel: 'warn' });
+await build({ ...staticBuild(mathBuild), logLevel: 'warn' });
 await build({ ...hunchBuild(), logLevel: 'warn' });
 await build({ ...staticBuild(purrdokuBuild), logLevel: 'warn' });
-console.log(`Built ${SITE}/: landing page, ${GAMES.map(g => g.path).join(', ')}`);
+console.log(`Built ${SITE}/: landing page, ${[...GAMES, ...UNLISTED].map(g => g.path).join(', ')}`);

@@ -162,3 +162,25 @@ he taps say (go, stop, run, jump, look, come, down, up, play: only the ones he h
 
 **Battle**: the other stage moment: a toy battle against wind-up robots. Robots that are hit topple over and bounce back up,
 then go poof; his soldiers that are hit fall over and spring back up. He always wins. Never "kill", "shoot" or "destroy".
+
+## Math Bots
+
+Math Bots (a working title) reuses Sight Squad's terms where they mean the same thing (Mixed Round, Mastery, Stretch, Bolt, Strength, Meeting). These are its own:
+
+**Game Modes (Math Bots)**: the nine kinds of question: Make Ten, Count On, Bot Stories, Facts, Tens and Ones, Missing Part, Skip Count, Weigh-In and Over Ten. Make Ten, Count On and Bot Stories are open from the start; `src/math-bots/learning.ts` says what opens the rest. Over Ten needs two parents, Make Ten at Level 3 and Tens and Ones at Level 2.
+
+**Working set**: the kinds a Round practises: at most five that have no star yet, lowest Level first. Starred kinds come back as about one review question a Round.
+
+**Tune-Up**: his first Rounds, which look like any other but probe five anchors, three questions each. Three clean answers start that kind at Level 2; two misses stop the row. Nobody sets a Level by hand. It places low, because Levels never go down, and the first 30 questions of a kind asked at his Level use a faster Mastery rule so he climbs quickly.
+
+**Meeting (Math Bots)**: the first time a question needs a picture (ten frame, number path, number bond, a ten, the same-as sign, the less and more signs), it's shown and said, and he taps it.
+
+**Fact family**: 3+5, 5+3, 8-3 and 8-5 are one family, with one Strength.
+
+**Counter**: the plain round token in two colours used on every question screen. A Bolt is never used as a counter, and no robot part appears on a question screen.
+
+**Scoreboard**: a three-row chart in Bot Stories, one plain square per hit.
+
+**Fix It**: after he rightly says a Weigh-In isn't the same, he taps counters on or off to even the pans.
+
+**Workshop**: where his robot will be. For now a plain screen with his Bolts; the fight comes here.

@@ -6,6 +6,7 @@
   .venv/bin/python tools/make_voice.py --collection purrdoku --out public/purrdoku-voice --index src/purrdoku/voice.gen.ts
   .venv/bin/python tools/make_voice.py --collection chop-chop --out public/chop-chop-voice --index src/chop-chop/voice.gen.ts
   .venv/bin/python tools/make_voice.py --collection sight-squad --out public/sight-squad-voice --index src/sight-squad/voice.gen.ts
+  .venv/bin/python tools/make_voice.py --collection math-bots --out public/math-bots-voice --index src/math-bots/voice.gen.ts
 
 Select phrases through tools/phrases.ts and write recordings and a typed index to explicit locations.
 Only missing clips are recorded. Cleanup touches only the selected directory, whose .voice-collection
@@ -19,7 +20,9 @@ RATE = '-8%'
 # Purrdoku's sarcastic narrator: a dry British voice, a touch slow so the deadpan lines land
 VOICES = {'purrdoku': ('en-GB-RyanNeural', '-5%'),
           # Sight Squad teaches reading, so short vowels must be crisp: Ava blurs them ("did" sounds like "dead", "hat" like "hot")
-          'sight-squad': ('en-US-AriaNeural', '-8%')}
+          'sight-squad': ('en-US-AriaNeural', '-8%'),
+          # Math Bots chains numbers into lines: Aria keeps "plus" and "ten" crisp, and teens clearly longer than decades
+          'math-bots': ('en-US-AriaNeural', '-8%')}
 ROOT = Path(__file__).resolve().parent.parent
 
 

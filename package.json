@@ -19,6 +19,7 @@
     "dev:time-flies": "vite --config vite.time-flies.config.ts",
     "dev:chop-chop": "vite --config vite.chop-chop.config.ts",
     "dev:sight-squad": "vite --config vite.sight-squad.config.ts",
+    "dev:math-bots": "vite --config vite.math-bots.config.ts --port 5199",
     "dev:hunch": "vite --config vite.hunch.config.ts",
     "dev:purrdoku": "vite --config vite.purrdoku.config.ts",
     "build:purrdoku-boards": "tsx tools/purrdoku-boards.ts"
