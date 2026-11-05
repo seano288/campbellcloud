@@ -1,6 +1,6 @@
 # Spec: Math Bots (first-grade math, robot-combat reward)
 
-Status: first playable stage live and unlisted (e05942d, 2026-11-04); the Workshop is still a placeholder, fight not integrated yet.
+Status: live with a tile on the landing page. The Workshop and the 3D fight are in (2026-11-05). Not yet run on a real iPad.
 
 A new learning game on the family site, built the same way as Chop Chop and Sight Squad, for the same player (6 to 7, reads
 numbers and short words, leans on recorded voice, alone on an iPad). Short mixed Rounds earn Bolts, spent on his robot, which
@@ -18,8 +18,8 @@ answers and misses. Where it differs from this spec, this spec wins.
   real dents. See `prototypes/p7-combined/`.
 
 Defaults taken from the research's open questions, none confirmed yet: no timed "Pit Stop"; a replayed miss uses new numbers and
-earns no Mastery credit, in this game only; Bolts use the shared currency. The offline budget (about 50 MB) and how much fight
-per Round are still open.
+earns no Mastery credit, in this game only; Bolts use the shared currency. The offline budget stays about 50 MB; the game now
+precaches 30 MB. How much fight per Round is a default below, for the parent to confirm.
 
 ## Kinds
 
@@ -80,6 +80,9 @@ The fight has no math in it and TORQUE always wins. Word rule: knocked out, stop
 Math ties in only where it's honest: Weigh-In, a Balance Lock on Legendaries, and bolts and wheels as story nouns with plain
 counters on screen. Original bots only; say "robot combat", never the trademark.
 
+The Workshop (`src/math-bots/RewardScreen.tsx`, `workshop/`) shows TORQUE as built, his Bolts, a big Fight button and four Slots.
+The fight (`src/math-bots/fight/`) is P7 ported, loaded by dynamic import only when it opens. Upgrades are looks only.
+
 ## Not yet generated
 
 The Bot Stories Scoreboard (needs its chart screen) and per-fact Strength for Facts (`makeFacts` takes the pool it should draw from,
@@ -98,3 +101,18 @@ so the learning layer can add this). Both belong with the learning layer.
 - **Everything is tap-only.** No drag exists, so nothing depends on one.
 - **Voice:** Aria, chained. Clips carry about 1.2 seconds of silence, so Math Bots trims each as it decodes (`numbers/trim.ts`). The stretched "Niiiine" clips were not made: the voice can't be told to stretch a number.
 
+## Workshop and fight defaults (for the parent to confirm)
+
+- **A fight costs 5 Bolts, and the first is free.** About one Round earns one fight.
+- **A paid fight stays paid until he sees it end.** Leaving early, a reload or a crash keeps a ticket in the save, and his next Fight tap is free. If 3D can't run he gets the plain outcome and isn't charged. The cost: a child who always leaves just before the end fights for free, which seems fine.
+- **Slots and Rungs:** Paint, Drum, Armour, Wheels, three Mods each at 5, 15 and 30 Bolts. Looks only: TORQUE always wins. Tapping one he can afford buys and fits it at once, as in the sibling games.
+- **No Legendaries yet,** so the spec's Balance Lock isn't built. Top Rungs are the end of the shop for now.
+- **Fights use 190 vetted seeds of 200,** chosen by a soak: TORQUE won all 200, and the 10 left out had no hammer hit, no armour off, or a knockout outside 15 to 24 seconds.
+- **The 💥 button** makes TORQUE charge when its drum is ready, about a second later. Kept from P7 so he has something to press.
+- **Detail looks after itself.** It starts by device, watches frame times, and steps down through nine rungs, the last four on WebGL2. Below about 26 fps it steps down, and it remembers where it settled. A fight that reaches the knockout without stepping down earns one rung back for the next fight, so a device near a limit may step down every other fight. Below about 6 fps at the bottom he gets the plain outcome, and the next fight starts from the top again.
+- **The commentator is the game's voice, Aria.** A separate commentator voice wasn't tried.
+- **Offline:** everything is precached, fight included. The service worker fetches it in the background, so play doesn't wait, but Round-only offline use also waits for those downloads to finish on first visit.
+
+## Fight assets
+
+All CC0, licence status carried over from the prototype's records (checked 2026-11-04). From Poly Haven: Empty Warehouse 01 by Sergej Majboroda (backdrop), Metal Plate 02 and Blue Metal Plate by Rob Tuytel, Rusty Metal Sheet by Amal Kumar, Old Tyre by MP (normal map only). From ambientCG: Scratches001, Scratches002, Smear007. Code: three.js (MIT), Rapier 3D compat (Apache-2.0). In `public/math-bots-fight/`.

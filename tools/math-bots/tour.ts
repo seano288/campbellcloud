@@ -2,6 +2,7 @@
 // Meetings, Home and the reward, with screenshots. Answers are read from the page, so it plays like a child who taps.
 //   npm run dev:math-bots   (in another shell)
 //   npx tsx tools/math-bots/tour.ts <url> <outDir>
+// The fight itself has its own tour, against the production build: tools/math-bots/fight-tour.ts.
 import { chromium, type Page } from 'playwright';
 
 const [url = 'http://localhost:5199/', out = '/tmp/math-bots-shots', only] = process.argv.slice(2);

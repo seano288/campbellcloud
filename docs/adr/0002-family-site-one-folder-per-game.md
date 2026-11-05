@@ -25,7 +25,7 @@ Truck Money alone into `dist/` for the existing browser checks.
 
 ## Learning games and games just for fun
 
-The landing page groups its tiles into sections: **Learning Games** (Monster Truck Money, Time Flies, Chop Chop, Sight Squad) and
+The landing page groups its tiles into sections: **Learning Games** (Monster Truck Money, Time Flies, Chop Chop, Sight Squad, Math Bots) and
 **Just for Fun**. A fun game still gets its own folder, manifest, icons and worker, but it doesn't have to use the learning engine,
 voice clips or `staticBuild()`. Hunch (`/hunch/`, a five-letter word guessing game) is a plain DOM page with its own
 small build (`tools/hunch-build.ts`) and its own save key, `hunch-save`.

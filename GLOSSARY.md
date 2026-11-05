@@ -165,7 +165,7 @@ then go poof; his soldiers that are hit fall over and spring back up. He always 
 
 ## Math Bots
 
-Math Bots (a working title) reuses Sight Squad's terms where they mean the same thing (Mixed Round, Mastery, Stretch, Bolt, Strength, Meeting). These are its own:
+Math Bots reuses Sight Squad's terms where they mean the same thing (Mixed Round, Mastery, Stretch, Bolt, Strength, Meeting, Slot, Mod, Rung, Goal). These are its own:
 
 **Game Modes (Math Bots)**: the nine kinds of question: Make Ten, Count On, Bot Stories, Facts, Tens and Ones, Missing Part, Skip Count, Weigh-In and Over Ten. Make Ten, Count On and Bot Stories are open from the start; `src/math-bots/learning.ts` says what opens the rest. Over Ten needs two parents, Make Ten at Level 3 and Tens and Ones at Level 2.
 
@@ -183,4 +183,14 @@ Math Bots (a working title) reuses Sight Squad's terms where they mean the same 
 
 **Fix It**: after he rightly says a Weigh-In isn't the same, he taps counters on or off to even the pans.
 
-**Workshop**: where his robot will be. For now a plain screen with his Bolts; the fight comes here.
+**Workshop**: the reward screen: TORQUE as he has built it, his Bolts, the Fight button, and four Slots of Mods (Paint, Drum, Armour, Wheels). Mods only change how TORQUE looks. There are no Legendaries here yet.
+
+**TORQUE and ANVIL**: his robot and the computer's. TORQUE always wins.
+
+**Fight**: the 3D robot-combat reward, with no math in it. The first is free and each one after costs 5 Bolts. The word rule: knocked out, stopped, sent spinning.
+
+**Ticket**: a fight he has paid for and not yet seen end. It stays in the save, so leaving or a reload never loses his Bolts.
+
+**Plain outcome**: what he gets when 3D can't run: TORQUE wins, flat, with no charge.
+
+**Detail ladder**: the fight's nine steps of picture quality (`src/math-bots/fight/detail.ts`). It steps down on its own when frames are slow, ending on the WebGL2 path.

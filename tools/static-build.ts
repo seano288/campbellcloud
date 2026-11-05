@@ -21,6 +21,8 @@ export interface StaticSelection<P extends string = string> {
   };
   voice: { root: string; collection: VoiceCollection<NoInfer<P>> };
   assets: readonly { root: string; files: readonly string[] }[];
+  /** More for the service worker than every game's usual files, for a game that has them. */
+  offline?: { patterns: readonly string[]; maxFileBytes: number };
 }
 
 const htmlValue = (value: string) => value.replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[c]!);
@@ -55,6 +57,7 @@ function selectedAssets(selection: Pick<StaticSelection, 'assets' | 'voice'>): P
         if (!file) return next();
         if (name.endsWith('.mp3')) res.setHeader('Content-Type', 'audio/mpeg');
         if (name.endsWith('.svg')) res.setHeader('Content-Type', 'image/svg+xml');
+        if (name.endsWith('.wasm')) res.setHeader('Content-Type', 'application/wasm');
         res.end(file);
       });
     },
@@ -122,7 +125,8 @@ export function staticBuild<const P extends string>(selection: StaticSelection<P
           ],
         },
         workbox: {
-          globPatterns: ['**/*.{js,css,html,png,jpg,svg,webp,mp3,woff,woff2,hdr}'],
+          globPatterns: ['**/*.{js,css,html,png,jpg,svg,webp,mp3,woff,woff2,hdr}', ...(selection.offline?.patterns ?? [])],
+          ...(selection.offline && { maximumFileSizeToCacheInBytes: selection.offline.maxFileBytes }),
           cleanupOutdatedCaches: true,
           // the new version takes over in the background; src/pwa.ts reloads into it only when that can't interrupt him
           skipWaiting: true,

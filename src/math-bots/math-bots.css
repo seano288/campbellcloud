@@ -190,15 +190,70 @@ button.cube,button.rod{touch-action:manipulation}
 .meet-stage{flex:1;min-height:0;width:100%;display:flex;align-items:center;justify-content:center;background:none;border:0;padding:0;color:#000}
 .meet-stage.pulse{animation:pulse 1.2s infinite}
 
-/* the Workshop stub */
-.reward-screen{align-items:center;justify-content:center;gap:calc(16px*var(--u));padding:16px;background:radial-gradient(circle at 50% 30%,#2b4358,#16232f 75%);color:#fff;text-align:center}
-.reward-screen h1{margin:0;font:400 calc(40px*var(--u)) Bungee,sans-serif;color:var(--yellow)}
-.reward-screen p{margin:0;font:900 max(22px,calc(30px*var(--u))) Nunito,sans-serif}
-.reward-screen .bigpile{display:flex;align-items:center;gap:12px;font:900 calc(64px*var(--u)) Nunito,sans-serif;color:var(--yellow)}
-.workshop-bot{width:calc(300px*var(--u));height:calc(250px*var(--u));max-height:32dvh}
-.reward-btns{display:flex;gap:20px}
+/* the Workshop: TORQUE and the Fight button, then the Slots. Side by side when there's width, stacked when there isn't */
+.reward-screen{gap:calc(8px*var(--u));padding:max(8px,env(safe-area-inset-top)) max(10px,env(safe-area-inset-right)) max(10px,env(safe-area-inset-bottom)) max(10px,env(safe-area-inset-left));background:radial-gradient(circle at 30% 30%,#2b4358,#16232f 75%);color:#fff;overflow:hidden}
+.work-head{display:flex;align-items:center;gap:10px;flex:none;min-width:0}
+.work-head h1{margin:0 auto 0 0;font:400 calc(32px*var(--u)) Bungee,sans-serif;color:var(--yellow);min-width:0}
+.work-body{flex:1;min-height:0;display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.1fr);gap:calc(14px*var(--u));align-items:stretch}
+.work-bot{display:grid;grid-template-columns:1fr auto;grid-template-rows:minmax(0,1fr) auto;gap:10px;align-items:center;min-height:0;min-width:0}
+.workshop-bot{grid-column:1/-1;width:100%;height:100%;min-height:0}
+.fight-btn{font-size:calc(38px*var(--u));padding:calc(14px*var(--u)) calc(18px*var(--u));min-height:max(72px,calc(92px*var(--u)));min-width:0}
+.fight-btn .fight-word{font-family:Bungee,sans-serif;font-weight:400}
+.fight-btn .fight-price{display:inline-flex;align-items:center;gap:4px;font-size:.62em;background:#0006;border-radius:12px;padding:2px 10px}
+.fight-btn.short{background:#5d6b78}
+.work-bot .icon-btn{width:max(72px,calc(84px*var(--u)));height:max(72px,calc(84px*var(--u)));font-size:calc(38px*var(--u))}
+.work-shop{display:grid;grid-template-rows:repeat(4,minmax(0,1fr));gap:calc(8px*var(--u));min-height:0;min-width:0}
+.work-slot{display:grid;grid-template-columns:minmax(40px,.6fr) repeat(4,minmax(0,1fr));gap:calc(6px*var(--u));min-height:0}
+.slot-name{background:none;border:0;padding:0;font-size:calc(34px*var(--u));color:#fff}
+.mod{position:relative;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;min-height:var(--tap);min-width:0;padding:4px;border-radius:14px;background:#0d1720;border:3px solid #fff3;color:#fff;font:900 calc(16px*var(--u)) Nunito,sans-serif}
+.mod .dab{display:block;width:min(100%,calc(46px*var(--u)));aspect-ratio:1;max-height:62%;border-radius:10px;border:3px solid #fff;flex:0 1 auto;min-height:0}
+.dab.round{border-radius:50%}
+.dab.hub{border:7px solid #16181b;box-shadow:0 0 0 2px #fff}
+.dab.glow{box-shadow:0 0 12px 3px #ffffffa0}
+.dab.armour{background:#0a3fb8}
+.dab.armour.a1{background:linear-gradient(90deg,#0a3fb8 22%,#f4f1e6 22% 38%,#0a3fb8 38% 62%,#f4f1e6 62% 78%,#0a3fb8 78%)}
+.dab.armour.a2{background:radial-gradient(circle at 50% 110%,#ffc21a 28%,#ff5a10 48%,#0a3fb8 66%)}
+.dab.armour.a3{background:conic-gradient(from 150deg at 50% 25%,#dfe3e6 60deg,#0000 0) 0 100%/34% 70% repeat-x,#0a3fb8}
+.mod .tag{display:inline-flex;align-items:center;gap:2px;min-height:1.1em;line-height:1}
+.mod.locked{background:#0d1720;color:#c9d3db}
+.mod.locked .dab{opacity:.72}
+.mod.can{border-color:var(--yellow);animation:tilepulse 1.2s infinite}
+.mod.on{border-color:var(--green);background:#143526;color:#8ff0bf}
+@media (orientation:portrait),(max-width:760px) and (min-height:561px){
+  .work-body{grid-template-columns:minmax(0,1fr);grid-template-rows:minmax(0,.8fr) minmax(0,1fr)}
+}
+@media (max-width:430px){.work-head h1{font-size:20px}}
+
+/* the fight: the picture fills the screen and everything else floats on it, clear of the notch */
+.fight-screen{position:fixed;inset:0;background:#000;color:#fff;overflow:hidden;touch-action:none;-webkit-user-select:none;user-select:none}
+.fight-stage{position:absolute;inset:0}
+.fight-stage canvas{position:absolute;inset:0;width:100%;height:100%;display:block}
+.fight-warm{position:absolute;inset:0;display:grid;place-items:center;background:radial-gradient(circle,#1f3243,#000 80%);pointer-events:none}
+.fight-warm .gear{font-size:calc(96px*var(--u));animation:fight-spin 1.6s linear infinite}
+@keyframes fight-spin{to{transform:rotate(360deg)}}
+.fight-top{position:absolute;left:0;right:0;top:0;display:flex;align-items:center;gap:12px;padding:max(10px,env(safe-area-inset-top)) max(12px,env(safe-area-inset-right)) 0 max(12px,env(safe-area-inset-left))}
+.fight-bars{flex:1;min-width:0;max-width:420px;margin:0 auto;font:700 max(11px,calc(14px*var(--u)))/1 "Helvetica Neue",Arial,sans-serif;letter-spacing:.08em;text-shadow:0 1px 3px #000}
+.fight-bars>div{display:flex;align-items:center;gap:8px;margin-bottom:6px}
+.fight-bars b{width:5.6em;flex:none}
+.fight-bars u{flex:1;height:10px;background:#fff3;display:block;border-radius:3px;overflow:hidden}
+.fight-bars i{display:block;height:100%;transform-origin:left;background:#2f7bff}
+.fight-bars .a i{background:#e13a2c}
+.fight-tag{font:700 max(11px,calc(13px*var(--u)))/1 "Helvetica Neue",Arial,sans-serif;letter-spacing:.14em;padding:6px 9px;background:#0009;flex:none}
+.fight-tag.rep{background:#c9321f}
+.fight-banner{position:absolute;left:0;right:0;top:64%;text-align:center;font:400 calc(46px*var(--u))/1.1 Bungee,sans-serif;text-shadow:0 2px 16px #000,0 0 4px #000;pointer-events:none}
+.fight-banner small{display:block;font:800 .42em/1.3 Nunito,sans-serif;letter-spacing:.12em;margin-top:6px;color:#ffb36b}
+.fight-charge{position:absolute;right:max(16px,env(safe-area-inset-right));bottom:max(16px,env(safe-area-inset-bottom));width:calc(112px*var(--u));height:calc(112px*var(--u));min-width:84px;min-height:84px;border-radius:50%;background:#d8541dcc;border:4px solid #ffd6b3;font-size:calc(52px*var(--u))}
+.fight-charge:active{transform:scale(.94)}
+.fight-result{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:flex-end;gap:calc(16px*var(--u));padding-bottom:max(20px,env(safe-area-inset-bottom));background:linear-gradient(#0000 45%,#000a)}
+.fight-result h2{margin:0;font:400 calc(46px*var(--u)) Bungee,sans-serif;color:var(--yellow);text-shadow:3px 3px 0 #000;text-align:center}
+.fight-result .btns{display:flex;gap:20px}
+.fight-result .big-btn,.fight-screen.plain .big-btn{font-size:calc(38px*var(--u));padding:calc(22px*var(--u)) calc(40px*var(--u))}
+.fight-screen.plain{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:calc(20px*var(--u));background:radial-gradient(circle at 50% 30%,#2b4358,#16232f 75%)}
+.fight-screen.plain h1{margin:0;font:400 calc(48px*var(--u)) Bungee,sans-serif;color:var(--yellow)}
+.fight-screen.plain .workshop-bot{width:min(70vw,calc(320px*var(--u)));height:calc(260px*var(--u))}
 @media (prefers-reduced-motion:reduce){
   .meet-stage.pulse{animation:none;outline:5px solid var(--yellow)}
   .kind.fresh{animation:none;outline:3px solid var(--yellow)}
   .beam,.pan,.sq.at{transition:none}
+  .fight-warm .gear,.mod.can{animation:none}
 }

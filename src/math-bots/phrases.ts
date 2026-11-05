@@ -2,13 +2,16 @@
 // one is missing, and say() accepts only these. Numbers are one clip each, chained into the lines around them, so a line
 // with a number in it is a piece before, the number, and a piece after: far fewer clips than a whole sentence per number,
 // and numbers keep one sound everywhere.
-import { earnedLine, type EarnedLine } from '../currency/kind';
+import { earnedLine, needLine, type EarnedLine, type NeedLine } from '../currency/kind';
 import { MAX_BOLTS } from '../round/rules';
 import { MATH_CURRENCY } from './branding';
 import { LOCKED_HINTS, MODE_IDS, MODE_NAMES, type ModeName } from './learning';
 import { BOARD_ROWS, type BoardRow } from './numbers/problems';
+import { ALL_MOD_NAMES, SLOT_IDS, SLOTS, type ModName, type SlotName } from './workshop/catalog';
 
 export const NUMBERS_TO = 200;
+/** The dearest thing in the Workshop costs this, so this is the most Bolts he can be short of. */
+const MOST_NEEDED = 30;
 
 const GAME = [
   'Math Bots!', "Let's go!", 'Round done!', 'Level up!', 'You kept trying!', 'Tap again to go home.',
@@ -16,7 +19,24 @@ const GAME = [
 ] as const;
 export const CHEERS = ['Great job!', 'You got it!', 'Super math!', 'Awesome!', 'Way to go!', 'You can do it!'] as const;
 
+// ---------- the Workshop and the fight ----------
+const WORKSHOP = [
+  'Your first fight is free!', 'Your fight is ready!', 'Tap Fight!', 'A fight costs 5 Bolts.', 'Play a Round to earn more Bolts!', 'Fight!',
+] as const;
+/** A commentator's short lines. The word rule holds: knocked out, stopped, sent spinning. */
+const FIGHT = [
+  'Warming up the arena.', 'Tap again to leave.', 'Welcome to robot combat!', 'Torque and Anvil are in the arena!', 'Go!', 'The drum is spinning up!',
+  'What a hit!', 'Big hit!', 'Anvil is sent spinning!', 'Anvil swings the hammer!', 'Torque is still going!', 'A plate came off!', 'A wheel came off!',
+  'Anvil is knocked out!', 'Anvil is stopped!', 'Torque wins!', "Here's the replay!", 'Great fight!', 'Charge!',
+  'The arena lights are off today.', 'Torque won anyway!',
+] as const;
+export const needFight = (more: number) => needLine(MATH_CURRENCY, more);
+type GotPhrase = `You got ${ModName}!`;
+export const gotLine = (name: ModName): GotPhrase => `You got ${name}!`;
+const workshopPhrases = (): (SlotName | ModName | GotPhrase)[] => [...SLOT_IDS.map(s => SLOTS[s].name), ...ALL_MOD_NAMES, ...ALL_MOD_NAMES.map(gotLine)];
+
 type EarnedPhrase = EarnedLine<typeof MATH_CURRENCY>;
+type NeedPhrase = NeedLine<typeof MATH_CURRENCY>;
 type ModePhrase = ModeName | `You are a ${ModeName} star!` | `You opened ${ModeName}!`;
 const modePhrases = (): ModePhrase[] => MODE_IDS.flatMap(m => [MODE_NAMES[m], `You are a ${MODE_NAMES[m]} star!`, `You opened ${MODE_NAMES[m]}!`] as const);
 
@@ -68,9 +88,11 @@ const MEETING = [
 export const numberPhrases = () => Array.from({ length: NUMBERS_TO + 1 }, (_, n) => `${n}` as `${number}`);
 
 export type Phrase = (typeof GAME)[number] | (typeof CHEERS)[number] | EarnedPhrase | ModePhrase | (typeof LOCKED_HINTS)[keyof typeof LOCKED_HINTS]
-  | `${number}` | (typeof JOINS)[number] | (typeof QUESTIONS)[number] | BoardPhrase | (typeof STORY)[number] | (typeof TEACHING)[number] | (typeof MEETING)[number];
+  | `${number}` | (typeof JOINS)[number] | (typeof QUESTIONS)[number] | BoardPhrase | (typeof STORY)[number] | (typeof TEACHING)[number] | (typeof MEETING)[number]
+  | (typeof WORKSHOP)[number] | (typeof FIGHT)[number] | SlotName | ModName | GotPhrase | NeedPhrase;
 
 export const PHRASES = [
   ...GAME, ...CHEERS, ...Array.from({ length: MAX_BOLTS }, (_, i) => earnedLine(MATH_CURRENCY, i + 1)), ...modePhrases(), ...Object.values(LOCKED_HINTS),
   ...numberPhrases(), ...JOINS, ...QUESTIONS, 'How many hits in all?', ...boardPhrases(), ...STORY, ...TEACHING, ...MEETING,
+  ...WORKSHOP, ...FIGHT, ...workshopPhrases(), ...Array.from({ length: MOST_NEEDED }, (_, i) => needLine(MATH_CURRENCY, i + 1)),
 ] as const satisfies readonly Phrase[];

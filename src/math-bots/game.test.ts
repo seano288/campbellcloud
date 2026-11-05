@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { freshLearning } from './learning';
 import { createPractice, mathSave, SAVE_KEY, type MathState } from './game';
+import { freshWorkshop } from './workshop/workshop';
 import type { SolvedProblem } from '../learning/session';
 
 const store = () => {
@@ -11,8 +12,14 @@ const store = () => {
 describe('the save', () => {
   it('has its own key', () => expect(SAVE_KEY).toBe('math-bots-save'));
   it('round-trips', () => {
-    const s: MathState = { learning: freshLearning(), currency: { balance: 9 } };
+    const s: MathState = { learning: freshLearning(), currency: { balance: 9 }, workshop: { ...freshWorkshop(), unlocked: ['paint:1'], gear: { ...freshWorkshop().gear, paint: 1 }, fights: 3, ticket: true } };
     expect(mathSave.decode(JSON.parse(JSON.stringify(mathSave.encode(s))))).toEqual(s);
+  });
+  it('keeps a save from before the Workshop', () => {
+    const old = { version: 1, balance: 12, learning: freshLearning() };
+    const s = mathSave.decode(JSON.parse(JSON.stringify(old)));
+    expect(s.currency.balance).toBe(12);
+    expect(s.workshop).toEqual(freshWorkshop());
   });
   it('starts fresh from anything else', () => expect(mathSave.decode({ version: 99, balance: 5 }).currency.balance).toBe(0));
 });
