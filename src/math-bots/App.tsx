@@ -1,4 +1,4 @@
-// Math Bots: tap to start (which unlocks sound on the iPad), then Home, Rounds, and the reward: the Workshop and the fight.
+// Math Bots: tap to start (which unlocks sound on the iPad), then Home, Rounds, and the reward: the Workshop, the League and the fight.
 import { unlockAudio } from '../audio/context';
 import { CurrencyPile } from '../ui/currency';
 import { HoldForProgress } from '../ui/MoveProgress';
@@ -8,6 +8,7 @@ import { MATH_CURRENCY } from './branding';
 import { FightScreen } from './fight/FightScreen';
 import { player, SAVE_KEY } from './game';
 import { Home } from './Home';
+import { LeagueScreen } from './league/LeagueScreen';
 import { PLACE_KEY, screen, screenVoice } from './nav';
 import { RewardScreen } from './RewardScreen';
 import { comeBack } from './round';
@@ -23,6 +24,7 @@ export function App() {
       {screen.value === 'home' && <Home status={status} />}
       {screen.value === 'round' && <RoundView status={status} />}
       {screen.value === 'reward' && <RewardScreen />}
+      {screen.value === 'league' && <LeagueScreen />}
       {screen.value === 'fight' && <FightScreen />}
       <Toast />
     </VoiceContext.Provider>

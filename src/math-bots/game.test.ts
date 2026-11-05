@@ -12,7 +12,7 @@ const store = () => {
 describe('the save', () => {
   it('has its own key', () => expect(SAVE_KEY).toBe('math-bots-save'));
   it('round-trips', () => {
-    const s: MathState = { learning: freshLearning(), currency: { balance: 9 }, workshop: { ...freshWorkshop(), unlocked: ['paint:1'], gear: { ...freshWorkshop().gear, paint: 1 }, fights: 3, ticket: true } };
+    const s: MathState = { learning: freshLearning(), currency: { balance: 9 }, workshop: { ...freshWorkshop(), owned: [...freshWorkshop().owned, 'paint:red'], build: { ...freshWorkshop().build, paint: 'red' }, fights: 3, charges: 2, rivals: { rusty: { stars: 2, losses: 0 } } } };
     expect(mathSave.decode(JSON.parse(JSON.stringify(mathSave.encode(s))))).toEqual(s);
   });
   it('keeps a save from before the Workshop', () => {
@@ -33,15 +33,16 @@ describe('the save', () => {
       workshop: { unlocked: ['paint:1', 'paint:2', 'paint:3', 'drum:1'], gear: { paint: 3, drum: 1, armour: 0, wheels: 0 }, goal: 'wheels:2', fights: 4, ticket: true },
     };
     const s = mathSave.decode(JSON.parse(JSON.stringify(old)));
-    expect(s.currency.balance).toBe(41);
-    expect(s.learning.modes.on.level).toBe(3);
+        expect(s.learning.modes.on.level).toBe(3);
     expect(s.learning.modes.ten.starred).toBe(true);
     expect(s.learning.tuneUp).toEqual(old.learning.tuneUp);
-    expect(s.workshop).toEqual(old.workshop);
+    expect(s.currency.balance).toBe(41 + 5 + 15 + 30 + 5); // his old Mods came back as Bolts
+    expect(s.workshop.charges).toBe(3);
+    expect(s.workshop.fights).toBe(4);
     expect(s.learning.modes.chart.opened).toBe(true);
     expect(s.learning.modes.jump.opened).toBe(false);
     const again = mathSave.decode(JSON.parse(JSON.stringify(mathSave.encode(s))));
-    expect(again).toEqual(s); // and it writes back as it read
+    expect(again).toEqual(s); // and it writes back as it read, so the refund happens once
   });
   it('starts fresh from anything else', () => expect(mathSave.decode({ version: 99, balance: 5 }).currency.balance).toBe(0));
 });
@@ -60,5 +61,6 @@ describe('a Round', () => {
     const done = practice.terminal({ roundId: started.roundId, status: 'completed', results });
     expect(done.kind).toBe('accepted');
     expect(s.state.currency.balance).toBe(5);
+    expect(s.state.workshop.charges).toBe(freshWorkshop().charges + 1); // and earns a fight
   });
 });

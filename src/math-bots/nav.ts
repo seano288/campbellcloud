@@ -1,9 +1,12 @@
 import { signal } from '@preact/signals';
 import { createPlace } from '../save/place';
+import type { RivalId } from './league/rivals';
 import { createVoiceScope } from './voice';
 
-export type Screen = 'start' | 'home' | 'round' | 'reward' | 'fight';
+export type Screen = 'start' | 'home' | 'round' | 'reward' | 'league' | 'fight';
 export const screen = signal<Screen>('start');
+/** Who the fight screen is against. */
+export const fightTarget = signal<RivalId>('rusty');
 /** Everything a screen says stops when he leaves it. */
 export const screenVoice = signal(createVoiceScope());
 screen.subscribe(() => {

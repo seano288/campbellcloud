@@ -1,10 +1,10 @@
 # Spec: Math Bots (first-grade math, robot-combat reward)
 
-Status: live with a tile on the landing page. All thirteen kinds, the Workshop, the 3D fight, and Legendaries with the Balance Lock are in (2026-11-05). Not yet run on a real iPad.
+Status: live with a tile on the landing page, all thirteen kinds in. The reward was rebuilt on 2026-11-05 after his first week: see **The reward, rebuilt**, which replaces the old Workshop, 3D fight and asset sections. Not yet run on a real iPad.
 
 A new learning game on the family site, built the same way as Chop Chop and Sight Squad, for the same player (6 to 7, reads
 numbers and short words, leans on recorded voice, alone on an iPad). Short mixed Rounds earn Bolts, spent on his robot, which
-fights a computer-controlled robot.
+fights a ladder of computer-controlled rivals with him driving.
 
 Research: `research/first-grade-math.md` holds the teaching detail for every kind and is the reference for wording, wrong
 answers and misses. Where it differs from this spec, this spec wins.
@@ -14,12 +14,11 @@ answers and misses. Where it differs from this spec, this spec wins.
 - **Skip counting is in**, as a full first-release kind. Count back is not added.
 - **No parent setting.** Placement is by the first three Rounds alone.
 - **Standards:** Common Core Grade 1, plus skip counting by 2, 5 and 10 (from Texas TEKS).
-- **Reward look:** three.js with P2's renderer, P5's physics and cameras, P3's scanned materials, P1's modelling methods, plus
-  real dents. See `prototypes/p7-combined/`.
+- **Reward look:** was three.js and Rapier (`prototypes/p7-combined/`). Replaced 2026-11-05 by a flat 2D fight: see below.
 
 Defaults taken from the research's open questions, none confirmed yet: no timed "Pit Stop"; a replayed miss uses new numbers and
 earns no Mastery credit, in this game only; Bolts use the shared currency. The offline budget stays about 50 MB; the game now
-precaches 33 MB. How much fight per Round is a default below, for the parent to confirm.
+precaches about 12 MB. How much fight per Round is a default below, for the parent to confirm.
 
 ## Kinds
 
@@ -85,16 +84,33 @@ starts at Level 1, since the climb is quick if he already knows it.
 - A working-set pick replaces uniform `pickNext` for this game.
 - A replay can ask for new numbers.
 
-## Reward rules
+## The reward, rebuilt (2026-11-05)
 
-The fight has no math in it and TORQUE always wins. Word rule: knocked out, stopped, sent spinning; never kill, shoot or destroy.
-Math ties in only where it's honest: Weigh-In, a Balance Lock on Legendaries, and bolts and wheels as story nouns with plain
-counters on screen. Original bots only; say "robot combat", never the trademark.
+The parent's report: his son finds it less fun. He wants to build the robot from different parts and control it in the fight, and the 3D is too realistic and too heavy. So the 3D fight is gone (three.js, Rapier, 16 MB of textures) and TORQUE no longer always wins.
 
-The Workshop (`src/math-bots/RewardScreen.tsx`, `workshop/`) shows TORQUE as built, his Bolts, a big Fight button and four Slots.
-The fight (`src/math-bots/fight/`) is P7 ported, loaded by dynamic import only when it opens. Upgrades are looks only.
+**The loop.** A finished Round earns Bolts and one fight. Bolts buy parts. Fights win Bolts and a prize part nothing else gives. Better parts beat tougher rivals. Fights no longer cost Bolts, because that made him choose between the two things he wanted.
 
-Once a Slot's top Rung is his, its Legendary opens by solving a Balance Lock (`workshop/BalanceLock.tsx`, `workshop/lock.ts`): Rainbow Paint, Lightning Drum, Dragon Armour, Comet Wheels. **Bolts rule, following Sight Squad: a Legendary is never bought with Bolts, the lock costs none, and a Legendary is never the Goal.** Solving it changes no Level, Mastery or Strength.
+**Building (`bot/`, `RewardScreen.tsx`).** Body, Wheels, up to four Mounts (front, right, back, left), Paint and Face. Bigger Bodies have more Mounts. Any part goes on any Mount, as many copies as he likes, and weight is the balance: heavy parts cost speed. A part he doesn't own goes on the robot to try, with Power and three bars showing what it would change, and Buy beside it. Power is the sum of what's fitted.
+
+**What parts do (`fight/sim.ts`).** Touch weapons (saws, spinners, spikes, bumpers) work on contact. The 💥 button fires hammers, flippers, claws and prods, or doubles touch weapons for a moment. A shield guards only the side it's on. Spike plates hurt whoever hits them. Boosters add speed, the Magnet pulls in Bolts, the Repair Bot heals.
+
+**The fight (`fight/`).** Top-down, canvas 2D, one square arena so a thumb never covers it. Stick left, 💥 and 💨 right (keys on a computer). Four arenas: plain, moving floor saws, fire vents and wall spikes, a pit. Ninety seconds at most. Bolts appear on the floor to collect, and a repair box appears once when he's low. A small aim assist turns his nearest weapon toward a rival he's nearly facing. Word rule as before: knocked out, stopped, sent spinning. Original bots only; say "robot combat", never the trademark.
+
+**The League (`league/`).** Twelve rivals in a row, built from the same parts, each with an exclusive prize: Rusty, Anvil, Pancake, Brick, Whirly, Zip, Pincer, Prickles, Boulder, Shocker, Fang, King Gear. Three stars on King Gear wins the Gold Crown. Any beaten rival can be fought again.
+
+**Economy defaults, for the parent to confirm.**
+
+- He starts with one free fight. A win uses a fight. A loss leaves one more go on that fight, so a first loss always has a rematch.
+- First win pays the rival's Bolts (5 to 20) and its prize; each new star 3 more; a rematch win 2; a loss 1; plus what he picked up (at most 8).
+- Stars: 1 for a win, 2 with 35% health left, 3 with 70%. A win on time is 1.
+- Each loss takes 12% off that rival's health (at most half) and 3% off its speed, until he wins.
+- Parts cost 3 to 200 Bolts, and a Round pays at most 6.
+- Leaving a fight costs nothing and pays nothing.
+- A save from the look-only Workshop: Mods refunded as Bolts at their price, Legendaries kept, two fights to start. Save version stays 2.
+
+**Legendaries** stay in the Balance Lock (`workshop/BalanceLock.tsx`, `workshop/lock.ts`), and are never bought or the Goal: Rainbow Paint, Lightning Drum, Dragon Armour, Comet Wheels. Each now waits on the dearest part of its sort (Ocean Fade, Mega Spinner, Gold Shield, Hover Pads) and, except the paint, is a real fight part. Solving one changes no Level, Mastery or Strength.
+
+**Difficulty is measured, not guessed, but only against a script.** `fight/soak.test.ts` plays each rival with a clumsy simulated child and a plausible build for that point: rivals fall to a reasonable build, fights average under 75 seconds, the first rival is a sure thing, and the starter can't beat rivals from Pincer on. A real six-year-old may do better or worse, so `RIVALS` in `league/rivals.ts` is the place to tune.
 
 ## Not yet generated
 
@@ -113,17 +129,6 @@ Nothing. Checked in the code on 2026-11-05: the Scoreboard has its generator, sc
 - **Everything is tap-only.** No drag exists, so nothing depends on one.
 - **Voice:** Aria, chained. Clips carry about 1.2 seconds of silence, so Math Bots trims each as it decodes (`numbers/trim.ts`). The stretched "Niiiine" clips were not made: the voice can't be told to stretch a number.
 
-## Workshop and fight defaults (for the parent to confirm)
-
-- **A fight costs 5 Bolts, and the first is free.** About one Round earns one fight.
-- **A paid fight stays paid until he sees it end.** Leaving early, a reload or a crash keeps a ticket in the save, and his next Fight tap is free. If 3D can't run he gets the plain outcome and isn't charged. The cost: a child who always leaves just before the end fights for free, which seems fine.
-- **Slots and Rungs:** Paint, Drum, Armour, Wheels, three Mods each at 5, 15 and 30 Bolts. Looks only: TORQUE always wins. Tapping one he can afford buys and fits it at once, as in the sibling games.
-- **Fights use 190 vetted seeds of 200,** chosen by a soak: TORQUE won all 200, and the 10 left out had no hammer hit, no armour off, or a knockout outside 15 to 24 seconds.
-- **The 💥 button** makes TORQUE charge when its drum is ready, about a second later. Kept from P7 so he has something to press.
-- **Detail looks after itself.** It starts by device, watches frame times, and steps down through nine rungs, the last four on WebGL2. Below about 26 fps it steps down, and it remembers where it settled. A fight that reaches the knockout without stepping down earns one rung back for the next fight, so a device near a limit may step down every other fight. Below about 6 fps at the bottom he gets the plain outcome, and the next fight starts from the top again.
-- **The commentator is the game's voice, Aria.** A separate commentator voice wasn't tried.
-- **Offline:** everything is precached, fight included. The service worker fetches it in the background, so play doesn't wait, but Round-only offline use also waits for those downloads to finish on first visit.
-
 ## Second wave and Legendary defaults (for the parent to confirm)
 
 - **Save version stays 2.** Everything new is added to the save, and the reader opens what he has earned on any load, so no version check is needed. A bump would be worse: the live build treats a version it doesn't know as a blank save, so rolling this release back would wipe him. Rolling back with version 2 loses only his Legendaries.
@@ -139,9 +144,3 @@ Nothing. Checked in the code on 2026-11-05: the Scoreboard has its generator, sc
 - **Outlines are always "Fill the shape.",** never named: "Fill the square." would be wrong about the square piece on some outlines and right on others. A replayed Fill is a different outline.
 - **Which takes fewer** also asks which takes more, or "always big" would be right every time.
 - **The Balance Lock's level:** his Weigh-In Level, on three number choices. He can afford a top Rung before Weigh-In opens, and then gets the easiest form, one number on the left with counters to count; = only shows once he has met it. Two misses and the lock says the sum and lights the right number. He can close it at any time, and gets a new puzzle.
-- **Once all twelve Mods are bought** the Goal chip shows 🔐 and says the next Legendary is in the lock, then 🏆 when all four are his.
-- **Legendary looks:** Rainbow Paint (colour bands along the body), Lightning Drum (glowing purple teeth and bands), Dragon Armour (gold scales and fins), Comet Wheels (orange glowing hub and tyre ring). The fins and rings are real 3D parts on TORQUE; the fight's physics doesn't read any of it.
-
-## Fight assets
-
-All CC0, licence status carried over from the prototype's records (checked 2026-11-04). From Poly Haven: Empty Warehouse 01 by Sergej Majboroda (backdrop), Metal Plate 02 and Blue Metal Plate by Rob Tuytel, Rusty Metal Sheet by Amal Kumar, Old Tyre by MP (normal map only). From ambientCG: Scratches001, Scratches002, Smear007. Code: three.js (MIT), Rapier 3D compat (Apache-2.0). In `public/math-bots-fight/`.

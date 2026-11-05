@@ -1,13 +1,13 @@
 // The saved game and how practice changes it. Everything goes through player.commit(), which saves it under its own key, so
-// Math Bots never touches another game's save on the same site. A Round pays Bolts through the shared currency; the Workshop
-// spends them through the shared reward purchases.
+// Math Bots never touches another game's save on the same site. A Round pays Bolts through the shared currency and earns a fight;
+// the Workshop spends Bolts on parts through the shared reward purchases.
 import { createPracticeCoordinator } from '../app/coordination';
 import { createRewardPurchases } from '../app/purchaseCoordination';
 import { readCurrency, type CurrencyState, type EarningsPolicy } from '../currency/currency';
 import { boltsFor } from '../round/rules';
 import { browserStorage, createStore, type SaveAdapter } from '../save/storage';
 import { freshLearning, readLearning, recordSolved, startPractice, type Asked, type LearningChange, type LearningState } from './learning';
-import { freshWorkshop, proposePurchase, readWorkshop, type WorkshopState } from './workshop/workshop';
+import { earnFight, freshWorkshop, proposePurchase, readWorkshop, refundOf, type WorkshopState } from './workshop/workshop';
 
 export const SAVE_KEY = 'math-bots-save';
 export const SAVE_VERSION = 2;
@@ -27,7 +27,8 @@ export const mathSave: SaveAdapter<MathState> = {
   fresh: () => ({ learning: freshLearning(), currency: { balance: 0 }, workshop: freshWorkshop() }),
   decode(raw) {
     const data = isRecord(raw) && (raw.version === SAVE_VERSION || OLD_VERSIONS.includes(raw.version)) ? raw : {};
-    return { learning: readLearning(data.learning), currency: readCurrency(data.balance), workshop: readWorkshop(data.workshop) };
+    const currency = readCurrency(data.balance);
+    return { learning: readLearning(data.learning), currency: { balance: currency.balance + refundOf(data.workshop) }, workshop: readWorkshop(data.workshop) };
   },
   encode: state => ({ version: SAVE_VERSION, balance: state.currency.balance, learning: state.learning, workshop: state.workshop }),
 };
@@ -46,7 +47,7 @@ export function createPractice(store: Pick<typeof player, 'commit'>) {
       return { state: { ...state, learning: next.state }, changes: next.changes };
     },
     earnings,
-    complete: state => ({ state, facts: {} }),
+    complete: state => ({ state: { ...state, workshop: earnFight(state.workshop) }, facts: {} }),
   });
   return { ...coordinator, start: (resume?: Parameters<typeof coordinator.start>[1]) => coordinator.start(undefined, resume) };
 }

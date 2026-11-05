@@ -5,7 +5,7 @@ import { useEffect } from 'preact/hooks';
 import type { ComponentChildren } from 'preact';
 import { sBad } from '../audio/sfx';
 import { LevelDots } from '../ui/bits';
-import { BotArt } from './BotArt';
+import { BotView } from './bot/BotView';
 import { player } from './game';
 import { LOCKED_HINTS, MODE_IDS, MODE_NAMES, type ModeId } from './learning';
 import { MODE_ICONS } from './modes';
@@ -31,7 +31,8 @@ export function Home({ status }: { status: ComponentChildren }) {
       <div class="home bots">
         <button class="tile t-play" aria-label="Play" onClick={() => { if (voice.active) startRound(); }}><span class="e">▶</span></button>
         <button class="tile t-workshop" aria-label="Workshop" onClick={() => { if (voice.active) { screen.value = 'reward'; } }}>
-          <BotArt /><span class="nm">Workshop</span>
+          <BotView build={player.state.value.workshop.build} /><span class="nm">Workshop</span>
+          {player.state.value.workshop.charges > 0 && <span class="fights-badge" aria-hidden="true">⚡{player.state.value.workshop.charges}</span>}
         </button>
         <div class="tile t-kinds" role="group" aria-label="My Levels">
           <h2 class="kinds-head">🏆 My Levels</h2>

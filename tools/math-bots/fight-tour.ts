@@ -1,439 +1,172 @@
-// Plays the Workshop and fights in real browsers, against the production build with service workers on:
-//   npm run build:site && npx tsx tools/math-bots/serve.ts 5211   (in another shell)
-//   npx tsx tools/math-bots/fight-tour.ts http://localhost:5211/math-bots/ <outDir> [chromium|webkit] [only]
-// It watches what a child can't tell a screenshot from: page errors, the voice and sound really starting (every AudioBufferSourceNode
-// is counted as it starts), which GPU path ran, and what loaded when. A real GPU matters, so Chromium runs headed: its headless is
-// software rendering at about 1 fps. WebKit runs headless, because macOS throttles a headed WebKit window behind others to about 3 fps,
-// which reads as a slow device.
-import { spawn } from 'node:child_process';
+// Plays the reward in a real browser with real touches: builds a robot, drives a fight with a finger on the stick, wins and loses, opens
+// the League, and buys parts. It watches page errors, sound, the frame rate, and anything cut off or too small to tap.
+//   npm run dev:math-bots   (in another shell)
+//   npx tsx tools/math-bots/fight-tour.ts http://localhost:5199/ <outDir> [chromium|webkit]
+// TOUR_VIEW=ipad|upright|phone|side picks the screen.
 import { mkdirSync } from 'node:fs';
-import { chromium, webkit, type Browser, type BrowserContext, type Page } from 'playwright';
+import { chromium, devices, webkit, type Page } from 'playwright';
 
-const [url = 'http://localhost:5211/math-bots/', out = '/tmp/math-bots-fight', which = 'chromium', only = ''] = process.argv.slice(2);
+const [url = 'http://localhost:5199/', out = '/tmp/math-bots-fight', which = 'chromium'] = process.argv.slice(2);
 mkdirSync(out, { recursive: true });
-const browser: Browser = which === 'webkit' ? await webkit.launch({ headless: true }) : await chromium.launch({ headless: false, args: ['--use-angle=metal', '--enable-gpu', '--ignore-gpu-blocklist', '--enable-unsafe-webgpu', '--autoplay-policy=no-user-gesture-required'] });
-const problems: string[] = [], log = (s: string) => console.log(`[${which}] ${s}`);
-const FIGHT = /math-bots-fight\/|assets\/stage-|basis_transcoder/;
-let blocking = false; // the tests that cut files off on purpose
-const wanted = (name: string) => !only || only.split(',').includes(name);
+const VIEWS = { ipad: { width: 1180, height: 820 }, upright: { width: 820, height: 1180 }, phone: { width: 390, height: 844 }, side: { width: 844, height: 390 } };
+const view = (process.env.TOUR_VIEW ?? 'ipad') as keyof typeof VIEWS;
+void devices;
+const browser = which === 'webkit' ? await webkit.launch() : await chromium.launch({ args: ['--autoplay-policy=no-user-gesture-required'] });
+const problems: string[] = [], log = (s: string) => console.log(`[${which} ${view}] ${s}`);
 
-const saveWith = (balance: number, workshop?: unknown) => ({ version: 2, balance, ...(workshop ? { workshop } : {}), learning: undefined });
-
-async function session(save: unknown, viewport = { width: 1180, height: 820 }, opts: { noWebGPU?: boolean; noWorker?: boolean; dpr?: number; at?: string } = {}) {
-  const context = await browser.newContext({ viewport, deviceScaleFactor: opts.dpr ?? 1 });
-  const seen: string[] = [];
-  context.on('request', r => { seen.push(r.url()); });
-  await context.addInitScript(({ s, noGPU, noWorker }) => {
-    if (noWorker) delete (Navigator.prototype as { serviceWorker?: unknown }).serviceWorker; // a worker would answer what a test cuts off
-    if (noGPU) { Object.defineProperty(Navigator.prototype, 'gpu', { get() { return undefined; } }); delete (Navigator.prototype as { gpu?: unknown }).gpu; }
-    const w = window as unknown as { __sound: number[] };
-    w.__sound = [];
-    // fanfares (each opens on 523 Hz) and the drum's whine, which must not outlive the fight
-    const t = window as unknown as { __fanfares: number; __whines: number };
-    t.__fanfares = 0; t.__whines = 0;
-    const setAt = AudioParam.prototype.setValueAtTime;
-    AudioParam.prototype.setValueAtTime = function (v: number, when: number) { if (v === 523) t.__fanfares++; return setAt.call(this, v, when); };
-    const oStart = OscillatorNode.prototype.start, oStop = OscillatorNode.prototype.stop;
-    OscillatorNode.prototype.start = function (w?: number) { if (this.type === 'sawtooth') t.__whines++; return oStart.call(this, w); };
-    OscillatorNode.prototype.stop = function (w?: number) { if (this.type === 'sawtooth') t.__whines--; return oStop.call(this, w); };
-    const start = AudioBufferSourceNode.prototype.start;
-    AudioBufferSourceNode.prototype.start = function (...a: Parameters<typeof start>) { w.__sound.push(this.buffer?.duration ?? 0); return start.apply(this, a); };
-    // lets a test lose the GPU: a real device.lost can't be asked for
-    const gpu = (window as unknown as { GPUAdapter?: { prototype: { requestDevice(...a: unknown[]): Promise<object> } } }).GPUAdapter;
-    if (gpu) {
-      const ask = gpu.prototype.requestDevice;
-      gpu.prototype.requestDevice = async function (...a: unknown[]) {
-        const d = await ask.apply(this, a);
-        let fire!: (x: unknown) => void;
-        const lost = new Promise(r => { fire = r; });
-        Object.defineProperty(d, 'lost', { value: lost });
-        (window as unknown as { __loseDevice(): void }).__loseDevice = () => fire({ reason: 'unknown', message: 'test' });
-        return d;
-      };
-    }
-    if (!sessionStorage.getItem('seeded')) {
-      sessionStorage.setItem('seeded', '1');
-      localStorage.removeItem('math-bots-place'); localStorage.removeItem('math-bots-fight-detail');
-      if (s) localStorage.setItem('math-bots-save', JSON.stringify(s)); else localStorage.removeItem('math-bots-save');
-    }
-  }, { s: save, noGPU: !!opts.noWebGPU, noWorker: !!opts.noWorker });
+const saveWith = (balance: number, workshop?: unknown) => ({ version: 2, balance, ...(workshop ? { workshop } : {}) });
+async function open(save: unknown) {
+  const context = await browser.newContext({ viewport: VIEWS[view], deviceScaleFactor: 1, hasTouch: true });
+  await context.addInitScript(s => { if (!sessionStorage.getItem('seeded')) { sessionStorage.setItem('seeded', '1'); localStorage.removeItem('math-bots-place'); localStorage.setItem('math-bots-save', JSON.stringify(s)); } }, save);
   const page = await context.newPage();
   page.on('pageerror', e => problems.push(`pageerror: ${e.message}`));
-  page.on('console', m => { if (/Math Bots:/.test(m.text())) log(m.text().slice(0, 200)); if (m.type() === 'error' && !/favicon|manifest|MIME/.test(m.text()) && !(blocking && /ERR_FAILED|internal error|not connect|Load failed|Failed to load/.test(m.text()))) problems.push(`console: ${m.text().slice(0, 300)}`); });
-  await page.goto(opts.at ?? url);
-  await page.getByLabel('Start').click({ timeout: 30000 });
-  await page.waitForTimeout(600);
-  return { context, page, seen };
-}
-const swReady = (page: Page) => page.evaluate(async () => { const r = await navigator.serviceWorker.ready; return r.active?.state; });
-/** Clips of speech, not the fight's two-second noise buffer or the silent unlock buffer. */
-const clips = (page: Page) => page.evaluate(() => (window as unknown as { __sound: number[] }).__sound.filter(d => d > .05 && d !== 2).length);
-const fanfares = (page: Page) => page.evaluate(`window.__fanfares`) as Promise<number>;
-const whines = (page: Page) => page.evaluate(`window.__whines`) as Promise<number>;
-const save = (page: Page) => page.evaluate(() => JSON.parse(localStorage.getItem('math-bots-save') ?? '{}') as { balance: number; workshop: { unlocked: string[]; fights: number; ticket: boolean; gear: Record<string, number> } });
-const phase = (page: Page) => page.locator('.fight-screen').getAttribute('data-phase', { timeout: 1000 }).catch(() => null);
-const stage = (page: Page) => page.locator('.fight-stage').evaluate((e: HTMLElement) => ({ ...e.dataset }));
-const shot = (page: Page, name: string) => page.screenshot({ path: `${out}/${which}-${name}.png` });
-
-/** The fight's picture isn't blank: a screenshot of it has real variety of colour. */
-async function drawn(page: Page) {
-  const png = await page.screenshot({ type: 'jpeg', quality: 60 });
-  return png.length;
-}
-
-async function fightToEnd(page: Page, tag: string, moments = true) {
-  const before = await clips(page);
-  await page.getByLabel('Fight', { exact: true }).click();
-  await page.locator('.fight-screen').waitFor();
-  const t0 = Date.now();
-  await page.waitForFunction(() => { const p = document.querySelector('.fight-screen')?.getAttribute('data-phase'); return p && p !== 'warming'; }, undefined, { timeout: 90000 });
-  const ready = Date.now() - t0;
-  if (await phase(page) === 'plain') { problems.push(`${tag}: got the plain outcome`); await shot(page, `${tag}-plain`); return; }
-  log(`${tag}: first frame after ${ready} ms, ${JSON.stringify(await stage(page))}`);
-  if (moments) {
-    await page.waitForTimeout(1500); await shot(page, `${tag}-open`);
-    await page.waitForTimeout(6500); await shot(page, `${tag}-mid`);
-  }
-  await page.waitForFunction(() => document.querySelector('.fight-screen')?.getAttribute('data-phase') === 'won' || document.querySelector('.fight-screen')?.getAttribute('data-phase') === 'plain', undefined, { timeout: 120000 });
-  log(`${tag}: KO after ${Date.now() - t0} ms, ${JSON.stringify(await stage(page).catch(() => ({})))}`);
-  await page.waitForTimeout(1500);
-  if (moments) await shot(page, `${tag}-ko`);
-  await page.locator('.fight-result').waitFor({ timeout: 45000 });
-  if (moments) await shot(page, `${tag}-result`);
-  log(`${tag}: done in ${Date.now() - t0} ms, ${await clips(page) - before} clips, picture ${await drawn(page)} bytes`);
-  if (await clips(page) - before < 4) problems.push(`${tag}: only ${await clips(page) - before} voice clips started`);
-}
-
-async function heap(page: Page, context: BrowserContext) {
-  if (which !== 'chromium') return null;
-  const cdp = await context.newCDPSession(page);
-  await cdp.send('HeapProfiler.collectGarbage');
-  // usedSize leaves out ArrayBuffers, which is where a leaked fight would show, so count them too
-  const { usedSize, embedderHeapUsedSize, backingStorageSize } = await cdp.send('Runtime.getHeapUsage') as unknown as Record<string, number>;
-  return Math.round((usedSize! + (embedderHeapUsedSize ?? 0) + (backingStorageSize ?? 0)) / 1048576);
-}
-
-// A save with Bolts: buy, fight, back, three times in a row.
-if (wanted('three')) {
-  const { context, page, seen } = await session(saveWith(80, { unlocked: [], gear: {}, goal: null, fights: 3, ticket: false }));
-  await page.getByRole('button', { name: 'Workshop' }).click();
-  await page.locator('.reward-screen').waitFor();
-  await page.waitForTimeout(800);
-  await shot(page, 'workshop');
-  log(`before any fight, fight files the page asked for: ${seen.filter(u => FIGHT.test(u) && false).length}`);
-  const buys = ['Galaxy Purple', 'Gold Drum', 'Flame Plates', 'Glow Wheels'].slice(0, 3);
-  for (let i = 0; i < 3; i++) {
-    await page.getByLabel(buys[i]!, { exact: true }).click();
-    await page.waitForTimeout(2800);
-    await shot(page, `workshop-${i + 1}`);
-    await fightToEnd(page, `fight${i + 1}`, true);
-    await page.locator('.fight-result').getByLabel('Workshop').click();
-    await page.locator('.reward-screen').waitFor();
-    await page.waitForTimeout(600);
-    log(`after fight ${i + 1}: ${JSON.stringify(await save(page).then(s => ({ b: s.balance, ...s.workshop })))}, heap ${await heap(page, context)} MB`);
-  }
-  await context.close();
-}
-
-// Every top Rung his: each Legendary's Balance Lock solved through the screen, two misses and all, then a fight wearing all four.
-if (wanted('legend')) {
-  const top = ['paint', 'drum', 'armour', 'wheels'].flatMap(s => [1, 2, 3].map(r => `${s}:${r}`));
-  const { context, page } = await session(saveWith(12, { unlocked: top, gear: { paint: 3 }, goal: null, fights: 2, ticket: false }));
-  await page.getByRole('button', { name: 'Workshop' }).click();
-  await page.locator('.reward-screen').waitFor();
-  await page.waitForTimeout(800);
-  await shot(page, 'legend-closed');
-  for (const [i, name] of ['Rainbow Paint', 'Lightning Drum', 'Dragon Armour', 'Comet Wheels'].entries()) {
-    const before = await clips(page);
-    await page.getByLabel(name, { exact: true }).click();
-    await page.locator('.lock-card').waitFor();
-    await page.waitForTimeout(500);
-    await shot(page, `legend-lock-${i}`);
-    const [left, right] = await page.locator('.lock-card .pan-text').allTextContents();
-    const total = left!.split('+').reduce((sum, n) => sum + Number(n), 0), x = total - Number(right!.split('+')[0]);
-    const wrong = (await page.locator('.lock-card .choice').allTextContents()).filter(t => t !== String(x));
-    for (const w of wrong) { await page.locator('.lock-card .choice', { hasText: new RegExp(`^${w}$`) }).click(); await page.waitForTimeout(400); await shot(page, `legend-wrong-${i}`); await page.locator('.lock-card:not(.busy)').waitFor({ timeout: 30000 }); }
-    await shot(page, `legend-help-${i}`);
-    await page.locator('.lock-card .choice', { hasText: new RegExp(`^${x}$`) }).click();
-    await page.locator('.lock-card').waitFor({ state: 'detached', timeout: 15000 });
-    await page.waitForTimeout(3000);
-    const s = await save(page);
-    log(`${name}: unlocked ${s.workshop.unlocked.at(-1)}, gear ${JSON.stringify(s.workshop.gear)}, Bolts ${s.balance}, ${await clips(page) - before} clips`);
-    if (s.balance !== 12 || !s.workshop.unlocked.at(-1)!.endsWith(':4')) problems.push(`${name}: the lock changed the wrong things`);
-    if (await clips(page) - before < 8) problems.push(`${name}: the lock was too quiet`);
-    await shot(page, `legend-won-${i}`);
-  }
-  await page.reload();
-  await page.getByLabel('Start').click({ timeout: 30000 });
-  await page.waitForTimeout(800);
-  await page.locator('.reward-screen').waitFor();
-  await page.waitForTimeout(500);
-  await shot(page, 'legend-all');
-  log(`after a reload: ${JSON.stringify((await save(page)).workshop.gear)}`);
-  await fightToEnd(page, 'legend', true);
-  await context.close();
-}
-
-if (wanted('gold')) {
-  const { context, page } = await session(saveWith(20, { unlocked: ['drum:1'], gear: { drum: 1 }, goal: null, fights: 1, ticket: false }));
-  await page.getByRole('button', { name: 'Workshop' }).click();
-  await page.locator('.reward-screen').waitFor();
-  await page.waitForTimeout(800);
-  await fightToEnd(page, 'gold', false);
-  await context.close();
-}
-if (wanted('repeat')) {
-  const { context, page } = await session(saveWith(20, { unlocked: [], gear: {}, goal: null, fights: 1, ticket: false }));
-  await page.getByRole('button', { name: 'Workshop' }).click();
-  await page.locator('.reward-screen').waitFor();
-  for (let i = 0; i < 2; i++) {
-    await page.waitForTimeout(800);
-    await fightToEnd(page, `again${i + 1}`, false);
-    await page.locator('.fight-result').getByLabel('Workshop').click();
-    await page.locator('.reward-screen').waitFor();
-    await page.waitForTimeout(500);
-    log(`Workshop after: ${await page.evaluate(`new Promise(r => { let n = 0; const t0 = performance.now(); const f = () => { n++; if (performance.now() - t0 > 1000) r(n); else requestAnimationFrame(f); }; requestAnimationFrame(f); })`)} frames a second`);
-  }
-  await context.close();
-}
-
-// The WebGL2 path, forced by taking WebGPU away as a browser without it would.
-if (wanted('webgl')) {
-  const { context, page } = await session(saveWith(40, { unlocked: [], gear: {}, goal: null, fights: 1, ticket: false }), undefined, { noWebGPU: true });
-  await page.getByRole('button', { name: 'Workshop' }).click();
-  await page.locator('.reward-screen').waitFor();
-  await page.waitForTimeout(800);
-  await page.getByLabel('Spike Armour', { exact: true }).click();
-  await page.waitForTimeout(2800);
-  await fightToEnd(page, 'webgl', true);
-  const s = await page.locator('.fight-stage').evaluate((e: HTMLElement) => e.dataset.backend);
-  if (s !== 'webgl2') problems.push(`forced WebGL2 ran on ${s}`);
-  await page.getByLabel('Watch again').click();
-  await page.locator('.fight-result').waitFor({ state: 'hidden' });
-  await page.locator('.fight-result').waitFor({ timeout: 30000 }); // the replay played through again
-  await context.close();
-}
-
-// Leaving midway, a reload midway, and what each costs him.
-if (wanted('leave')) {
-  const { context, page } = await session(saveWith(20, { unlocked: [], gear: {}, goal: null, fights: 2, ticket: false }));
-  await page.getByRole('button', { name: 'Workshop' }).click();
-  await page.locator('.reward-screen').waitFor();
-  await page.waitForTimeout(800);
-  await page.getByLabel('Fight', { exact: true }).click();
-  await page.waitForFunction(() => document.querySelector('.fight-screen')?.getAttribute('data-phase') === 'live', undefined, { timeout: 90000 });
-  await page.waitForTimeout(3000);
-  await page.getByLabel('Workshop').click();
-  await shot(page, 'leave-armed');
-  if (!await page.locator('.fight-screen').isVisible()) problems.push('one tap left the fight');
-  await page.getByLabel('Tap again to leave').click();
-  await page.locator('.reward-screen').waitFor();
-  const left = await save(page);
-  log(`left midway: ${JSON.stringify({ b: left.balance, ...left.workshop })}`);
-  if (left.balance !== 15 || !left.workshop.ticket) problems.push('leaving should keep the paid fight');
-  await page.waitForTimeout(800);
-  await page.getByLabel('Fight', { exact: true }).click(); // free: he already paid
-  await page.waitForFunction(() => document.querySelector('.fight-screen')?.getAttribute('data-phase') === 'live', undefined, { timeout: 90000 });
-  await page.waitForTimeout(2500);
-  await page.reload();
-  await page.getByLabel('Start').click({ timeout: 30000 });
-  await page.locator('.reward-screen').waitFor({ timeout: 8000 }).catch(() => problems.push('a reload in a fight did not land in the Workshop'));
-  const back = await save(page);
-  log(`after reload: ${JSON.stringify({ b: back.balance, ...back.workshop })}`);
-  if (back.balance !== 15 || !back.workshop.ticket) problems.push('a reload should keep the paid fight');
-  await context.close();
-}
-
-// No Bolts: the Workshop says how to earn more and offers Play. A brand new save: the first fight is free.
-if (wanted('broke')) {
-  const { context, page } = await session(saveWith(2, { unlocked: [], gear: {}, goal: null, fights: 4, ticket: false }));
-  await page.getByRole('button', { name: 'Workshop' }).click();
-  await page.locator('.reward-screen').waitFor();
-  await page.waitForTimeout(800);
-  const before = await clips(page);
-  await page.getByLabel('Fight', { exact: true }).click();
-  await page.waitForTimeout(3000);
-  await shot(page, 'broke');
-  if (await page.locator('.fight-screen').isVisible()) problems.push('a fight opened with no Bolts');
-  if (await clips(page) - before < 2) problems.push('no voice saying how to earn more');
-  await page.getByLabel('Play').click();
-  await page.locator('.round-screen').waitFor();
-  await context.close();
-}
-
-// Offline: after the worker has everything, a fight runs with the server gone. A server of its own, stopped for real, because
-// context.setOffline in WebKit also cuts off what a service worker answers.
-if (wanted('offline')) {
-  const port = 5213, server = spawn(process.execPath, ['--import', 'tsx', 'tools/math-bots/serve.ts', String(port)], { stdio: 'ignore' });
-  await new Promise(r => setTimeout(r, 2500));
-  const { context, page, seen } = await session(null, undefined, { at: `http://localhost:${port}/math-bots/` });
-  await swReady(page);
-  await page.waitForTimeout(2000);
-  log(`fresh save: fight requests before any fight: ${seen.filter(u => FIGHT.test(u)).length} (the service worker's, where the browser reports them)`);
-  await page.reload();
-  await page.getByLabel('Start').click({ timeout: 30000 });
-  await page.getByRole('button', { name: 'Workshop' }).waitFor({ timeout: 10000 });
-  log(`worker: ${JSON.stringify(await page.evaluate(`(async () => { const n = await caches.keys(), c = await caches.open(n[0]), k = await c.keys(); return { controlled: !!navigator.serviceWorker.controller, entries: k.length, stage: k.filter(r => /stage-/.test(r.url)).length, ktx2: k.filter(r => /ktx2/.test(r.url)).length }; })()`))}`);
-  server.kill();
-  await new Promise(r => setTimeout(r, 500));
-  await page.getByRole('button', { name: 'Workshop' }).click();
-  await page.locator('.reward-screen').waitFor();
-  await page.waitForTimeout(800);
-  await fightToEnd(page, 'offline', false);
-  await context.close();
-}
-
-// Losing the GPU mid-fight, both ways: the fight rebuilds lower and carries on.
-if (wanted('lost')) {
-  for (const noWebGPU of [false, true]) {
-    const { context, page } = await session(saveWith(20, { unlocked: [], gear: {}, goal: null, fights: 2, ticket: false }), undefined, { noWebGPU });
-    await page.getByRole('button', { name: 'Workshop' }).click();
-    await page.locator('.reward-screen').waitFor();
-    await page.waitForTimeout(800);
-    await page.getByLabel('Fight', { exact: true }).click();
-    await page.waitForFunction(() => document.querySelector('.fight-screen')?.getAttribute('data-phase') === 'live', undefined, { timeout: 90000 });
-    await page.waitForTimeout(3000);
-    log(`before losing it: ${JSON.stringify(await stage(page))}`);
-    await page.evaluate(() => {
-      const w = window as unknown as { __loseDevice?(): void };
-      if (w.__loseDevice) w.__loseDevice();
-      else (document.querySelector('.fight-stage canvas') as HTMLCanvasElement).getContext('webgl2')!.getExtension('WEBGL_lose_context')!.loseContext();
-    });
-    await page.waitForTimeout(500);
-    await page.waitForFunction(() => { const p = document.querySelector('.fight-screen')?.getAttribute('data-phase'); return p && p !== 'warming'; }, undefined, { timeout: 60000 });
-    await page.waitForTimeout(3000);
-    log(`after: phase ${await phase(page)}, ${JSON.stringify(await stage(page).catch(() => ({})))}`);
-    await shot(page, `lost-${noWebGPU ? 'gl' : 'gpu'}`);
-    if (await phase(page) !== 'live') problems.push(`losing the GPU (${noWebGPU ? 'gl' : 'gpu'}) ended on ${await phase(page)}`);
-    await context.close();
-  }
-}
-
-// What he sees when the 3D can't load at all: the chunk gone, then the textures gone. He isn't charged and he gets back.
-if (wanted('plain')) {
-  blocking = true;
-  for (const [name, block] of [['chunk', /assets\/stage-/], ['textures', /\.ktx2/]] as const) {
-    const { context, page } = await session(saveWith(20, { unlocked: [], gear: {}, goal: null, fights: 2, ticket: false }), undefined, { noWorker: true });
-    await context.route(block, r => r.abort());
-    await page.getByRole('button', { name: 'Workshop' }).click();
-    await page.locator('.reward-screen').waitFor();
-    await page.waitForTimeout(800);
-    await page.getByLabel('Fight', { exact: true }).click();
-    await page.locator('.fight-screen.plain').waitFor({ timeout: 90000 });
-    await page.waitForTimeout(1000);
-    await shot(page, `plain-${name}`);
-    log(`plain (${name}): ${await fanfares(page)} fanfare, ${await whines(page)} whine left`);
-    if (await fanfares(page) !== 1) problems.push(`plain (${name}): ${await fanfares(page)} fanfares`);
-    if (await whines(page) !== 0) problems.push(`plain (${name}): the drum's whine is still going`);
-    await page.getByLabel('Workshop').click();
-    await page.locator('.reward-screen').waitFor();
-    const s = await save(page);
-    log(`plain outcome (${name}): ${JSON.stringify({ b: s.balance, ...s.workshop })}`);
-    if (!s.workshop.ticket) problems.push('the plain outcome should keep the paid fight');
-    await context.close();
-  }
-}
-
-blocking = false;
-
-// Six fights opened and left, each freed: the heap should level off.
-if (wanted('leak')) {
-  const { context, page } = await session(saveWith(0, { unlocked: [], gear: {}, goal: null, fights: 1, ticket: true }));
-  await page.getByRole('button', { name: 'Workshop' }).click();
-  await page.locator('.reward-screen').waitFor();
-  for (let i = 0; i < 6; i++) {
-    await page.waitForTimeout(600);
-    await page.getByLabel('Fight', { exact: true }).click();
-    await page.waitForFunction(() => document.querySelector('.fight-screen')?.getAttribute('data-phase') === 'live', undefined, { timeout: 90000 });
-    await page.waitForTimeout(1500);
-    await page.getByLabel('Workshop').click();
-    await page.getByLabel('Tap again to leave').click();
-    await page.locator('.reward-screen').waitFor();
-    await page.waitForTimeout(800);
-    log(`left fight ${i + 1}: heap ${await heap(page, context)} MB, canvases ${await page.locator('canvas').count()}`);
-  }
-  await context.close();
-}
-
-// Something held past the 75 s limit that then arrives: the fight's chunk, or the textures (so a stage finishes building after it). He
-// must stay on the plain outcome: no black screen, no second fanfare, nothing left running. Takes about 90 s each.
-if (wanted('late')) {
-  for (const [name, hold] of [['chunk', /assets\/stage-/], ['textures', /\.ktx2/]] as const) {
-    const { context, page } = await session(saveWith(20, { unlocked: [], gear: {}, goal: null, fights: 2, ticket: false }), undefined, { noWorker: true });
-    await context.route(hold, async r => { await new Promise(done => setTimeout(done, 80000)); await r.continue().catch(() => {}); });
-    await page.getByRole('button', { name: 'Workshop' }).click();
-    await page.locator('.reward-screen').waitFor();
-    await page.waitForTimeout(800);
-    await page.getByLabel('Fight', { exact: true }).click();
-    await page.locator('.fight-screen.plain').waitFor({ timeout: 90000 });
-    await page.waitForTimeout(12000); // the held files arrive in here
-    await shot(page, `late-${name}`);
-    const state = { plain: await page.locator('.fight-screen.plain').isVisible(), canvases: await page.locator('canvas').count(), fanfares: await fanfares(page), whines: await whines(page) };
-    log(`late ${name}: ${JSON.stringify(state)}`);
-    if (!state.plain || state.canvases || state.fanfares !== 1 || state.whines) problems.push(`late ${name}: ${JSON.stringify(state)}`);
-    await page.getByLabel('Workshop').click();
-    await page.locator('.reward-screen').waitFor();
-    await context.close();
-  }
-}
-
-// A step-down in the middle of things, with a 💥 tap before it: the rebuilt fight still reaches the knockout, and the ticket is used.
-if (wanted('rebuilt')) {
-  const { context, page } = await session(saveWith(20, { unlocked: [], gear: {}, goal: null, fights: 2, ticket: false }));
-  await page.getByRole('button', { name: 'Workshop' }).click();
-  await page.locator('.reward-screen').waitFor();
-  await page.waitForTimeout(800);
-  await page.getByLabel('Fight', { exact: true }).click();
-  await page.waitForFunction(() => document.querySelector('.fight-screen')?.getAttribute('data-phase') === 'live', undefined, { timeout: 90000 });
-  await page.waitForTimeout(1500);
-  await page.getByLabel('Charge').click();
-  await page.waitForTimeout(3000);
-  await page.evaluate(`window.__loseDevice ? window.__loseDevice() : document.querySelector('.fight-stage canvas').getContext('webgl2').getExtension('WEBGL_lose_context').loseContext()`);
-  await page.waitForFunction(() => document.querySelector('.fight-screen')?.getAttribute('data-phase') === 'won', undefined, { timeout: 120000 });
-  await page.locator('.fight-result').waitFor({ timeout: 45000 });
-  const s = await save(page);
-  log(`rebuilt fight: ${JSON.stringify(await stage(page))}, ${JSON.stringify({ b: s.balance, fights: s.workshop.fights, ticket: s.workshop.ticket })}`);
-  if (s.workshop.ticket || s.workshop.fights !== 3) problems.push('a rebuilt fight should still end and use the ticket');
-  await context.close();
-}
-
-// A fresh save in a normal Round, with every fight file held back so nothing can wait on them, and none asked for by the page.
-if (wanted('fresh')) {
-  const context = await browser.newContext({ viewport: { width: 1180, height: 820 } }), page = await context.newPage(), asked: string[] = [];
-  page.on('pageerror', e => problems.push(`pageerror: ${e.message}`));
-  page.on('request', r => { if (FIGHT.test(r.url())) asked.push(r.url()); });
-  await context.route(FIGHT, () => { /* never answered */ });
+  page.on('console', m => { if (m.type() === 'error' && !/favicon|manifest|MIME|Failed to load resource/.test(m.text())) problems.push(`console: ${m.text().slice(0, 240)}`); });
   await page.goto(url);
   await page.getByLabel('Start').click({ timeout: 30000 });
-  await page.getByLabel('Play', { exact: true }).click();
-  await page.locator('.round-screen').waitFor({ timeout: 10000 });
-  await page.waitForTimeout(2500);
-  await shot(page, 'fresh-round');
-  await page.locator('.round-screen button').first().click();
+  await page.waitForTimeout(400);
+  return page;
+}
+const shot = async (page: Page, name: string) => {
+  const bad = await page.evaluate(() => {
+    const found: string[] = [];
+    if (document.documentElement.scrollWidth - innerWidth > 1) found.push('wider than the screen');
+    for (const el of document.querySelectorAll('button')) {
+      const r = el.getBoundingClientRect();
+      if (!r.width) continue;
+      const inScroll = el.closest('.mb-tray,.league-grid');
+      if (!inScroll && (r.right > innerWidth + 1 || r.bottom > innerHeight + 1 || r.left < -1 || r.top < -1)) found.push(`off screen: ${el.className}`);
+      if (r.height < 40 || r.width < 40) found.push(`small ${Math.round(r.width)}x${Math.round(r.height)}: ${el.className}`);
+    }
+    return [...new Set(found)];
+  });
+  if (bad.length) problems.push(`layout ${name}: ${bad.slice(0, 6).join('; ')}`);
+  await page.screenshot({ path: `${out}/${which}-${view}-${name}.png` });
+};
+const fight = (page: Page) => page.evaluate(() => { const s = (window as unknown as { __fight?: { t: number; bolts: number; over: unknown; bots: { x: number; y: number; hp: number; maxHp: number; a: number }[] } }).__fight; return s ? { t: s.t, bolts: s.bolts, over: s.over, you: s.bots[0]!, foe: s.bots[1]! } : null; });
+
+/** Holds a finger on the stick and steers at the rival, tapping 💥, as a child does. Real touch events, not the fight's own input. */
+async function drive(page: Page, seconds: number) {
+  if (which === 'webkit') { // no CDP here, so it drives by the keys, which also proves those work
+    const end = Date.now() + seconds * 1000;
+    let held: string[] = [];
+    while (Date.now() < end) {
+      const f = await fight(page);
+      if (!f || f.over) break;
+      const want = [f.foe.x > f.you.x + 20 ? 'ArrowRight' : f.foe.x < f.you.x - 20 ? 'ArrowLeft' : '', f.foe.y > f.you.y + 20 ? 'ArrowDown' : f.foe.y < f.you.y - 20 ? 'ArrowUp' : ''].filter(Boolean);
+      for (const k of held) if (!want.includes(k)) await page.keyboard.up(k);
+      for (const k of want) if (!held.includes(k)) await page.keyboard.down(k);
+      held = want;
+      await page.keyboard.press(' ');
+      await page.waitForTimeout(120);
+    }
+    for (const k of held) await page.keyboard.up(k);
+    return;
+  }
+  const pad = (await page.locator('.pad').boundingBox())!, hit = (await page.locator('.act.hit').boundingBox())!;
+  const cdp = await page.context().newCDPSession(page);
+  const cx = pad.x + pad.width / 2, cy = pad.y + pad.height * .6;
+  const touch = (type: string, points: { x: number; y: number; id: number }[]) => cdp.send('Input.dispatchTouchEvent', { type: type as 'touchStart', touchPoints: points });
+  await touch('touchStart', [{ x: cx, y: cy, id: 1 }]);
+  const end = Date.now() + seconds * 1000;
+  let tick = 0;
+  while (Date.now() < end) {
+    const f = await fight(page);
+    if (!f || f.over) break;
+    const a = Math.atan2(f.foe.y - f.you.y, f.foe.x - f.you.x), at = { x: cx + Math.cos(a) * 55, y: cy + Math.sin(a) * 55, id: 1 };
+    await touch('touchMove', [at]);
+    if (++tick % 3 === 0) { const b = { x: hit.x + hit.width / 2, y: hit.y + hit.height / 2, id: 2 }; await touch('touchStart', [at, b]); await touch('touchEnd', [at]); }
+    await page.waitForTimeout(90);
+  }
+  await touch('touchEnd', []);
+}
+const frameRate = (page: Page) => page.evaluate(`new Promise(done => { let n = 0; const t0 = performance.now(); (function go() { n++; if (performance.now() - t0 > 1000) done(n); else requestAnimationFrame(go); })(); })`) as Promise<number>;
+
+// ---- a first-time child: build, try, buy, fit, fight Rusty with the finger, win, open the crate
+{
+  const page = await open(saveWith(40));
+  await page.getByRole('button', { name: 'Workshop' }).click();
+  await page.locator('.reward-screen').waitFor();
+  await page.waitForTimeout(700);
+  await shot(page, 'workshop');
+  await page.getByLabel('Buzz Saw', { exact: true }).click();
   await page.waitForTimeout(500);
-  log(`fresh Round with fight files held back: page asked for ${asked.length} of them`);
-  if (asked.length) problems.push(`the page asked for fight files before a fight: ${asked[0]}`);
-  await context.close();
+  await shot(page, 'trying');
+  await page.getByLabel('Buy', { exact: true }).click();
+  await page.waitForTimeout(2600);
+  await page.getByLabel('Body', { exact: true }).click();
+  await page.waitForTimeout(300);
+  await shot(page, 'bodies');
+  await page.getByLabel('Paint', { exact: true }).click();
+  await page.waitForTimeout(300);
+  await shot(page, 'paints');
+  await page.getByLabel('Racing Green', { exact: true }).click();
+  await page.waitForTimeout(400);
+  await page.getByLabel('Buy', { exact: true }).click();
+  await page.waitForTimeout(2600);
+  const saved = await page.evaluate(() => JSON.parse(localStorage.getItem('math-bots-save')!));
+  log(`after buying: ${saved.balance} Bolts, build ${JSON.stringify(saved.workshop.build)}`);
+  if (saved.workshop.build.adds.front !== 'saw' || saved.workshop.build.paint !== 'green') problems.push('the parts he bought did not fit');
+  await page.getByLabel('Fight', { exact: true }).click();
+  await page.locator('.fight-screen.vs').waitFor();
+  await page.waitForTimeout(900);
+  await shot(page, 'vs');
+  await page.getByLabel('Go', { exact: true }).click();
+  await page.locator('.fight-screen .arena').waitFor();
+  await page.waitForTimeout(1600);
+  await shot(page, 'fight-open');
+  log(`frame rate ${await frameRate(page)} fps`);
+  const start = await fight(page);
+  await drive(page, 4);
+  await shot(page, 'fight-mid');
+  const mid = await fight(page);
+  log(`driven: moved ${Math.round(Math.hypot(mid!.you.x - start!.you.x, mid!.you.y - start!.you.y))}, rival ${mid!.foe.hp}/${mid!.foe.maxHp}`);
+  if (Math.hypot(mid!.you.x - start!.you.x, mid!.you.y - start!.you.y) < 30) problems.push('the finger on the stick did not move the robot');
+  await drive(page, 60);
+  await page.locator('.fight-result').waitFor({ timeout: 30000 });
+  await page.waitForTimeout(900);
+  await shot(page, 'won');
+  const crate = page.getByLabel('Open the crate');
+  if (await crate.count()) { await crate.click(); await page.waitForTimeout(900); await shot(page, 'prize'); } else problems.push('no crate after the first win');
+  const after = await page.evaluate(() => JSON.parse(localStorage.getItem('math-bots-save')!));
+  log(`after the win: ${after.balance} Bolts, ${JSON.stringify(after.workshop.rivals)}, charges ${after.workshop.charges}`);
+  await page.getByLabel('Workshop').click();
+  await page.locator('.reward-screen').waitFor();
+  await page.waitForTimeout(500);
+  await page.getByLabel('League', { exact: true }).click();
+  await page.locator('.league-screen').waitFor();
+  await page.waitForTimeout(800);
+  await shot(page, 'league');
+  await page.context().close();
 }
 
-// Sizes: portrait and landscape, iPad and iPhone.
-if (wanted('sizes')) {
-  for (const [name, viewport] of [['ipad-portrait', { width: 820, height: 1180 }], ['iphone-portrait', { width: 390, height: 844 }], ['iphone-landscape', { width: 844, height: 390 }]] as const) {
-    const { context, page } = await session(saveWith(12, { unlocked: ['paint:1'], gear: { paint: 1 }, goal: null, fights: 1, ticket: false }), viewport);
-    await page.getByRole('button', { name: 'Workshop' }).click();
-    await page.locator('.reward-screen').waitFor();
-    await page.waitForTimeout(900);
-    await shot(page, `${name}-workshop`);
-    await page.getByLabel('Fight', { exact: true }).click();
-    await page.waitForFunction(() => document.querySelector('.fight-screen')?.getAttribute('data-phase') === 'live', undefined, { timeout: 90000 });
-    await page.waitForTimeout(9000);
-    await shot(page, `${name}-fight`);
-    log(`${name}: ${JSON.stringify(await stage(page))}`);
-    await context.close();
+// ---- a losing fight on a hard arena, standing still: the advice and the rematch; then a late build in every arena
+const late = { body: 'titan', wheels: 'hover', adds: { front: 'mega', left: 'gianth', right: 'gold', back: 'booster' }, paint: 'flame', face: 'shark' };
+for (const [rival, name, stars] of [['fang', 'loss', 0], ['prickles', 'vents', 3]] as const) {
+  const beaten = Object.fromEntries(['rusty', 'anvil', 'pancake', 'brick', 'whirly', 'zip', 'pincer', ...(rival === 'fang' ? ['prickles', 'boulder', 'shocker'] : [])].map(r => [r, { stars: 2, losses: 0 }]));
+  const owned = ['body:box', 'body:titan', 'wheels:small', 'wheels:hover', 'add:bumper', 'add:mega', 'add:gianth', 'add:gold', 'add:booster', 'paint:blue', 'paint:flame', 'face:happy', 'face:shark'];
+  const page = await open(saveWith(200, { owned, build: rival === 'fang' ? undefined : late, goal: null, charges: 3, tries: 0, fights: 9, rivals: beaten }));
+  await page.getByRole('button', { name: 'Workshop' }).click();
+  await page.locator('.reward-screen').waitFor();
+  await page.waitForTimeout(500);
+  if (stars) { await page.getByLabel('Parts', { exact: true }).click(); await page.waitForTimeout(400); await shot(page, 'late-build'); }
+  await page.getByLabel('Fight', { exact: true }).click();
+  await page.getByLabel('Go', { exact: true }).click();
+  await page.locator('.fight-screen .arena').waitFor();
+  await page.waitForTimeout(2500);
+  await shot(page, `arena-${name}`);
+  if (rival === 'fang') {
+    await page.locator('.fight-result').waitFor({ timeout: 95000 });
+    await page.waitForTimeout(800);
+    await shot(page, 'lost');
+    await page.getByLabel('Fight again').click();
+    await page.waitForTimeout(1200);
+    await shot(page, 'rematch');
+    const s = await page.evaluate(() => JSON.parse(localStorage.getItem('math-bots-save')!));
+    log(`after a loss: ${JSON.stringify(s.workshop.rivals.fang)}, charges ${s.workshop.charges}, tries ${s.workshop.tries}`);
   }
+  await page.context().close();
 }
 
 await browser.close();
-
 console.log(problems.length ? `PROBLEMS:\n${problems.join('\n')}` : 'no problems');
-process.exitCode = problems.length ? 1 : 0;
+process.exit(problems.length ? 1 : 0);

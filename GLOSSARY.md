@@ -165,7 +165,7 @@ then go poof; his soldiers that are hit fall over and spring back up. He always 
 
 ## Math Bots
 
-Math Bots reuses Sight Squad's terms where they mean the same thing (Mixed Round, Mastery, Stretch, Bolt, Strength, Meeting, Slot, Mod, Rung, Goal). These are its own:
+Math Bots reuses Sight Squad's terms where they mean the same thing (Mixed Round, Mastery, Stretch, Bolt, Strength, Meeting, Goal). These are its own:
 
 **Game Modes (Math Bots)**: the thirteen kinds of question: Make Ten, Count On, Bot Stories, Facts, Tens and Ones, Missing Part, Skip Count, Number Chart, Measure It, Shapes, Weigh-In, Over Ten and Big Jumps. Make Ten, Count On and Bot Stories are open from the start; `src/math-bots/learning.ts` says what opens the rest. Over Ten needs two parents, Make Ten at Level 3 and Tens and Ones at Level 2, and so does Big Jumps, Tens and Ones at Level 3 and Number Chart at Level 2.
 
@@ -189,18 +189,23 @@ Math Bots reuses Sight Squad's terms where they mean the same thing (Mixed Round
 
 **Outline**: the dashed shape he fills in Shapes Level 3, by tapping the piece that fits. A piece turns itself: there is no rotating.
 
-**Workshop**: the reward screen: TORQUE as he has built it, his Bolts, the Fight button, and four Slots of Mods (Paint, Drum, Armour, Wheels), each ending in a Legendary. Mods only change how TORQUE looks.
+**Workshop**: the reward screen: his robot on a bench, Power and three bars, the Fight button with the next rival on it, and the tray of parts.
 
-**Legendary (Math Bots)**: Rainbow Paint, Lightning Drum, Dragon Armour, Comet Wheels. Each shows on TORQUE in the Workshop and in the fight, and is looks only. Never bought with Bolts, and never the Goal.
+**Part**: anything a robot is built from: a Body, Wheels, something for a Mount, a Paint or a Face. Rivals are built from the same list, and every part that isn't a Paint or a Face changes the fight. Bought with Bolts, won from a rival, or opened in the Balance Lock.
+_Avoid_: Mod (Math Bots has parts, not Mods)
 
-**Balance Lock**: the vault that holds every Legendary in Math Bots. Once a Slot's top Rung is his, tapping its Legendary asks him to make two pans the same, a Weigh-In as hard as his own Level. It costs no Bolts, a miss costs nothing, and it changes no Level.
+**Mount**: one of the four spots a part bolts to: front, right, back, left. A Body has some of them. A part guards or hits only from its own side.
 
-**TORQUE and ANVIL**: his robot and the computer's. TORQUE always wins.
+**Power**: the one number that sums what's fitted to a robot, shown beside rivals' so he can see what he's up against.
 
-**Fight**: the 3D robot-combat reward, with no math in it. The first is free and each one after costs 5 Bolts. The word rule: knocked out, stopped, sent spinning.
+**TORQUE**: his robot, whatever he builds it into.
 
-**Ticket**: a fight he has paid for and not yet seen end. It stays in the save, so leaving or a reload never loses his Bolts.
+**Fight (Math Bots)**: the reward, with no math in it. He drives his robot from above on a stick, with a 💥 and a 💨 button. Each finished Round earns one. A win uses it; a loss leaves one more go on it. The word rule: knocked out, stopped, sent spinning.
 
-**Plain outcome**: what he gets when 3D can't run: TORQUE wins, flat, with no charge.
+**League**: twelve rivals in a row. He fights the next one or goes back to any he's beaten. Each pays Bolts and one prize part nothing else gives.
 
-**Detail ladder**: the fight's nine steps of picture quality (`src/math-bots/fight/detail.ts`). It steps down on its own when frames are slow, ending on the WebGL2 path.
+**Rival**: a computer-driven robot in the League, with its own way of fighting, and a line of advice said when it beats him. Each loss to one softens it a little until he wins.
+
+**Legendary (Math Bots)**: Rainbow Paint, Lightning Drum, Dragon Armour, Comet Wheels. Never bought with Bolts and never the Goal, and each waits on the dearest part of its sort.
+
+**Balance Lock**: the vault that holds every Legendary in Math Bots. Tapping an open Legendary asks him to make two pans the same, a Weigh-In as hard as his own Level. It costs no Bolts, a miss costs nothing, and it changes no Level.

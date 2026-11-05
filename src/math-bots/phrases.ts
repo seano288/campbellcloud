@@ -2,17 +2,16 @@
 // one is missing, and say() accepts only these. Numbers are one clip each, chained into the lines around them, so a line
 // with a number in it is a piece before, the number, and a piece after: far fewer clips than a whole sentence per number,
 // and numbers keep one sound everywhere.
-import { earnedLine, needLine, type EarnedLine, type NeedLine } from '../currency/kind';
+import { earnedLine, type EarnedLine } from '../currency/kind';
 import { MAX_BOLTS } from '../round/rules';
 import { MATH_CURRENCY } from './branding';
 import { LOCKED_HINTS, MODE_IDS, MODE_NAMES, type ModeName } from './learning';
 import { BOARD_ROWS, type BoardRow } from './numbers/problems';
 import { FILLS, SHAPE_NAMES, type Fill, type ShapeName } from './numbers/shapes';
-import { ALL_MOD_NAMES, modName, SLOT_IDS, SLOTS, TOP, type ModName, type SlotName, type TopName } from './workshop/catalog';
+import { ALL_PART_NAMES, LOCK_NEEDS, LOCK_SLOTS, nameOf, type PartKey, type PartName } from './bot/parts';
+import { CROWN, prizeFrom, RIVALS, type RivalName, type RivalTip } from './league/rivals';
 
 export const NUMBERS_TO = 200;
-/** The dearest thing in the Workshop costs this, so this is the most Bolts he can be short of. */
-const MOST_NEEDED = 30;
 
 const GAME = [
   'Math Bots!', "Let's go!", 'Round done!', 'Level up!', 'You kept trying!', 'Tap again to go home.',
@@ -20,29 +19,32 @@ const GAME = [
 ] as const;
 export const CHEERS = ['Great job!', 'You got it!', 'Super math!', 'Awesome!', 'Way to go!', 'You can do it!'] as const;
 
-// ---------- the Workshop and the fight ----------
+// ---------- the Workshop, the League and the fight ----------
 const WORKSHOP = [
-  'Your first fight is free!', 'Your fight is ready!', 'Tap Fight!', 'A fight costs 5 Bolts.', 'Play a Round to earn more Bolts!', 'Fight!',
+  'Tap Fight!', 'Fight!', 'You earned a fight!', 'You have 1 fight ready!', 'fights ready!', 'Play a Round to earn a fight!',
+  'Body', 'Wheels', 'Parts', 'Paint', 'Face', 'Tap a spot on your robot!', 'Take it off.', 'It costs', 'You need', 'more Bolts.', 'Your robot got stronger!',
+  'League', 'Next up', 'You beat them all!', 'Beat this robot first!', 'Power',
 ] as const;
 /** A commentator's short lines. The word rule holds: knocked out, stopped, sent spinning. */
 const FIGHT = [
-  'Warming up the arena.', 'Tap again to leave.', 'Welcome to robot combat!', 'Torque and Anvil are in the arena!', 'Go!', 'The drum is spinning up!',
-  'What a hit!', 'Big hit!', 'Anvil is sent spinning!', 'Anvil swings the hammer!', 'Torque is still going!', 'A plate came off!', 'A wheel came off!',
-  'Anvil is knocked out!', 'Anvil is stopped!', 'Torque wins!', "Here's the replay!", 'Great fight!', 'Charge!',
-  'The arena lights are off today.', 'Torque won anyway!',
+  'Tap again to leave.', 'Go!', 'What a hit!', 'Big hit!', 'Blocked!', 'Flipped!', 'Into the pit!', 'Got you!', 'Zoom!', 'Grab that Bolt!', 'Repair box!',
+  'You won!', 'So close!', 'Time is up!', 'Your robot is knocked out!', 'One more try!', 'Tap the crate!', '1 star!', '2 stars!', '3 stars!',
+  'Drag here to drive!', 'Tap here to hit!',
 ] as const;
-export const needFight = (more: number) => needLine(MATH_CURRENCY, more);
-type GotPhrase = `You got ${ModName}!`;
-export const gotLine = (name: ModName): GotPhrase => `You got ${name}!`;
+type GotPhrase = `You got ${PartName}!`;
+export const gotLine = (name: PartName): GotPhrase => `You got ${name}!`;
 /** The Balance Lock: a Legendary is never bought, so these are the only lines it needs beyond the Weigh-In's. */
 const LOCK = ['This one is in the Balance Lock!', 'Make both sides the same!', 'The lock is open!', 'You built everything!'] as const;
-type WaitLine = `Get ${TopName} first!`;
-export const waitLine = (name: TopName): WaitLine => `Get ${name} first!`;
-const waitLines = (): WaitLine[] => SLOT_IDS.map(s => waitLine(modName(s, TOP) as TopName));
-const workshopPhrases = (): (SlotName | ModName | GotPhrase)[] => [...SLOT_IDS.map(s => SLOTS[s].name), ...ALL_MOD_NAMES, ...ALL_MOD_NAMES.map(gotLine)];
+type WaitLine = 'Get Ocean Fade first!' | 'Get Mega Spinner first!' | 'Get Gold Shield first!' | 'Get Hover Pads first!';
+export const waitLine = (k: PartKey) => `Get ${nameOf(k)} first!` as WaitLine;
+type BeatLine = `Beat ${RivalName} to win this!` | 'Get 3 stars on King Gear to win this!';
+export const beatLine = (k: PartKey): BeatLine => (k === CROWN ? 'Get 3 stars on King Gear to win this!' : `Beat ${prizeFrom(k)!.name} to win this!` as BeatLine);
+type KoLine = `${RivalName} is knocked out!`;
+export const koLine = (name: RivalName): KoLine => `${name} is knocked out!`;
+const leaguePhrases = (): (RivalName | KoLine | RivalTip | BeatLine)[] => [...RIVALS.flatMap(r => [r.name, koLine(r.name), r.tip] as const), ...RIVALS.map(r => `Beat ${r.name} to win this!` as BeatLine), 'Get 3 stars on King Gear to win this!'];
+const partPhrases = (): (PartName | GotPhrase | WaitLine)[] => [...ALL_PART_NAMES, ...ALL_PART_NAMES.map(gotLine), ...LOCK_SLOTS.map(s => waitLine(LOCK_NEEDS[s]))];
 
 type EarnedPhrase = EarnedLine<typeof MATH_CURRENCY>;
-type NeedPhrase = NeedLine<typeof MATH_CURRENCY>;
 type ModePhrase = ModeName | `You are a ${ModeName} star!` | `You opened ${ModeName}!`;
 const modePhrases = (): ModePhrase[] => MODE_IDS.flatMap(m => [MODE_NAMES[m], `You are a ${MODE_NAMES[m]} star!`, `You opened ${MODE_NAMES[m]}!`] as const);
 
@@ -125,10 +127,10 @@ export const numberPhrases = () => Array.from({ length: NUMBERS_TO + 1 }, (_, n)
 
 export type Phrase = (typeof GAME)[number] | (typeof CHEERS)[number] | EarnedPhrase | ModePhrase | (typeof LOCKED_HINTS)[keyof typeof LOCKED_HINTS]
   | `${number}` | (typeof JOINS)[number] | (typeof QUESTIONS)[number] | BoardPhrase | (typeof STORY)[number] | (typeof TEACHING)[number] | (typeof MEETING)[number]
-  | (typeof WORKSHOP)[number] | (typeof FIGHT)[number] | SlotName | ModName | GotPhrase | NeedPhrase | ShapePhrase | (typeof LOCK)[number] | WaitLine;
+  | (typeof WORKSHOP)[number] | (typeof FIGHT)[number] | PartName | GotPhrase | RivalName | KoLine | RivalTip | BeatLine | ShapePhrase | (typeof LOCK)[number] | WaitLine;
 
 export const PHRASES = [
   ...GAME, ...CHEERS, ...Array.from({ length: MAX_BOLTS }, (_, i) => earnedLine(MATH_CURRENCY, i + 1)), ...modePhrases(), ...Object.values(LOCKED_HINTS),
   ...numberPhrases(), ...JOINS, ...QUESTIONS, 'How many hits in all?', ...boardPhrases(), ...STORY, ...TEACHING, ...MEETING, ...shapePhrases(),
-  ...WORKSHOP, ...FIGHT, ...workshopPhrases(), ...LOCK, ...waitLines(), ...Array.from({ length: MOST_NEEDED }, (_, i) => needLine(MATH_CURRENCY, i + 1)),
+  ...WORKSHOP, ...FIGHT, ...partPhrases(), ...leaguePhrases(), ...LOCK,
 ] as const satisfies readonly Phrase[];
