@@ -1,9 +1,11 @@
-// The question pictures: ten frame, number path, number bond, rods and cubes, scale, token rows, groups, Scoreboard. All flat:
+// The question pictures: ten frame, number path, number bond, rods and cubes, scale, token rows, groups, Scoreboard (and in
+// NewPictures.tsx the chart, bars, wrenches and shapes). All flat:
 // plain counters in two colours and thick outlines, never a robot part, because a rich picture gets counted instead of the
 // number. Each takes plain numbers, so a question and a lesson draw the same thing. Stage draws a lesson's description.
 import type { ComponentChildren } from 'preact';
 import { BOARD_ROWS, type BoardProblem } from '../numbers/problems';
 import type { Stage } from '../numbers/teach';
+import { BarsStage, Chart, FillArt, ShapeArt, Units } from './NewPictures';
 
 export const cls = (...xs: (string | false | null | undefined)[]) => xs.filter(Boolean).join(' ');
 
@@ -65,10 +67,10 @@ export const Rod = ({ onClick }: { onClick?(): void }) => (onClick
   : <span class="rod">{Array.from({ length: 10 }, (_, i) => <i key={i} />)}</span>);
 export const Cube = ({ onClick }: { onClick?(): void }) => (onClick ? <button class="cube tap" aria-label="A one" onClick={onClick} /> : <span class="cube" />);
 /** Rods and cubes on a mat, tens on the left. */
-export function Mat({ rods, cubes, onRod, onCube }: { rods: number; cubes: number; onRod?(): void; onCube?(): void }) {
+export function Mat({ rods, cubes, onRod, onCube, leaving = 0 }: { rods: number; cubes: number; onRod?(): void; onCube?(): void; leaving?: number }) {
   return (
     <div class="mat" role="img" aria-label={`${rods} tens and ${cubes} ones`}>
-      <div class="mat-tens">{Array.from({ length: rods }, (_, i) => <Rod key={i} {...(onRod && { onClick: onRod })} />)}</div>
+      <div class="mat-tens">{Array.from({ length: rods }, (_, i) => <span key={i} class={cls('rod-at', i >= rods - leaving && 'leaving')}><Rod {...(onRod && { onClick: onRod })} /></span>)}</div>
       <div class="mat-ones">{Array.from({ length: cubes }, (_, i) => <Cube key={i} {...(onCube && { onClick: onCube })} />)}</div>
     </div>
   );
@@ -132,11 +134,19 @@ export function StageView({ stage }: { stage: Stage }): ComponentChildren {
     case 'frames': return <Frames a={stage.a} {...(stage.b !== undefined && { b: stage.b })} {...(stage.hideFrom !== undefined && { hideFrom: stage.hideFrom })} />;
     case 'path': return <Path cells={stage.cells} {...(stage.at !== undefined && { at: stage.at })} {...(stage.start !== undefined && { start: stage.start })} />;
     case 'bond': return <Bond whole={stage.whole} left={stage.left} right={stage.right} />;
-    case 'mat': return <Mat rods={stage.rods} cubes={stage.cubes} />;
+    case 'mat': return <Mat rods={stage.rods} cubes={stage.cubes} {...(stage.leaving !== undefined && { leaving: stage.leaving })} />;
     case 'compare': return <div class="pair-mats"><div><Equation text={String(stage.a)} /><Mat rods={Math.floor(stage.a / 10)} cubes={stage.a % 10} /></div><div><Equation text={String(stage.b)} /><Mat rods={Math.floor(stage.b / 10)} cubes={stage.b % 10} /></div></div>;
     case 'scale': return <Scale left={stage.left} right={stage.right} {...(stage.leftText !== undefined && { leftText: stage.leftText })} {...(stage.rightText !== undefined && { rightText: stage.rightText })} />;
     case 'rows': return <Rows top={stage.top} bottom={stage.bottom} {...(stage.leaving !== undefined && { leaving: stage.leaving })} {...(stage.paired !== undefined && { paired: stage.paired })} />;
     case 'groups': return <Groups groups={stage.groups} step={stage.step} {...(stage.lit !== undefined && { lit: stage.lit })} />;
     case 'equation': return <Equation text={stage.text} />;
+    case 'chart': {
+      const { to, at, from, lit, upTo } = stage;
+      return <Chart to={to} keep={[at, from, upTo, lit?.[0]].filter(n => n !== undefined)} {...(at !== undefined && { at })} {...(from !== undefined && { from })} {...(lit && { lit })} {...(upTo !== undefined && { hide: c => c > upTo })} />;
+    }
+    case 'bars': return <BarsStage bars={stage.bars} {...(stage.rope !== undefined && { rope: stage.rope })} {...(stage.lit !== undefined && { lit: stage.lit })} />;
+    case 'units': return <Units len={stage.len} laying={stage.laying} {...(stage.shown !== undefined && { shown: stage.shown })} {...(stage.size !== undefined && { size: stage.size })} {...(stage.lit !== undefined && { lit: stage.lit })} />;
+    case 'shape': return <div class="shape-stage"><ShapeArt tile={stage.tile} {...(stage.lit !== undefined && { lit: stage.lit })} /></div>;
+    case 'fill': return <FillArt fill={stage.fill} placed={stage.placed} />;
   }
 }

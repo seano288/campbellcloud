@@ -49,7 +49,9 @@ export function drumShell(T, look, N = 8) {
   const lathe = sin(x.mul(310)).mul(.5).add(.5), toothK = smoothstep(.0, .3, best).mul(.85); // fine turned rings survive the blur, since they are round
   const toothC = vec3(...look.tooth), coreC = mix(vec3(...look.core).mul(.4), vec3(...look.core), ring.mul(.35).add(ring2.mul(.15))).mul(lathe.mul(.4).add(.8));
   m.colorNode = mix(coreC, toothC, toothK);
-  if (look.glow) m.emissiveNode = color(look.glow).mul(toothK.mul(3)); // the Lava Drum's teeth still glow as a smear
+  // the glowing teeth still glow as a smear, and the Lightning Drum's bands stay sharp at any speed, since they're round
+  const band = look.bands ? smoothstep(.02, .012, abs(abs(x).sub(.0675))).mul(2.5) : float(0);
+  if (look.glow) m.emissiveNode = color(look.glow).mul(toothK.mul(3).add(band));
   m.metalnessNode = float(.85); m.roughnessNode = mix(float(.54).add(ring2.mul(.1)).add(lathe.mul(.06)), float(.68), toothK);
   const g = new THREE.CylinderGeometry(TIP, TIP, HALF * 2, 48, 1, false); g.rotateZ(Math.PI / 2);
   const mesh = new THREE.Mesh(g, m); mesh.name = 'drumShell'; mesh.castShadow = true; mesh.receiveShadow = true;

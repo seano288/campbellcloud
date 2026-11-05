@@ -135,6 +135,45 @@ if (wanted('three')) {
   await context.close();
 }
 
+// Every top Rung his: each Legendary's Balance Lock solved through the screen, two misses and all, then a fight wearing all four.
+if (wanted('legend')) {
+  const top = ['paint', 'drum', 'armour', 'wheels'].flatMap(s => [1, 2, 3].map(r => `${s}:${r}`));
+  const { context, page } = await session(saveWith(12, { unlocked: top, gear: { paint: 3 }, goal: null, fights: 2, ticket: false }));
+  await page.getByRole('button', { name: 'Workshop' }).click();
+  await page.locator('.reward-screen').waitFor();
+  await page.waitForTimeout(800);
+  await shot(page, 'legend-closed');
+  for (const [i, name] of ['Rainbow Paint', 'Lightning Drum', 'Dragon Armour', 'Comet Wheels'].entries()) {
+    const before = await clips(page);
+    await page.getByLabel(name, { exact: true }).click();
+    await page.locator('.lock-card').waitFor();
+    await page.waitForTimeout(500);
+    await shot(page, `legend-lock-${i}`);
+    const [left, right] = await page.locator('.lock-card .pan-text').allTextContents();
+    const total = left!.split('+').reduce((sum, n) => sum + Number(n), 0), x = total - Number(right!.split('+')[0]);
+    const wrong = (await page.locator('.lock-card .choice').allTextContents()).filter(t => t !== String(x));
+    for (const w of wrong) { await page.locator('.lock-card .choice', { hasText: new RegExp(`^${w}$`) }).click(); await page.waitForTimeout(400); await shot(page, `legend-wrong-${i}`); await page.locator('.lock-card:not(.busy)').waitFor({ timeout: 30000 }); }
+    await shot(page, `legend-help-${i}`);
+    await page.locator('.lock-card .choice', { hasText: new RegExp(`^${x}$`) }).click();
+    await page.locator('.lock-card').waitFor({ state: 'detached', timeout: 15000 });
+    await page.waitForTimeout(3000);
+    const s = await save(page);
+    log(`${name}: unlocked ${s.workshop.unlocked.at(-1)}, gear ${JSON.stringify(s.workshop.gear)}, Bolts ${s.balance}, ${await clips(page) - before} clips`);
+    if (s.balance !== 12 || !s.workshop.unlocked.at(-1)!.endsWith(':4')) problems.push(`${name}: the lock changed the wrong things`);
+    if (await clips(page) - before < 8) problems.push(`${name}: the lock was too quiet`);
+    await shot(page, `legend-won-${i}`);
+  }
+  await page.reload();
+  await page.getByLabel('Start').click({ timeout: 30000 });
+  await page.waitForTimeout(800);
+  await page.locator('.reward-screen').waitFor();
+  await page.waitForTimeout(500);
+  await shot(page, 'legend-all');
+  log(`after a reload: ${JSON.stringify((await save(page)).workshop.gear)}`);
+  await fightToEnd(page, 'legend', true);
+  await context.close();
+}
+
 if (wanted('gold')) {
   const { context, page } = await session(saveWith(20, { unlocked: ['drum:1'], gear: { drum: 1 }, goal: null, fights: 1, ticket: false }));
   await page.getByRole('button', { name: 'Workshop' }).click();

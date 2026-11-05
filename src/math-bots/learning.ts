@@ -10,22 +10,24 @@
 import type { Check, Outcome, Progression } from '../learning/session';
 import { recordOutcome, type MasteryRule } from '../modes/progress';
 import type { ModeProgress } from '../modes/state';
-import { factsFor, type Kind, type Level, type Pair, type StoryId } from './numbers/problems';
+import { crossingFacts, factsFor, type Kind, type Level, type Pair, type StoryId } from './numbers/problems';
 
 /** Shown on Home in this order, which is also the order he meets them in. */
-export const MODE_IDS = ['ten', 'on', 'story', 'facts', 'tens', 'part', 'skip', 'scale', 'over'] as const satisfies readonly Kind[];
+export const MODE_IDS = ['ten', 'on', 'story', 'facts', 'tens', 'part', 'skip', 'chart', 'measure', 'shape', 'scale', 'over', 'jump'] as const satisfies readonly Kind[];
 export type ModeId = (typeof MODE_IDS)[number];
 export const MODE_NAMES = {
   ten: 'Make Ten', on: 'Count On', story: 'Bot Stories', facts: 'Facts', tens: 'Tens and Ones',
   part: 'Missing Part', skip: 'Skip Count', scale: 'Weigh-In', over: 'Over Ten',
+  chart: 'Number Chart', jump: 'Big Jumps', measure: 'Measure It', shape: 'Shapes',
 } as const;
 export type ModeName = (typeof MODE_NAMES)[ModeId];
 
 /** A kind opens when all of these reach the Level in OPENS_AT (Level 2 unless it says otherwise). Empty: open from the start. */
 export const OPENS_AFTER: Record<ModeId, readonly ModeId[]> = {
   ten: [], on: [], story: [], facts: ['ten'], tens: ['ten'], part: ['on'], skip: ['on'], scale: ['part'], over: ['ten', 'tens'],
+  chart: ['on'], measure: ['story'], shape: ['facts'], jump: ['tens', 'chart'],
 };
-export const OPENS_AT: Partial<Record<ModeId, Partial<Record<ModeId, Level>>>> = { over: { ten: 3 } };
+export const OPENS_AT: Partial<Record<ModeId, Partial<Record<ModeId, Level>>>> = { over: { ten: 3 }, jump: { tens: 3 } };
 export const opensAt = (id: ModeId, parent: ModeId): Level => OPENS_AT[id]?.[parent] ?? 2;
 
 /** Spoken when he taps a kind that is still locked. */
@@ -33,10 +35,12 @@ export const LOCKED_HINTS = {
   facts: 'Play more Make Ten to open this!', tens: 'Play more Make Ten to open this!',
   part: 'Play more Count On to open this!', skip: 'Play more Count On to open this!',
   scale: 'Play more Missing Part to open this!', over: 'Play more Make Ten and Tens and Ones to open this!',
+  chart: 'Play more Count On to open this!', measure: 'Play more Bot Stories to open this!', shape: 'Play more Facts to open this!',
+  jump: 'Play more Tens and Ones and Number Chart to open this!',
 } as const satisfies Partial<Record<ModeId, string>>;
 
 /** The visuals he meets before a question needs them. */
-export const MEETINGS = ['frame', 'path', 'bond', 'rod', 'same', 'signs'] as const;
+export const MEETINGS = ['frame', 'path', 'bond', 'rod', 'same', 'signs', 'chart', 'unit', 'sides', 'fill'] as const;
 export type MeetingId = (typeof MEETINGS)[number];
 
 // ---------- Mastery ----------
@@ -73,9 +77,9 @@ export const factKey = ([a, b]: Pair) => `${Math.max(a, b)}+${Math.min(a, b)}`;
 /** Each Level starts with this many families; the next joins after FACT_GAP clean answers, unless too many are shaky. */
 export const FIRST_FACTS = 4, FACT_GAP = 3, SHAKY_BELOW = 2, SHAKY_MAX = 2, TOP_STRENGTH = 5;
 export const strengthOf = (f: FactsState, key: string) => f.strength[key] ?? 0;
-/** The families a Facts question may use at this Level. */
-export function factsPool(f: FactsState, level: Level): Pair[] {
-  const all = factsFor(level), met = all.filter(p => factKey(p) in f.strength), rest = all.filter(p => !(factKey(p) in f.strength));
+/** The families a Facts question may use at this Level. `crossing`: Over Ten is far enough along for the facts that cross ten to join Level 3. */
+export function factsPool(f: FactsState, level: Level, crossing = false): Pair[] {
+  const all = [...factsFor(level), ...(crossing && level === 3 ? crossingFacts() : [])], met = all.filter(p => factKey(p) in f.strength), rest = all.filter(p => !(factKey(p) in f.strength));
   if (met.length < FIRST_FACTS) return [...met, ...rest.slice(0, FIRST_FACTS - met.length)];
   const shaky = met.filter(p => strengthOf(f, factKey(p)) < SHAKY_BELOW).length;
   return rest.length && f.since >= FACT_GAP && shaky <= SHAKY_MAX ? [...met, rest[0]!] : met;
@@ -124,16 +128,20 @@ function readMode(id: ModeId, raw: unknown): ModeProgress {
   };
 }
 
+/** Reads a save of any age. Kinds added since it was written come back closed, so this opens the ones he has already earned: there may be no Level up left to do it. */
 export function readLearning(raw: unknown): LearningState {
   const data = isRecord(raw) ? raw : {}, modes = isRecord(data.modes) ? data.modes : {}, pushed = isRecord(data.pushed) ? data.pushed : {};
   const facts = isRecord(data.facts) ? data.facts : {}, strength = isRecord(facts.strength) ? facts.strength : {}, rows = isRecord(data.tuneUp) ? data.tuneUp : {};
-  return {
+  const read: LearningState = {
     modes: eachMode(id => readMode(id, modes[id])),
     pushed: eachMode(id => count(pushed[id])),
     facts: { strength: Object.fromEntries(Object.entries(strength).filter(([k]) => /^\d+\+\d+$/.test(k)).map(([k, v]) => [k, count(v, TOP_STRENGTH)])), since: count(facts.since) },
     met: Array.isArray(data.met) ? MEETINGS.filter(m => (data.met as unknown[]).includes(m)) : [],
     tuneUp: eachAnchor(id => { const r = rows[id]; return isRecord(r) ? { asked: count(r.asked, PROBES_PER_ROW), clean: count(r.clean, PROBES_PER_ROW), misses: count(r.misses) } : { asked: 0, clean: 0, misses: 0 }; }),
   };
+  if (read.tuneUp.tens.clean === PROBES_PER_ROW) openChart(read.modes);
+  openReady(read.modes);
+  return read;
 }
 
 /** A Round starts: newly opened kinds have been seen. */
@@ -152,23 +160,30 @@ export type Asked =
   | { readonly meet: MeetingId }
   | { readonly mode: ModeId; readonly push: boolean; readonly fact?: string; readonly quick?: boolean; readonly probe?: Anchor };
 
-/** Opens every locked kind whose parents have all reached their Levels. */
+/** Opens every locked kind whose parents are open and have all reached their Levels. Tune-Up can place a kind that isn't open yet. */
 function openReady(modes: Record<ModeId, ModeProgress>): LearningChange[] {
   const changes: LearningChange[] = [];
   for (const id of MODE_IDS) {
     const parents = OPENS_AFTER[id];
-    if (modes[id].opened || !parents.length || !parents.every(p => modes[p].level >= opensAt(id, p))) continue;
+    if (modes[id].opened || !parents.length || !parents.every(p => modes[p].opened && modes[p].level >= opensAt(id, p))) continue;
     modes[id] = { ...modes[id], opened: true, fresh: true };
     changes.push({ kind: 'open', mode: id });
   }
   return changes;
 }
 
-/** Three clean probes: he starts this anchor at Level 2. Tens and Ones opens with it, even before Make Ten does. */
+function openChart(modes: Record<ModeId, ModeProgress>): LearningChange[] {
+  if (modes.chart.opened) return [];
+  modes.chart = { ...modes.chart, opened: true, fresh: true };
+  return [{ kind: 'open', mode: 'chart' }];
+}
+
+/** Three clean probes: he starts this anchor at Level 2. Three clean teens open Tens and Ones, even before Make Ten does, and Number Chart. */
 function place(modes: Record<ModeId, ModeProgress>, id: Anchor): LearningChange[] {
   const changes: LearningChange[] = [];
   if (modes[id].level < 2) modes[id] = { ...modes[id], level: 2, window: [] };
   if (id === 'tens' && !modes.tens.opened) { modes.tens = { ...modes.tens, opened: true, fresh: true }; changes.push({ kind: 'open', mode: 'tens' }); }
+  if (id === 'tens') changes.push(...openChart(modes));
   if (modes[id].opened) changes.unshift({ kind: 'levelUp', mode: id, level: 2 });
   return [...changes, ...openReady(modes)];
 }

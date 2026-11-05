@@ -32,7 +32,10 @@ function bareNodes(T, { tint = 0xb8b8b6, rough = 1, scale = 1.5, grime = .6, scu
   return { color: mix(dark, bright, worn).mul(float(1).sub(dirt.mul(.7))), rough: mix(float(.54).add(sc2.b.mul(.2)), s.b.mul(.72).mul(rough), worn).add(dirt.mul(.22)).clamp(.14, 1), metal: mix(float(.45), float(.96), worn).sub(dirt.mul(.3)), normal: normalMap(nrm(s), vec2(worn.mul(.45).add(.25))) };
 }
 
-function coatNodes(T, hex, { wear = .62, edgeW = .78, rough = .5, grime = .95, chipScale = .9, bareTint = 0xb0aeaa, liv = null } = {}) {
+// Rainbow Paint: bands of colour running the length of the robot.
+const rainbowNode = () => { const t = positionLocal.z.mul(6).add(positionLocal.x.mul(2.5)); return vec3(t.sin(), t.add(2.1).sin(), t.add(4.2).sin()).mul(.5).add(.5); };
+
+function coatNodes(T, hex, { wear = .62, edgeW = .78, rough = .5, grime = .95, chipScale = .9, bareTint = 0xb0aeaa, liv = null, rainbow = false } = {}) {
   const aux = attribute('aux', 'vec3'), edge = aux.x, rnd = aux.y, grimeW = aux.z;
   const u = uv().mul(1.5).add(rnd.mul(3.7)), pu = uv().mul(chipScale).add(rnd.mul(5.13));
   const p = texture(T.paint_p, pu), fine = texture(T.paint_p, uv().mul(chipScale * 4.3).add(rnd.mul(2.3)).yx).g;
@@ -40,7 +43,7 @@ function coatNodes(T, hex, { wear = .62, edgeW = .78, rough = .5, grime = .95, c
   const dmg = p.g.mul(wear).add(fine.mul(wear * .42)).add(edge.mul(edgeW).mul(sc2.b.mul(.7).add(.28))).add(sc.r.mul(.34));
   const isBare = smoothstep(.47, .53, dmg), isPrimer = smoothstep(.37, .44, dmg).mul(float(1).sub(isBare));
   const big = texture(T.scratch, uv().mul(.31).add(rnd.mul(3.1))).b, dirt = smoothstep(.22, .7, sc2.b.mul(.75).add(big.mul(.5))).mul(grimeW).mul(grime);
-  let paint = color(hex).mul(p.r.mul(1.15).add(.42)).mul(rnd.mul(.2).add(.86)).mul(sc.r.mul(.3).add(1)).mul(big.mul(.5).add(.72));
+  let paint = (rainbow ? rainbowNode() : color(hex)).mul(p.r.mul(1.15).add(.42)).mul(rnd.mul(.2).add(.86)).mul(sc.r.mul(.3).add(1)).mul(big.mul(.5).add(.72));
   if (liv) paint = mix(paint, liv.rgb, liv.a);
   const sa = texture(T.steel_a, u).rgb, steel = mix(sa, vec3(dot(sa, vec3(.3, .59, .11))), .75).mul(1.15).mul(color(bareTint));
   return { color: mix(mix(paint, color(0x4b4d4f), isPrimer), steel, isBare).mul(float(1).sub(dirt.mul(.66))), metal: isBare.mul(float(1).sub(dirt.mul(.4))), rough: mix(float(rough).add(p.b.mul(.16)).add(dirt.mul(.3)).add(fine.mul(.12)), texture(T.steel_n, u).b.mul(.72), isBare).clamp(.14, 1), normal: normalMap(texture(T.paint_n, pu).rgb, vec2(.85)), isBare };
@@ -90,7 +93,7 @@ export function makeMaterials(T, look) {
     m.colorNode = mix(color(0x2a2522), color(0x7a6a58), a); m.roughnessNode = float(.45).add(n.b.mul(.3)); m.metalnessNode = float(.85); m.normalNode = normalMap(nrm(n, 1.3), vec2(1)); return m; })();
   return {
     T, nodes: { coatNodes: (h, o) => coatNodes(T, h, o), bareNodes: o => bareNodes(T, o) },
-    blue: coat(look.paint.number, { wear: .62 }), orange: coat(0xff6508, { wear: .62 }),
+    blue: coat(look.paint.number, { wear: .62, rainbow: look.paint.rainbow }), orange: coat(0xff6508, { wear: .62 }),
     red: coat(0xa80e08, { wear: .66, rough: .5, grime: 1 }), black: coat(0x101112, { wear: .54, rough: .5, bareTint: 0x98968f }),
     // TORQUE's Mods: the drum's metal and the wheel hubs
     drumBody: bare({ tint: look.drum.steel, scuff: .78, mill: look.drum.mill, rough: look.drum.glow ? .9 : .7 }),
@@ -110,5 +113,5 @@ export function damageMaterials(T, D, livTex, look) {
   const std = () => { const m = new THREE.MeshStandardNodeMaterial(); return m; };
   const liv = texture(livTex, attribute('auv', 'vec2'));
   const c = (hex, o) => overlay(coatNodes(T, hex, { ...o, liv }), std(), D, T), b = o => overlay(bareNodes(T, o), std(), D, T);
-  return { blue: c(look?.paint.number ?? 0x0a3fb8, { wear: .62 }), orange: c(0xff6508, { wear: .62 }), red: c(0xa80e08, { wear: .66, rough: .5, grime: 1 }), hard: b({ tint: 0xa3a19c, rough: .95, grime: .95, scale: 1.2 }), bolt: b({ tint: 0x77736e, rough: .7, grime: .5, scale: 4, scuff: .55, mill: 0x121212 }), steel: b({ scuff: .78, mill: 0x2c2b2a }), weld: b({ scuff: .3, mill: 0x2a2522 }) };
+  return { blue: c(look?.paint.number ?? 0x0a3fb8, { wear: .62, rainbow: look?.paint.rainbow }), orange: c(0xff6508, { wear: .62 }), red: c(0xa80e08, { wear: .66, rough: .5, grime: 1 }), hard: b({ tint: 0xa3a19c, rough: .95, grime: .95, scale: 1.2 }), bolt: b({ tint: 0x77736e, rough: .7, grime: .5, scale: 4, scuff: .55, mill: 0x121212 }), steel: b({ scuff: .78, mill: 0x2c2b2a }), weld: b({ scuff: .3, mill: 0x2a2522 }) };
 }

@@ -1,6 +1,6 @@
 // The Workshop, the reward: TORQUE as he has built it, his Bolts, the big Fight button, and four Slots of Mods to buy. His first fight
 // is free and each one after costs Bolts; a Mod he can afford is bought and fitted with one tap, one he can't becomes his Goal and
-// the voice says how many more he needs. The fight itself (fight/FightScreen.tsx) loads only when he taps Fight. The word rule
+// the voice says how many more he needs. Each Slot ends in a Legendary, which opens by solving its Balance Lock. The fight itself (fight/FightScreen.tsx) loads only when he taps Fight. The word rule
 // holds here and in the fight: knocked out, stopped, sent spinning.
 import { useEffect, useState } from 'preact/hooks';
 import { sChime, sClink, sFanfare, sNope } from '../audio/sfx';
@@ -10,28 +10,29 @@ import { CurrencyIcon, CurrencyPile } from '../ui/currency';
 import { MATH_CURRENCY } from './branding';
 import { player } from './game';
 import { screen } from './nav';
-import { gotLine, needFight, NUMBERS_TO, type Phrase } from './phrases';
+import { gotLine, needFight, NUMBERS_TO, waitLine, type Phrase } from './phrases';
 import { startRound } from './round';
 import { said } from './numbers/say';
 import { useVoice } from './voice';
 import { payForFight, tapMod } from './workshop/actions';
-import { lookOf, modName, parseMod, RUNGS, SLOT_IDS, SLOTS, type Rung, type SlotId } from './workshop/catalog';
+import { BalanceLock } from './workshop/BalanceLock';
+import { LEGENDARY, lookOf, modName, parseMod, RUNGS, SLOT_IDS, SLOTS, TOP, type ModName, type Rung, type SlotId, type TopName } from './workshop/catalog';
 import { TorqueArt } from './workshop/TorqueArt';
-import { fightPrice, goalOf, isOwned, PRICES, priceOf } from './workshop/workshop';
+import { fightPrice, goalOf, isOwned, nextLegendary, PRICES, priceOf, waitingOn } from './workshop/workshop';
 
 /** One Mod's little picture: what it adds, in the colours it adds it. */
 function ModSwatch({ slot, rung }: { slot: SlotId; rung: Rung }) {
   const look = lookOf({ paint: 0, drum: 0, armour: 0, wheels: 0, [slot]: rung });
-  if (slot === 'paint') return <i class="dab" style={{ background: look.paint.hex }} />;
-  if (slot === 'drum') return <i class={`dab round ${look.drum.glow ? 'glow' : ''}`} style={{ background: look.drum.hex }} />;
-  if (slot === 'wheels') return <i class={`dab round hub ${look.hub.kind === 'glow' ? 'glow' : ''}`} style={{ background: look.hub.hex }} />;
+  if (slot === 'paint') return <i class={`dab ${look.paint.rainbow ? 'rainbow' : ''}`} style={look.paint.rainbow ? undefined : { background: look.paint.hex }} />;
+  if (slot === 'drum') return <i class={`dab round ${look.drum.glow ? 'glow' : ''} ${look.drum.bands ? 'bands' : ''}`} style={{ background: look.drum.hex }} />;
+  if (slot === 'wheels') return <i class={`dab round hub ${look.hub.kind === 'glow' ? 'glow' : ''} ${look.hub.rim ? 'rim' : ''}`} style={{ background: look.hub.hex }} />;
   return <i class={`dab armour a${rung}`} />;
 }
 
 export function RewardScreen() {
   const voice = useVoice(), state = player.state.value, balance = state.currency.balance, w = state.workshop;
-  const price = fightPrice(w), goal = goalOf(w), short = price > balance;
-  const [hint, setHint] = useState(false), [blocked, setBlocked] = useState(false), [wiggle, setWiggle] = useState<string | null>(null);
+  const price = fightPrice(w), goal = goalOf(w), left = nextLegendary(w), short = price > balance;
+  const [hint, setHint] = useState(false), [blocked, setBlocked] = useState(false), [wiggle, setWiggle] = useState<string | null>(null), [vault, setVault] = useState<SlotId | null>(null);
   useEffect(() => {
     const invite: Phrase[] = w.ticket ? ['Your fight is ready!', 'Tap Fight!'] : price === 0 ? ['Your first fight is free!', 'Tap Fight!'] : short ? [] : ['Tap Fight!'];
     if (balance === 1) void voice.say('You have 1 Bolt.', ...invite);
@@ -53,14 +54,17 @@ export function RewardScreen() {
     const name = modName(slot, rung), result = tapMod(slot, rung);
     if (result.kind === 'rejected') return;
     if (result.kind === 'fitted') { sClink(); void voice.say(name); }
+    else if (result.kind === 'vault') setVault(slot);
+    else if (result.kind === 'waiting') { nope(`${slot}:${rung}`); void voice.say(name, waitLine(modName(slot, TOP) as TopName)); }
     else if (result.kind === 'need') { nope(`${slot}:${rung}`); void voice.say(name, needFight(result.more)); }
-    else {
-      setBlocked(true);
-      sFanfare();
-      confetti(40, voice.signal);
-      void voice.say(gotLine(name)).then(() => { if (voice.active) setBlocked(false); });
-      setTimeout(() => { if (voice.active) setBlocked(false); }, 2500); // a stalled voice never freezes the screen
-    }
+    else celebrate(name);
+  }
+  function celebrate(name: ModName) {
+    setBlocked(true);
+    sFanfare();
+    confetti(40, voice.signal);
+    void voice.say(gotLine(name)).then(() => { if (voice.active) setBlocked(false); });
+    setTimeout(() => { if (voice.active) setBlocked(false); }, 2500); // a stalled voice never freezes the screen
   }
   function goalTap() {
     if (!voice.active || !goal) return;
@@ -79,7 +83,7 @@ export function RewardScreen() {
               <span class="gi"><ModSwatch {...parseMod(goal)} /></span>
               <span class="track"><i style={{ width: `${Math.min(100, (balance / priceOf(goal)) * 100)}%` }} /></span>
             </button>
-          : <span class="goalchip done">🏆</span>}
+          : <button class="goalchip done" aria-label="Goal" onClick={() => { if (voice.active) void voice.say(left ? 'This one is in the Balance Lock!' : 'You built everything!'); }}>{left ? '🔐' : '🏆'}</button>}
         <CurrencyPile kind={MATH_CURRENCY} count={balance} />
       </header>
       <div class="work-body">
@@ -96,7 +100,19 @@ export function RewardScreen() {
             <div class="work-slot" key={slot} role="group" aria-label={SLOTS[slot].name}>
               <button class="slot-name" aria-label={SLOTS[slot].name} onClick={() => { if (voice.active) void voice.say(SLOTS[slot].name); }}>{SLOTS[slot].icon}</button>
               {RUNGS.map(rung => {
-                const owned = isOwned(w, slot, rung), on = w.gear[slot] === rung, cost = rung === 0 ? 0 : PRICES.rungs[rung];
+                const owned = isOwned(w, slot, rung), on = w.gear[slot] === rung;
+                if (rung === LEGENDARY) {
+                  const wait = !owned && !!waitingOn(w, slot);
+                  return (
+                    <button key={rung} aria-label={modName(slot, rung)} aria-pressed={on}
+                      class={`mod legend ${on ? 'on' : ''} ${owned ? 'owned' : wait ? 'locked' : 'open'} ${wiggle === `${slot}:${rung}` ? 'wiggle' : ''}`}
+                      onClick={() => mod(slot, rung)}>
+                      <ModSwatch slot={slot} rung={rung} />
+                      <span class="tag">{owned ? (on ? '✓' : '') : '🔐'}</span>
+                    </button>
+                  );
+                }
+                const cost = rung === 0 ? 0 : PRICES.rungs[rung];
                 return (
                   <button key={rung} aria-label={modName(slot, rung)} aria-pressed={on}
                     class={`mod ${on ? 'on' : ''} ${owned ? 'owned' : 'locked'} ${!owned && balance >= cost ? 'can' : ''} ${wiggle === `${slot}:${rung}` ? 'wiggle' : ''}`}
@@ -110,6 +126,8 @@ export function RewardScreen() {
           ))}
         </section>
       </div>
+      {vault && <BalanceLock slot={vault} swatch={<ModSwatch slot={vault} rung={LEGENDARY} />}
+        onOpen={() => { const name = modName(vault, LEGENDARY); setVault(null); sChime(); celebrate(name); }} onClose={() => setVault(null)} />}
     </div>
   );
 }

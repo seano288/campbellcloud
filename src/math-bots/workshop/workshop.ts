@@ -1,9 +1,10 @@
 // The Workshop on the saved game: the Mods he owns, what TORQUE has fitted, the Goal, and his fights. The Goal is the cheapest
-// locked Mod unless he tapped another. His first fight is free and each one after costs FIGHT_COST Bolts. A fight he has paid for
+// locked Mod unless he tapped another. A Legendary is never bought and is never the Goal: it waits for its top Rung, then the Balance
+// Lock opens it for free, as often as he likes to try, as Sight Squad's Password Lock does. His first fight is free and each one after costs FIGHT_COST Bolts. A fight he has paid for
 // stays his until he sees it end (`ticket`), so a reload, a crash or leaving early never costs him Bolts for nothing.
 import { isAmount } from '../../currency/amount';
 import type { PurchaseProposal } from '../../rewards/purchase';
-import { ALL_MODS, defaultGear, parseMod, RUNGS, SLOT_IDS, type BuyRung, type Gear, type ModId, type Rung, type SlotId, modId } from './catalog';
+import { ALL_MODS, BOLT_MODS, defaultGear, isLegendary, LEGENDARY, modId, parseMod, RUNGS, SLOT_IDS, TOP, type Gear, type LegendaryId, type ModId, type Rung, type SlotId } from './catalog';
 
 export interface WorkshopState {
   unlocked: ModId[];
@@ -30,15 +31,19 @@ export function readWorkshop(raw: unknown): WorkshopState {
   })) as Gear;
   return {
     unlocked, gear,
-    goal: ALL_MODS.find(m => m === raw.goal) ?? null,
+    goal: BOLT_MODS.find(m => m === raw.goal) ?? null,
     fights: isAmount(raw.fights) ? raw.fights : 0,
     ticket: raw.ticket === true,
   };
 }
 
-export const PRICES = { rungs: { 1: 5, 2: 15, 3: 30 } } as const satisfies { rungs: Record<BuyRung, number> };
+export const PRICES = { rungs: { 1: 5, 2: 15, 3: 30 } } as const;
 export const FIGHT_COST = 5;
-export const priceOf = (m: ModId) => PRICES.rungs[parseMod(m).rung];
+export function priceOf(m: ModId) {
+  const { rung } = parseMod(m);
+  if (rung === LEGENDARY) throw new Error(`${m} is in the Balance Lock`);
+  return PRICES.rungs[rung];
+}
 /** What tapping Fight costs him now. */
 export const fightPrice = (w: Pick<WorkshopState, 'fights' | 'ticket'>) => (w.ticket || w.fights === 0 ? 0 : FIGHT_COST);
 
@@ -48,9 +53,13 @@ export const isOwned = (w: Pick<WorkshopState, 'unlocked'>, slot: SlotId, rung: 
 export function goalOf(w: Pick<WorkshopState, 'unlocked' | 'goal'>): ModId | null {
   if (w.goal && isLocked(w, w.goal)) return w.goal;
   let best: ModId | null = null;
-  for (const m of ALL_MODS) if (isLocked(w, m) && (!best || priceOf(m) < priceOf(best))) best = m;
+  for (const m of BOLT_MODS) if (isLocked(w, m) && (!best || priceOf(m) < priceOf(best))) best = m;
   return best;
 }
+/** The top Rung a Legendary is still waiting on. */
+export const waitingOn = (w: Pick<WorkshopState, 'unlocked'>, slot: SlotId): ModId | null => { const top = modId(slot, TOP); return isLocked(w, top) ? top : null; };
+/** The next Legendary still in the Balance Lock. */
+export const nextLegendary = (w: Pick<WorkshopState, 'unlocked'>): SlotId | null => SLOT_IDS.find(s => isLocked(w, modId(s, LEGENDARY))) ?? null;
 
 export function fitMod(state: WorkshopState, slot: SlotId, rung: Rung): WorkshopState {
   if (!isOwned(state, slot, rung)) throw new Error('Mod is not owned');
@@ -62,7 +71,7 @@ export function selectGoal(state: WorkshopState, item: ModId): WorkshopState {
 }
 
 export type Purchase = ModId | 'fight';
-export type PurchaseFailure = 'invalid-item' | 'invalid-balance' | 'insufficient-funds' | 'already-owned';
+export type PurchaseFailure = 'invalid-item' | 'invalid-balance' | 'insufficient-funds' | 'already-owned' | 'vault';
 export function proposePurchase(state: WorkshopState, item: Purchase, balance: number): PurchaseProposal<WorkshopState, PurchaseFailure> {
   if (!isAmount(balance)) return { kind: 'rejected', reason: 'invalid-balance' };
   if (item === 'fight') {
@@ -73,10 +82,18 @@ export function proposePurchase(state: WorkshopState, item: Purchase, balance: n
   }
   if (!ALL_MODS.includes(item)) return { kind: 'rejected', reason: 'invalid-item' };
   if (!isLocked(state, item)) return { kind: 'rejected', reason: 'already-owned' };
+  if (isLegendary(item)) return { kind: 'rejected', reason: 'vault' };
   const cost = priceOf(item);
   if (balance < cost) return { kind: 'rejected', reason: 'insufficient-funds' };
   const { slot, rung } = parseMod(item);
   return { kind: 'ready', cost, state: fitMod({ ...state, unlocked: [...state.unlocked, item], goal: state.goal === item ? null : state.goal }, slot, rung) };
+}
+
+/** The Balance Lock is solved: the Legendary is his and fitted, once its top Rung is. It costs nothing. */
+export function openVault(state: WorkshopState, slot: SlotId): WorkshopState | null {
+  const item: LegendaryId = modId(slot, LEGENDARY);
+  if (!isLocked(state, item) || waitingOn(state, slot)) return null;
+  return fitMod({ ...state, unlocked: [...state.unlocked, item] }, slot, LEGENDARY);
 }
 
 /** He saw the fight end: the ticket is used. */

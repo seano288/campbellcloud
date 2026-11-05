@@ -2,7 +2,7 @@
 // clips and one short line of text. The numerals go on screen with every number said, because fourteen and forty sound
 // alike: no question ever depends on hearing the difference (say.test.ts checks that).
 import type { Phrase } from '../phrases';
-import { BOARD_ROWS, valueOf, type BoardProblem, type Equation, type Question, type Side, type Level } from './problems';
+import { BOARD_ROWS, valueOf, type BoardProblem, type ChartOp, type Equation, type JumpProblem, type Question, type Side, type Level } from './problems';
 export { BOARD_ROWS };
 
 /** A piece of a line: a recorded phrase, a number, or punctuation that only shows. */
@@ -20,6 +20,7 @@ const sideParts = (s: Side): Part[] => ('n' in s ? [s.n] : [s.a, s.op === '+' ? 
 export const sideText = (s: Side) => ('n' in s ? String(s.n) : `${s.a} ${s.op === '+' ? '+' : '−'} ${s.b}`);
 export { valueOf };
 
+export const jumpSum = (q: Pick<JumpProblem, 'a' | 'b' | 'op'>) => `${q.a} ${q.op === 'add' ? '+' : '−'} ${q.b}`;
 /** 3 + 5 = ?, or with the sum on the left so = doesn't come to mean "the answer is next". */
 export function equationText(e: Equation) {
   const sum = e.op === 'add' ? `${e.a} + ${e.b}` : `${e.c} − ${e.b}`;
@@ -32,6 +33,8 @@ export const storyParts = (sentence: string): Part[] => sentence.split(/(\d+)/).
   const bit = p.replace(/^[\s,]+/, '').replace(/\s+$/, '');
   return bit === '' ? [] : bit === '.' ? ['.'] : bit === '?' ? ['?'] : [bit as Phrase];
 });
+const CHART_WORDS = { '+10': 'Ten more than', '-10': 'Ten less than', '+1': 'One more than', '-1': 'One less than' } as const satisfies Record<ChartOp, Phrase>;
+export const chartWords = (op: ChartOp) => CHART_WORDS[op];
 const boardLine = (q: BoardProblem): Phrase => (q.form === 'total' ? 'How many hits in all?'
   : q.form === 'each' ? `How many did the ${q.row} get?`
     : `How many more did the ${q.row} get than the ${q.other}?` as Phrase);
@@ -87,6 +90,31 @@ export function promptOf(q: AnyQuestion, level: Level): Prompt {
       if (q.form === 'groups') return line(q.groups, 'groups of', q.step, '.', 'Count by', q.step, '.', 'How many?');
       if (q.form === 'next') return line('Count by', q.step, '.', ...q.shown, 'What comes next?');
       return line('Count by', q.step, '.', ...q.shown.map(n => n ?? 'what number?'));
+    case 'chart':
+      if (q.form === 'tap') return line('Tap', q.n, '.');
+      return q.form === 'next' ? line(...q.shown, 'What comes next?') : line(chartWords(q.op), q.n, '.');
+    case 'jump': {
+      const sum: Part[] = [q.a, q.op === 'add' ? 'plus' : 'take away', q.b];
+      return q.flip ? line('What number is the same as', ...sum, '?') : line(...sum, 'is the same as what?');
+    }
+    case 'measure':
+      switch (q.form) {
+        case 'order': return line(`Tap the ${q.want}.`);
+        case 'rope': return line('The rope is as long as the top bar.', 'Which bar is longer?');
+        case 'lay': return line('Lay wrenches to the end.', 'How many wrenches long?');
+        case 'count': return line('How many wrenches long?');
+        case 'right': return line('Which one is measured right?');
+        case 'fewer': return line('Big wrenches or small wrenches?', `Which takes ${q.want}?`);
+      }
+      break;
+    case 'shape':
+      switch (q.form) {
+        case 'every': return line(`Tap every ${q.name}.`);
+        case 'notA': return line(`Which one is not a ${q.name}?`);
+        case 'rule': return line('Tap the shape with', q.sides, 'sides, all joined.');
+        case 'sides': return line('How many sides?');
+        case 'fill': return line('Fill the shape.', 'Tap the pieces that fit.');
+      }
   }
 }
 

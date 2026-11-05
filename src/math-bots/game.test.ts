@@ -21,6 +21,28 @@ describe('the save', () => {
     expect(s.currency.balance).toBe(12);
     expect(s.workshop).toEqual(freshWorkshop());
   });
+  it('keeps a version 2 save from before Legendaries and the later kinds: balance, Levels, Tune-Up, purchases and ticket', () => {
+    const nine = ['ten', 'on', 'story', 'facts', 'tens', 'part', 'skip', 'scale', 'over'];
+    const old = {
+      version: 2, balance: 41,
+      learning: {
+        modes: Object.fromEntries(nine.map(m => [m, { level: m === 'on' ? 3 : 2, window: ['clean'], opened: m !== 'over', starred: m === 'ten', introPending: false, fresh: false }])),
+        pushed: Object.fromEntries(nine.map(m => [m, 20])), facts: { strength: { '5+3': 3 }, since: 1 }, met: ['frame', 'path', 'bond', 'rod', 'same', 'signs'],
+        tuneUp: { ten: { asked: 3, clean: 3, misses: 0 }, on: { asked: 2, clean: 2, misses: 0 }, facts: { asked: 3, clean: 1, misses: 2 }, tens: { asked: 1, clean: 1, misses: 0 }, story: { asked: 0, clean: 0, misses: 0 } },
+      },
+      workshop: { unlocked: ['paint:1', 'paint:2', 'paint:3', 'drum:1'], gear: { paint: 3, drum: 1, armour: 0, wheels: 0 }, goal: 'wheels:2', fights: 4, ticket: true },
+    };
+    const s = mathSave.decode(JSON.parse(JSON.stringify(old)));
+    expect(s.currency.balance).toBe(41);
+    expect(s.learning.modes.on.level).toBe(3);
+    expect(s.learning.modes.ten.starred).toBe(true);
+    expect(s.learning.tuneUp).toEqual(old.learning.tuneUp);
+    expect(s.workshop).toEqual(old.workshop);
+    expect(s.learning.modes.chart.opened).toBe(true);
+    expect(s.learning.modes.jump.opened).toBe(false);
+    const again = mathSave.decode(JSON.parse(JSON.stringify(mathSave.encode(s))));
+    expect(again).toEqual(s); // and it writes back as it read
+  });
   it('starts fresh from anything else', () => expect(mathSave.decode({ version: 99, balance: 5 }).currency.balance).toBe(0));
 });
 

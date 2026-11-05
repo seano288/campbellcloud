@@ -167,13 +167,13 @@ then go poof; his soldiers that are hit fall over and spring back up. He always 
 
 Math Bots reuses Sight Squad's terms where they mean the same thing (Mixed Round, Mastery, Stretch, Bolt, Strength, Meeting, Slot, Mod, Rung, Goal). These are its own:
 
-**Game Modes (Math Bots)**: the nine kinds of question: Make Ten, Count On, Bot Stories, Facts, Tens and Ones, Missing Part, Skip Count, Weigh-In and Over Ten. Make Ten, Count On and Bot Stories are open from the start; `src/math-bots/learning.ts` says what opens the rest. Over Ten needs two parents, Make Ten at Level 3 and Tens and Ones at Level 2.
+**Game Modes (Math Bots)**: the thirteen kinds of question: Make Ten, Count On, Bot Stories, Facts, Tens and Ones, Missing Part, Skip Count, Number Chart, Measure It, Shapes, Weigh-In, Over Ten and Big Jumps. Make Ten, Count On and Bot Stories are open from the start; `src/math-bots/learning.ts` says what opens the rest. Over Ten needs two parents, Make Ten at Level 3 and Tens and Ones at Level 2, and so does Big Jumps, Tens and Ones at Level 3 and Number Chart at Level 2.
 
 **Working set**: the kinds a Round practises: at most five that have no star yet, lowest Level first. Starred kinds come back as about one review question a Round.
 
 **Tune-Up**: his first Rounds, which look like any other but probe five anchors, three questions each. Three clean answers start that kind at Level 2; two misses stop the row. Nobody sets a Level by hand. It places low, because Levels never go down, and the first 30 questions of a kind asked at his Level use a faster Mastery rule so he climbs quickly.
 
-**Meeting (Math Bots)**: the first time a question needs a picture (ten frame, number path, number bond, a ten, the same-as sign, the less and more signs), it's shown and said, and he taps it.
+**Meeting (Math Bots)**: the first time a question needs a picture (ten frame, number path, number bond, a ten, the same-as sign, the less and more signs, number chart, a wrench as a unit, sides of a shape, filling an outline), it's shown and said, and he taps it.
 
 **Fact family**: 3+5, 5+3, 8-3 and 8-5 are one family, with one Strength.
 
@@ -183,7 +183,17 @@ Math Bots reuses Sight Squad's terms where they mean the same thing (Mixed Round
 
 **Fix It**: after he rightly says a Weigh-In isn't the same, he taps counters on or off to even the pans.
 
-**Workshop**: the reward screen: TORQUE as he has built it, his Bolts, the Fight button, and four Slots of Mods (Paint, Drum, Armour, Wheels). Mods only change how TORQUE looks. There are no Legendaries here yet.
+**Number Chart (the picture)**: 1 to 120 in rows of ten, so one row down is ten more. A short screen shows only the rows that fit.
+
+**Unit (Math Bots)**: a wrench laid along a bar to measure it. All the same size, end to end, tapped down one at a time; the word on screen is always wrench.
+
+**Outline**: the dashed shape he fills in Shapes Level 3, by tapping the piece that fits. A piece turns itself: there is no rotating.
+
+**Workshop**: the reward screen: TORQUE as he has built it, his Bolts, the Fight button, and four Slots of Mods (Paint, Drum, Armour, Wheels), each ending in a Legendary. Mods only change how TORQUE looks.
+
+**Legendary (Math Bots)**: Rainbow Paint, Lightning Drum, Dragon Armour, Comet Wheels. Each shows on TORQUE in the Workshop and in the fight, and is looks only. Never bought with Bolts, and never the Goal.
+
+**Balance Lock**: the vault that holds every Legendary in Math Bots. Once a Slot's top Rung is his, tapping its Legendary asks him to make two pans the same, a Weigh-In as hard as his own Level. It costs no Bolts, a miss costs nothing, and it changes no Level.
 
 **TORQUE and ANVIL**: his robot and the computer's. TORQUE always wins.
 

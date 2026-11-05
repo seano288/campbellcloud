@@ -10,7 +10,7 @@ import { drumShell } from './drum';
 const PI = Math.PI;
 
 // P1's tyre: chevron lugs as real raised blocks on a shouldered carcass, machined hub, centre cap. Axle along X.
-function wheel(mats, r, w, seed, { lugs = 15, hub = 'steel' } = {}) {
+function wheel(mats, r, w, seed, { lugs = 15, hub = 'steel', rim = false } = {}) {
   const k = new Kit(seed), F = RY(PI / 2), R = mul(F, RX(PI / 2)), rn = new Rng(seed), body = r - .008;
   revolve(k.gb('rubber'), [[r * .46, -w / 2 - .002], [body - .012, -w / 2], [body, -w / 2 + .012], [body, w / 2 - .012], [body - .012, w / 2], [r * .46, w / 2 + .002]], { M: R, segs: 40, b: .004, band: .005 });
   for (let i = 0; i < lugs; i++) for (const side of [-1, 1]) {
@@ -21,6 +21,8 @@ function wheel(mats, r, w, seed, { lugs = 15, hub = 'steel' } = {}) {
   revolve(k.gb(hub), [[r * .47, -hw], [r * .47, hw - .004], [r * .40, hw], [r * .22, hw - .006], [r * .19, hw + .012], [0, hw + .012]], { M: R, segs: 24, b: .0025, band: .006 });
   revolve(k.gb(hub), [[r * .47, hw], [r * .47, -hw + .004], [r * .40, -hw], [r * .22, -hw + .006], [r * .19, -hw - .012], [0, -hw - .012]], { M: mul(R, RX(PI)), segs: 24, b: .0025, band: .006 });
   for (const s of [1, -1]) for (const [y, z] of circle([0, 0], r * .31, 6)) k.bolt([s * hw, y, z], [s, 0, 0], .0065, 'bolt', false);
+  // Comet Wheels: a glowing ring on each tyre wall, so they trace circles as he drives
+  if (rim) for (const a of [0, PI]) revolve(k.gb(hub), [[r * .60, -hw - .004], [r * .60, hw + .004], [r * .70, hw + .004], [r * .70, -hw - .004]], { M: mul(R, RX(a)), segs: 40, b: .001, band: .002 });
   return k.build(mats);
 }
 
@@ -50,7 +52,14 @@ const hazard = (x, a, b, w, h, c0, c1) => { x.fillStyle = c0; x.fillRect(a, b, w
 // The Armour Slot's painted art, drawn on the deck plates under the name. Flames lick back from the front edge of each plate.
 function armourArt(x, look, pl) {
   if (look.armour === 1) { x.fillStyle = '#f4f1e6'; for (const u of [-.2, -.12, .08, .16]) x.fillRect(u, -pl.hh, .05, pl.hh * 2); }
-  if (look.armour >= 2) for (let i = 0; i < 9; i++) {
+  if (look.armour === 4) { // Dragon Armour: rows of gold scales
+    const r = .04;
+    for (let row = 0; row * r * 1.5 < pl.hh * 2 + r; row++) for (let u = -pl.hw + (row % 2 ? r : 0); u < pl.hw + r; u += r * 2) {
+      x.fillStyle = row % 2 ? '#ffc21a' : '#e0a010'; x.strokeStyle = '#7a4a00'; x.lineWidth = .004;
+      x.beginPath(); x.arc(u, pl.hh - row * r * 1.5, r, PI, 2 * PI); x.closePath(); x.fill(); x.stroke();
+    }
+  }
+  if (look.armour === 2 || look.armour === 3) for (let i = 0; i < 9; i++) {
     const u = -pl.hw + (i + .5) * pl.hw * 2 / 9, w = pl.hw * 2 / 9 * .62, long = pl.hh * (i % 2 ? 1.5 : 1.05), y = pl.hh;
     for (const [col, k] of [['#ff5a10', 1], ['#ffc21a', .62]]) {
       x.fillStyle = col; x.beginPath(); x.moveTo(u - w * k, y); x.quadraticCurveTo(u - w * .9 * k, y - long * .55 * k, u + w * .5 * k, y - long * k);
@@ -154,6 +163,12 @@ export function buildTorque(mats, T, atlas, look) {
     for (const s of [1, -1]) for (let i = 0; i < 6; i++) spike([s * .52, .232, -.46 + i * .165], 0, 0, -s * PI / 2);
     for (let i = 0; i < 5; i++) spike([-.26 + i * .13, .17, -.535], -PI / 2, 0, 0);
   }
+  // Dragon Armour: a row of tall gold fins along each side slab and across the back
+  if (look.armour === 4) {
+    const fin = (p, h, a, b, c) => { k.lathe('brass', [[.0001, h], [.008, h * .86], [.036, .02], [.042, 0], [.042, -.008]], 12, M(...p, a, b, c)); };
+    for (const s of [1, -1]) for (let i = 0; i < 6; i++) { fin([s * .52, .26, -.46 + i * .165], .1 + i * .012, 0, 0, -s * PI / 4); }
+    for (let i = 0; i < 5; i++) fin([-.26 + i * .13, .24, -.535], .14, -PI / 4, 0, 0);
+  }
   model.add(k.build(mats));
 
   // Armour plates: dentable, painted through the livery atlas
@@ -192,12 +207,14 @@ export function buildTorque(mats, T, atlas, look) {
   d.lathe('steel', [[.0001, .305], [.02, .305], [.02, -.305], [.0001, -.305]], 14, ax);
   // pulley on shaft outboard
   d.lathe('steel', [[.012, -.018], [.05, -.018], [.05, -.012], [.04, 0], [.05, .012], [.05, .018], [.012, .018]], 24, M(.235, 0, 0, 0, 0, PI / 2));
+  // Lightning Drum: glowing bands that show while it's still, matching the ones in the speed shell
+  if (look.drum.bands) { for (const x of [-.0675, .0675]) d.lathe('drumTooth', [[R + .002, -.012], [R + .006, -.008], [R + .006, .008], [R + .002, .012]], 40, M(x, 0, 0, 0, 0, PI / 2), { u: 1 }); }
   drum.add(d.build(mats));
   model.add(drum);
 
   const shell = drumShell(T, look.drum); shell.mesh.position.copy(drum.position); shell.mesh.visible = false; model.add(shell.mesh);
 
-  const wheels = [], wg = wheel(mats, .108, .09, 5, { hub: 'hub' });
+  const wheels = [], wg = wheel(mats, .108, .09, 5, { hub: 'hub', rim: look.hub.rim });
   for (const [x, z] of [[.442, .22], [-.442, .22], [.442, -.30], [-.442, -.30]]) { const w = wg.clone(); w.position.set(x, .108, z); model.add(w); wheels.push(w); }
   return { root, model, drum, shell, wheels, plates, atlas, r: .108 };
 }

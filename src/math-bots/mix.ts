@@ -10,7 +10,7 @@ import { int, pick, type Rng } from '../game/rng';
 import type { Check, LearningSession, Outcome } from '../learning/session';
 import { stretchOf, struggling, type Stretch } from '../modes/progress';
 import { factKey, factsPool, MEETINGS, MODE_IDS, PROBE_LEVEL, PROBE_STORIES, rowOpen, ANCHORS, strengthOf, tuneUpOver, verdict, type Anchor, type Explanation, type FactsState, type LearningState, type MeetingId, type ModeId } from './learning';
-import { makeBoard, makeQuestion, storyOp, type Level, type Pair, type StoryOp } from './numbers/problems';
+import { makeBoard, makeQuestion, storyOp, type Input, type Level, type Pair, type StoryOp } from './numbers/problems';
 import type { AnyQuestion } from './numbers/say';
 import { meetingsFor } from './numbers/teach';
 
@@ -54,12 +54,14 @@ interface Balance { add: number; sub: number }
 export function build(state: LearningState, base: Base, rng: Rng, avoid: string | undefined, ops: Balance): AnyQuestion {
   const { mode, level, stretch } = base;
   if (mode === 'story' && base.storyIndex === undefined && level >= 2 && (level === 3 || stretch >= 1) && rng() < BOARD_SHARE) return makeBoard(level, rng);
-  if (mode === 'facts') return makeQuestion('facts', level, rng, { stretch, ...(avoid !== undefined && { avoid }), pool: [pickFact(state.facts, rng, factsPool(state.facts, level))] });
+  if (mode === 'facts') return makeQuestion('facts', level, rng, { stretch, ...(avoid !== undefined && { avoid }), pool: [pickFact(state.facts, rng, factsPool(state.facts, level, state.modes.over.opened && state.modes.over.level >= 2))] });
   if (mode === 'story' && base.storyIndex !== undefined) return makeQuestion('story', level, rng, { only: PROBE_STORIES[base.storyIndex]! });
   const want: StoryOp = ops.add === ops.sub ? (rng() < 0.5 ? 'add' : 'sub') : ops.add < ops.sub ? 'add' : 'sub';
   return makeQuestion(mode, level, rng, { stretch, ...(avoid !== undefined && { avoid }), ...(mode === 'story' && { want }) });
 }
 
+/** Where the right answer is the same every time, or just where it landed: a replay needn't change it. */
+const FIXED_ANSWERS: ReadonlySet<Input> = new Set(['same', 'cards', 'pick', 'tiles', 'fill']);
 /** The same sort of question. */
 const shapeOf = (q: AnyQuestion) => ('form' in q ? q.form : 'id' in q ? q.id : q.kind);
 /** New numbers for a miss that comes back; the same shape when the kind can manage it. */
@@ -69,7 +71,8 @@ export function replayOf(state: LearningState, p: Asking, rng: Rng): Asking {
   let fallback: AnyQuestion | null = null;
   for (let tries = 0; tries < 40; tries++) {
     const q = p.q.kind === 'board' ? makeBoard(p.level, rng) : build(state, base, rng, undefined, { add: 0, sub: 0 });
-    if (JSON.stringify(q) === before || q.kind !== p.q.kind || (q.answer === p.q.answer && p.q.input !== 'same' && p.q.input !== 'cards')) continue;
+    if (JSON.stringify(q) === before || q.kind !== p.q.kind || (q.answer === p.q.answer && !FIXED_ANSWERS.has(p.q.input))) continue;
+    if (q.kind === 'shape' && q.form === 'fill' && p.q.kind === 'shape' && p.q.form === 'fill' && q.fill === p.q.fill) continue; // new numbers: here, a new outline
     if (shapeOf(q) === shapeOf(p.q)) return { ...p, q, push: false, replay: true, probe: undefined } as Asking;
     fallback ??= q;
   }
@@ -83,6 +86,7 @@ export function isRight(p: Problem, answer: string): boolean | null | 'more' {
   if (!answer) return null;
   if (q.kind === 'over' && q.form === 'fill' && answer.startsWith('step:')) return Number(answer.slice(5)) === q.left ? 'more' : false;
   if (q.kind === 'scale' && q.form === 'same' && answer === 'pick:not') return q.answer === 'not' ? 'more' : false;
+  if (q.kind === 'shape' && q.form === 'every' && answer.startsWith('tile:')) return q.targets.includes(Number(answer.slice(5))) ? 'more' : false;
   return answer === q.answer;
 }
 
@@ -91,6 +95,8 @@ export function mixedSession(read: () => LearningState, explain: Explanation<Ask
   let current: Problem | undefined, lastMode: ModeId | undefined, missed = false, waiting: Asking | null = null, asked = 0;
   const reviewAt = int(rng, 0, 4), used = new Set<ModeId>(), probed = new Set<Anchor>(), answers = new Map<ModeId, string>(), ops: Balance = { add: 0, sub: 0 }, met = new Set<MeetingId>();
   const count = (q: AnyQuestion) => { if (q.kind === 'story') ops[storyOp(q.id)]++; };
+  /** Never the same kind twice running, while there's another to ask. */
+  const notLast = (kinds: ModeId[]) => { const others = kinds.filter(m => m !== lastMode); return others.length ? others : kinds; };
 
   function nextBase(state: LearningState, r: Rng): Base {
     if (!tuneUpOver(state)) {
@@ -102,11 +108,12 @@ export function mixedSession(read: () => LearningState, explain: Explanation<Ask
       }
     }
     const review = reviewKinds(state);
-    if (asked === reviewAt && review.length) return { ...pitch(state, pick(r, review), r, false), push: false };
+    if (asked === reviewAt && review.some(m => m !== lastMode)) return { ...pitch(state, pick(r, notLast(review)), r, false), push: false };
     const set = workingSet(state);
-    if (!set.length) return pitch(state, pick(r, review.length ? review : ['ten']), r, missed);
+    if (!set.length) return pitch(state, pick(r, review.length ? notLast(review) : ['ten']), r, missed);
     let fresh = set.filter(m => !used.has(m) && m !== lastMode);
     if (!fresh.length) { used.clear(); fresh = set.filter(m => m !== lastMode); }
+    if (!fresh.length && notLast(review).some(m => m !== lastMode)) return { ...pitch(state, pick(r, notLast(review)), r, false), push: false };
     const mode = pick(r, fresh.length ? fresh : set);
     used.add(mode);
     return pitch(state, mode, r, missed);

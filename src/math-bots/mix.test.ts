@@ -1,11 +1,11 @@
 import { describe, expect, it } from 'vitest';
 import { seeded } from '../game/rng';
-import { freshLearning, MODE_IDS, ANCHORS, type LearningState, type ModeId } from './learning';
+import { freshLearning, MEETINGS, MODE_IDS, ANCHORS, type LearningState, type ModeId } from './learning';
 import { build, isRight, mixedSession, pickFact, replayOf, reviewKinds, workingSet, type Asking, type Problem } from './mix';
-import { factsFor, makeQuestion, storyOp, type Level } from './numbers/problems';
+import { crossingFacts, factsFor, makeQuestion, storyOp, type Level } from './numbers/problems';
 
 const noExplain = async () => {};
-const past = (s: LearningState): LearningState => ({ ...s, met: ['frame', 'path', 'bond', 'rod', 'same', 'signs'], tuneUp: Object.fromEntries(ANCHORS.map(a => [a, { asked: 3, clean: 0, misses: 0 }])) as LearningState['tuneUp'] });
+const past = (s: LearningState): LearningState => ({ ...s, met: [...MEETINGS], tuneUp: Object.fromEntries(ANCHORS.map(a => [a, { asked: 3, clean: 0, misses: 0 }])) as LearningState['tuneUp'] });
 const with_ = (s: LearningState, open: readonly ModeId[], level: Level = 1, starred: readonly ModeId[] = []): LearningState => ({
   ...s, modes: Object.fromEntries(MODE_IDS.map(m => [m, { ...s.modes[m], opened: open.includes(m), level: open.includes(m) ? level : 1, starred: starred.includes(m) }])) as LearningState['modes'],
 });
@@ -122,14 +122,14 @@ describe('Tune-Up', () => {
   });
   it('fills a stopped row with ordinary questions', () => {
     const f = freshLearning();
-    const s = { ...f, met: ['frame', 'path', 'bond', 'rod', 'same', 'signs'], tuneUp: { ...f.tuneUp, tens: { asked: 1, clean: 0, misses: 2 } } } as LearningState;
+    const s = { ...f, met: [...MEETINGS], tuneUp: { ...f.tuneUp, tens: { asked: 1, clean: 0, misses: 2 } } } as LearningState;
     const ps = asked(s, seeded(3)) as Asking[];
     expect(ps.filter(p => p.probe)).toHaveLength(4);
     expect(ps.filter(p => !p.probe)).toHaveLength(1);
   });
   it('does not use early help on a probe', () => {
     const f = freshLearning();
-    const s = { ...f, met: ['frame', 'path', 'bond', 'rod', 'same', 'signs'], modes: { ...f.modes, ten: { ...f.modes.ten, window: ['missed', 'missed', 'missed', 'missed', 'missed'] as const } } } as unknown as LearningState;
+    const s = { ...f, met: [...MEETINGS], modes: { ...f.modes, ten: { ...f.modes.ten, window: ['missed', 'missed', 'missed', 'missed', 'missed'] as const } } } as unknown as LearningState;
     const rng = seeded(1), session = mixedSession(() => s, noExplain, rng);
     session.makeProblem(rng);
     expect(session.needsEarlyHelp()).toBe(false);
@@ -150,5 +150,65 @@ describe('answers', () => {
       expect(isRight(asking(q), 'same')).toBe(q.answer === 'same');
       expect(isRight(asking(q), 'not')).toBe(q.answer === 'not');
     }
+  });
+});
+
+describe('thirteen kinds', () => {
+  const LEVELS: Level[] = [1, 2, 3];
+  const round = (s: LearningState, rng: ReturnType<typeof seeded>) => {
+    const session = mixedSession(() => s, noExplain, rng), out: Problem[] = [];
+    for (let i = 0; i < 12; i++) out.push(session.makeProblem(rng));
+    return out;
+  };
+  it('never asks one kind twice running, however many are starred, and every Round finds a question', () => {
+    for (let seed = 1; seed <= 2000; seed++) {
+      const rng = seeded(seed), open = MODE_IDS.filter(() => rng() < 0.6), starred = open.filter(() => rng() < 0.4);
+      const s = past(with_(freshLearning(), open.length ? open : ['ten'], LEVELS[seed % 3]!, starred));
+      const k = kinds(round(s, rng)).filter(m => m !== 'meet');
+      expect(k.length).toBeGreaterThan(0);
+      if (new Set(open).size > 1) k.forEach((x, i) => { if (i) expect(x, `${open} * ${starred}: ${k}`).not.toBe(k[i - 1]); });
+    }
+  }, 30_000);
+  it('a kind just opened waits for its Meeting and then asks, at every Level', () => {
+    for (const mode of ['chart', 'jump', 'measure', 'shape'] as const) for (const level of LEVELS) {
+      const s = { ...past(with_(freshLearning(), [mode], level)), met: [] };
+      const k = round(s, seeded(level * 7));
+      expect(k.some(p => p.mode === mode)).toBe(true);
+    }
+  });
+  it('a replay of each later kind gets new numbers and keeps the answer form working', () => {
+    const rng = seeded(11), s = past(with_(freshLearning(), MODE_IDS, 2));
+    for (const mode of ['chart', 'jump', 'measure', 'shape'] as const) for (const level of LEVELS) for (let i = 0; i < 200; i++) {
+      const q = makeQuestion(mode, level, rng, { stretch: 2 }), r = replayOf(s, { mode, level, push: true, stretch: 2, q }, rng);
+      expect(JSON.stringify(r.q)).not.toBe(JSON.stringify(q));
+      expect(r.q.kind).toBe(mode);
+      expect(r.push).toBe(false);
+    }
+  }, 30_000);
+  it('a replayed Fill is a different outline, even with only two to pick from', () => {
+    const rng = seeded(13), s = past(with_(freshLearning(), ['shape'], 3));
+    for (let i = 0; i < 400; i++) {
+      const q = makeQuestion('shape', 3, rng, { stretch: 0 });
+      if (q.kind !== 'shape' || q.form !== 'fill') throw 0;
+      const r = replayOf(s, { mode: 'shape', level: 3, push: true, stretch: 0, q }, rng);
+      expect(r.q.kind === 'shape' && r.q.form === 'fill' && r.q.fill).not.toBe(q.fill);
+    }
+  });
+  it('counts each right tile as more, and a wrong one as a miss', () => {
+    const rng = seeded(2);
+    let q = makeQuestion('shape', 1, rng);
+    while (q.kind !== 'shape' || q.form !== 'every') q = makeQuestion('shape', 1, rng);
+    const p: Asking = { mode: 'shape', level: 1, push: true, stretch: 0, q };
+    expect(isRight(p, `tile:${q.targets[0]}`)).toBe('more');
+    expect(isRight(p, q.traps[0]!.value)).toBe(false);
+    expect(isRight(p, 'all')).toBe(true);
+  });
+  it('lets the facts that cross ten in once Over Ten reaches Level 2', () => {
+    let s = past(with_(freshLearning(), ['facts', 'over'], 3));
+    s = { ...s, facts: { strength: Object.fromEntries(factsFor(3).map(([a, b]) => [`${Math.max(a, b)}+${Math.min(a, b)}`, 5])), since: 5 } };
+    const rng = seeded(1), crossing = new Set(crossingFacts().map(([a, b]) => a + b * 100));
+    let seen = 0;
+    for (let i = 0; i < 400; i++) { const q = build(s, { mode: 'facts', level: 3, push: true, stretch: 0 }, rng, undefined, { add: 0, sub: 0 }); if (q.kind === 'facts' && (crossing.has(q.eq.a + q.eq.b * 100) || crossing.has(q.eq.b + q.eq.a * 100))) seen++; }
+    expect(seen).toBeGreaterThan(0);
   });
 });

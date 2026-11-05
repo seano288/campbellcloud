@@ -2,6 +2,7 @@
 // hurried: this only tells recall from counting, starting when the question has finished being said.
 import type { Explanation } from '../learning';
 import type { Asking } from '../mix';
+import type { Input } from './problems';
 import { lessonFor, missSteps, playSteps, teachSteps, type Lesson } from './teach';
 import type { VoiceScope } from '../voice';
 
@@ -16,8 +17,12 @@ export const tookLong = (lifetime: AbortSignal) => { const t = asked.get(lifetim
 let saidInRound = false;
 export const newRoundOfTeaching = () => { saidInRound = false; };
 
+/** He answers on the picture itself here, so a lesson has to give it back when it's done. */
+const ON_THE_PICTURE: ReadonlySet<Input> = new Set(['chart', 'lay', 'pick', 'tiles', 'fill']);
+
 export async function teachIn(p: Asking, lesson: Lesson, voice: VoiceScope) {
   await playSteps(teachSteps(p.q, saidInRound), lesson, voice);
+  if (voice.active && ON_THE_PICTURE.has(p.q.input)) { lesson.stage.value = null; lesson.caption.value = null; }
   if (p.q.kind === 'scale' && p.q.form === 'balance') saidInRound = true;
 }
 

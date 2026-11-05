@@ -2,7 +2,8 @@ import { describe, expect, it } from 'vitest';
 import { seeded } from '../../game/rng';
 import type { Stretch } from '../../modes/progress';
 import { numberChoices } from './choices';
-import { factsFor, makeQuestion, MATH_KINDS, SKIP_TOP, STORIES, valueOf, type Kind, type Level, type Question } from './problems';
+import { CHART_TOP, chartKeeps, crossingFacts, factsFor, hiddenCell, rowWindow, makeQuestion, MATH_KINDS, SKIP_TOP, STORIES, STRIP_UNITS, unitsOf, valueOf, type Bar, type Kind, type Level, type Question } from './problems';
+import { DRAWINGS, FILLS, FILLS_BY_STRETCH, type Drawing, type ShapeName, type Tile } from './shapes';
 
 const LEVELS: Level[] = [1, 2, 3], STRETCHES: Stretch[] = [0, 1, 2];
 function each(kind: Kind, check: (q: Question, level: Level, stretch: Stretch) => void, runs = 400) {
@@ -162,5 +163,160 @@ describe('numberChoices', () => {
       expect(c).toHaveLength(3);
       expect(c.every(x => x >= 0 && x <= 20)).toBe(true);
     }
+  });
+});
+
+describe('the four later kinds, over many thousands of questions', () => {
+  const RUNS = 3000, range = (q: Question) => (q.choices ?? []);
+  it('number chart', () => each('chart', (q, level, stretch) => {
+    if (q.kind !== 'chart') throw 0;
+    expect(n(q)).toBeGreaterThanOrEqual(1);
+    expect(n(q)).toBeLessThanOrEqual(CHART_TOP);
+    expect(n(q)).toBeLessThanOrEqual(q.to);
+    expect(range(q).every(c => c >= 1 && c <= 200)).toBe(true);
+    if (level === 1) expect(q.to).toBe(stretch === 0 ? 30 : 50);
+    if (q.form === 'tap') expect(n(q)).toBe(q.n);
+    if (q.form === 'next') {
+      expect(q.shown).toEqual([n(q) - 2, n(q) - 1]);
+      expect(hiddenCell(q, n(q))).toBe(true);
+      if (level === 1) expect(n(q) % 10).toBeGreaterThanOrEqual(2); // crossing a ten waits for Level 2
+      if (level === 2) expect(n(q) % 10).toBeLessThanOrEqual(1);
+    }
+    if (q.form === 'more') {
+      expect(level).toBe(3);
+      expect(n(q) - q.n).toBe(Number(q.op));
+      expect(hiddenCell(q, q.n)).toBe(false);
+      expect(hiddenCell(q, n(q))).toBe(stretch > 0);
+    }
+  }, RUNS), 30_000);
+  it('big jumps', () => each('jump', (q, level) => {
+    if (q.kind !== 'jump') throw 0;
+    expect(n(q)).toBe(q.op === 'add' ? q.a + q.b : q.a - q.b);
+    expect(q.input).toBe('wheels');
+    expect(n(q)).toBeLessThanOrEqual(99);
+    expect(n(q)).toBeGreaterThan(0);
+    if (q.op === 'sub') expect(q.form).toBe('decades');
+    if (level === 1) { expect(q.a % 10).toBe(0); expect(q.b % 10).toBe(0); expect(n(q)).toBeLessThanOrEqual(90); }
+    if (level === 2) expect((q.a % 10) + (q.b % 10)).toBeLessThan(10); // no carrying
+    if (q.form === 'cross') expect((q.a % 10) + (q.b % 10)).toBeGreaterThan(9);
+  }, RUNS), 30_000);
+  it('measure it', () => each('measure', (q, _level, stretch) => {
+    if (q.kind !== 'measure') throw 0;
+    if (q.form === 'order') {
+      const lens = q.bars.map(b => b.len), right = q.bars.find(b => b.id === q.answer)!;
+      expect(new Set(lens).size).toBe(3);
+      expect(right.len).toBe(q.want === 'longest' ? Math.max(...lens) : Math.min(...lens));
+      for (const b of q.bars) expect(b.start + b.len).toBeLessThanOrEqual(STRIP_UNITS);
+      if (stretch === 0) expect(q.bars.every(b => b.start === 0)).toBe(true);
+      expect(q.traps.map(t => t.value).sort()).toEqual(q.bars.map(b => b.id).filter(id => id !== q.answer).sort());
+    }
+    if (q.form === 'rope') {
+      const [a, b] = q.bars as [Bar, Bar];
+      expect(q.rope).toBe(a.len);
+      expect(a.len).not.toBe(b.len);
+      expect(q.answer).toBe(a.len > b.len ? 'a' : 'b');
+      for (const x of q.bars) { expect(x.start + x.len).toBeLessThanOrEqual(STRIP_UNITS); expect(x.start + q.rope).toBeLessThanOrEqual(STRIP_UNITS); }
+    }
+    if (q.form === 'lay' || q.form === 'count') { expect(n(q)).toBe(q.len); expect(q.len).toBeGreaterThanOrEqual(2); expect(q.len).toBeLessThanOrEqual(12); }
+    if (q.form === 'fewer') { expect(q.len % 2).toBe(0); expect(q.answer).toBe(q.want === 'fewer' ? 'big' : 'small'); }
+    if (q.form === 'right') {
+      expect(new Set(q.rows.map(r => r.laying)).size).toBe(3);
+      expect(q.rows.find(r => r.id === q.answer)!.laying).toBe('right');
+      for (const r of q.rows) for (const at of unitsOf(q.len, r.laying)) expect(at + 1).toBeLessThanOrEqual(STRIP_UNITS);
+    }
+  }, RUNS), 30_000);
+  it('lays a right measure end to end, and a wrong one really wrong', () => {
+    for (let len = 4; len <= 12; len++) {
+      const steps = (l: 'right' | 'gaps' | 'overlap') => unitsOf(len, l).slice(1).map((at, i) => at - unitsOf(len, l)[i]!);
+      expect(unitsOf(len, 'right')).toHaveLength(len);
+      expect(steps('right').every(s => s === 1)).toBe(true);
+      expect(steps('gaps').every(s => s > 1.15)).toBe(true);
+      expect(steps('overlap').every(s => s < 0.9)).toBe(true);
+      for (const l of ['gaps', 'overlap'] as const) expect(unitsOf(len, l).at(-1)! + 1).toBeCloseTo(len); // they still reach the end
+    }
+  });
+  it('shapes', () => each('shape', (q, level, stretch) => {
+    if (q.kind !== 'shape') throw 0;
+    const named = (t: Tile, name: ShapeName) => (DRAWINGS[t.id] as Drawing).is === name;
+    if (q.form === 'every') {
+      expect(q.tiles).toHaveLength(6);
+      expect(q.targets.length).toBeGreaterThanOrEqual(2);
+      q.tiles.forEach((t, i) => expect(named(t, q.name), `${t.id} for ${q.name}`).toBe(q.targets.includes(i)));
+      expect(q.answer).toBe('all');
+      expect(q.traps).toHaveLength(6 - q.targets.length);
+    }
+    if (q.form === 'notA') {
+      const at = Number(q.answer.slice(5));
+      q.tiles.forEach((t, i) => expect(named(t, q.name)).toBe(i !== at));
+    }
+    if (q.form === 'every' || q.form === 'notA') {
+      if (q.name === 'rectangle') expect(q.tiles.some(t => t.id === 'square')).toBe(false); // a square is one, and that's not for this Level
+      if (stretch === 0 && q.name === 'triangle' && q.form === 'every') expect(q.tiles.every(t => t.turn === 0)).toBe(true);
+    }
+    if (q.form === 'rule') {
+      const at = Number(q.answer.slice(5));
+      q.tiles.forEach((t, i) => { const d: Drawing = DRAWINGS[t.id]; expect(d.closed && d.sides === q.sides && !d.flaw).toBe(i === at); });
+    }
+    if (q.form === 'sides') expect(n(q)).toBe((DRAWINGS[q.tile.id] as Drawing).sides);
+    if (q.form === 'fill') {
+      expect(level).toBe(3);
+      expect(FILLS_BY_STRETCH[stretch]).toContain(q.fill);
+      for (const p of FILLS[q.fill].parts) expect(q.bank).toContain(p.piece);
+      expect(q.bank).toHaveLength(3);
+    }
+  }, RUNS), 30_000);
+});
+
+describe('the window of rows on a short screen', () => {
+  it('always holds every number a question is about, at every size', () => each('chart', q => {
+    if (q.kind !== 'chart') throw 0;
+    const total = Math.ceil(q.to / 10);
+    for (let fit = 3; fit <= 12; fit++) {
+      const [first, last] = rowWindow(total, fit, chartKeeps(q));
+      expect(first).toBeGreaterThanOrEqual(0);
+      expect(last).toBeLessThanOrEqual(total);
+      expect(last - first).toBe(Math.min(fit, total));
+      for (const n of chartKeeps(q)) { const row = Math.floor((n - 1) / 10); expect(row, `${n} in ${first}-${last}`).toBeGreaterThanOrEqual(first); expect(row).toBeLessThan(last); }
+    }
+  }), 30_000);
+  it('holds ten more, and ten less, in every case', () => {
+    for (let n = 1; n <= 110; n++) for (let fit = 3; fit <= 11; fit++) {
+      const [first, last] = rowWindow(12, fit, [n, n + 10]), row = Math.floor((n - 1) / 10);
+      expect(row >= first && row + 1 < last).toBe(true);
+    }
+  });
+  it("doesn't always put the number in the same place", () => {
+    const places = new Set(Array.from({ length: 40 }, (_, i) => { const n = 41 + i; return Math.floor((n - 1) / 10) - rowWindow(12, 6, [n])[0]; }));
+    expect(places.size).toBeGreaterThan(2);
+  });
+});
+
+describe('what Shapes shows', () => {
+  it('leaves hexagons out of every form at Stretch 0', () => {
+    const rng = seeded(21);
+    for (const level of LEVELS) for (let i = 0; i < 3000; i++) {
+      const q = makeQuestion('shape', level, rng, { stretch: 0 });
+      if (q.kind !== 'shape') throw 0;
+      const ids = q.form === 'sides' ? [q.tile.id] : q.form === 'fill' ? [] : q.tiles.map(t => t.id);
+      expect(ids).not.toContain('hexagon');
+      if (q.form === 'rule') expect(q.sides).not.toBe(6);
+      if (q.form === 'sides') expect(n(q)).not.toBe(6);
+      if (q.form === 'fill') expect(q.fill).not.toBe('hexSix');
+    }
+  }, 30_000);
+  it('has real squares wherever a part is called one', () => {
+    for (const f of Object.values(FILLS)) for (const p of f.parts) {
+      if (p.piece !== 'square') continue;
+      const [, x, y, x2, y2] = p.d.match(/^M(\d+) (\d+) H(\d+) V(\d+)/)!.map(Number) as [number, number, number, number, number];
+      expect(Math.abs(x2 - x), `${f.says} ${p.d}`).toBe(Math.abs(y2 - y));
+    }
+  });
+});
+
+describe('facts that cross ten', () => {
+  it('have no family in common with the Levels, and fit the strip', () => {
+    const levels = new Set([1, 2, 3].flatMap(l => factsFor(l as Level)).map(([a, b]) => `${Math.max(a, b)}+${Math.min(a, b)}`));
+    expect(crossingFacts().length).toBeGreaterThan(5);
+    for (const [a, b] of crossingFacts()) { expect(levels.has(`${a}+${b}`)).toBe(false); expect(a + b).toBeGreaterThan(10); expect(a + b).toBeLessThanOrEqual(20); }
   });
 });

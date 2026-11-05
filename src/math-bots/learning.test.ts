@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import type { Outcome, SolvedProblem } from '../learning/session';
-import { factKey, factsPool, FAST_PUSHED, freshLearning, MODE_IDS, opensAt, OPENS_AFTER, readLearning, recordSolved, ruleFor, FAST_RULE, SLOW_RULE, stepFact, tuneUpOver, ANCHORS, type LearningState, type ModeId, type Asked } from './learning';
-import { factsFor } from './numbers/problems';
+import { factKey, factsPool, FAST_PUSHED, freshLearning, MODE_IDS, opensAt, OPENS_AFTER, readLearning, recordSolved, ruleFor, startPractice, FAST_RULE, SLOW_RULE, stepFact, tuneUpOver, ANCHORS, type LearningState, type ModeId, type Asked } from './learning';
+import { crossingFacts, factsFor } from './numbers/problems';
 
 const fact = (outcome: Outcome, misses = outcome === 'clean' ? 0 : 1): SolvedProblem => ({ index: 1, outcome, misses, helped: false, replay: false });
 const solve = (s: LearningState, asked: Asked, outcome: Outcome = 'clean') => recordSolved(s, asked, fact(outcome));
@@ -148,5 +148,89 @@ describe('saves', () => {
     s = solve(s, { meet: 'frame' }).state;
     expect(readLearning(JSON.parse(JSON.stringify(s)))).toEqual(s);
     expect(readLearning({ modes: 3, met: 'x', tuneUp: [] })).toEqual(freshLearning());
+  });
+});
+
+describe('saves from before the four later kinds', () => {
+  /** A version 2 save exactly as the old game wrote it: nine kinds, six Meetings. */
+  const oldLearning = (levels: Partial<Record<string, 1 | 2 | 3>>, opened: string[], extra: object = {}) => {
+    const nine = ['ten', 'on', 'story', 'facts', 'tens', 'part', 'skip', 'scale', 'over'];
+    return {
+      modes: Object.fromEntries(nine.map(m => [m, { level: levels[m] ?? 1, window: ['clean', 'missed'], opened: opened.includes(m), starred: false, introPending: false, fresh: false }])),
+      pushed: Object.fromEntries(nine.map(m => [m, 12])), facts: { strength: { '3+2': 4 }, since: 2 }, met: ['frame', 'path'],
+      tuneUp: Object.fromEntries(ANCHORS.map(a => [a, { asked: 3, clean: 1, misses: 1 }])), ...extra,
+    };
+  };
+  it('keeps everything it had', () => {
+    const s = readLearning(oldLearning({ ten: 2, on: 3 }, ['ten', 'on', 'story', 'facts', 'tens']));
+    expect(s.modes.on).toMatchObject({ level: 3, window: ['clean', 'missed'], opened: true });
+    expect(s.pushed.on).toBe(12);
+    expect(s.facts).toEqual({ strength: { '3+2': 4 }, since: 2 });
+    expect(s.met).toEqual(['frame', 'path']);
+    expect(s.tuneUp.ten).toEqual({ asked: 3, clean: 1, misses: 1 });
+  });
+  it('opens the new kinds he has already earned, and says so', () => {
+    const s = readLearning(oldLearning({ ten: 3, on: 2, story: 2, facts: 2, tens: 3 }, ['ten', 'on', 'story', 'facts', 'tens']));
+    expect([s.modes.chart.opened, s.modes.measure.opened, s.modes.shape.opened]).toEqual([true, true, true]);
+    expect(s.modes.chart).toMatchObject({ level: 1, fresh: true, starred: false });
+    expect(s.modes.jump.opened).toBe(false); // needs Number Chart at Level 2
+  });
+  it('leaves the others locked', () => {
+    const s = readLearning(oldLearning({}, ['ten', 'on', 'story']));
+    expect(MODE_IDS.filter(m => s.modes[m].opened)).toEqual(['ten', 'on', 'story']);
+  });
+  it('holds Shapes back while Tune-Up has placed Facts but Facts is still locked', () => {
+    const s = readLearning(oldLearning({ facts: 2 }, ['ten', 'on', 'story']));
+    expect(s.modes.shape.opened).toBe(false);
+    const opened = run(s, 'ten', 6);
+    expect(opened.state.modes.facts.opened).toBe(true);
+    expect(opened.state.modes.shape.opened).toBe(true);
+  });
+  it('opens the chart for clean teens, as if the row had finished today', () => {
+    const rows = { tuneUp: { ...Object.fromEntries(ANCHORS.map(a => [a, { asked: 1, clean: 0, misses: 0 }])), tens: { asked: 3, clean: 3, misses: 0 } } };
+    const s = readLearning(oldLearning({ tens: 2 }, ['ten', 'on', 'story', 'tens'], rows));
+    expect(s.modes.chart.opened).toBe(true);
+    expect(tuneUpOver(s)).toBe(false); // the other rows carry on where they were
+    expect(s.tuneUp.ten).toEqual({ asked: 1, clean: 0, misses: 0 });
+  });
+  it('announces a newly opened kind once only', () => {
+    const once = readLearning(oldLearning({ on: 2 }, ['ten', 'on', 'story']));
+    const twice = readLearning(JSON.parse(JSON.stringify(startPractice(once))));
+    expect(twice.modes.chart).toMatchObject({ opened: true, fresh: false });
+  });
+});
+
+describe('the later kinds', () => {
+  it('open where the spec says', () => {
+    expect(OPENS_AFTER.chart).toEqual(['on']);
+    expect(OPENS_AFTER.measure).toEqual(['story']);
+    expect(OPENS_AFTER.shape).toEqual(['facts']);
+    expect(OPENS_AFTER.jump).toEqual(['tens', 'chart']);
+    expect(opensAt('jump', 'tens')).toBe(3);
+    expect(opensAt('jump', 'chart')).toBe(2);
+  });
+  it('hold Big Jumps until both parents reach their own Levels', () => {
+    const level = (s: LearningState, m: ModeId, l: 2 | 3, opened = true): LearningState => ({ ...s, modes: { ...s.modes, [m]: { ...s.modes[m], level: l, opened } } });
+    let s = level(level(freshLearning(), 'tens', 2), 'chart', 1 as 2);
+    s = run(s, 'tens', 6).state;
+    expect(s.modes.tens.level).toBe(3);
+    expect(s.modes.jump.opened).toBe(false);
+    const last = run(s, 'chart', 6);
+    expect(last.state.modes.jump.opened).toBe(true);
+    expect(last.changes).toContainEqual({ kind: 'open', mode: 'jump' });
+  });
+  it('three clean teens open the chart with Tens and Ones', () => {
+    let s = freshLearning();
+    const changes = [];
+    for (let i = 0; i < 3; i++) { const r = solve(s, { mode: 'tens', push: false, probe: 'tens' }); s = r.state; changes.push(...r.changes); }
+    expect(changes).toContainEqual({ kind: 'open', mode: 'chart' });
+    expect(s.modes.chart.opened && s.modes.tens.opened).toBe(true);
+  });
+  it('let the facts that cross ten into Level 3 only once Over Ten is far enough', () => {
+    const everything = { strength: Object.fromEntries(factsFor(3).map(p => [factKey(p), 5])), since: 9 };
+    const crossing = crossingFacts().map(factKey);
+    expect(factsPool(everything, 3).map(factKey).some(k => crossing.includes(k))).toBe(false);
+    expect(factsPool(everything, 3, true).map(factKey).some(k => crossing.includes(k))).toBe(true);
+    expect(factsPool(everything, 2, true).map(factKey).some(k => crossing.includes(k))).toBe(false);
   });
 });

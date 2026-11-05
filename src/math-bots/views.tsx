@@ -7,12 +7,14 @@ import { sClink, sCount } from '../audio/sfx';
 import type { ProblemInstance } from '../learning/round';
 import { MEETING_SCRIPTS, lessonFor, playSteps, type Stage } from './numbers/teach';
 import { markAsked, teachIn } from './numbers/run';
-import { cardLine, equationText, promptOf, said, sentenceOf, sideText, type Prompt } from './numbers/say';
-import { valueOf, type BoardProblem, type FactsProblem, type OnProblem, type OverProblem, type PartProblem, type ScaleProblem, type SkipProblem, type StoryProblem, type TenProblem, type TensProblem, type Level } from './numbers/problems';
+import { cardLine, equationText, jumpSum, promptOf, said, sentenceOf, sideText, type Prompt } from './numbers/say';
+import { FILLS, type Piece } from './numbers/shapes';
+import { STRIP_UNITS, chartKeeps, hiddenCell, valueOf, type BoardProblem, type ChartProblem, type JumpProblem, type MeasureProblem, type RowId, type ShapeProblem, type FactsProblem, type OnProblem, type OverProblem, type PartProblem, type ScaleProblem, type SkipProblem, type StoryProblem, type TenProblem, type TensProblem, type Level } from './numbers/problems';
 import type { Asking, Meet } from './mix';
 import { speaking, useVoice, type Item } from './voice';
 import { Board, Bond, cls, Dot, Equation, Frame, Frames, Groups, Mat, Path, Scale, StageView } from './visuals/Pictures';
 import { Choices, Strip, Wheels, type Tapped } from './visuals/Inputs';
+import { BarRow, Chart, FillArt, Laid, PIECE_NAMES, PieceArt, Rope, ShapeArt, Units } from './visuals/NewPictures';
 import type { Stretch } from '../modes/progress';
 
 type Current = ProblemInstance<Asking, string>;
@@ -325,6 +327,111 @@ function SkipView({ current, q, level }: { current: Current; q: SkipProblem; lev
   );
 }
 
+// ---------- Number Chart ----------
+function ChartView({ current, q, level }: { current: Current; q: ChartProblem; level: Level }) {
+  const prompt = promptOf(q, level), speech = [...prompt.speech, ...readChoices(q.choices)];
+  const ready = useAsked(current, speech), on = useTaps(current, ready);
+  const tapping = q.input === 'chart';
+  return (
+    <Shell current={current} kind="chart" prompt={prompt} speech={speech} input={tapping ? null : <Answer q={q} on={on} />}>
+      <Chart to={q.to} keep={chartKeeps(q)} hide={c => hiddenCell(q, c)} {...(q.form === 'more' && { from: q.n })} {...(q.form === 'next' && { lit: q.shown })}
+        {...(tapping && { onTap: (n: number) => { on.tap(String(n)); }, wrong: on.wrong })} room={tapping ? 190 : 330} />
+    </Shell>
+  );
+}
+
+// ---------- Big Jumps ----------
+function JumpView({ current, q, level }: { current: Current; q: JumpProblem; level: Level }) {
+  const prompt = promptOf(q, level), ready = useAsked(current, prompt.speech), on = useTaps(current, ready);
+  return (
+    <Shell current={current} kind="jump" prompt={prompt} speech={prompt.speech} input={<Wheels on={on} />}>
+      <Equation text={q.flip ? `? = ${jumpSum(q)}` : `${jumpSum(q)} = ?`} />
+      {q.rods && (q.op === 'sub'
+        ? <Mat rods={q.a / 10} cubes={0} leaving={q.b / 10} /> // one pile, some of it going: two piles side by side would read as adding
+        : <div class="pair-mats">
+          <Mat rods={Math.floor(q.a / 10)} cubes={q.a % 10} />
+          <Mat rods={Math.floor(q.b / 10)} cubes={q.b % 10} />
+        </div>)}
+    </Shell>
+  );
+}
+
+// ---------- Measure It ----------
+/** A row he picks by tapping anywhere along it. */
+const RowPick = ({ id, on, children, label }: { id: RowId; on: ReturnType<typeof useTaps>; children: ComponentChildren; label: string }) => (
+  <button class={cls('m-pick', on.wrong.includes(id) && 'wrong', on.done === id && 'right')} aria-label={label} disabled={on.wrong.includes(id)} onClick={() => on.tap(id)}>{children}</button>
+);
+function MeasureView({ current, q, level }: { current: Current; q: MeasureProblem; level: Level }) {
+  const voice = useVoice(), prompt = promptOf(q, level), ready = useAsked(current, prompt.speech), on = useTaps(current, ready);
+  const [laid, setLaid] = useState(0);
+  const shell = (input: ComponentChildren, picture: ComponentChildren) => <Shell current={current} kind="measure" prompt={prompt} speech={prompt.speech} input={input}>{picture}</Shell>;
+  switch (q.form) {
+    case 'order': return shell(null, <div class="m-picks">{q.bars.map(b => <RowPick key={b.id} id={b.id} on={on} label={`Bar ${b.id}`}><BarRow start={b.start} len={b.len} /></RowPick>)}</div>);
+    case 'rope': return shell(null, <div class="m-picks">{q.bars.map(b => <RowPick key={b.id} id={b.id} on={on} label={b.id === 'a' ? 'The top bar' : 'The bottom bar'}><BarRow start={b.start} len={b.len}><Rope start={b.start} len={q.rope} /></BarRow></RowPick>)}</div>);
+    case 'right': return shell(null, <div class="m-picks">{q.rows.map(r => <RowPick key={r.id} id={r.id} on={on} label={`Row ${r.id}`}><Units len={q.len} laying={r.laying} /></RowPick>)}</div>);
+    case 'count': return shell(<Strip on={on} />, <Units len={q.len} />);
+    case 'fewer': return shell(
+      <div class="choices two">{(['big', 'small'] as const).map(w => <button key={w} class={cls('choice', on.wrong.includes(w) && 'wrong', on.done === w && 'right')} disabled={on.wrong.includes(w)} aria-label={w === 'big' ? 'Big wrenches' : 'Small wrenches'} onClick={() => on.tap(w)}>{w}</button>)}</div>,
+      <div class="m-picks"><Units len={q.len} shown={1} size={2} /><Units len={q.len} shown={1} /></div>,
+    );
+    case 'lay': {
+      const lay = (by: 1 | -1) => { const next = Math.max(0, Math.min(STRIP_UNITS, laid + by)); if (next === laid || !ready) return; setLaid(next); sCount(next); void voice.say(said(next)); };
+      return shell(
+        <div class="builder">
+          <button class="choice" aria-label="Lay a wrench" onClick={() => lay(1)}>＋</button>
+          <button class="choice" aria-label="Take one off" onClick={() => lay(-1)}>－</button>
+          <button class="choice done-btn" aria-label="Done" disabled={on.wrong.includes(String(laid))} onClick={() => on.tap(String(laid))}>✓</button>
+        </div>,
+        <Laid len={q.len} count={laid} />,
+      );
+    }
+  }
+}
+
+// ---------- Shapes ----------
+function ShapeView({ current, q, level }: { current: Current; q: ShapeProblem; level: Level }) {
+  if (q.form === 'fill') return <ShapeFill current={current} q={q} level={level} />;
+  const prompt = promptOf(q, level), ready = useAsked(current, prompt.speech), on = useTaps(current, ready);
+  const [found, setFound] = useState<number[]>([]);
+  if (q.form === 'sides') return <Shell current={current} kind="shape" prompt={prompt} speech={prompt.speech} input={<Strip on={on} />}><div class="shape-stage"><ShapeArt tile={q.tile} /></div></Shell>;
+  function tap(i: number) {
+    if (q.form !== 'every') { on.tap(`tile:${i}`); return; }
+    if (found.includes(i)) return;
+    const next = [...found, i], all = q.targets.every(t => next.includes(t)), verdict = on.tap(q.targets.includes(i) && all ? 'all' : `tile:${i}`);
+    if (verdict === 'not-an-answer' || verdict === 'correct') { setFound(next); sCount(next.length); }
+  }
+  return (
+    <Shell current={current} kind="shape" prompt={prompt} speech={prompt.speech} input={null}>
+      <div class={cls('shape-tiles', `n${q.tiles.length}`)}>
+        {q.tiles.map((t, i) => (
+          <button key={i} class={cls('shape-tile', (found.includes(i) || on.done === `tile:${i}`) && 'found', on.wrong.includes(`tile:${i}`) && 'wrong')} aria-label={`Shape ${i + 1}`} disabled={on.wrong.includes(`tile:${i}`)} onClick={() => tap(i)}><ShapeArt tile={t} /></button>
+        ))}
+      </div>
+    </Shell>
+  );
+}
+/** He taps the piece that fits; it turns itself and drops into the next gap. */
+function ShapeFill({ current, q, level }: { current: Current; q: Extract<ShapeProblem, { form: 'fill' }>; level: Level }) {
+  const voice = useVoice(), prompt = promptOf(q, level), ready = useAsked(current, prompt.speech), on = useTaps(current, ready);
+  const [order, setOrder] = useState<number[]>([]), parts = FILLS[q.fill].parts;
+  function tap(piece: Piece) {
+    const gap = parts.findIndex((p, i) => p.piece === piece && !order.includes(i));
+    if (gap < 0) { on.tap(`piece:${piece}`); return; }
+    const next = [...order, gap];
+    if (next.length < parts.length) { if (!ready || current.signal.aborted || !voice.active) return; setOrder(next); sClink(); void voice.say(PIECE_NAMES[piece]); return; }
+    if (on.tap('all') === 'correct') { setOrder(next); sClink(); }
+  }
+  // parts are drawn in the order he filled them, so a mixed outline fills whichever gap the piece belongs in
+  const shown = [...order, ...parts.map((_, i) => i).filter(i => !order.includes(i))];
+  return (
+    <Shell current={current} kind="shape" prompt={prompt} speech={prompt.speech} input={
+      <div class="choices three pieces">{q.bank.map(p => <button key={p} class={cls('choice', on.wrong.includes(`piece:${p}`) && 'wrong')} aria-label={PIECE_NAMES[p]} disabled={on.wrong.includes(`piece:${p}`)} onClick={() => tap(p)}><PieceArt piece={p} /></button>)}</div>
+    }>
+      <FillArt fill={q.fill} placed={order.length} order={shown} />
+    </Shell>
+  );
+}
+
 export function QuestionView({ current }: { current: Current }) {
   const { q, level, stretch } = current.problem;
   switch (q.kind) {
@@ -338,6 +445,10 @@ export function QuestionView({ current }: { current: Current }) {
     case 'board': return <BoardView current={current} q={q} level={level} />;
     case 'tens': return <TensView current={current} q={q} level={level} />;
     case 'skip': return <SkipView current={current} q={q} level={level} />;
+    case 'chart': return <ChartView current={current} q={q} level={level} />;
+    case 'jump': return <JumpView current={current} q={q} level={level} />;
+    case 'measure': return <MeasureView current={current} q={q} level={level} />;
+    case 'shape': return <ShapeView current={current} q={q} level={level} />;
   }
 }
 

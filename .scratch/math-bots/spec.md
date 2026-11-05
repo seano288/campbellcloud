@@ -1,6 +1,6 @@
 # Spec: Math Bots (first-grade math, robot-combat reward)
 
-Status: live with a tile on the landing page. The Workshop and the 3D fight are in (2026-11-05). Not yet run on a real iPad.
+Status: live with a tile on the landing page. All thirteen kinds, the Workshop, the 3D fight, and Legendaries with the Balance Lock are in (2026-11-05). Not yet run on a real iPad.
 
 A new learning game on the family site, built the same way as Chop Chop and Sight Squad, for the same player (6 to 7, reads
 numbers and short words, leans on recorded voice, alone on an iPad). Short mixed Rounds earn Bolts, spent on his robot, which
@@ -19,7 +19,7 @@ answers and misses. Where it differs from this spec, this spec wins.
 
 Defaults taken from the research's open questions, none confirmed yet: no timed "Pit Stop"; a replayed miss uses new numbers and
 earns no Mastery credit, in this game only; Bolts use the shared currency. The offline budget stays about 50 MB; the game now
-precaches 30 MB. How much fight per Round is a default below, for the parent to confirm.
+precaches 33 MB. How much fight per Round is a default below, for the parent to confirm.
 
 ## Kinds
 
@@ -28,7 +28,7 @@ Three Levels each, using Stretch inside a Level for number size.
 **First release (9):** Make Ten `ten`, Count On `on`, Bot Stories `story`, Facts `facts`, Tens and Ones `tens`, Skip Count `skip`,
 Missing Part `part`, Weigh-In `scale`, Over Ten `over`.
 
-**Next (4):** Number Chart `chart`, Big Jumps `jump`, Measure It `measure`, Shapes `shape`.
+**Second wave (4), built as `research` 3.9 to 3.12 with the changes below:** Number Chart `chart`, Big Jumps `jump`, Measure It `measure`, Shapes `shape`.
 
 Time, halves and coins stay in the sibling games.
 
@@ -47,9 +47,16 @@ Not in the research as a kind (it was an optional Stretch on Number Chart), so d
 - **Wrong answers:** counted by ones (last + 1), the wrong step, stopped where he was, and the crossing slips: after 100 by tens, 200.
 - **Taught:** the path replays each jump with its number said aloud, then the tokens group: "Five, ten, fifteen, twenty. Every jump is five."
 
+### The second wave as built
+
+- **Number Chart.** Level 1 to 30, then 50: `Tap 34.` on the chart, or 17, 18, what comes next. Level 2 crosses tens (29, __) to 120, with 100 to 120 from Stretch 1. Level 3: ten or one more or less, on three choices, the chart fading from Stretch 1 and leaving only his number at Stretch 2.
+- **Big Jumps.** Wheels. Level 1 decades, add and take away. Level 2 no carrying (`24 + 3`, `24 + 30`). Level 3 crossing a ten (`28 + 5`), with `46 + 20` from Stretch 1. Rods show at Stretch 0 only. About one in four has the operation on the right. Totals stay under 100, so they fit the wheels.
+- **Measure It.** Level 1: longest and shortest, with bars starting in different places from Stretch 1, and the rope at Stretch 2. Level 2: lay wrenches, then ✓; counting a laid row joins from Stretch 1. Level 3: which one is measured right (gaps, overlaps, and a late start at Stretch 2), and from Stretch 1 which takes fewer, or more.
+- **Shapes.** Level 1: tap every triangle (or square, and so on) among six tiles. Level 2: which one is not, how many sides, the shape with this many sides all joined. Level 3: fill an outline, two pieces, then up to six.
+
 ## Unlock order
 
-As `research` 5.1, plus Skip Count, which opens at Count On Level 2 (extends counting) and which placement can reach only through Count On.
+As `research` 5.1, plus Skip Count, which opens at Count On Level 2 (extends counting) and which placement can reach only through Count On. A kind opens only when its parents are open as well as at their Levels: Tune-Up can leave Facts at Level 2 and still locked, and Shapes waits for it.
 
 | Kind | Opens |
 |---|---|
@@ -57,7 +64,11 @@ As `research` 5.1, plus Skip Count, which opens at Count On Level 2 (extends cou
 | Facts, Tens and Ones | Make Ten L2 |
 | Missing Part, Skip Count | Count On L2 |
 | Weigh-In | Missing Part L2 |
+| Number Chart | Count On L2, or three clean teens in Tune-Up |
+| Measure It | Bot Stories L2 |
+| Shapes | Facts L2 |
 | Over Ten | Make Ten L3 and Tens and Ones L2 |
+| Big Jumps | Tens and Ones L3 and Number Chart L2 |
 
 Rounds pick from a working set of at most 5 unstarred kinds, with starred kinds as about one review question per Round.
 
@@ -83,10 +94,11 @@ counters on screen. Original bots only; say "robot combat", never the trademark.
 The Workshop (`src/math-bots/RewardScreen.tsx`, `workshop/`) shows TORQUE as built, his Bolts, a big Fight button and four Slots.
 The fight (`src/math-bots/fight/`) is P7 ported, loaded by dynamic import only when it opens. Upgrades are looks only.
 
+Once a Slot's top Rung is his, its Legendary opens by solving a Balance Lock (`workshop/BalanceLock.tsx`, `workshop/lock.ts`): Rainbow Paint, Lightning Drum, Dragon Armour, Comet Wheels. **Bolts rule, following Sight Squad: a Legendary is never bought with Bolts, the lock costs none, and a Legendary is never the Goal.** Solving it changes no Level, Mastery or Strength.
+
 ## Not yet generated
 
-The Bot Stories Scoreboard (needs its chart screen) and per-fact Strength for Facts (`makeFacts` takes the pool it should draw from,
-so the learning layer can add this). Both belong with the learning layer.
+Nothing. Checked in the code on 2026-11-05: the Scoreboard has its generator, screen, teaching and clips (`makeBoard`, `BoardView`), and per-fact Strength is saved, weighted and paced (`stepFact`, `pickFact`, `factsPool`), so this section was out of date. The one real gap was in Facts: `research` 3.3 has the facts that cross ten join once Over Ten reaches Level 2, and no Level held them. They now join Level 3 then (`crossingFacts`).
 
 ## Decisions while building the first playable stage (for the parent to confirm)
 
@@ -106,12 +118,29 @@ so the learning layer can add this). Both belong with the learning layer.
 - **A fight costs 5 Bolts, and the first is free.** About one Round earns one fight.
 - **A paid fight stays paid until he sees it end.** Leaving early, a reload or a crash keeps a ticket in the save, and his next Fight tap is free. If 3D can't run he gets the plain outcome and isn't charged. The cost: a child who always leaves just before the end fights for free, which seems fine.
 - **Slots and Rungs:** Paint, Drum, Armour, Wheels, three Mods each at 5, 15 and 30 Bolts. Looks only: TORQUE always wins. Tapping one he can afford buys and fits it at once, as in the sibling games.
-- **No Legendaries yet,** so the spec's Balance Lock isn't built. Top Rungs are the end of the shop for now.
 - **Fights use 190 vetted seeds of 200,** chosen by a soak: TORQUE won all 200, and the 10 left out had no hammer hit, no armour off, or a knockout outside 15 to 24 seconds.
 - **The 💥 button** makes TORQUE charge when its drum is ready, about a second later. Kept from P7 so he has something to press.
 - **Detail looks after itself.** It starts by device, watches frame times, and steps down through nine rungs, the last four on WebGL2. Below about 26 fps it steps down, and it remembers where it settled. A fight that reaches the knockout without stepping down earns one rung back for the next fight, so a device near a limit may step down every other fight. Below about 6 fps at the bottom he gets the plain outcome, and the next fight starts from the top again.
 - **The commentator is the game's voice, Aria.** A separate commentator voice wasn't tried.
 - **Offline:** everything is precached, fight included. The service worker fetches it in the background, so play doesn't wait, but Round-only offline use also waits for those downloads to finish on first visit.
+
+## Second wave and Legendary defaults (for the parent to confirm)
+
+- **Save version stays 2.** Everything new is added to the save, and the reader opens what he has earned on any load, so no version check is needed. A bump would be worse: the live build treats a version it doesn't know as a blank save, so rolling this release back would wipe him. Rolling back with version 2 loses only his Legendaries.
+- **A child partway through** gets each new kind he has earned the next time the game loads, with its "You opened" line, and it starts at Level 1.
+- **Order of the kinds:** Home and the working set go Skip Count, Number Chart, Measure It, Shapes, Weigh-In, Over Ten, Big Jumps. New kinds start at Level 1, so for a while they take working-set places ahead of his Level 2 and 3 kinds.
+- **Three clean teens open Number Chart,** as `research` 5.3 says, even before Count On L2. A child who already cleared that row gets it on load.
+- **Number Chart runs 1 to 120 in rows ending in tens.** On an iPhone upright a square is about 36 points wide by 48 tall: narrower than the 44 rule, because ten columns have to fit. The rows are taller to make up for it, and the squares touch, so there's no dead space between them.
+- **"Twenty-ten" (210) and 1009 are never offered:** the voice stops at 200 and the wheels at 99. The research's other wrong answers are used.
+- **Measure It is tap-only, so he can't make a gap himself.** Laying goes end to end, one tap each, with ＋, － and ✓. Gaps and overlaps are taught at Level 3, in pictures to judge. This overrides `research`'s dragged units.
+- **A wrench is a unit, but bars are plain bars,** not a bot's arm as `research` 7.2 suggests, because no robot part goes on a question screen. For the same reason an outline is an "outline", not an armour plate.
+- **A square is a rectangle, so a rectangle question never shows one,** neither as a right answer nor as a foil. Stretch 0 leaves hexagons out of every form.
+- **A four-sided foil is never explained by counting sides:** on square and rectangle questions the line is "Its sides are not all the same long." or "Its corners lean."
+- **Outlines are always "Fill the shape.",** never named: "Fill the square." would be wrong about the square piece on some outlines and right on others. A replayed Fill is a different outline.
+- **Which takes fewer** also asks which takes more, or "always big" would be right every time.
+- **The Balance Lock's level:** his Weigh-In Level, on three number choices. He can afford a top Rung before Weigh-In opens, and then gets the easiest form, one number on the left with counters to count; = only shows once he has met it. Two misses and the lock says the sum and lights the right number. He can close it at any time, and gets a new puzzle.
+- **Once all twelve Mods are bought** the Goal chip shows 🔐 and says the next Legendary is in the lock, then 🏆 when all four are his.
+- **Legendary looks:** Rainbow Paint (colour bands along the body), Lightning Drum (glowing purple teeth and bands), Dragon Armour (gold scales and fins), Comet Wheels (orange glowing hub and tyre ring). The fins and rings are real 3D parts on TORQUE; the fight's physics doesn't read any of it.
 
 ## Fight assets
 

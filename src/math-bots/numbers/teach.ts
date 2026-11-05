@@ -9,20 +9,28 @@ import type { MeetingId } from '../learning';
 import type { Phrase } from '../phrases';
 import { createVoiceTask, type VoiceScope } from '../voice';
 import { signal, type Signal } from '@preact/signals';
-import { line, onesWord, sentenceOf, tensWord, textOf, type AnyQuestion, type Part, speech as chain } from './say';
-import { valueOf, type Side } from './problems';
+import { chartWords, line, onesWord, sentenceOf, tensWord, textOf, type AnyQuestion, type Part, speech as chain } from './say';
+import { valueOf, type Bar, type ChartProblem, type JumpProblem, type Laying, type MeasureProblem, type ShapeProblem, type Side } from './problems';
+import { shapeSaid } from '../phrases';
+import { DRAWINGS, FILLS, SIDES_OF, type Drawing, type FillId, type ShapeName, type Tile } from './shapes';
 
 /** What a step shows. Every picture a question can use, in one description, so a lesson can be any of them. */
 export type Stage =
   | { readonly view: 'frames'; readonly a: number; readonly b?: number; readonly hideFrom?: number }
   | { readonly view: 'path'; readonly cells: readonly (number | null)[]; readonly at?: number | null; readonly start?: number }
   | { readonly view: 'bond'; readonly whole: number; readonly left: number; readonly right: number }
-  | { readonly view: 'mat'; readonly rods: number; readonly cubes: number }
+  | { readonly view: 'mat'; readonly rods: number; readonly cubes: number; readonly leaving?: number }
   | { readonly view: 'compare'; readonly a: number; readonly b: number }
   | { readonly view: 'scale'; readonly left: number; readonly right: number; readonly leftText?: string; readonly rightText?: string }
   | { readonly view: 'rows'; readonly top: number; readonly bottom: number; readonly leaving?: number; readonly paired?: boolean }
   | { readonly view: 'groups'; readonly groups: number; readonly step: number; readonly lit?: number }
-  | { readonly view: 'equation'; readonly text: string };
+  | { readonly view: 'equation'; readonly text: string }
+  | { readonly view: 'chart'; readonly to: number; readonly at?: number; readonly from?: number; readonly lit?: readonly number[]; readonly upTo?: number }
+  | { readonly view: 'bars'; readonly bars: readonly Bar[]; readonly rope?: number; readonly lit?: string }
+  /** Wrenches on a bar. `shown`: only the first few are down yet. `size`: how long each wrench is. `lit`: the ones counted so far. */
+  | { readonly view: 'units'; readonly len: number; readonly laying: Laying; readonly shown?: number; readonly size?: number; readonly lit?: number }
+  | { readonly view: 'shape'; readonly tile: Tile; readonly lit?: number }
+  | { readonly view: 'fill'; readonly fill: FillId; readonly placed: number };
 
 export interface Step { readonly stage?: Stage | null; readonly say: readonly Part[]; readonly caption?: boolean; readonly hold?: number; readonly tick?: number }
 const s = (stage: Stage | null | undefined, ...say: Part[]): Step => ({ stage, say, caption: true });
@@ -85,9 +93,41 @@ export function missSteps(q: AnyQuestion, answer: string): Step[] {
         if (q.form === 'howManyTens') return m > 12 ? [say('Too big!')] : [s(mat(Math.min(m * 10, 99)), m, m === 1 ? 'ten is' : 'tens is', m * 10, '.')];
         return m > 119 ? [say('Too big!')] : [s(mat(Math.min(m, 99)), Math.floor(m / 10), tensWord(Math.floor(m / 10)), m % 10, onesWord(m % 10))];
       case 'skip': return [say('Every jump is', q.step, '.')];
+      case 'chart':
+        if (q.form === 'tap') return [s(undefined, 'That is', m, '.')];
+        return [q.form === 'next' ? say('Count along the row.') : say(CHART_RULE[q.op])];
+      case 'jump': return [s(mat(Math.min(m, 99)), Math.floor(m / 10), tensWord(Math.floor(m / 10)), m % 10, onesWord(m % 10))];
+      case 'measure':
+        switch (q.form) {
+          case 'order': return [say('Look at both ends of each bar.')];
+          case 'rope': return [say('Look at the rope on each bar.')];
+          case 'lay': return [say(m < q.len ? 'It does not reach the end.' : 'It goes past the end.')];
+          case 'count': return [say('Count each wrench.')];
+          case 'right': { const row = q.rows.find(r => r.id === answer); return [say(row?.laying === 'gaps' ? 'That one has gaps.' : row?.laying === 'overlap' ? 'That one has overlaps.' : 'That one starts too late.')]; }
+          case 'fewer': return [say(q.want === 'fewer' ? 'Big ones cover more, so it takes fewer of them.' : 'Small ones cover less, so it takes more of them.')];
+        }
+        break;
+      case 'shape': {
+        if (q.form === 'sides') return [say('Count the sides.')];
+        if (q.form === 'fill') return [say('That piece does not fit.')];
+        const tile = q.tiles[Number(answer.slice(5))];
+        if (!tile) return [say('Count the sides.')];
+        if (q.form === 'notA' && Number(answer.slice(5)) !== Number(q.answer.slice(5))) return [say(`That one is a ${q.name}.`)];
+        return [say(...tileReason(tile, q.form === 'rule' ? undefined : q.name))];
+      }
     }
   })();
   return [...steps, { say: ['Try again!'] }];
+}
+const CHART_RULE = { '+10': 'Ten more goes down one row.', '-10': 'Ten less goes up one row.', '+1': 'One more goes along one square.', '-1': 'One less goes back one square.' } as const;
+/** What's wrong with a tile, in his terms, for the shape he's after. Colour is never named. */
+function tileReason({ id }: Tile, target?: ShapeName): Part[] {
+  const d: Drawing = DRAWINGS[id];
+  if (d.flaw === 'gap') return ['That one has a gap.'];
+  if (d.flaw === 'curve') return ['That one has a curved side.'];
+  if (d.flaw === 'stretched') return ['That one is stretched.'];
+  if (d.off && target && SIDES_OF[target] === d.sides) return [d.off === 'lengths' ? 'Its sides are not all the same long.' : 'Its corners lean.'];
+  return d.sides === 0 ? ['That one has no sides.'] : ['That one has', d.sides, 'sides.'];
 }
 /** His sum read as an addition from a number he can see. */
 const sum = (seen: number, m: number): Step => (m >= seen ? makes(seen, m - seen) : say(m, 'is less than', seen, '.'));
@@ -195,6 +235,82 @@ function teachBody(q: AnyQuestion, equalSaid: boolean): Step[] {
       const start = Math.max(0, n - step * 3), cells = range(0, Math.floor((n - start) / step)).map(i => start + i * step);
       return [...cells.map((v, i) => ({ stage: { view: 'path', cells, at: v } as Stage, say: [v] as Part[], tick: i })), say('Every jump is', step, '.')];
     }
+    case 'chart': return teachChart(q);
+    case 'jump': return teachJump(q);
+    case 'measure': return teachMeasure(q);
+    case 'shape': return teachShape(q);
+  }
+}
+
+const rowOf = (n: number) => { const first = Math.floor((n - 1) / 10) * 10 + 1; return range(first, first + 9); };
+const columnOf = (n: number, to: number) => range(0, Math.floor((to - 1) / 10)).map(r => r * 10 + ((n - 1) % 10) + 1).filter(c => c <= to);
+function teachChart(q: ChartProblem): Step[] {
+  const { to } = q, n = Number(q.answer);
+  if (q.form === 'tap') {
+    const tens = Math.floor(n / 10), ones = n % 10;
+    return [
+      s({ view: 'chart', to, lit: rowOf(n) }, ...(n > 100 ? ['One hundred and', n - 100] as Part[] : [tens, tensWord(tens), ones, onesWord(ones)])),
+      s({ view: 'chart', to, at: n }, 'Here is', n, '.'),
+    ];
+  }
+  if (q.form === 'next') {
+    const last = q.shown.at(-1)!;
+    return [s({ view: 'chart', to, at: n, upTo: n }, 'After', last, 'comes', n, '.'), ...(n % 10 === 0 ? [say('A new ten.')] : [])];
+  }
+  const far = q.op === '+10' || q.op === '-10', more = q.op === '+10';
+  return [
+    s({ view: 'chart', to, from: q.n }, CHART_RULE[q.op]),
+    ...(far ? [s({ view: 'chart', to, from: q.n, lit: columnOf(q.n, to) }, 'Same ones.', more ? 'One more ten.' : 'One less ten.')] : []),
+    s({ view: 'chart', to, from: q.n, at: n }, chartWords(q.op), q.n, 'is', n, '.'),
+  ];
+}
+
+function teachJump(q: JumpProblem): Step[] {
+  const { a, b } = q, ta = Math.floor(a / 10), oa = a % 10, tb = Math.floor(b / 10), ob = b % 10, n = Number(q.answer), tn = Math.floor(n / 10), on = n % 10;
+  const tens: Part = tn === 1 ? 'ten.' : 'tens.', pair: Stage = { view: 'compare', a, b };
+  if (q.op === 'sub') return [s({ view: 'mat', rods: ta, cubes: 0, leaving: tb }, ta, 'tens take away', tb, tb === 1 ? 'ten is' : 'tens is', tn, tens), s(mat(n), tn, tn === 1 ? 'ten is' : 'tens is', n, '.')];
+  const sum = s(mat(n), tn, tensWord(tn), on, onesWord(on)), end = s(undefined, a, 'and', b, 'make', n, '.');
+  if (q.form === 'decades') return [s(pair, 'Tens go with tens.'), s(mat(n), ta, tensWord(ta), tb, tb === 1 ? 'ten are' : 'tens are', tn, tens), end];
+  if (q.form === 'cross') return [s(pair, 'Tens go with tens.'), say('Ones go with ones.'), s({ view: 'mat', rods: ta + tb, cubes: oa + ob }, 'Ten ones make one ten.'), sum, end];
+  return [s(pair, 'Tens go with tens.'), say('Ones go with ones.'), sum, end];
+}
+
+const lineUp = (bars: readonly Bar[]) => bars.map(b => ({ ...b, start: 0 }));
+function teachMeasure(q: MeasureProblem): Step[] {
+  const countThem = (len: number): Step[] => [
+    s({ view: 'units', len, laying: 'right' }, 'No gaps. No overlaps. Now count.'),
+    ...range(1, len).map(i => ({ stage: { view: 'units', len, laying: 'right', lit: i } as Stage, say: [i] as Part[], tick: i })),
+    s(undefined, len, 'wrenches long.'),
+  ];
+  switch (q.form) {
+    case 'order': return [s({ view: 'bars', bars: lineUp(q.bars) }, 'Line them up.'), s({ view: 'bars', bars: lineUp(q.bars), lit: q.answer }, `This one is the ${q.want}.`)];
+    case 'rope': {
+      const bottomLonger = q.answer === 'b', stage: Stage = { view: 'bars', bars: q.bars, rope: q.rope };
+      return [s(stage, 'The rope is as long as the top bar.'), say('Put the rope on the bottom bar.'), say(bottomLonger ? 'The bottom bar is longer than the rope.' : 'The bottom bar is shorter than the rope.'), s({ ...stage, lit: q.answer }, bottomLonger ? 'So the bottom bar is longer.' : 'So the top bar is longer.')];
+    }
+    case 'lay': case 'count': return countThem(q.len);
+    case 'right': return [...q.rows.flatMap(r => (r.laying === 'right' ? [] : [s({ view: 'units', len: q.len, laying: r.laying }, r.laying === 'gaps' ? 'That one has gaps.' : r.laying === 'overlap' ? 'That one has overlaps.' : 'That one starts too late.')])), s({ view: 'units', len: q.len, laying: 'right' }, 'No gaps. No overlaps. Now count.'), say('This one is right.')];
+    case 'fewer': return [s({ view: 'units', len: q.len, laying: 'right', size: 2 }, q.len / 2, 'big wrenches.'), s({ view: 'units', len: q.len, laying: 'right' }, q.len, 'small wrenches.'), say('Bigger wrenches, fewer of them.')];
+  }
+}
+
+/** Counting a tile's sides as they light up, and what that makes it. */
+function sideCount(tile: Tile): Step[] {
+  const d: Drawing = DRAWINGS[tile.id], stage = (lit: number): Stage => ({ view: 'shape', tile, lit });
+  if (d.is === 'circle') return [s(stage(0), 'No sides. No corners.'), say('All round.'), say(shapeSaid('circle'))];
+  const named: Step[] = !d.is ? [] : [...(d.is === 'square' ? [say('All the same long.')] : d.is === 'rectangle' ? [say('Two long, two short.')] : []), say(shapeSaid(d.is))];
+  return [...range(1, d.sides).map(i => ({ stage: stage(i), say: [i] as Part[], tick: i })), s(undefined, d.sides, 'sides.'), say('All joined.'), ...named];
+}
+function teachShape(q: ShapeProblem): Step[] {
+  switch (q.form) {
+    case 'every': return sideCount(q.tiles[q.targets[0]!]!);
+    case 'rule': return sideCount(q.tiles[Number(q.answer.slice(5))]!);
+    case 'sides': return sideCount(q.tile);
+    case 'notA': { const foil = q.tiles[Number(q.answer.slice(5))]!; return [s({ view: 'shape', tile: foil }, ...tileReason(foil, q.name)), say(`It is not a ${q.name}.`)]; }
+    case 'fill': {
+      const f = FILLS[q.fill];
+      return [...f.parts.map((_, i) => ({ stage: { view: 'fill', fill: q.fill, placed: i + 1 } as Stage, say: [i + 1] as Part[], tick: i + 1 })), say(f.says)];
+    }
   }
 }
 
@@ -202,6 +318,7 @@ function teachBody(q: AnyQuestion, equalSaid: boolean): Step[] {
 
 export interface Meeting { readonly steps: readonly Step[]; readonly tap: Phrase; readonly taps: number; readonly end: Stage }
 const FIVE = frames(5), TEN_FRAME = frames(10);
+const TRIANGLE: Tile = { id: 'triEven', turn: 0, size: 1, hue: 1 }, WRENCHES = (shown: number): Stage => ({ view: 'units', len: 4, laying: 'right', shown }), CHART_STAGE: Stage = { view: 'chart', to: 50 };
 const WALK = path(0, 10, 0), BOND: Stage = { view: 'bond', whole: 7, left: 3, right: 4 };
 export const MEETING_SCRIPTS: Record<MeetingId, Meeting> = {
   frame: { steps: [s(frames(1), 'This is a ten frame.'), s(FIVE, 'Five on top.'), s(TEN_FRAME, 'Five below.'), s(TEN_FRAME, 'Ten.')], tap: 'Tap the ten frame!', taps: 1, end: TEN_FRAME },
@@ -210,6 +327,10 @@ export const MEETING_SCRIPTS: Record<MeetingId, Meeting> = {
   rod: { steps: [s({ view: 'mat', rods: 0, cubes: 10 }, 'Ten ones.'), s({ view: 'mat', rods: 1, cubes: 0 }, 'Ten ones make one ten.')], tap: 'Tap the ten!', taps: 1, end: { view: 'mat', rods: 1, cubes: 0 } },
   same: { steps: [s(scale(5, 5, '5', '2 + 3'), 'This side has', 5, '.'), s(undefined, 'This side has', 5, '.'), s({ view: 'equation', text: '5 = 2 + 3' }, 'This sign means the same as.')], tap: 'Tap the sign!', taps: 1, end: { view: 'equation', text: '5 = 2 + 3' } },
   signs: { steps: [s({ view: 'equation', text: '3 < 5' }, 'The wide side faces the bigger number.')], tap: 'Tap the sign!', taps: 1, end: { view: 'equation', text: '3 < 5' } },
+  chart: { steps: [s(CHART_STAGE, 'This is a number chart.'), s({ ...CHART_STAGE, lit: range(21, 30) } as Stage, 'Each row has ten numbers.'), s({ ...CHART_STAGE, lit: [24, 34] } as Stage, 'One row down is ten more.')], tap: 'Tap the chart!', taps: 1, end: CHART_STAGE },
+  unit: { steps: [s(WRENCHES(1), 'This is a wrench.'), s(WRENCHES(4), 'Lay it end to end.'), say('No gaps. No overlaps. Now count.')], tap: 'Tap the wrenches!', taps: 1, end: WRENCHES(4) },
+  sides: { steps: [s({ view: 'shape', tile: TRIANGLE }, 'This shape has sides.'), ...range(1, 3).map(i => ({ stage: { view: 'shape', tile: TRIANGLE, lit: i } as Stage, say: [i] as Part[], tick: i })), say('All joined.')], tap: 'Tap the shape!', taps: 1, end: { view: 'shape', tile: TRIANGLE, lit: 3 } },
+  fill: { steps: [s({ view: 'fill', fill: 'squareTwo', placed: 0 }, 'Shapes fit together.'), s({ view: 'fill', fill: 'squareTwo', placed: 1 }, 'Two triangles make a square.'), { stage: { view: 'fill', fill: 'squareTwo', placed: 2 }, say: [], hold: 900 }], tap: 'Tap the square!', taps: 1, end: { view: 'fill', fill: 'squareTwo', placed: 2 } },
 };
 
 /** Which pictures this question needs him to have met, in order. */
@@ -221,6 +342,10 @@ export function meetingsFor(q: AnyQuestion): MeetingId[] {
     case 'scale': return ['same'];
     case 'tens': return q.form === 'compare' ? ['rod', 'signs'] : ['rod'];
     case 'over': return ['frame'];
+    case 'chart': return ['chart'];
+    case 'jump': return ['rod'];
+    case 'measure': return q.form === 'order' || q.form === 'rope' ? [] : ['unit'];
+    case 'shape': return q.form === 'fill' ? ['sides', 'fill'] : ['sides'];
     default: return [];
   }
 }
