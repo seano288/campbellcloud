@@ -27,3 +27,10 @@ export function wakeAudio() {
 export function resumeAudio() {
   if (ctx && ctx.state !== 'running') ctx.resume().catch(() => {});
 }
+
+/** Keeps the sound from staying off: iPad Safari can pause it at any time, and only a tap may start it again. */
+export function keepSoundAwake() {
+  addEventListener('pointerup', wakeAudio, true);
+  addEventListener('touchend', wakeAudio, true);
+  document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'visible') resumeAudio(); });
+}

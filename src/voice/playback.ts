@@ -31,6 +31,8 @@ export function createPlayback<P extends string, B>({
       const file = selected.has(phrase) ? clips[phrase] : undefined;
       buffer = file ? Promise.resolve().then(() => load(file)).catch(() => null) : Promise.resolve(null);
       buffers.set(phrase, buffer);
+      // a clip that failed to load (the Wi-Fi dropped) is tried again next time, or it would stay silent until a reload
+      if (file) void buffer.then(loaded => { if (loaded === null) buffers.delete(phrase); });
     }
     return buffer;
   }

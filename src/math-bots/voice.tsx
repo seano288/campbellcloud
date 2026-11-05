@@ -16,11 +16,19 @@ export { mathVoice };
 export type Item = PlaybackItem<Phrase>;
 export type VoiceScope = PlaybackScope<Phrase>;
 
+const STALLED_S = 0.5;
+
 // Every recording carries about a second of silence, which nobody minds after a whole sentence, but a line chained from four
 // pieces would crawl. So each clip is trimmed as it's decoded: a short gap between pieces, a longer one after a full stop.
 const SENTENCE_ENDS = new Set(mathVoice.phrases.filter(p => /[.?!]$/.test(p)).map(p => mathVoice.clips[p]));
 const trimmedAudio: PlaybackControls<AudioBuffer> = {
-  ...recordedAudio,
+  // A clip never tells us it ended while iPad Safari has the sound paused, and taps wait for the voice, so a clip has to end
+  // on the clock too: the game carries on quietly, and his next tap brings the sound back.
+  play(buffer) {
+    const playing = recordedAudio.play(buffer), timer = setTimeout(playing.stop, (buffer.duration + STALLED_S) * 1000);
+    void playing.done.then(() => clearTimeout(timer));
+    return playing;
+  },
   async load(file) {
     const whole = await recordedAudio.load(file);
     if (!whole) return null;

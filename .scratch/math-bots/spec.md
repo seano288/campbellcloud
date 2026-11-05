@@ -1,6 +1,6 @@
 # Spec: Math Bots (first-grade math, robot-combat reward)
 
-Status: first playable stage built (2026-11-04), uncommitted; fight not integrated yet. "Math Bots" is a working title.
+Status: first playable stage live and unlisted (e05942d, 2026-11-04); the Workshop is still a placeholder, fight not integrated yet.
 
 A new learning game on the family site, built the same way as Chop Chop and Sight Squad, for the same player (6 to 7, reads
 numbers and short words, leans on recorded voice, alone on an iPad). Short mixed Rounds earn Bolts, spent on his robot, which

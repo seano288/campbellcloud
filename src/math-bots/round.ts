@@ -73,7 +73,8 @@ export function startRound(resume: readonly SolvedProblem[] = []) {
         const p = controller.display.peek().current.problem, voice = createVoiceScope(signal);
         // the number he just tapped, said whole (the question's own voice has already stopped with it)
         if (p.mode !== 'meet' && /^\d+$/.test(p.q.answer) && p.q.input !== 'cards') await voice.say(said(Number(p.q.answer)));
-        if (fact.index === ROUND_LENGTH || fact.outcome !== 'clean') return;
+        // on a slow connection the next question may be here already, and a cheer now would cut off its voice
+        if (fact.index === ROUND_LENGTH || fact.outcome !== 'clean' || controller.display.peek().phase !== 'success') return;
         const cheer = pick(Math.random, CHEERS);
         await toast(voice, cheer, cheer);
       },

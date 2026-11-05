@@ -160,6 +160,15 @@ describe('selected recorded playback', () => {
     await said;
   });
 
+  it('tries a clip again after it failed to load', async () => {
+    const load = vi.fn<(file: string) => Promise<string | null>>().mockRejectedValueOnce(new Error('offline')).mockResolvedValueOnce(null).mockImplementation(async file => file);
+    const { playback, sounds } = recording(load), voice = playback.scope();
+    for (const attempt of [1, 2]) { await voice.say('Hello'); await tick(); expect(load).toHaveBeenCalledTimes(attempt); expect(sounds).toHaveLength(0); }
+    void voice.say('Hello');
+    await tick();
+    expect(sounds.map(s => s.clip)).toEqual(['hello.mp3']);
+  });
+
   it('binds child playback and pending pauses to their originating lifetime', async () => {
     const { playback, sounds } = recording();
     const parent = playback.scope();
