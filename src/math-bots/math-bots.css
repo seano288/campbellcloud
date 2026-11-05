@@ -312,7 +312,14 @@ button.nc:active{background:var(--yellow)}
 .fight-stage{position:absolute;inset:0}
 .fight-stage canvas{position:absolute;inset:0;width:100%;height:100%;display:block}
 .fight-warm{position:absolute;inset:0;display:grid;place-items:center;background:radial-gradient(circle,#1f3243,#000 80%);pointer-events:none}
-.fight-warm .gear{font-size:calc(96px*var(--u));animation:fight-spin 1.6s linear infinite}
+.fight-warm[hidden]{display:none}
+.fight-load{--f:0;position:relative;width:min(72vw,calc(560px*var(--u)));height:max(18px,calc(28px*var(--u)))}
+.fight-load .track{position:absolute;inset:0;border-radius:99px;overflow:hidden;background:#0a141c;box-shadow:0 0 0 3px #5d6b78}
+.fight-load i{display:block;height:100%;background:var(--yellow);transform:translateX(calc((var(--f) - 1)*100%))}
+.fight-load .rider{position:absolute;inset:0;display:flex;align-items:center;transform:translateX(calc(var(--f)*100%))}
+.fight-load i,.fight-load .rider{transition:transform var(--t,.4s) cubic-bezier(.2,.8,.3,1);will-change:transform}
+@starting-style{.fight-load i{transform:translateX(-100%)}.fight-load .rider{transform:none}}
+.fight-warm .gear{font-size:max(56px,calc(84px*var(--u)));line-height:1;margin-left:-.5em;animation:fight-spin 1.6s linear infinite}
 @keyframes fight-spin{to{transform:rotate(360deg)}}
 .fight-top{position:absolute;left:0;right:0;top:0;display:flex;align-items:center;gap:12px;padding:max(10px,env(safe-area-inset-top)) max(12px,env(safe-area-inset-right)) 0 max(12px,env(safe-area-inset-left))}
 .fight-bars{flex:1;min-width:0;max-width:420px;margin:0 auto;font:700 max(11px,calc(14px*var(--u)))/1 "Helvetica Neue",Arial,sans-serif;letter-spacing:.08em;text-shadow:0 1px 3px #000}

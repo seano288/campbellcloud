@@ -4,11 +4,16 @@ import * as THREE from 'three/webgpu';
 import { KTX2Loader } from 'three/addons/loaders/KTX2Loader.js';
 import { attribute, uv, texture, vec2, vec3, vec4, float, mix, smoothstep, color, normalMap, positionLocal, sqrt, dot, normalize, modelViewMatrix, max, Fn, step, length } from 'three/tsl';
 
-export async function loadTextures(renderer) {
+/** The eight files' size. Only the progress bar reads it, so a texture swapped later just makes the bar a little off. */
+const TEX_BYTES = 16083099;
+
+/** `onBytes` hears how much of the download is done, 0 to 1. */
+export async function loadTextures(renderer, onBytes) {
   const L = new KTX2Loader().detectSupport(renderer);
-  const names = ['floor_a', 'floor_n', 'steel_a', 'steel_n', 'paint_p', 'paint_n', 'scratch', 'tyre_n'], T = {};
+  const names = ['floor_a', 'floor_n', 'steel_a', 'steel_n', 'paint_p', 'paint_n', 'scratch', 'tyre_n'], T = {}, got = {};
+  const heard = n => e => { got[n] = e.loaded; onBytes(Math.min(1, Object.values(got).reduce((a, b) => a + b, 0) / TEX_BYTES)); };
   try {
-    await Promise.all(names.map(async n => { const t = await L.loadAsync(new URL(`math-bots-fight/tex/${n}.ktx2`, document.baseURI).href); t.wrapS = t.wrapT = THREE.RepeatWrapping; t.anisotropy = 8; T[n] = t; }));
+    await Promise.all(names.map(async n => { const t = await L.loadAsync(new URL(`math-bots-fight/tex/${n}.ktx2`, document.baseURI).href, heard(n)); t.wrapS = t.wrapT = THREE.RepeatWrapping; t.anisotropy = 8; T[n] = t; }));
   } finally { L.dispose(); } // each loader keeps a pool of workers, and a failed attempt must not leave one behind
   const puff = document.createElement('canvas'); puff.width = puff.height = 128; const x = puff.getContext('2d'), g = x.createRadialGradient(64, 64, 2, 64, 64, 62);
   g.addColorStop(0, 'rgba(255,255,255,.95)'); g.addColorStop(.5, 'rgba(255,255,255,.5)'); g.addColorStop(1, 'rgba(255,255,255,0)'); x.fillStyle = g; x.fillRect(0, 0, 128, 128);

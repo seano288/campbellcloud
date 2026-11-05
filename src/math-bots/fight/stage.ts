@@ -54,6 +54,8 @@ export interface FightOptions {
   hud(torque: number, anvil: number, replay: boolean): void;
   /** True while a stage is being built, so the screen can show it's warming up. */
   busy(on: boolean): void;
+  /** How far the build has got, 0 to 1. `blind`: a long stretch that can't report as it goes, and the bar is heading to `to` meanwhile. */
+  progress(to: number, blind?: boolean): void;
   onFailed(): void;
 }
 export interface FightRun {
@@ -70,6 +72,8 @@ interface Shared { T: number; heard: Heard; /** Physics steps of his 💥 taps. 
 
 /** Out here on purpose: a closure inside buildStage would hold its whole scope. */
 const nothing = () => {};
+/** Gives the page a frame to paint in, or a moment if it's hidden, where frames stop. */
+const painted = () => new Promise<void>(r => { requestAnimationFrame(() => { setTimeout(r); }); setTimeout(r, 200); });
 let physics: Promise<void> | null = null;
 const rapier = () => (physics ??= initPhysics());
 const pixelRatio = (w: number, h: number, r: Rung) => Math.min(devicePixelRatio || 1, r.px / Math.max(w, h, 1));
@@ -115,6 +119,8 @@ export function openFight(host: HTMLElement, o: FightOptions): FightRun {
       if (rung !== shared.rung) shared.rocky = true;
       shared.rung = rung;
       if (!shared.closed) fightOpened(rung); // he may have left while the old one was freed, which is no crash
+      o.progress(.3);
+      await painted();
       await rapier();
       stage = await buildStage(host, o, shared, sound, { rebuild: r => void build(r), fail });
       building = false;
@@ -158,6 +164,8 @@ async function buildStage(host: HTMLElement, o: FightOptions, shared: Shared, so
     renderer.onError = nothing;
   })());
   const stillWanted = () => { if (shared.closed) throw new Error('left'); };
+  // Building is long work on a slow device. In one piece it would be a single frozen frame, so it stops to let the screen show progress.
+  const beat = async (to: number, blind?: boolean) => { o.progress(to, blind); await painted(); stillWanted(); };
 
   try {
     await renderer.init();
@@ -178,11 +186,14 @@ async function buildStage(host: HTMLElement, o: FightOptions, shared: Shared, so
     const scene = new THREE.Scene(); scene.background = new THREE.Color(0x010102);
     const cam = new THREE.PerspectiveCamera(30, w0 / h0, .12, 70);
 
-    const [T, back]: Ported = await Promise.all([loadTextures(renderer), loadBackdrop()]);
+    await beat(.34);
+    const [T, back]: Ported = await Promise.all([loadTextures(renderer, (f: number) => o.progress(.34 + f * .28)), loadBackdrop()]);
     stillWanted();
+    await beat(.68);
     const mats: Ported = makeMaterials(T, o.look);
     buildEnvironment(renderer, scene, back); buildBackdrop(scene, back);
     buildArena(scene, mats, T);
+    await beat(.72);
     const { flash, fill, VOL }: Ported = buildLights(scene, Q);
     const atlasT: Ported = new DamageAtlas(T_PLATES, { dRes: 384, sRes: 1024 }), atlasA: Ported = new DamageAtlas(PANELS, { dRes: 512, sRes: 1024 });
     const torque: Ported = buildTorque(mats, T, atlasT, o.look), anvil: Ported = buildAnvil(mats, T, atlasA);
@@ -192,6 +203,7 @@ async function buildStage(host: HTMLElement, o: FightOptions, shared: Shared, so
     const scorch: Ported = new Scorch(); scene.add(scorch.mesh);
     const smoke: Ported = new Smoke(T), sparks: Ported = makeSparks(renderer, Q.nSparks, isGPU);
     const volume: Ported = Q.vol ? makeVolume(scene, Q, VOL) : null;
+    await beat(.76);
     const { pipe, u: pu }: Ported = makePipeline(renderer, scene, cam, Q, { volume, sparksMesh: sparks.mesh, mirrorMesh: sparks.mirrorMesh, smoke, VOL });
     torque.shell.uArc.value = 3.3;
 
@@ -327,6 +339,7 @@ async function buildStage(host: HTMLElement, o: FightOptions, shared: Shared, so
     };
 
     // Build to the moment he was at (the start, or where a rebuild left off) and draw it once before anything shows.
+    await beat(.97, true); // compiling every shader for the first picture is the longest stretch of all, and it can't be split
     advance(shared.T);
     renderAt(shared.T);
     stillWanted();

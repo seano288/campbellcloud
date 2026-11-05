@@ -36,13 +36,22 @@ function commentator(voice: VoiceScope) {
 export function FightScreen() {
   const voice = useVoiceScope();
   const host = useRef<HTMLDivElement>(null), barT = useRef<HTMLElement>(null), barA = useRef<HTMLElement>(null), tag = useRef<HTMLSpanElement>(null);
-  const run = useRef<FightRun | null>(null), disarm = useRef(0);
+  const load = useRef<HTMLDivElement>(null), run = useRef<FightRun | null>(null), disarm = useRef(0);
   const [phase, setPhase] = useState<Phase>('warming'), [banner, setBanner] = useState<string | null>(null), [armed, setArmed] = useState(false);
 
   useEffect(() => {
     const state = player.state.peek().workshop, { say, must } = commentator(voice);
     // `settled`: he got the plain outcome, and that's final. Whatever arrives after it, a late chunk or a late stage, must not act.
     let gone = false, settled = false, hits = 0, timer = 0;
+    const arm = () => { timer = window.setTimeout(plain, LOAD_LIMIT_MS); };
+    // CSS moves the bar, off the main thread, so a `blind` stretch still creeps forward while the build has the main thread blocked.
+    const progress = (to: number, blind = false) => {
+      const el = load.current;
+      if (!el) return;
+      el.style.setProperty('--t', blind ? '16s' : '.4s');
+      el.style.setProperty('--f', to.toFixed(3));
+      el.setAttribute('aria-valuenow', String(Math.round(to * 100)));
+    };
     const plain = () => {
       if (gone || settled) return;
       settled = true;
@@ -56,7 +65,7 @@ export function FightScreen() {
     };
     function cue(c: Cue) {
       if (gone || settled) return;
-      if (c.kind === 'open') { setPhase('live'); clearTimeout(timer); must('Welcome to robot combat!', 'Torque and Anvil are in the arena!'); }
+      if (c.kind === 'open') { setPhase('live'); must('Welcome to robot combat!', 'Torque and Anvil are in the arena!'); }
       else if (c.kind === 'go') must('Go!');
       else if (c.kind === 'spinup') say('The drum is spinning up!');
       else if (c.kind === 'drum') say(c.strength > .75 ? 'Anvil is sent spinning!' : HITS[hits++ % 2]!);
@@ -73,20 +82,26 @@ export function FightScreen() {
       else if (c.kind === 'replay') { setBanner(null); say("Here's the replay!"); }
       else if (c.kind === 'result') { setPhase('result'); sFanfare(); confetti(50, voice.signal); must('Great fight!'); }
     }
-    timer = window.setTimeout(plain, LOAD_LIMIT_MS);
+    arm();
+    progress(.26, true); // the chunk: an import can't say how far along it is, and on a first visit it's a quarter of the download
     void voice.say('Fight!', 'Warming up the arena.');
     preload(['Welcome to robot combat!', 'Torque and Anvil are in the arena!', 'Go!', 'Anvil is knocked out!', 'Torque wins!']); // no gap when it opens
     import('./stage').then(({ openFight }) => {
       if (gone || settled) return;
       run.current = openFight(host.current!, {
-        look: lookOf(state.gear), seed: seedFor(state.fights), rung: openingRung(), cue, onFailed: plain,
+        look: lookOf(state.gear), seed: seedFor(state.fights), rung: openingRung(), cue, progress, onFailed: plain,
         hud(t, a, replay) {
           if (settled) return;
           if (barT.current) barT.current.style.transform = `scaleX(${t})`;
           if (barA.current) barA.current.style.transform = `scaleX(${a})`;
           if (tag.current) { tag.current.className = `fight-tag ${replay ? 'rep' : ''}`; tag.current.textContent = replay ? 'REPLAY' : 'LIVE'; }
         },
-        busy(on) { if (!settled) setPhase(p => (on && p === 'live' ? 'warming' : !on && p === 'warming' ? 'live' : p)); },
+        busy(on) {
+          if (settled) return;
+          setPhase(p => (on && p === 'live' ? 'warming' : !on && p === 'warming' ? 'live' : p));
+          // A rebuild in the middle of the fight gets the same limit as the first build, so it can't leave him at the bar for good.
+          if (!on) { clearTimeout(timer); timer = 0; } else if (!timer) arm();
+        },
       });
     }).catch(e => { console.warn('Math Bots: the fight chunk would not load', e); plain(); }); // offline before it was cached, or an update took it away
     return () => {
@@ -124,7 +139,12 @@ export function FightScreen() {
   return (
     <div class="screen fight-screen" data-phase={phase}>
       <div class="fight-stage" ref={host} />
-      {phase === 'warming' && <div class="fight-warm" aria-live="polite"><span class="gear">⚙️</span></div>}
+      <div class="fight-warm" hidden={phase !== 'warming'}>
+        <div class="fight-load" ref={load} role="progressbar" aria-label="Warming up the arena" aria-valuemin={0} aria-valuemax={100}>
+          <div class="track"><i /></div>
+          <div class="rider"><span class="gear">⚙️</span></div>
+        </div>
+      </div>
       <div class="fight-top">
         <IconButton label={armed ? 'Tap again to leave' : 'Workshop'} class={armed ? 'armed' : ''} onClick={leave}>🤖</IconButton>
         <div class="fight-bars" aria-hidden="true">
