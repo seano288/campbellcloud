@@ -25,7 +25,7 @@ describe('everything said is recorded', () => {
   });
   it('lessons', () => every((q, level) => {
     for (const steps of [missSteps(q, wrongOf(q)), teachSteps(q, false)]) for (const step of steps) for (const p of speech(step.say)) expect(known, `"${p}" for ${JSON.stringify(q)} level ${level}`).toContain(p);
-  }));
+  }), 30_000); // thousands of questions: seconds on a busy CI runner
   it('Meetings', () => {
     for (const m of MEETINGS) { const s = MEETING_SCRIPTS[m]; for (const p of [...s.steps.flatMap(x => speech(x.say)), s.tap]) expect(known, p).toContain(p); }
   });
