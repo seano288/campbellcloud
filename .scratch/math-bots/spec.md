@@ -94,7 +94,7 @@ The parent's report: his son finds it less fun. He wants to build the robot from
 
 **What parts do (`fight/sim.ts`).** Touch weapons (saws, spinners, spikes, bumpers) work on contact. The 💥 button fires hammers, flippers, claws and prods, or doubles touch weapons for a moment. A shield guards only the side it's on. Spike plates hurt whoever hits them. Boosters add speed, the Magnet pulls in Bolts, the Repair Bot heals.
 
-**The fight (`fight/`).** Top-down, canvas 2D, one square arena so a thumb never covers it. Stick left, 💥 and 💨 right (keys on a computer). Four arenas: plain, moving floor saws, fire vents and wall spikes, a pit. Ninety seconds at most. Bolts appear on the floor to collect, and a repair box appears once when he's low. A small aim assist turns his nearest weapon toward a rival he's nearly facing. Word rule as before: knocked out, stopped, sent spinning. Original bots only; say "robot combat", never the trademark.
+**The fight (`fight/`).** Top-down, canvas 2D, one square arena so a thumb never covers it. A fixed steering disc left, 💥 and 💨 right (keys on a computer). He presses the disc on the side he wants to go; sliding works too, but no drag is needed. Controls stay out of a band above the bottom edge and away from the sides, because a swipe that starts at an edge belongs to iPadOS and a page can't stop it (2026-11-05, after the old floating stick kept opening the Dock and app switcher). The 💥 button also doubles a Rubber Bumper, so it does something on the starter robot. Four arenas: plain, moving floor saws, fire vents and wall spikes, a pit. Ninety seconds at most. Bolts appear on the floor to collect, and a repair box appears once when he's low. A small aim assist turns his nearest weapon toward a rival he's nearly facing. Word rule as before: knocked out, stopped, sent spinning. Original bots only; say "robot combat", never the trademark.
 
 **The League (`league/`).** Twelve rivals in a row, built from the same parts, each with an exclusive prize: Rusty, Anvil, Pancake, Brick, Whirly, Zip, Pincer, Prickles, Boulder, Shocker, Fang, King Gear. Three stars on King Gear wins the Gold Crown. Any beaten rival can be fought again.
 
@@ -103,14 +103,14 @@ The parent's report: his son finds it less fun. He wants to build the robot from
 - He starts with one free fight. A win uses a fight. A loss leaves one more go on that fight, so a first loss always has a rematch.
 - First win pays the rival's Bolts (5 to 20) and its prize; each new star 3 more; a rematch win 2; a loss 1; plus what he picked up (at most 8).
 - Stars: 1 for a win, 2 with 35% health left, 3 with 70%. A win on time is 1.
-- Each loss takes 12% off that rival's health (at most half) and 3% off its speed, until he wins.
+- Each loss takes 20% off that rival's health (at most 60%), 15% off its hits (at most half) and 3% off its speed, until he wins.
 - Parts cost 3 to 200 Bolts, and a Round pays at most 6.
 - Leaving a fight costs nothing and pays nothing.
 - A save from the look-only Workshop: Mods refunded as Bolts at their price, Legendaries kept, two fights to start. Save version stays 2.
 
 **Legendaries** stay in the Balance Lock (`workshop/BalanceLock.tsx`, `workshop/lock.ts`), and are never bought or the Goal: Rainbow Paint, Lightning Drum, Dragon Armour, Comet Wheels. Each now waits on the dearest part of its sort (Ocean Fade, Mega Spinner, Gold Shield, Hover Pads) and, except the paint, is a real fight part. Solving one changes no Level, Mastery or Strength.
 
-**Difficulty is measured, not guessed, but only against a script.** `fight/soak.test.ts` plays each rival with a clumsy simulated child and a plausible build for that point: rivals fall to a reasonable build, fights average under 75 seconds, the first rival is a sure thing, and the starter can't beat rivals from Pincer on. A real six-year-old may do better or worse, so `RIVALS` in `league/rivals.ts` is the place to tune.
+**Difficulty is measured, not guessed, but only against a script.** `fight/soak.test.ts` plays each rival with a clumsy simulated child and a plausible build for that point: rivals fall to a reasonable build, fights average under 75 seconds, the first rival is a sure thing, and the starter can't beat rivals from Pincer on. A real six-year-old may do better or worse, so `RIVALS` in `league/rivals.ts` is the place to tune. The first report was that the opening fights were too hard, so on 2026-11-05 the first six rivals were softened and the Rubber Bumper raised from 2 to 7 damage, and the soak gained a much clumsier `firstDay` driver, who must beat the first three with the starter.
 
 ## Not yet generated
 

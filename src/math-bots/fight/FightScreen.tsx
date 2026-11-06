@@ -1,5 +1,7 @@
-// The fight: a card showing who's fighting and what's at stake, then he drives. A stick under his left thumb and two buttons under his
-// right sit beside the square arena in landscape and below it upright, so a thumb never covers the action. Then the result, with the prize
+// The fight: a card showing who's fighting and what's at stake, then he drives. A fixed steering disc under his left thumb and two buttons
+// under his right sit beside the square arena in landscape and below it upright, so a thumb never covers the action. He presses the disc on
+// the side he wants to go, with no need to drag, and every control stays clear of the screen's edges: a swipe that starts at an edge belongs
+// to iPadOS (the Dock, the app switcher, the menu bar) and a web page can't stop it. Then the result, with the prize
 // in a crate to open, or after a loss one line of advice and a rematch. Keys work too on a computer: arrows or WASD, space, shift.
 // Leaving mid-fight costs nothing and pays nothing. The word rule holds: knocked out, stopped, sent spinning.
 import { useEffect, useRef, useState } from 'preact/hooks';
@@ -54,7 +56,7 @@ export function FightScreen() {
   const r = rivalBy(fightTarget.value), w = player.state.value.workshop;
   const [phase, setPhase] = useState<Phase>('vs'), [armed, setArmed] = useState(false), [result, setResult] = useState<Result | null>(null), [round, setRound] = useState(0);
   const canvas = useRef<HTMLCanvasElement>(null), barYou = useRef<HTMLElement>(null), barFoe = useRef<HTMLElement>(null), clock = useRef<HTMLSpanElement>(null), picked = useRef<HTMLSpanElement>(null);
-  const hitBtn = useRef<HTMLButtonElement>(null), boostBtn = useRef<HTMLButtonElement>(null), pad = useRef<HTMLDivElement>(null), knob = useRef<HTMLElement>(null);
+  const hitBtn = useRef<HTMLButtonElement>(null), boostBtn = useRef<HTMLButtonElement>(null), pad = useRef<HTMLDivElement>(null), disc = useRef<HTMLSpanElement>(null), knob = useRef<HTMLElement>(null);
   const input = useRef<Input>({ x: 0, y: 0, hit: false, boost: false });
   const first = w.fights === 0;
   const shown = useRef(false);
@@ -65,7 +67,7 @@ export function FightScreen() {
     if (phase !== 'live') return;
     const signal = new AbortController(), say = commentator(voice), sound = createFightSound(signal.signal);
     const losses = w.rivals[r.id]?.losses ?? 0, soft = mercy(losses);
-    const s: Fight = createFight({ build: w.build }, { build: r.build, hp: r.hp * soft.hp, speed: r.speed * soft.speed, hit: r.hit }, r.arena, seeded((Date.now() ^ (w.fights * 7919)) >>> 0));
+    const s: Fight = createFight({ build: w.build }, { build: r.build, hp: r.hp * soft.hp, speed: r.speed * soft.speed, hit: r.hit * soft.hit }, r.arena, seeded((Date.now() ^ (w.fights * 7919)) >>> 0));
     if (import.meta.env.DEV) (window as unknown as { __fight?: Fight; __fightInput?: Input }).__fight = s;
     const brain = createBrain(r.style, r.skill), stage = createStage(canvas.current!, matchMedia('(prefers-reduced-motion:reduce)').matches);
     const keys = new Set<string>();
@@ -82,6 +84,10 @@ export function FightScreen() {
       e.preventDefault();
     };
     addEventListener('keydown', key); addEventListener('keyup', key);
+    // Safari's own touch handling stays out of it: no toolbar on a slide, and no zoom or callout on a press. Other buttons here still need their tap.
+    const hold = (e: TouchEvent) => { if (e.type === 'touchmove' || (e.target as Element).closest('.pad,.act')) e.preventDefault(); };
+    const root = canvas.current!.closest('.fight-screen')!;
+    for (const type of ['touchstart', 'touchmove'] as const) root.addEventListener(type, hold as EventListener, { passive: false, signal: signal.signal });
 
     let raf = 0, last = 0, spare = 0, done = false, lastLeft = -1;
     const ended = () => {
@@ -137,28 +143,27 @@ export function FightScreen() {
     return () => { cancelAnimationFrame(raf); removeEventListener('keydown', key); removeEventListener('keyup', key); signal.abort(); };
   }, [phase, round]);
 
-  // the stick: wherever his thumb lands becomes its middle
-  const centre = useRef<{ x: number; y: number; id: number } | null>(null);
-  const moveStick = (e: PointerEvent) => {
-    const at = centre.current;
-    if (!at || e.pointerId !== at.id) return;
-    const reach = 62, dx = e.clientX - at.x, dy = e.clientY - at.y, d = Math.hypot(dx, dy), k = Math.min(1, d / reach);
+  // the disc stays put and steers by where he presses it, so a press alone is enough; sliding round it works too
+  const held = useRef<number | null>(null);
+  const steer = (e: PointerEvent) => {
+    if (e.pointerId !== held.current || !disc.current) return;
+    const box = disc.current.getBoundingClientRect(), r = box.width / 2, dx = e.clientX - box.left - r, dy = e.clientY - box.top - r, d = Math.hypot(dx, dy);
+    const k = d < r * .12 ? 0 : Math.min(1, d / (r * .6)), out = Math.min(d, r * .56);
     input.current.x = d ? (dx / d) * k : 0; input.current.y = d ? (dy / d) * k : 0;
-    if (knob.current) knob.current.style.transform = `translate(${(d ? dx / d : 0) * k * reach}px,${(d ? dy / d : 0) * k * reach}px)`;
+    if (knob.current) knob.current.style.transform = `translate(${d ? (dx / d) * out : 0}px,${d ? (dy / d) * out : 0}px)`;
   };
-  const dropStick = (e: PointerEvent) => {
-    if (e.pointerId !== centre.current?.id) return;
-    centre.current = null; input.current.x = 0; input.current.y = 0;
+  const letGo = (e: PointerEvent) => {
+    if (e.pointerId !== held.current) return;
+    held.current = null; input.current.x = 0; input.current.y = 0;
     if (knob.current) knob.current.style.transform = '';
     pad.current?.classList.remove('held');
-    pad.current?.style.removeProperty('--sx'); pad.current?.style.removeProperty('--sy');
   };
-  const grabStick = (e: PointerEvent) => {
-    const zone = pad.current!, box = zone.getBoundingClientRect();
-    centre.current = { x: e.clientX, y: e.clientY, id: e.pointerId };
-    zone.setPointerCapture(e.pointerId);
-    zone.classList.add('held');
-    zone.style.setProperty('--sx', `${e.clientX - box.left}px`); zone.style.setProperty('--sy', `${e.clientY - box.top}px`);
+  const press = (e: PointerEvent) => {
+    if (held.current !== null) return;
+    held.current = e.pointerId;
+    pad.current!.setPointerCapture(e.pointerId);
+    pad.current!.classList.add('held');
+    steer(e);
   };
 
   useEffect(() => {
@@ -200,21 +205,25 @@ export function FightScreen() {
   }
   return (
     <div class="fight-screen" data-phase={phase}>
-      <div class="hud you"><b>Torque</b><u><i ref={barYou} /></u></div>
-      <div class="hud foe"><b>{r.name}</b><u><i ref={barFoe} /></u></div>
-      <div class="hud-mid">
-        <IconButton label={armed ? 'Tap again to leave' : 'Leave'} class={armed ? 'armed' : ''} onClick={leave}>🏠</IconButton>
-        <span class="clock" ref={clock}>{FIGHT_SECONDS}</span>
-        <span class="picked"><CurrencyIcon kind={MATH_CURRENCY} size={24} /><span ref={picked}>0</span></span>
+      <div class="side">
+        <div class="hud you"><b>Torque</b><u><i ref={barYou} /></u></div>
+        <div class="hud-mid">
+          <IconButton label={armed ? 'Tap again to leave' : 'Leave'} class={armed ? 'armed' : ''} onClick={leave}>🏠</IconButton>
+          <span class="clock" ref={clock}>{FIGHT_SECONDS}</span>
+          <span class="picked"><CurrencyIcon kind={MATH_CURRENCY} size={24} /><span ref={picked}>0</span></span>
+        </div>
+        <div class="pad" ref={pad} aria-label="Drive" onPointerDown={press} onPointerMove={steer} onPointerUp={letGo} onPointerCancel={letGo} onLostPointerCapture={letGo}>
+          <span class="stick" ref={disc}><b class="up">▲</b><b class="right">▲</b><b class="down">▲</b><b class="left">▲</b><i ref={knob} /></span>
+          {first && <span class="hint">👆</span>}
+        </div>
       </div>
       <div class="arena"><canvas ref={canvas} aria-label={`Your robot against ${r.name}`} /></div>
-      <div class="pad" ref={pad} aria-label="Drive" onPointerDown={grabStick} onPointerMove={moveStick} onPointerUp={dropStick} onPointerCancel={dropStick}>
-        <span class="stick"><i ref={knob} /></span>
-        {first && <span class="hint">👆</span>}
-      </div>
-      <div class="acts">
-        <button class="act boost" ref={boostBtn} aria-label="Boost" onPointerDown={e => { e.preventDefault(); input.current.boost = true; }}><span>💨</span></button>
-        <button class="act hit" ref={hitBtn} aria-label="Hit" onPointerDown={e => { e.preventDefault(); input.current.hit = true; }}><span>💥</span></button>
+      <div class="side">
+        <div class="hud foe"><b>{r.name}</b><u><i ref={barFoe} /></u></div>
+        <div class="acts">
+          <button class="act boost" ref={boostBtn} aria-label="Boost" onPointerDown={e => { e.preventDefault(); input.current.boost = true; }}><span>💨</span></button>
+          <button class="act hit" ref={hitBtn} aria-label="Hit" onPointerDown={e => { e.preventDefault(); input.current.hit = true; }}><span>💥</span></button>
+        </div>
       </div>
       {phase === 'end' && result && (
         <div class="fight-result" role="dialog">

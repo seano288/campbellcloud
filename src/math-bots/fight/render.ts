@@ -131,8 +131,10 @@ export function createStage(canvas: HTMLCanvasElement, reducedMotion: boolean) {
 
   return {
     frame(s: Fight, now: number) {
-      const box = canvas.getBoundingClientRect(), dpr = Math.min(2, devicePixelRatio || 1), size = Math.round(Math.min(box.width, box.height) * dpr);
-      if (!size) return;
+      // Measured every frame from the space it has, not worked out in CSS: an iPad 9 showed no arena at all in landscape when CSS did this, and it keeps up with a turn of the iPad.
+      const cell = canvas.parentElement!.getBoundingClientRect(), side = Math.floor(Math.min(cell.width, cell.height)), dpr = Math.min(2, devicePixelRatio || 1), size = Math.round((side - 8) * dpr);
+      if (size <= 0) return;
+      if (canvas.style.width !== `${side}px`) { canvas.style.width = canvas.style.height = `${side}px`; }
       if (canvas.width !== size) { canvas.width = canvas.height = size; }
       floor ??= floorOf(s.arena);
       const dt = Math.min(.05, last ? now - last : 0);

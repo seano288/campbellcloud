@@ -5,6 +5,7 @@ import { powerOf, starterBuild, statsOf, type Build } from '../bot/build';
 import { seeded } from '../../game/rng';
 import { RIVALS, type Rival } from '../league/rivals';
 import { createBrain, think } from './ai';
+import { mercy } from '../workshop/workshop';
 import { createFight, finished, FIGHT_SECONDS, IDLE, starsFor, stepFight, STEP, type Fight, type Input } from './sim';
 
 function kid(s: Fight, rng: () => number) {
@@ -19,10 +20,23 @@ function kid(s: Fight, rng: () => number) {
     return (plan = { x: Math.cos(to), y: Math.sin(to), hit: gap < 220 && rng() < .55, boost: gap > 300 && rng() < .12 });
   };
 }
-export function playOut(build: Build, r: Rival, seed: number, losses = 0) {
-  const rng = seeded(seed), mercy = 1 - Math.min(.5, losses * .12);
-  const s = createFight({ build }, { build: r.build, hp: r.hp * mercy, speed: r.speed * (1 - losses * .03), hit: r.hit }, r.arena, rng);
-  const brain = createBrain(r.style, r.skill), you = kid(s, rng);
+/** A child on his first day, worked out from a parent's report that the first fights were too hard: lets go often, steers well off line, barely uses the buttons. */
+function firstDay(s: Fight, rng: () => number) {
+  let plan: Input = { ...IDLE }, wait = 0;
+  return () => {
+    const me = s.bots[0], foe = s.bots[1];
+    plan = { ...plan, hit: false, boost: false };
+    if ((wait -= STEP) > 0) return plan;
+    wait = .35 + rng() * .5;
+    if (rng() > .6) return (plan = { ...IDLE });
+    const to = Math.atan2(foe.y - me.y, foe.x - me.x) + (rng() - .5) * 2.2;
+    return (plan = { x: Math.cos(to), y: Math.sin(to), hit: Math.hypot(foe.x - me.x, foe.y - me.y) < 220 && rng() < .15, boost: false });
+  };
+}
+export function playOut(build: Build, r: Rival, seed: number, losses = 0, driver: typeof kid = kid) {
+  const rng = seeded(seed), soft = mercy(losses);
+  const s = createFight({ build }, { build: r.build, hp: r.hp * soft.hp, speed: r.speed * soft.speed, hit: r.hit * soft.hit }, r.arena, rng);
+  const brain = createBrain(r.style, r.skill), you = driver(s, rng);
   let n = 0;
   while (!finished(s) && n++ < (FIGHT_SECONDS + 5) * 60) {
     stepFight(s, [you(), think(s, s.bots[1], s.bots[0], brain, STEP)]);
@@ -58,6 +72,15 @@ describe('the League, played by a clumsy six-year-old', () => {
     }
   }, 120_000);
   it('the first rival is a sure thing with the robot he starts with', () => expect(rate(starterBuild(), RIVALS[0]!).wins).toBeGreaterThan(.85));
+  it('a first-day child usually beats the first three with the robot he starts with, and soon', () => {
+    for (const r of RIVALS.slice(0, 3)) {
+      const runs = Array.from({ length: 40 }, (_, i) => playOut(starterBuild(), r, i * 7 + 1, 0, firstDay));
+      expect(runs.filter(x => x.won).length / 40, r.name).toBeGreaterThan(.75);
+    }
+  }, 60_000);
+  it('Brick and Whirly still fall to a first-day child who has added a part or two', () => {
+    for (const i of [3, 4]) expect(Array.from({ length: 40 }, (_, n) => playOut(plausible[i]!, RIVALS[i]!, n * 7 + 1, 0, firstDay)).filter(x => x.won).length / 40, RIVALS[i]!.name).toBeGreaterThan(.5);
+  }, 60_000);
   it('every rival can be beaten with what he has by then, more often than not', () => {
     for (const [i, r] of RIVALS.entries()) expect(rate(plausible[i]!, r).wins, r.name).toBeGreaterThan(.5);
   }, 120_000);

@@ -114,7 +114,7 @@ export const beaten = (w: Pick<WorkshopState, 'rivals'>, id: RivalId) => (w.riva
 /** He can fight any rival up to the first he hasn't beaten. */
 export const canFight = (w: Pick<WorkshopState, 'rivals'>, r: Rival) => beaten(w, r.id as RivalId) || nextRival(w)?.id === r.id;
 /** Each loss to the same rival takes a little off it, and a win resets it, so nobody stays stuck. */
-export const mercy = (losses: number) => ({ hp: 1 - Math.min(.5, losses * .12), speed: 1 - Math.min(.15, losses * .03) });
+export const mercy = (losses: number) => ({ hp: 1 - Math.min(.6, losses * .2), speed: 1 - Math.min(.15, losses * .03), hit: 1 - Math.min(.5, losses * .15) });
 
 export interface Outcome { won: boolean; stars: number; picked: number }
 export interface Payout { bolts: number; prize: PartKey | null; crown: boolean; newStars: number; firstWin: boolean; spent: boolean }

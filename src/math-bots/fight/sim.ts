@@ -179,7 +179,7 @@ function drive(s: Fight, f: Fighter, foe: Fighter, input: Input, dt: number) {
         if (near && best !== undefined && Math.abs(best) < .9) f.a += best;
       }
       const any = f.fitted.map(a => fire(s, f, foe, a)).some(Boolean);
-      if (!any && f.powerCd <= 0 && f.fitted.some(a => ['saw', 'spin', 'lance'].includes(a.part.kind))) { f.power = 1.3; f.powerCd = 3.5; s.events.push({ t: 'swing', x: f.x, y: f.y, kind: 'spin' }); }
+      if (!any && f.powerCd <= 0 && f.fitted.some(a => ['saw', 'spin', 'lance', 'bumper'].includes(a.part.kind))) { f.power = 1.3; f.powerCd = 3.5; s.events.push({ t: 'swing', x: f.x, y: f.y, kind: 'spin' }); }
     }
     if (input.boost && f.boostCd <= 0) { f.boost = .42; f.boostCd = 2.6; s.events.push({ t: 'boost', on: f.side }); }
     if (size > .12) {

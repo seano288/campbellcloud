@@ -44,7 +44,7 @@ export const WHEELS = [
 ] as const satisfies readonly WheelPart[];
 export const ADDS = [
   // ---- weapons: touch ----
-  { id: 'bumper', name: 'Rubber Bumper', how: 0, power: 1, kind: 'bumper', weight: 1, dmg: 2, reach: 16, size: 1, tint: '#2a2d33' },
+  { id: 'bumper', name: 'Rubber Bumper', how: 0, power: 1, kind: 'bumper', weight: 1, dmg: 7, reach: 16, size: 1, tint: '#2a2d33' },
   { id: 'spike', name: 'Steel Spike', how: 8, power: 3, kind: 'lance', weight: 2, dmg: 9, reach: 46, size: 1, tint: '#d9dde2' },
   { id: 'rusty', name: 'Rusty Saw', how: 'prize', power: 4, kind: 'saw', weight: 2, dmg: 3, reach: 30, size: .9, tint: '#c8743a' },
   { id: 'saw', name: 'Buzz Saw', how: 20, power: 5, kind: 'saw', weight: 3, dmg: 4, reach: 34, size: 1, tint: '#dfe5ea' },

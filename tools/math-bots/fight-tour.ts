@@ -2,13 +2,13 @@
 // the League, and buys parts. It watches page errors, sound, the frame rate, and anything cut off or too small to tap.
 //   npm run dev:math-bots   (in another shell)
 //   npx tsx tools/math-bots/fight-tour.ts http://localhost:5199/ <outDir> [chromium|webkit]
-// TOUR_VIEW=ipad|upright|phone|side picks the screen.
+// TOUR_VIEW=ipad|upright|phone|side|ipad9|ipad9tabs picks the screen.
 import { mkdirSync } from 'node:fs';
 import { chromium, devices, webkit, type Page } from 'playwright';
 
 const [url = 'http://localhost:5199/', out = '/tmp/math-bots-fight', which = 'chromium'] = process.argv.slice(2);
 mkdirSync(out, { recursive: true });
-const VIEWS = { ipad: { width: 1180, height: 820 }, upright: { width: 820, height: 1180 }, phone: { width: 390, height: 844 }, side: { width: 844, height: 390 } };
+const VIEWS = { ipad: { width: 1180, height: 820 }, upright: { width: 820, height: 1180 }, phone: { width: 390, height: 844 }, side: { width: 844, height: 390 }, ipad9: { width: 1080, height: 810 }, ipad9tabs: { width: 1080, height: 732 } };
 const view = (process.env.TOUR_VIEW ?? 'ipad') as keyof typeof VIEWS;
 void devices;
 const browser = which === 'webkit' ? await webkit.launch() : await chromium.launch({ args: ['--autoplay-policy=no-user-gesture-required'] });
@@ -37,6 +37,12 @@ const shot = async (page: Page, name: string) => {
       if (!inScroll && (r.right > innerWidth + 1 || r.bottom > innerHeight + 1 || r.left < -1 || r.top < -1)) found.push(`off screen: ${el.className}`);
       if (r.height < 40 || r.width < 40) found.push(`small ${Math.round(r.width)}x${Math.round(r.height)}: ${el.className}`);
     }
+    const art = document.querySelector('.arena canvas')?.getBoundingClientRect();
+    if (art && (art.width < 200 || Math.abs(art.width - art.height) > 1)) found.push(`arena ${Math.round(art.width)}x${Math.round(art.height)}`);
+    if (document.querySelector('.arena') && !document.querySelector('.fight-result')) for (const el of document.querySelectorAll('.stick,.act')) { // the screen's edges belong to iPadOS
+      const r = el.getBoundingClientRect();
+      if (innerHeight - r.bottom < 40 || r.left < 12 || innerWidth - r.right < 12) found.push(`too near the edge: ${el.className}`);
+    }
     return [...new Set(found)];
   });
   if (bad.length) problems.push(`layout ${name}: ${bad.slice(0, 6).join('; ')}`);
@@ -62,9 +68,9 @@ async function drive(page: Page, seconds: number) {
     for (const k of held) await page.keyboard.up(k);
     return;
   }
-  const pad = (await page.locator('.pad').boundingBox())!, hit = (await page.locator('.act.hit').boundingBox())!;
+  const pad = (await page.locator('.stick').boundingBox())!, hit = (await page.locator('.act.hit').boundingBox())!;
   const cdp = await page.context().newCDPSession(page);
-  const cx = pad.x + pad.width / 2, cy = pad.y + pad.height * .6;
+  const cx = pad.x + pad.width / 2, cy = pad.y + pad.height / 2;
   const touch = (type: string, points: { x: number; y: number; id: number }[]) => cdp.send('Input.dispatchTouchEvent', { type: type as 'touchStart', touchPoints: points });
   await touch('touchStart', [{ x: cx, y: cy, id: 1 }]);
   const end = Date.now() + seconds * 1000;

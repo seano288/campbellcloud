@@ -126,7 +126,7 @@ describe('fights and the League', () => {
   });
   it('losing softens the rival, and winning resets it', () => {
     expect(mercy(3).hp).toBeLessThan(mercy(0).hp);
-    expect(mercy(99).hp).toBeGreaterThanOrEqual(.5);
+    expect(mercy(99).hp).toBeGreaterThanOrEqual(.4);
     const r = rival('anvil'), w = { ...freshWorkshop(), rivals: { anvil: { stars: 0, losses: 4 } } };
     expect(finishFight(w, r, won, payoutFor(w, r, won)).rivals.anvil).toEqual({ stars: 2, losses: 0 });
   });
