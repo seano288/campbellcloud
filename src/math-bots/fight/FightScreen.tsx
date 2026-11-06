@@ -1,7 +1,8 @@
 // The fight: a card showing who's fighting and what's at stake, then he drives. A fixed steering disc under his left thumb and two buttons
 // under his right sit beside the square arena in landscape and below it upright, so a thumb never covers the action. He presses the disc on
 // the side he wants to go, with no need to drag, and every control stays clear of the screen's edges: a swipe that starts at an edge belongs
-// to iPadOS (the Dock, the app switcher, the menu bar) and a web page can't stop it. Then the result, with the prize
+// to iPadOS (the Dock, the app switcher, the menu bar) and a web page can't stop it. Or he touches the arena itself: the robot heads for
+// his finger while it's down, and a quick tap sends it to that spot. Then the result, with the prize
 // in a crate to open, or after a loss one line of advice and a rematch. Keys work too on a computer: arrows or WASD, space, shift.
 // Leaving mid-fight costs nothing and pays nothing. The word rule holds: knocked out, stopped, sent spinning.
 import { useEffect, useRef, useState } from 'preact/hooks';
@@ -24,11 +25,15 @@ import { settleFight } from '../workshop/actions';
 import { mercy, nextRival, type Payout } from '../workshop/workshop';
 import { createBrain, think } from './ai';
 import { createStage } from './render';
-import { createFight, finished, FIGHT_SECONDS, starsFor, STEP, stepFight, type Fight, type Input } from './sim';
+import { ARENA, createFight, finished, FIGHT_SECONDS, headFor, starsFor, STEP, stepFight, type Fight, type Input } from './sim';
 import { createFightSound } from './sounds';
 
 type Phase = 'vs' | 'live' | 'end';
 interface Result { won: boolean; ko: boolean; stars: number; pay: Payout; tip: RivalTip }
+/** Where he touched the arena. `until` is when to give up on it after his finger lifts, in case a robot or a wall is in the way. */
+interface Spot { x: number; y: number; until: number }
+/** How long the robot keeps heading for a spot once the finger is gone: long enough to cross the arena on a tap. */
+const SPOT_GIVE_UP_MS = 2000;
 
 /** Keeps the commentator from talking over himself: a line that doesn't matter is dropped if he's mid-sentence. */
 function commentator(voice: VoiceScope) {
@@ -57,7 +62,7 @@ export function FightScreen() {
   const [phase, setPhase] = useState<Phase>('vs'), [armed, setArmed] = useState(false), [result, setResult] = useState<Result | null>(null), [round, setRound] = useState(0);
   const canvas = useRef<HTMLCanvasElement>(null), barYou = useRef<HTMLElement>(null), barFoe = useRef<HTMLElement>(null), clock = useRef<HTMLSpanElement>(null), picked = useRef<HTMLSpanElement>(null);
   const hitBtn = useRef<HTMLButtonElement>(null), boostBtn = useRef<HTMLButtonElement>(null), pad = useRef<HTMLDivElement>(null), disc = useRef<HTMLSpanElement>(null), knob = useRef<HTMLElement>(null);
-  const input = useRef<Input>({ x: 0, y: 0, hit: false, boost: false });
+  const input = useRef<Input>({ x: 0, y: 0, hit: false, boost: false }), spot = useRef<Spot | null>(null), touching = useRef<number | null>(null);
   const first = w.fights === 0;
   const shown = useRef(false);
 
@@ -85,11 +90,22 @@ export function FightScreen() {
     };
     addEventListener('keydown', key); addEventListener('keyup', key);
     // Safari's own touch handling stays out of it: no toolbar on a slide, and no zoom or callout on a press. Other buttons here still need their tap.
-    const hold = (e: TouchEvent) => { if (e.type === 'touchmove' || (e.target as Element).closest('.pad,.act')) e.preventDefault(); };
+    const hold = (e: TouchEvent) => { if (e.type === 'touchmove' || (e.target as Element).closest('.pad,.act,canvas')) e.preventDefault(); };
     const root = canvas.current!.closest('.fight-screen')!;
     for (const type of ['touchstart', 'touchmove'] as const) root.addEventListener(type, hold as EventListener, { passive: false, signal: signal.signal });
 
     let raf = 0, last = 0, spare = 0, done = false, lastLeft = -1;
+    spot.current = null; touching.current = null;
+    /** The disc and keys come first and cancel a spot; otherwise a spot steers, worked out afresh each step because the robot is moving. */
+    const steering = (): Input => {
+      const held = input.current, at = spot.current;
+      if (!at) return held;
+      if (held.x || held.y || performance.now() > at.until) { spot.current = null; return held; }
+      const go = headFor(s.bots[0], at.x, at.y);
+      if (go) return { ...held, ...go };
+      if (touching.current === null) spot.current = null; // there, so it's done; a finger still down stays in charge in case he's knocked away
+      return held;
+    };
     const ended = () => {
       if (done) return;
       done = true;
@@ -122,11 +138,11 @@ export function FightScreen() {
       spare += dt;
       while (spare >= STEP) {
         spare -= STEP;
-        stepFight(s, [input.current, think(s, s.bots[1], s.bots[0], brain, STEP)]);
+        stepFight(s, [steering(), think(s, s.bots[1], s.bots[0], brain, STEP)]);
         input.current.hit = false; input.current.boost = false; // a press is one press
       }
       heard(s);
-      stage.frame(s, now);
+      stage.frame(s, now, spot.current);
       const [you, foe] = s.bots;
       if (barYou.current) barYou.current.style.transform = `scaleX(${you.hp / you.maxHp})`;
       if (barFoe.current) barFoe.current.style.transform = `scaleX(${foe.hp / foe.maxHp})`;
@@ -164,6 +180,25 @@ export function FightScreen() {
     pad.current!.setPointerCapture(e.pointerId);
     pad.current!.classList.add('held');
     steer(e);
+  };
+
+  // the arena steers too: the canvas alone, so the strips beside it stay clear of the screen's edges
+  const aim = (e: PointerEvent) => {
+    const c = canvas.current;
+    if (e.pointerId !== touching.current || !c?.clientWidth) return;
+    const box = c.getBoundingClientRect(), k = ARENA / c.clientWidth;
+    spot.current = { x: (e.clientX - box.left - c.clientLeft) * k, y: (e.clientY - box.top - c.clientTop) * k, until: Infinity };
+  };
+  const touchArena = (e: PointerEvent) => {
+    if (touching.current !== null) return;
+    touching.current = e.pointerId;
+    canvas.current!.setPointerCapture(e.pointerId);
+    aim(e);
+  };
+  const liftArena = (e: PointerEvent) => {
+    if (e.pointerId !== touching.current) return;
+    touching.current = null;
+    if (spot.current) spot.current.until = performance.now() + SPOT_GIVE_UP_MS;
   };
 
   useEffect(() => {
@@ -217,7 +252,7 @@ export function FightScreen() {
           {first && <span class="hint">👆</span>}
         </div>
       </div>
-      <div class="arena"><canvas ref={canvas} aria-label={`Your robot against ${r.name}`} /></div>
+      <div class="arena"><canvas ref={canvas} aria-label={`Your robot against ${r.name}`} onPointerDown={touchArena} onPointerMove={aim} onPointerUp={liftArena} onPointerCancel={liftArena} onLostPointerCapture={liftArena} /></div>
       <div class="side">
         <div class="hud foe"><b>{r.name}</b><u><i ref={barFoe} /></u></div>
         <div class="acts">

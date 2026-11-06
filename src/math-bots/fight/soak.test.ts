@@ -6,7 +6,7 @@ import { seeded } from '../../game/rng';
 import { RIVALS, type Rival } from '../league/rivals';
 import { createBrain, think } from './ai';
 import { mercy } from '../workshop/workshop';
-import { createFight, finished, FIGHT_SECONDS, IDLE, starsFor, stepFight, STEP, type Fight, type Input } from './sim';
+import { ARENA, createFight, finished, FIGHT_SECONDS, headFor, IDLE, starsFor, stepFight, STEP, WALL, type Fight, type Input } from './sim';
 
 function kid(s: Fight, rng: () => number) {
   let plan: Input = { ...IDLE }, wait = 0, wobble = 0;
@@ -95,4 +95,31 @@ describe('the League, played by a clumsy six-year-old', () => {
     const wins = (losses: number) => Array.from({ length: 30 }, (_, i) => playOut(weak, r, i + 1, losses)).filter(x => x.won).length;
     expect(wins(4)).toBeGreaterThan(wins(0));
   }, 60_000);
+});
+
+describe('driving to a touched spot', () => {
+  const driveTo = (x: number, y: number, seconds: number) => {
+    const s = createFight({ build: starterBuild() }, { build: RIVALS[0]!.build }, 'yard', seeded(1)), me = s.bots[0];
+    let moves = 0, topSpeed = 0;
+    for (let i = 0; i < seconds / STEP; i++) {
+      const go = headFor(me, x, y);
+      if (go) moves++;
+      s.bots[1].x = ARENA - 60; s.bots[1].y = 60; s.bots[1].vx = s.bots[1].vy = 0; // the rival stays out of the way
+      stepFight(s, [{ ...IDLE, ...go }, IDLE]);
+      topSpeed = Math.max(topSpeed, Math.hypot(me.vx, me.vy));
+    }
+    return { me, moves, topSpeed };
+  };
+  it('reaches the spot and settles there', () => {
+    const { me, topSpeed } = driveTo(500, 200, 5);
+    expect(Math.hypot(me.x - 500, me.y - 200)).toBeLessThan(24);
+    expect(Math.hypot(me.vx, me.vy)).toBeLessThan(20);
+    expect(topSpeed).toBeGreaterThan(100);
+  });
+  it('stops short of a wall instead of grinding into it', () => {
+    const { me } = driveTo(ARENA, ARENA / 2, 5);
+    expect(me.x).toBeGreaterThan(ARENA - WALL - me.stats.radius - 24);
+    expect(Math.hypot(me.vx, me.vy)).toBeLessThan(20);
+    expect(headFor(me, ARENA, ARENA / 2)).toBeNull();
+  });
 });

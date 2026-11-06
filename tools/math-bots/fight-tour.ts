@@ -85,6 +85,27 @@ async function drive(page: Page, seconds: number) {
   }
   await touch('touchEnd', []);
 }
+/** Steers by touching the arena itself: a held finger the robot follows, then a quick tap it drives to on its own. Chromium only, for the same reason as above. */
+async function touchArena(page: Page) {
+  if (which === 'webkit') return;
+  const box = (await page.locator('.arena canvas').boundingBox())!, cdp = await page.context().newCDPSession(page);
+  const touch = (type: string, points: { x: number; y: number; id: number }[]) => cdp.send('Input.dispatchTouchEvent', { type: type as 'touchStart', touchPoints: points });
+  const point = (x: number, y: number) => ({ x: box.x + box.width * x, y: box.y + box.height * y, id: 1 }), gap = (f: { you: { x: number; y: number } }, x: number, y: number) => Math.hypot(f.you.x - x * 760, f.you.y - y * 760);
+  const before = (await fight(page))!;
+  await touch('touchStart', [point(.3, .3)]);
+  await page.waitForTimeout(1500);
+  await shot(page, 'arena-touch');
+  const held = (await fight(page))!;
+  await touch('touchEnd', []);
+  log(`held finger: ${Math.round(gap(before, .3, .3))} away, then ${Math.round(gap(held, .3, .3))}`);
+  if (gap(held, .3, .3) > gap(before, .3, .3) - 60) problems.push('the robot did not head for a finger on the arena');
+  await touch('touchStart', [point(.7, .4)]);
+  await touch('touchEnd', []);
+  await page.waitForTimeout(1500);
+  const tapped = (await fight(page))!;
+  log(`quick tap: ${Math.round(gap(held, .7, .4))} away, then ${Math.round(gap(tapped, .7, .4))}`);
+  if (gap(tapped, .7, .4) > gap(held, .7, .4) - 60) problems.push('the robot did not drive to a tapped spot');
+}
 const frameRate = (page: Page) => page.evaluate(`new Promise(done => { let n = 0; const t0 = performance.now(); (function go() { n++; if (performance.now() - t0 > 1000) done(n); else requestAnimationFrame(go); })(); })`) as Promise<number>;
 
 // ---- a first-time child: build, try, buy, fit, fight Rusty with the finger, win, open the crate
@@ -121,6 +142,7 @@ const frameRate = (page: Page) => page.evaluate(`new Promise(done => { let n = 0
   await page.waitForTimeout(1600);
   await shot(page, 'fight-open');
   log(`frame rate ${await frameRate(page)} fps`);
+  await touchArena(page);
   const start = await fight(page);
   await drive(page, 4);
   await shot(page, 'fight-mid');

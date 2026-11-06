@@ -200,7 +200,7 @@ _Avoid_: Mod (Math Bots has parts, not Mods)
 
 **TORQUE**: his robot, whatever he builds it into.
 
-**Fight (Math Bots)**: the reward, with no math in it. He drives his robot from above on a stick, with a 💥 and a 💨 button. Each finished Round earns one. A win uses it; a loss leaves one more go on it. The word rule: knocked out, stopped, sent spinning.
+**Fight (Math Bots)**: the reward, with no math in it. He drives his robot from above with a stick or by touching the arena, with a 💥 and a 💨 button. Each finished Round earns one. A win uses it; a loss leaves one more go on it. The word rule: knocked out, stopped, sent spinning.
 
 **League**: twelve rivals in a row. He fights the next one or goes back to any he's beaten. Each pays Bolts and one prize part nothing else gives.
 

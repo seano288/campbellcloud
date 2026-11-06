@@ -104,6 +104,13 @@ export function createStage(canvas: HTMLCanvasElement, reducedMotion: boolean) {
     }
   }
 
+  /** Where he touched, in the yellow of his robot's marker, so a quick tap shows where the robot is off to. */
+  function drawSpot(spot: { x: number; y: number }) {
+    c.beginPath(); c.arc(spot.x, spot.y, 26, 0, TAU); c.lineWidth = 11; c.strokeStyle = O; c.stroke();
+    c.lineWidth = 6; c.strokeStyle = '#ffd23f'; c.stroke();
+    c.beginPath(); c.arc(spot.x, spot.y, 6, 0, TAU); c.fillStyle = '#ffd23f'; c.fill();
+  }
+
   function drawFighter(f: Fighter, s: Fight, t: number, marker: boolean) {
     const up = f.air > 0 ? Math.sin(Math.min(1, f.air / .95) * Math.PI) : 0;
     const swing: Partial<Record<Mount, number>> = {};
@@ -130,7 +137,7 @@ export function createStage(canvas: HTMLCanvasElement, reducedMotion: boolean) {
   }
 
   return {
-    frame(s: Fight, now: number) {
+    frame(s: Fight, now: number, spot: { x: number; y: number } | null = null) {
       // Measured every frame from the space it has, not worked out in CSS: an iPad 9 showed no arena at all in landscape when CSS did this, and it keeps up with a turn of the iPad.
       const cell = canvas.parentElement!.getBoundingClientRect(), side = Math.floor(Math.min(cell.width, cell.height)), dpr = Math.min(2, devicePixelRatio || 1), size = Math.round((side - 8) * dpr);
       if (size <= 0) return;
@@ -150,6 +157,7 @@ export function createStage(canvas: HTMLCanvasElement, reducedMotion: boolean) {
       c.drawImage(floor, 0, 0);
       drawHazards(s);
       drawPickups(s);
+      if (spot) drawSpot(spot);
       const [you, foe] = s.bots;
       for (const f of [you, foe].sort((a, b) => a.air - b.air)) drawFighter(f, s, now, f === you);
       sparks = sparks.filter(p => (p.life -= dt) > 0);

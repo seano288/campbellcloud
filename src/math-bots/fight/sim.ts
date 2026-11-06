@@ -16,6 +16,8 @@ export const STEP = 1 / 60;
 const OVER_FOR = 1.8;
 /** Health in a fight, against the number on the part: sets how long a fight lasts. */
 const HP_SCALE = 2.4;
+/** Driving to a touched spot: this close counts as there, and it slows down over the last EASE of the way. */
+const SPOT_REACHED = 16, SPOT_EASE = 90;
 
 export interface Input { x: number; y: number; hit: boolean; boost: boolean }
 export const IDLE: Input = { x: 0, y: 0, hit: false, boost: false };
@@ -210,6 +212,16 @@ function drive(s: Fight, f: Fighter, foe: Fighter, input: Input, dt: number) {
   if (f.x > hi) { f.x = hi; const v = f.vx; f.vx = -Math.abs(f.vx) * .5; hitWall(v, ARENA - WALL, f.y); }
   if (f.y < lo) { f.y = lo; const v = -f.vy; f.vy = Math.abs(f.vy) * .5; hitWall(v, f.x, WALL); }
   if (f.y > hi) { f.y = hi; const v = f.vy; f.vy = -Math.abs(f.vy) * .5; hitWall(v, f.x, ARENA - WALL); }
+}
+
+/** Steering for "go where I touched": flat out, easing off over the last stretch so it stops rather than circling the spot, and null once it's
+ *  there. A spot in the wall counts as the nearest place the robot fits, so a finger on the edge can't grind it into the spikes. */
+export function headFor(f: Fighter, x: number, y: number): { x: number; y: number } | null {
+  const lo = WALL + f.stats.radius, hi = ARENA - lo;
+  const dx = Math.max(lo, Math.min(hi, x)) - f.x, dy = Math.max(lo, Math.min(hi, y)) - f.y, d = Math.hypot(dx, dy);
+  if (d < SPOT_REACHED) return null;
+  const k = Math.min(1, d / SPOT_EASE);
+  return { x: (dx / d) * k, y: (dy / d) * k };
 }
 
 function clash(s: Fight, a: Fighter, b: Fighter) {
