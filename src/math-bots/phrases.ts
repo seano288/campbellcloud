@@ -45,8 +45,10 @@ const leaguePhrases = (): (RivalName | KoLine | RivalTip | BeatLine)[] => [...RI
 const partPhrases = (): (PartName | GotPhrase | WaitLine)[] => [...ALL_PART_NAMES, ...ALL_PART_NAMES.map(gotLine), ...LOCK_SLOTS.map(s => waitLine(LOCK_NEEDS[s]))];
 
 type EarnedPhrase = EarnedLine<typeof MATH_CURRENCY>;
-type ModePhrase = ModeName | `You are a ${ModeName} star!` | `You opened ${ModeName}!`;
-const modePhrases = (): ModePhrase[] => MODE_IDS.flatMap(m => [MODE_NAMES[m], `You are a ${MODE_NAMES[m]} star!`, `You opened ${MODE_NAMES[m]}!`] as const);
+type StarLine = `You are a ${Exclude<ModeName, 'Over Ten'>} star!` | 'You are an Over Ten star!';
+type ModePhrase = ModeName | StarLine | `You opened ${ModeName}!`;
+export const starLine = (name: ModeName) => (name === 'Over Ten' ? 'You are an Over Ten star!' : `You are a ${name} star!`) as StarLine;
+const modePhrases = (): ModePhrase[] => MODE_IDS.flatMap(m => [MODE_NAMES[m], starLine(MODE_NAMES[m]), `You opened ${MODE_NAMES[m]}!`] as const);
 
 // ---------- the questions ----------
 const JOINS = ['plus', 'take away', 'and', 'is', 'make', 'So', 'in all.', 'more.', 'here.', 'is here.', 'are here.'] as const;

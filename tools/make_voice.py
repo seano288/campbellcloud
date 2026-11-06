@@ -32,7 +32,10 @@ LETTERS = set('ABCDEFGHIJKLMNOPQRSTUVWXYZ')
 
 
 # Whole phrases the voice mangles when read as written
-SAID_AS = {'cat': 'cat!'}  # a lone "cat" comes out as "Kate"
+SAID_AS = {'cat': 'cat!',  # a lone "cat" comes out as "Kate"
+           # Math Bots chains these into a number, but alone the voice ends the sentence on them: "ten end", "tenses", "more then"
+           'ten and': 'ten, and', 'Ten and': 'Ten, and', 'red wheels and': 'red wheels and,', 'One hundred and': 'One hundred and,',
+           'tens is': 'tens, is', 'One more than': 'One more than,', 'Ten more than': 'Ten more than,'}
 
 
 def speakable(s):

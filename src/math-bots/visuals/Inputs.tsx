@@ -3,7 +3,7 @@
 import { useState } from 'preact/hooks';
 import { digits, turnWheel, type Wheel } from '../../garage/doorNumber';
 import { said } from '../numbers/say';
-import { speaking, useVoice } from '../voice';
+import { useVoice } from '../voice';
 import { cls } from './Pictures';
 
 export const STRIP = Array.from({ length: 21 }, (_, n) => n);
@@ -13,8 +13,8 @@ export interface Tapped { wrong: readonly string[]; done: string | null; tap(val
 export function Choices({ choices, on }: { choices: readonly number[]; on: Tapped }) {
   return (
     <div class="choices three">
-      {choices.map((n, i) => (
-        <button key={n} class={cls('choice', on.wrong.includes(String(n)) && 'wrong', on.done === String(n) && 'right', speaking.value === `c${i}` && 'reading')}
+      {choices.map(n => (
+        <button key={n} class={cls('choice', on.wrong.includes(String(n)) && 'wrong', on.done === String(n) && 'right')}
           disabled={on.wrong.includes(String(n))} onClick={() => on.tap(String(n))}>{n}</button>
       ))}
     </div>

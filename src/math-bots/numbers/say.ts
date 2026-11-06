@@ -120,6 +120,4 @@ export function promptOf(q: AnyQuestion, level: Level): Prompt {
 
 /** One sentence of a story, for its own 🔊. */
 export const sentenceOf = (sentence: string) => line(...storyParts(sentence));
-/** A card of three in Weigh-In. */
-export const cardLine = (c: { left: Side; right: Side }) => line(...sideParts(c.left), 'is the same as', ...sideParts(c.right));
 export const SIGN_WORDS = { '<': 'is less than', '=': 'is the same as', '>': 'is more than' } as const satisfies Record<string, Phrase>;

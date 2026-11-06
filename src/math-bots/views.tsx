@@ -1,5 +1,5 @@
 // The questions on screen. Every question is said as it appears (🔊 says it again) and taps wait until it has finished, so
-// guessing fast gets nothing. While a lesson runs its Stage takes the place of the picture, and stays there so he can answer
+// guessing fast gets nothing. The answer buttons are never read out: he reads numbers fine, and hearing them only held him up. While a lesson runs its Stage takes the place of the picture, and stays there so he can answer
 // looking at it. Everything is tapped: a counter you'd drag moves with a tap.
 import { useEffect, useRef, useState } from 'preact/hooks';
 import type { ComponentChildren } from 'preact';
@@ -7,7 +7,7 @@ import { sClink, sCount } from '../audio/sfx';
 import type { ProblemInstance } from '../learning/round';
 import { MEETING_SCRIPTS, lessonFor, playSteps, type Stage } from './numbers/teach';
 import { markAsked, teachIn } from './numbers/run';
-import { cardLine, equationText, jumpSum, promptOf, said, sentenceOf, sideText, type Prompt } from './numbers/say';
+import { equationText, jumpSum, promptOf, said, sentenceOf, sideText, type Prompt } from './numbers/say';
 import { FILLS, type Piece } from './numbers/shapes';
 import { STRIP_UNITS, chartKeeps, hiddenCell, valueOf, type BoardProblem, type ChartProblem, type JumpProblem, type MeasureProblem, type RowId, type ShapeProblem, type FactsProblem, type OnProblem, type OverProblem, type PartProblem, type ScaleProblem, type SkipProblem, type StoryProblem, type TenProblem, type TensProblem, type Level } from './numbers/problems';
 import type { Asking, Meet } from './mix';
@@ -18,10 +18,9 @@ import { BarRow, Chart, FillArt, Laid, PIECE_NAMES, PieceArt, Rope, ShapeArt, Un
 import type { Stretch } from '../modes/progress';
 
 type Current = ProblemInstance<Asking, string>;
-const readChoices = (choices?: readonly number[]): Item[] => (choices ?? []).map((n, i) => ({ parts: [said(n)], light: `c${i}` }));
 
 /** Says the question once, and marks when it's done. */
-function useAsked(current: Current, speech: readonly Item[], then: readonly Item[] = []) {
+function useAsked(current: Current, speech: readonly Item[]) {
   const voice = useVoice();
   const [ready, setReady] = useState(false);
   useEffect(() => {
@@ -29,7 +28,6 @@ function useAsked(current: Current, speech: readonly Item[], then: readonly Item
       if (current.signal.aborted) return;
       setReady(true);
       markAsked(current.signal);
-      if (then.length) void voice.sayMore(...then); // read out, but he needn't wait for all of it
     });
   }, []);
   return ready;
@@ -59,8 +57,8 @@ function AskBar({ prompt, speech, text }: { prompt: Prompt; speech: readonly Ite
 }
 
 /** The frame of every question: the ask, the picture (or the lesson's Stage), how he answers, and 🔎. */
-function Shell({ current, kind, prompt, speech, text, input, children, wide, extra }: {
-  current: Current; kind: string; prompt: Prompt; speech: readonly Item[]; text?: string; input: ComponentChildren; children: ComponentChildren; wide?: boolean; extra?: ComponentChildren;
+function Shell({ current, kind, prompt, speech, text, input, children, wide }: {
+  current: Current; kind: string; prompt: Prompt; speech: readonly Item[]; text?: string; input: ComponentChildren; children: ComponentChildren; wide?: boolean;
 }) {
   const p = current.problem, lesson = lessonFor(current.signal), stage = lesson.stage.value, caption = lesson.caption.value;
   return (
@@ -73,7 +71,7 @@ function Shell({ current, kind, prompt, speech, text, input, children, wide, ext
         </div>
         <div class="q-in">{input}</div>
       </div>
-      <div class="helpers">{extra}<button class="help-btn" aria-label="Help" onClick={() => current.actions.help(() => teachIn(p, lesson, lesson.run.start()))}>🔎</button></div>
+      <div class="helpers"><button class="help-btn" aria-label="Help" onClick={() => current.actions.help(() => teachIn(p, lesson, lesson.run.start()))}>🔎</button></div>
     </div>
   );
 }
@@ -85,29 +83,28 @@ function Answer({ q, on }: { q: { input: string; choices?: readonly number[] }; 
 }
 
 // ---------- Make Ten ----------
-const SHOW_MS = 2000;
+/** How long the Quick Look stays up once "How many?" has been said. Tapping the cover brings it back, as often as he likes. */
+const SHOW_MS = 3000;
 function TenView({ current, q, level }: { current: Current; q: TenProblem; level: Level }) {
-  const prompt = promptOf(q, level), speech = [...prompt.speech, ...readChoices(q.choices)];
-  const ready = useAsked(current, speech), on = useTaps(current, ready);
-  const [covered, setCovered] = useState(false), [peeked, setPeeked] = useState(false), timer = useRef(0);
+  const prompt = promptOf(q, level), ready = useAsked(current, prompt.speech), on = useTaps(current, ready);
+  const [covered, setCovered] = useState(false), timer = useRef(0);
   function show() {
     setCovered(false);
     clearTimeout(timer.current);
     timer.current = window.setTimeout(() => setCovered(true), SHOW_MS);
   }
-  useEffect(() => { if (q.form === 'look') show(); return () => clearTimeout(timer.current); }, []);
-  const peek = q.form === 'look' && covered && !peeked && <button class="help-btn" aria-label="Peek" onClick={() => { setPeeked(true); show(); }}>👀</button>;
+  useEffect(() => { if (q.form === 'look' && ready) show(); return () => clearTimeout(timer.current); }, [ready]); // the clock waits for the voice: a slow clip must not use up his look
   return (
-    <Shell current={current} kind="ten" prompt={prompt} speech={speech} input={<Answer q={q} on={on} />} extra={peek}>
+    <Shell current={current} kind="ten" prompt={prompt} speech={prompt.speech} input={<Answer q={q} on={on} />}>
       {q.form === 'look' ? <Frames a={q.n} /> : q.form === 'partners' ? <Frame a={q.n} /> : <Frame a={q.part} hideFrom={q.part} />}
-      {q.form === 'look' && covered && <div class="cover" />}
+      {q.form === 'look' && covered && <button class="cover" aria-label="Look again" onClick={show}>👀</button>}
     </Shell>
   );
 }
 
 // ---------- Count On ----------
 function OnView({ current, q, level, stretch }: { current: Current; q: OnProblem; level: Level; stretch: Stretch }) {
-  const voice = useVoice(), prompt = promptOf(q, level), speech = [...prompt.speech, ...readChoices(q.choices)];
+  const voice = useVoice(), prompt = promptOf(q, level), speech = prompt.speech;
   const ready = useAsked(current, speech), on = useTaps(current, ready);
   const [chosen, setChosen] = useState<number | null>(q.form === 'box' ? q.a : null), [hopped, setHopped] = useState(0);
   const start = q.form === 'countUp' ? q.from : chosen, more = q.form === 'countUp' ? q.to - q.from : q.form === 'box' ? q.b : chosen === q.a ? q.b : q.a;
@@ -146,7 +143,7 @@ function OnView({ current, q, level, stretch }: { current: Current; q: OnProblem
 
 // ---------- Facts ----------
 function FactsView({ current, q, level }: { current: Current; q: FactsProblem; level: Level }) {
-  const prompt = promptOf(q, level), speech = [...prompt.speech, ...readChoices(q.choices)];
+  const prompt = promptOf(q, level), speech = prompt.speech;
   const ready = useAsked(current, speech), on = useTaps(current, ready);
   return <Shell current={current} kind="facts" prompt={prompt} speech={speech} input={<Answer q={q} on={on} />}><Equation text={equationText(q.eq)} /></Shell>;
 }
@@ -207,14 +204,13 @@ function PartView({ current, q, level }: { current: Current; q: PartProblem; lev
 // ---------- Weigh-In ----------
 function ScaleView({ current, q, level }: { current: Current; q: ScaleProblem; level: Level }) {
   const voice = useVoice(), prompt = promptOf(q, level);
-  const cards: Item[] = q.form === 'cards' ? q.cards.map((c, i) => ({ parts: cardLine(c).speech, light: `c${i}` })) : [];
-  const speech = [...prompt.speech, ...cards], ready = useAsked(current, prompt.speech, cards), on = useTaps(current, ready);
+  const speech = prompt.speech, ready = useAsked(current, speech), on = useTaps(current, ready);
   const [fix, setFix] = useState<{ left: number; right: number } | null>(null);
   if (q.form === 'cards') {
     return (
       <Shell current={current} kind="scale" prompt={prompt} speech={speech} input={
         <div class="cards">{q.cards.map((c, i) => (
-          <button key={i} class={cls('choice', 'card-eq', on.wrong.includes(String(i)) && 'wrong', on.done === String(i) && 'right', speaking.value === `c${i}` && 'reading')}
+          <button key={i} class={cls('choice', 'card-eq', on.wrong.includes(String(i)) && 'wrong', on.done === String(i) && 'right')}
             disabled={on.wrong.includes(String(i))} onClick={() => on.tap(String(i))}>{sideText(c.left)} = {sideText(c.right)}</button>
         ))}</div>}>{null}</Shell>
     );
@@ -280,7 +276,7 @@ function BoardView({ current, q, level }: { current: Current; q: BoardProblem; l
 
 // ---------- Tens and Ones ----------
 function TensView({ current, q, level }: { current: Current; q: TensProblem; level: Level }) {
-  const voice = useVoice(), prompt = promptOf(q, level), speech = [...prompt.speech, ...(q.form === 'make' ? [] : readChoices(q.choices))];
+  const voice = useVoice(), prompt = promptOf(q, level), speech = prompt.speech;
   const ready = useAsked(current, speech), on = useTaps(current, ready);
   const [rods, setRods] = useState(0), [cubes, setCubes] = useState(0);
   if (q.form === 'compare') {
@@ -317,7 +313,7 @@ function TensView({ current, q, level }: { current: Current; q: TensProblem; lev
 
 // ---------- Skip Count ----------
 function SkipView({ current, q, level }: { current: Current; q: SkipProblem; level: Level }) {
-  const prompt = promptOf(q, level), speech = [...prompt.speech, ...readChoices(q.choices)];
+  const prompt = promptOf(q, level), speech = prompt.speech;
   const ready = useAsked(current, speech), on = useTaps(current, ready);
   const cells: readonly (number | null)[] = q.form === 'next' ? [...q.shown, null] : q.form === 'middle' ? q.shown : [];
   return (
@@ -329,7 +325,7 @@ function SkipView({ current, q, level }: { current: Current; q: SkipProblem; lev
 
 // ---------- Number Chart ----------
 function ChartView({ current, q, level }: { current: Current; q: ChartProblem; level: Level }) {
-  const prompt = promptOf(q, level), speech = [...prompt.speech, ...readChoices(q.choices)];
+  const prompt = promptOf(q, level), speech = prompt.speech;
   const ready = useAsked(current, speech), on = useTaps(current, ready);
   const tapping = q.input === 'chart';
   return (

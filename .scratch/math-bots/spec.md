@@ -125,9 +125,10 @@ Nothing. Checked in the code on 2026-11-05: the Scoreboard has its generator, sc
 - **Scoreboard rows:** drum, hammer, flipper. It asks at Bot Stories Level 2 from Stretch 1, and Level 3.
 - **Level 2 stories:** nearly all are solved by subtracting, so when a Round wants an addition it borrows a Level 1 story type.
 - **Story numbers are at least 2.** The templates are plural, so a 1 would say "1 red wheels" or "1 are left".
-- **Weigh-In cards** can be tapped once "Tap the true one." ends, while they're still being read, because reading all three takes about 10 seconds.
+- **Answer buttons are never read out** (the parent's call, 2026-11-05: he reads numbers, and hearing all of them only held him up). Weigh-In cards and the Balance Lock's choices stay silent too.
+- **Quick Look** stays up 3 seconds after "How many?" has been said, not 2 from the moment it appears, and tapping the cover shows it again as often as he likes. This replaces the research's one 👀 peek: reading the choices aloud had used up the whole look before he could answer.
 - **Everything is tap-only.** No drag exists, so nothing depends on one.
-- **Voice:** Aria, chained. Clips carry about 1.2 seconds of silence, so Math Bots trims each as it decodes (`numbers/trim.ts`). The stretched "Niiiine" clips were not made: the voice can't be told to stretch a number.
+- **Voice:** Aria, chained. Clips carry about 1.2 seconds of silence, so Math Bots trims each as it decodes (`numbers/trim.ts`), under the level of a soft consonant so "five" keeps its F. Every piece of a line loads before the first plays, so a chain doesn't stall halfway. The stretched "Niiiine" clips were not made: the voice can't be told to stretch a number.
 
 ## Second wave and Legendary defaults (for the parent to confirm)
 

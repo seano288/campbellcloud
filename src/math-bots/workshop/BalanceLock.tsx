@@ -8,7 +8,7 @@ import { player } from '../game';
 import { said } from '../numbers/say';
 import type { Level } from '../numbers/problems';
 import type { Phrase } from '../phrases';
-import { speaking, useVoiceScope, type Item } from '../voice';
+import { useVoiceScope } from '../voice';
 import { Scale, cls } from '../visuals/Pictures';
 import { unlockLegendary } from './actions';
 import { LEGENDARIES, nameOf, type LockSlot } from '../bot/parts';
@@ -19,8 +19,7 @@ export function BalanceLock({ slot, swatch, onOpen, onClose }: { slot: LockSlot;
   const p = useMemo(() => makeLock(scale.opened ? scale.level as Level : null, Math.random), []);
   const total = lockTotal(p), leftText = p.b ? `${p.a} + ${p.b}` : String(p.a);
   const [tried, setTried] = useState<number | null>(null), [wrong, setWrong] = useState<number[]>([]), [busy, setBusy] = useState(false), [lit, setLit] = useState<number | null>(null), [open, setOpen] = useState(false);
-  const sum: Phrase[] = [said(p.a), ...(p.b ? ['plus' as const, said(p.b)] : []), 'is the same as', said(p.c), 'plus what number?'];
-  const speech: Item[] = [...sum, ...p.choices.map((n, i) => ({ parts: [said(n)], light: `c${i}` }))];
+  const speech: Phrase[] = [said(p.a), ...(p.b ? ['plus' as const, said(p.b)] : []), 'is the same as', said(p.c), 'plus what number?'];
   const ask = () => voice.say(nameOf(LEGENDARIES[slot]), 'This one is in the Balance Lock!', 'Make both sides the same!', ...speech);
   useEffect(() => { void ask(); }, []);
 
@@ -55,8 +54,8 @@ export function BalanceLock({ slot, swatch, onOpen, onClose }: { slot: LockSlot;
         {met && <div class="lock-eq">{leftText} = {p.c} + {tried ?? '?'}</div>}
         <Scale left={total} right={p.c + right} leftText={leftText} rightText={`${p.c} + ${tried ?? '?'}`} />
         <div class="choices three">
-          {p.choices.map((n, i) => (
-            <button key={n} class={cls('choice', wrong.includes(n) && 'wrong', open && n === p.x && 'right', lit === n && 'lit', speaking.value === `c${i}` && 'reading')}
+          {p.choices.map(n => (
+            <button key={n} class={cls('choice', wrong.includes(n) && 'wrong', open && n === p.x && 'right', lit === n && 'lit')}
               disabled={wrong.includes(n)} aria-label={String(n)} onClick={() => void tap(n)}>{n}</button>
           ))}
         </div>

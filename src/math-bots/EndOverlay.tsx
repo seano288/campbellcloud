@@ -9,14 +9,14 @@ import { IconButton } from '../ui/bits';
 import { CurrencyIcon } from '../ui/currency';
 import { MATH_CURRENCY } from './branding';
 import { MODE_NAMES } from './learning';
-import type { Phrase } from './phrases';
+import { starLine, type Phrase } from './phrases';
 import type { Round, RoundEvent } from './round';
 import { useVoiceScope } from './voice';
 
 const order = (e: RoundEvent) => (e.kind === 'star' ? 3 : 2);
 function eventLines(e: RoundEvent): Phrase[] {
   if (e.kind === 'levelUp') return ['Level up!'];
-  if (e.kind === 'star') return [`You are a ${MODE_NAMES[e.mode]} star!`];
+  if (e.kind === 'star') return [starLine(MODE_NAMES[e.mode])];
   return [`You opened ${MODE_NAMES[e.mode]}!`];
 }
 

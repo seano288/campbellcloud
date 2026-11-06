@@ -1,5 +1,7 @@
 // Which part of a recording to keep: the speech, with a little air after it.
-const QUIET = 0.012, LEAD_S = 0.02, GAP_S = { piece: 0.09, sentence: 0.3 } as const;
+// QUIET sits well under a soft consonant: a higher line cut the F off every "five", "fifteen" and "fifty". The recordings' silence is
+// true zero, so nothing but speech reaches it.
+const QUIET = 0.002, LEAD_S = 0.02, GAP_S = { piece: 0.03, sentence: 0.24 } as const;
 
 export function keepRange(samples: ArrayLike<number>, rate: number, end: keyof typeof GAP_S): [number, number] {
   const n = samples.length, loud = (i: number) => Math.abs(samples[i]!) > QUIET;

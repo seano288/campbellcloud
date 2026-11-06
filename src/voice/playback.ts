@@ -54,12 +54,15 @@ export function createPlayback<P extends string, B>({
 
   async function run(work: Work) {
     try {
+      // Every piece is fetched before the first plays: a line chained from pieces must not stall halfway through a sentence.
+      const pieces = new Map(work.items.flatMap(item => (typeof item === 'string' ? [item] : item.parts)).map(phrase => [phrase, clip(phrase)]));
+      await Promise.race([Promise.all(pieces.values()), work.ended]);
       for (const item of work.items) {
         if (current !== work) return;
         speaking.value = typeof item === 'string' ? null : item.light;
         if (current !== work) return;
         for (const phrase of typeof item === 'string' ? [item] : item.parts) {
-          const buffer = await Promise.race([clip(phrase), work.ended]);
+          const buffer = await Promise.race([pieces.get(phrase)!, work.ended]);
           if (current !== work) return;
           if (buffer) {
             work.source = play(buffer);

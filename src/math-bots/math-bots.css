@@ -67,7 +67,6 @@ html,body{background:var(--steel-deep)}
 .choices.three{grid-template-columns:repeat(3,1fr)}
 .choices.two{grid-template-columns:repeat(2,1fr);width:min(100%,560px)}
 .choice{min-height:max(64px,calc(84px*var(--u)));font-size:max(26px,calc(38px*var(--u)))}
-.choice.reading{outline:5px solid var(--orange);outline-offset:3px}
 .choices.signs .choice{font-size:max(36px,calc(56px*var(--u)))}
 .done-btn{background:var(--go);color:#fff;min-width:max(76px,calc(110px*var(--u)))}
 .cards{display:grid;gap:calc(12px*var(--u));width:min(100%,560px)}
@@ -100,7 +99,7 @@ button.dot{cursor:pointer;min-width:44px;min-height:44px;touch-action:manipulati
 .q-pic:has(.frame + .frame) .frame,.frames:has(.frame + .frame) .frame{grid-template-columns:repeat(5,max(44px,calc(56px*var(--u))));grid-auto-rows:max(44px,calc(56px*var(--u)));--dot:calc(38px*var(--u))}
 .cell{display:grid;place-items:center;border:2px solid #000}
 .cell.plated{background:#7d8794 repeating-linear-gradient(45deg,#7d8794 0 8px,#6f7985 8px 16px)}
-.cover{position:absolute;inset:0;margin:auto;width:min(92%,calc(380px*var(--u)));height:min(100%,calc(170px*var(--u)));min-height:130px;background:#7d8794 repeating-linear-gradient(45deg,#7d8794 0 10px,#6f7985 10px 20px);border:4px solid #000;border-radius:14px}
+.cover{position:absolute;inset:0;margin:auto;padding:0;color:#000;font-size:calc(56px*var(--u));cursor:pointer;width:min(92%,calc(380px*var(--u)));height:min(100%,calc(170px*var(--u)));min-height:130px;background:#7d8794 repeating-linear-gradient(45deg,#7d8794 0 10px,#6f7985 10px 20px);border:4px solid #000;border-radius:14px}
 
 /* the number path */
 .path{display:flex;flex-wrap:wrap;justify-content:center;gap:4px;max-width:100%}

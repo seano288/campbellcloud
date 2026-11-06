@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest';
 import { seeded } from '../../game/rng';
 import { MATH_KINDS, makeBoard, makeQuestion, STORIES, type Level } from './problems';
 import { PHRASES } from '../phrases';
-import { cardLine, line, promptOf, sentenceOf, speech, storyParts, textOf, type AnyQuestion } from './say';
+import { line, promptOf, sentenceOf, speech, storyParts, textOf, type AnyQuestion } from './say';
 import { MEETING_SCRIPTS, meetingsFor, missSteps, teachSteps } from './teach';
 import { keepRange } from './trim';
 import { MEETINGS } from '../learning';
@@ -37,7 +37,6 @@ describe('everything said is recorded', () => {
   it('Meetings', () => {
     for (const m of MEETINGS) { const s = MEETING_SCRIPTS[m]; for (const p of [...s.steps.flatMap(x => speech(x.say)), s.tap]) expect(known, p).toContain(p); }
   });
-  it('weigh-in cards', () => every(q => { if (q.kind === 'scale' && q.form === 'cards') for (const c of q.cards) for (const p of cardLine(c).speech) expect(known).toContain(p); }));
 });
 
 describe('hearing is never enough', () => {
@@ -138,6 +137,10 @@ describe('trimming a clip', () => {
     expect(b).toBeGreaterThan(6000);
     expect(b).toBeLessThan(8000);
     expect(c).toBeGreaterThan(b);
+  });
+  it('keeps a soft first sound: the F of five', () => {
+    const five = [...Array(4000).fill(0), ...Array(2400).fill(0.006), ...Array(2000).fill(0.5), ...Array(20000).fill(0)];
+    expect(keepRange(five, 24000, 'piece')[0]).toBeLessThan(4000);
   });
   it('leaves silence alone', () => expect(keepRange([0, 0, 0], 16000, 'piece')).toEqual([0, 3]));
 });
