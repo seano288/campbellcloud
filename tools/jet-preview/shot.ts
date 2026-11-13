@@ -8,7 +8,7 @@ page.on('console', m => { if (m.type() === 'error' || m.type() === 'warning') co
 page.on('pageerror', e => console.log('pageerror:', e.message));
 let i = 0;
 for (const q of queries) {
-  await page.goto(`http://localhost:5199/?${q}`);
+  await page.goto(`http://localhost:${process.env.PORT ?? 5199}/?${q}`);
   await page.waitForTimeout(Number(process.env.WAIT ?? 6000));
   const file = queries.length > 1 ? out!.replace('.png', `-${i++}.png`) : out!;
   await page.screenshot({ path: file });

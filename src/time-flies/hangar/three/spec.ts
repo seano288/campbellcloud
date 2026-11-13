@@ -20,6 +20,11 @@ export interface BodyPart {
   segs?: number;
   /** Faceted shading (the F-117). */
   flat?: boolean;
+  /**
+   * Glass only: frame bows across the canopy, as fractions of its length. Default: a windscreen bow at 0.3, or none on
+   * the one-piece canopies (F-16, F-22, F-35). A sill rail runs along every canopy's sides either way.
+   */
+  frames?: number[];
 }
 
 export interface SurfacePart {

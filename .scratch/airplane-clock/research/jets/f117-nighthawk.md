@@ -309,3 +309,22 @@ Open questions to resolve before modeling:
 3. Confirm the 20 deg empennage sweep (single-source).
 4. Confirm the max speed (594 kn vs 623 mph conflict, [W]).
 5. Confirm canopy tint and bay door size from a readable three-view drawing.
+
+## Shape pass 2026-11-13
+
+Measured from the Wikimedia Commons three-view "Lockheed F-117A Nighthawk.png"
+(https://commons.wikimedia.org/wiki/File:Lockheed_F-117A_Nighthawk.png), scaled to the 13.21 m span and 20.09 m length.
+What changed in `jets/f117.ts`:
+- **Taller pyramid.** The ridge now stands about 2.0 m above the flat belly at the canopy (it was 1.2 m), falling to about
+  0.9 m at the V-tail roots. The body's edge follows the 67.5° leading edge right back to the wing root (2.6 m out).
+- **W trailing edge.** The wing's trailing edge sweeps forward about 45° from a clipped tip (LE 15.9 m, TE 17.5 m) to the
+  deck at x 13.9 m, z 2.6 m. The exhaust deck then tapers back to a point on the centre line at 17.3 m, so the planform is
+  the real W rather than a straight-backed delta. The flat exhaust slots sit on the deck's trailing edge (x 16.35 m).
+- **V-tail.** The ruddervators root close together on the deck (z ±0.35 m), are swept hard (LE 14.6 m to 18.6 m) and lean
+  out about 34° from vertical, tips at ±1.75 m (they were ±3.3 m, 50°). Their tip trailing edges set the 20.09 m length
+  and their tips the 3.78 m height. The drawing's front view shows about 30°; the 50° often quoted did not match it.
+- **Canopy.** A faceted, painted hood at the peak with glass over the windscreen and front side panes (it was a small
+  glass bump). The pilot sits higher, inside it.
+- **Intake grilles.** Flat black panels on the pyramid's sides just behind the cockpit (they were small boxes on the wing
+  roots). Measured from the side and front views: x 5.6 to 6.5 m, from z 1.2 m up high to z 1.95 m down low.
+- **Gear.** Shorter legs: the belly now sits about 0.9 m off the ground, which the 3.78 m height requires.

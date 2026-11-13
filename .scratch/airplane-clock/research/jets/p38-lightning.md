@@ -381,3 +381,32 @@ Searched Sketchfab, CGTrader, Free3D, RenderHub, 3DCadBrowser, Highend3d and gen
 - Glacier Girl and F-5 paint details.
 - Fin height and rudder area.
 - Height conflict: Wikipedia 3.91 m vs reddog1944 3.00 m. This file uses 3.91 m.
+
+## Shape pass 2026-11-13
+
+Measured against Lockheed's dimensioned P-38L three-view on Commons ("Lockheed P-38L Lightning 3-view line drawing.png",
+US Government public domain). It settles several (est.) values above:
+- Propeller centre line 61.875 in (1.57 m) behind the gondola nose; wing root LE 119.05 in (3.02 m); root chord 117 in
+  (2.97 m, NACA 23016); outer wing joint at station 115 in (2.92 m out); dihedral 5°40' on the outer panels only.
+- Booms 96 in (2.44 m) from the centre line; propellers 11 ft 6 in (3.51 m).
+- Tailplane: span 261 in (6.63 m), so it runs 0.88 m outboard of each boom to rounded tips; chord 45 in (1.14 m);
+  LE at station 397.6 in (10.10 m); 21.1 in above the reference line.
+- Fins: 82 in (2.09 m) tall, about 1.2 m above the boom and 0.9 m below it; oval.
+- Gear: 36 in main and 27 in nose tyres, wheelbase 120.8 in (3.07 m); static ground line puts it 5°33' nose up.
+- Drawn height to the fin top is 9 ft 10⅜ in (3.0 m), which supports reddog1944's 3.00 m; the spec keeps the published
+  3.91 m in its `height` field.
+
+What changed in `src/time-flies/hangar/jets/p38.ts` (thrust line y = 0):
+- **Booms and wing moved 0.85–0.95 m aft:** the gondola nose now sticks out well ahead of the spinners (spinner tips at
+  0.97 m), which is the P-38's look; the wing LE is at 2.9–3.1 m, flat centre section, dihedral outer panels with big
+  round tips (0.6 m), chord 2.8 m at the gondola tapering to 1.65 m before the tip.
+- **Gondola:** slimmer (0.45 m half-width), bullet nose with four .50 calibre barrels and the 20 mm cannon poking out,
+  pointed tail at 5.7 m between the booms. Canopy 2.75–4.6 m, top about 1.0 m above the thrust line.
+- **Booms:** deeper engine cowlings with a dark chin intake (intercooler and oil coolers), a metal turbo-supercharger dome
+  on top behind the wing (its exhaust is where the flame comes from), radiator housings on both sides at 6.6–8.0 m, and
+  the boom rising toward the tail.
+- **Tail:** oval fins above and below each boom; the tailplane runs out past the booms to rounded tips.
+- **Gear:** longer nose leg and 0.44 m main wheels, sitting about 5° nose up as on the drawing.
+- Hardpoints moved under the new wing (inner pylons 1.4 m out, rockets at 3.6 and 4.6 m).
+
+Not done: the spinner base is smaller than the real one (builder fixes it at 16% of prop radius); canopy frames.

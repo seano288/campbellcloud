@@ -425,3 +425,15 @@ Honesty note: I found **no** confirmed-licence F-15 model from Poly Pizza, NASA,
 - Landing gear layout (est.).
 - All hex colours (est.).
 - Oregon ANG, JASDF, Saudi/Qatari schemes.
+
+## Shape pass 2026-11-13
+
+Traced from the public-domain Commons three-view [File:McDonnell Douglas F-15 Eagle 3-view.svg](https://commons.wikimedia.org/wiki/File:McDonnell_Douglas_F-15_Eagle_3-view.svg) (a two-seat B/D/E drawing; planform and intakes are the same as the C). Top view ~55.9 px/m from span, ~54.8 px/m from length; side ~53.8 px/m with the fin top at 5.63 m. Measured: nose hw 0.40 @ 0.8, 0.67 @ 2.5, 0.72 @ 4.6; intake lips at x 5.66, z 0.66–1.50, y -0.57 to 0.80; body side hw 1.88–1.95 from 9.4 to 15.2; wing LE (9.4, 1.88) → (13.41, 6.53) with a raked tip, root TE 15.2; stabilators root LE 16.24 @ hw 1.9, tip LE 18.52 @ 4.06, tip TE 19.43; fins at z 1.59, root LE 15.6–15.8, tip LE ~18.0; canopy top 1.6 m above the datum. Changes to `jets/f15.ts`:
+
+- **Canopy** raised to the real height (peak y 1.57, base 0.62): the Eagle's tall bubble was ~0.4 m too low.
+- **Intakes**: taller square boxes (y -0.54 to 0.78) whose ducts widen back to hw 1.85, forming the broad flat back; wing moved up to their top (shoulder, y 0.35).
+- **Wing**: root LE moved aft to 9.4, root chord 5.8, raked (cropped) tip as on the drawing.
+- **Tail**: fins moved aft (root LE 15.6) and outboard (z 1.6) onto new tail booms; stabilators on the booms at the traced span; engine bays at z 0.72 with nozzles at 18.4.
+- Nose gear moved to x 4.6; hardpoints moved to the new wing and duct bottoms; pilot raised to the new canopy.
+
+Not done: the stabilator dogtooth, the intake ramp droop and rake (open fronts are flat), the boom stingers.

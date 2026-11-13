@@ -208,11 +208,12 @@ export class HangarStage {
     if (this.spec === spec && this.jet) { this.jet.dress(fit); this.fit = fit; return; }
     const keepView = !!this.jet;
     this.weapons.clear();
-    if (this.jet) { this.scene.remove(this.jet.root); this.jet.dispose(); }
+    if (this.jet) { this.scene.remove(this.jet.root, this.jet.contact); this.jet.dispose(); }
     this.spec = spec; this.fit = fit;
     this.jet = buildJet(spec, fit);
     this.jet.root.traverse(o => { if (o instanceof THREE.Mesh) o.castShadow = true; });
-    this.scene.add(this.jet.root);
+    this.scene.add(this.jet.root, this.jet.contact);
+    this.placeContact();
     this.muzzles = this.jet.guns.map(g => { const m = glow(0xffd27a, 1.6); m.visible = false; g.add(m); return m; });
     this.mainX = spec.gear.main.x + this.jet.airframe.position.x;
     if (spec.id === 'v22') this.setPivots(0); // parked with its rotors up, like a helicopter
@@ -298,6 +299,7 @@ export class HangarStage {
     if (on) this.throttleUntil = Infinity; else this.throttleUntil = 0;
     this.field.update(0, this.altitude);
     this.cloudLayer.position.y = CRUISE - this.altitude;
+    this.placeContact();
     this.touch();
   }
 
@@ -458,6 +460,16 @@ export class HangarStage {
     }
   };
 
+  /** The soft contact shadow stays on the floor or runway under the wheels, fading as the Aircraft climbs away. */
+  private placeContact() {
+    const c = this.jet?.contact;
+    if (!c) return;
+    const k = this.gearUp ? 0 : 1 - THREE.MathUtils.smoothstep(this.altitude, 0, 5);
+    c.position.y = (this.flying ? 0.025 : 0.004) - this.altitude;
+    (c.material as THREE.MeshBasicMaterial).opacity = 0.75 * k;
+    c.visible = k > 0.01;
+  }
+
   private flyFrame(dt: number, t: number) {
     const jet = this.jet!, now = performance.now(), s = (now - this.phaseT0) / 1000;
     let pitch = 0; // nose up
@@ -504,6 +516,7 @@ export class HangarStage {
     }
     this.cloudLayer.position.y = CRUISE - this.altitude;
     this.field.update(dist, this.altitude);
+    this.placeContact();
 
     // up in the clouds it bobs and banks gently; on the runway it pivots on its main wheels
     this.bob += ((this.phase === 'air' ? 1 : 0) - this.bob) * Math.min(1, dt * 1.2);

@@ -150,6 +150,56 @@ export function loftBody(sections: readonly Section[], o: BodyOptions = {}) {
 /** Half-thickness of a NACA 4-digit symmetric section at chord fraction xc (closed trailing edge). */
 export const naca = (xc: number, t: number) => 5 * t * (0.2969 * Math.sqrt(xc) - 0.126 * xc - 0.3516 * xc ** 2 + 0.2843 * xc ** 3 - 0.1036 * xc ** 4);
 
+/**
+ * A skin through rings of points (each ring the same length, in order round it), facing out from each ring's centre, or
+ * in toward it (`inward`: the inside of a duct or a nozzle). The ends can be capped.
+ */
+export function ringSkin(rings: readonly (readonly V3[])[], o: { inward?: boolean; capStart?: boolean; capEnd?: boolean; open?: boolean; inside?: V3 } = {}) {
+  const m = new Mesh(), n = rings[0]!.length, flip = o.inward ? -1 : 1;
+  const centres = rings.map(r => [0, 1, 2].map(k => r.reduce((s, p) => s + p[k]!, 0) / r.length));
+  for (const r of rings) for (const p of r) m.add(p[0], p[1], p[2]);
+  // a point to face away from: the centre of the rings (or, inward, a point far out beyond the skin)
+  const away = (c: number[], a: number): readonly number[] => {
+    if (o.inside) return o.inside;
+    if (!o.inward) return c;
+    const p = m.pos, q = [p[a * 3]!, p[a * 3 + 1]!, p[a * 3 + 2]!];
+    return q.map((v, k) => v + (v - c[k]!) * 50);
+  };
+  const segs = o.open ? n - 1 : n;
+  for (let i = 0; i < rings.length - 1; i++) {
+    const c = centres[i]!.map((v, k) => (v + centres[i + 1]![k]!) / 2);
+    for (let j = 0; j < segs; j++) {
+      const a = i * n + j, b = i * n + ((j + 1) % n);
+      m.tri(a, a + n, b, away(c, a)); m.tri(b, a + n, b + n, away(c, b));
+    }
+  }
+  const cap = (ring: number, inner: number) => {
+    const centre = m.add(...(centres[ring]! as [number, number, number])), first = ring * n;
+    const inside = centres[inner]!.map((v, k) => centres[ring]![k]! + (v - centres[ring]![k]!) * flip);
+    for (let j = 0; j < n; j++) m.tri(centre, first + j, first + ((j + 1) % n), inside);
+  };
+  if (o.capStart) cap(0, 1);
+  if (o.capEnd) cap(rings.length - 1, rings.length - 2);
+  return m.geometry();
+}
+
+/** A round pipe of radius r along a path of points (a frame bow, a rail, a brake line). */
+export function pipe(path: readonly V3[], r: number, segs = 6) {
+  const pts = path.map(p => new THREE.Vector3(...p)), rings: V3[][] = [];
+  let u = new THREE.Vector3();
+  pts.forEach((p, i) => {
+    const t = pts[Math.min(i + 1, pts.length - 1)]!.clone().sub(pts[Math.max(i - 1, 0)]!).normalize();
+    if (i === 0) u.crossVectors(t, Math.abs(t.y) < 0.9 ? new THREE.Vector3(0, 1, 0) : new THREE.Vector3(1, 0, 0)).normalize();
+    else u = u.addScaledVector(t, -t.dot(u)).normalize(); // carried along the path, so the rings don't twist
+    const v = new THREE.Vector3().crossVectors(t, u).normalize();
+    rings.push(Array.from({ length: segs }, (_, j) => {
+      const a = (j / segs) * Math.PI * 2;
+      return p.clone().addScaledVector(u, Math.cos(a) * r).addScaledVector(v, Math.sin(a) * r).toArray() as unknown as V3;
+    }));
+  });
+  return ringSkin(rings, { capStart: true, capEnd: true });
+}
+
 /** A surface lofted through airfoil stations, root first. */
 export function loftSurface(stations: readonly Station[], chordPts = 12) {
   const m = new Mesh(), X = new THREE.Vector3(1, 0, 0);
@@ -158,8 +208,10 @@ export function loftSurface(stations: readonly Station[], chordPts = 12) {
   stations.forEach((s, i) => {
     const prev = stations[Math.max(i - 1, 0)]!, next = stations[Math.min(i + 1, stations.length - 1)]!;
     const span = new THREE.Vector3(next.le[0] - prev.le[0], next.le[1] - prev.le[1], next.le[2] - prev.le[2]).normalize();
+    // thickness is square to the chord plane (which holds the span and the chord); only a span running straight along
+    // the chord has no plane, and then it's a flat surface
     const thick = new THREE.Vector3().crossVectors(span, X);
-    if (thick.lengthSq() < 0.25) thick.set(0, 1, 0);
+    if (thick.lengthSq() < 1e-6) thick.set(0, 1, 0);
     thick.normalize();
     const t = s.t ?? 0.06, le = new THREE.Vector3(...s.le);
     const on = (f: number) => le.clone().addScaledVector(X, f * s.chord);

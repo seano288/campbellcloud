@@ -410,3 +410,26 @@ Wing and nacelle side view (est.): wing top at z ≈ 2.5 m (est.), nacelle/rotor
 - Wing sweep 6° (brief figure; unverified).
 - Japanese JGSDF paint scheme and AFSOC CV-22 scheme (not verified).
 - Wing area discrepancy: 28.0 m² (Wiki) vs 382 sq ft (35.5 m²) on a CV-22 sheet.
+
+## Shape pass 2026-11-13
+
+Sources: Popasmoke V-22 fact sheet (horizontal stabiliser span 18.4 ft / 5.61 m, vertical stabiliser height 17.9 ft /
+5.46 m), Aerospaceweb (span with nacelles 50.92 ft / 15.52 m, height 21.75 ft with nacelles vertical), Boeing spec page
+(width with rotors turning 84.6 ft). From width with rotors (25.8 m) minus one rotor diameter (11.6 m), the nacelle
+centres are about 14.2 m apart, and 15.52 m overall then makes each nacelle about 1.3–1.4 m across. No public-domain
+three-view was found, so the rest is from photos.
+
+What changed in `src/time-flies/hangar/jets/v22.ts`:
+- **Nacelles:** fatter (0.8 m radius under the rotor hub tapering to 0.65 m) and shorter below the pivot (about 2 m),
+  so parked they read as chunky engine pods, not thin stilts with a mushroom on top. The pivot, the `nacelle` part and
+  the rotor are unchanged, so tilting for Take Off still works.
+- **Sponsons:** one wide body faired into the lower cabin sides with a flat bottom (3.7 m across), instead of two
+  separate tubes; main wheels moved out into them (track 3.0 m).
+- **Fuselage:** a little wider (2.24 m) with a wider wing fairing on top.
+- **Cockpit:** a bigger windscreen over the nose and side windows under a painted roof.
+- **Wing:** about 6° forward sweep (tip leading edge 5.35 m vs 6.0 m at the root).
+- **Added:** the MV-22's refuelling probe on the right of the nose, reaching about 1.15 m ahead of it.
+- Inner hardpoint moved under the new sponson.
+
+Not done (needs the builder): proprotor blades are black with no twist (real ones are grey and twisted about 47°), and
+the spinner radius is fixed at 16% of the rotor radius, a little big for the V-22.

@@ -2,7 +2,7 @@
 // tilt from straight up (helicopter, parked) to straight ahead (aeroplane, for Take Off). Boxy fuselage with side sponsons,
 // a high straight wing, an H-tail and a rear ramp. Research: .scratch/airplane-clock/research/jets/v22-osprey.md
 import type { JetSpec } from '../three/spec';
-import { circle, oval, wingPanel } from './parts';
+import { oval, wingPanel } from './parts';
 
 const TIP = 7.0, NY = 1.65;
 
@@ -10,30 +10,36 @@ export const v22: JetSpec = {
   id: 'v22', length: 17.47, span: 13.97, height: 6.73,
   bodies: [
     { sections: [ // the boxy cabin, nose to the upswept tail over the ramp
-      oval(0, 0.1, 0.12, 0.2, -0.15), oval(0.8, 0.62, 0.6, 0.65, -0.05, 2.4, 2.6), oval(2.2, 0.92, 0.88, 0.92, 0, 3.2, 3.6), oval(4.0, 1.0, 1.0, 1.0, 0, 4.5, 5),
-      oval(11.5, 1.0, 1.02, 1.0, 0, 4.5, 5), oval(13.8, 0.85, 0.95, 0.62, 0.3, 4, 3), oval(16.2, 0.45, 0.55, 0.28, 0.75, 3, 2.5), oval(17.47, 0.12, 0.18, 0.1, 0.95),
+      oval(0, 0.1, 0.12, 0.2, -0.15), oval(0.8, 0.66, 0.6, 0.65, -0.05, 2.4, 2.6), oval(2.2, 1.02, 0.9, 0.92, 0, 3.2, 3.6), oval(4.0, 1.12, 1.02, 1.0, 0, 4.5, 5),
+      oval(11.5, 1.12, 1.04, 1.0, 0, 4.5, 5), oval(13.8, 0.95, 0.95, 0.62, 0.3, 4, 3), oval(16.2, 0.5, 0.55, 0.28, 0.75, 3, 2.5), oval(17.47, 0.12, 0.18, 0.1, 0.95),
     ] },
-    { sections: [ // the cockpit glazing
-      oval(0.55, 0.3, 0.05, 0.25, 0.1), oval(1.0, 0.62, 0.42, 0.3, 0.12, 2.4, 2), oval(1.9, 0.82, 0.6, 0.3, 0.18, 3, 2), oval(2.7, 0.75, 0.45, 0.3, 0.22, 3, 2), oval(3.0, 0.5, 0.05, 0.3, 0.25),
+    { sections: [ // the cockpit glazing: a big windscreen over the nose, then side windows under a painted roof
+      oval(0.6, 0.48, 0.26, 0.3, 0.15, 2.3), oval(1.0, 0.78, 0.52, 0.3, 0.15, 2.5), oval(1.6, 0.93, 0.66, 0.3, 0.15, 2.9), oval(2.3, 1.06, 0.7, 0.3, 0.15, 3.3),
+      oval(2.9, 1.09, 0.62, 0.3, 0.15, 3.6), oval(3.2, 0.9, 0.3, 0.3, 0.15),
     ], finish: 'glass' },
-    { z: 1.15, mirror: true, sections: [ // sponsons for the landing gear and fuel
-      oval(5.0, 0.15, 0.3, 0.35, -0.55), oval(6.0, 0.5, 0.42, 0.45, -0.55, 3, 3), oval(10.5, 0.5, 0.42, 0.45, -0.55, 3, 3), oval(11.8, 0.15, 0.3, 0.3, -0.5),
+    { sections: [ // the sponsons along the lower sides (main gear and fuel), faired into the cabin sides, flat underneath
+      oval(4.6, 1.1, 0.2, 0.5, -0.42, 2.2, 5), oval(6.0, 1.8, 0.5, 0.55, -0.42, 2.2, 5), oval(10.5, 1.85, 0.5, 0.55, -0.42, 2.2, 5),
+      oval(12.0, 1.25, 0.32, 0.42, -0.4, 2.2, 4), oval(12.6, 1.0, 0.2, 0.3, -0.36),
+    ], segs: 32 },
+    { z: 0.55, finish: 'metal', segs: 10, sections: [ // the refuelling probe on the right of the nose
+      oval(-1.15, 0.03, 0.03, 0.03, 0.16), oval(-1.05, 0.06, 0.06, 0.06, 0.16), oval(0.9, 0.07, 0.07, 0.07, 0.13), oval(2.6, 0.12, 0.1, 0.12, 0.05), oval(3.4, 0.05, 0.04, 0.05, 0),
     ] },
-    { sections: [oval(5.0, 0.6, 0.02, 0.1, 1.0), oval(6.2, 0.9, 0.38, 0.1, 1.0), oval(8.6, 0.9, 0.38, 0.1, 1.0), oval(9.8, 0.6, 0.05, 0.1, 1.0)] }, // wing fairing
+    { sections: [oval(5.0, 0.7, 0.02, 0.1, 1.0), oval(6.2, 1.0, 0.38, 0.1, 1.0), oval(8.6, 1.0, 0.38, 0.1, 1.0), oval(9.8, 0.7, 0.05, 0.1, 1.0)] }, // wing fairing
     { z: TIP, mirror: true, part: 'nacelle', sections: [ // the engine nacelles at the wingtips
-      circle(4.6, 0.35, NY), circle(5.3, 0.62, NY), circle(8.2, 0.66, NY), circle(9.6, 0.42, NY),
-    ] },
+      oval(4.6, 0.82, 0.84, 0.84, NY), oval(5.3, 0.76, 0.8, 0.82, NY), oval(6.5, 0.69, 0.74, 0.78, NY), oval(7.7, 0.64, 0.69, 0.73, NY),
+      oval(8.5, 0.52, 0.56, 0.6, NY), oval(8.9, 0.36, 0.38, 0.4, NY),
+    ], segs: 32 },
   ],
   surfaces: [
-    { kind: 'wing', stations: wingPanel([6.0, 1.35, 0], 2.55, [5.6, 1.38, TIP - 0.55], 2.45, 0.23, 0.21, 3) },
+    { kind: 'wing', stations: wingPanel([6.0, 1.35, 0], 2.55, [5.35, 1.38, TIP - 0.6], 2.45, 0.23, 0.21, 3) }, // 6° forward sweep
     { kind: 'tail', stations: wingPanel([15.6, 1.25, 0], 1.6, [15.75, 1.25, 2.8], 1.5, 0.1, 0.09, 2) },
     { kind: 'fin', stations: wingPanel([15.25, 0.35, 2.8], 2.05, [15.8, 3.3, 2.8], 1.5, 0.09, 0.08, 3) },
   ],
   pivots: [{ part: 'nacelle', at: [6.9, NY, TIP], axis: [0, 0, 1] }],
-  nozzles: [{ at: [9.65, NY, TIP], r: 0.3, len: 0.4, mirror: true, part: 'nacelle' }],
-  props: [{ at: [4.55, NY, TIP], r: 5.8, blades: 3, spinner: 1.0, mirror: true, part: 'nacelle', chord: 0.85 }],
-  gear: { nose: { x: 2.2, y: -0.92, len: 0.7, r: 0.35, twin: true }, main: { x: 8.6, y: -0.95, z: 1.35, len: 0.66, r: 0.4, twin: true } },
-  hardpoints: [{ at: [8.0, -0.6, 1.75], kind: 'inner' }, { at: [10.0, -1.0, 0], kind: 'belly', mirror: false }],
+  nozzles: [{ at: [8.95, NY, TIP], r: 0.3, len: 0.4, mirror: true, part: 'nacelle' }],
+  props: [{ at: [4.55, NY, TIP], r: 5.8, blades: 3, spinner: 0.9, mirror: true, part: 'nacelle', chord: 0.85 }],
+  gear: { nose: { x: 2.2, y: -0.92, len: 0.7, r: 0.35, twin: true }, main: { x: 8.6, y: -0.95, z: 1.5, len: 0.66, r: 0.4, twin: true } },
+  hardpoints: [{ at: [6.8, -0.86, 1.65], kind: 'inner' }, { at: [10.0, -1.0, 0], kind: 'belly', mirror: false }],
   cockpit: [1.9, 0.55, 0],
   seats: [[1.9, 0.55, 0.45], [1.9, 0.55, -0.45]],
   flame: 'round',

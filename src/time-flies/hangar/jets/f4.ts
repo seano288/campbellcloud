@@ -1,42 +1,52 @@
-// McDonnell Douglas F-4E Phantom II. Length 19.2 m, span 11.7 m, height 5.0 m, 45° leading-edge sweep, outer wing
-// panels tipped up 12° and the stabilators drooped 23°. Two crew in tandem; intakes beside the cockpit.
+// McDonnell Douglas F-4E Phantom II. Length 19.2 m (with the nose probe), span 11.7 m, height 5.0 m. A big, deep body:
+// a drooping radome over the E's gun fairing, a long two-seat canopy flowing into a straight spine, box intakes beside
+// the cockpit behind tall splitter plates, a 48° wing with a dogtooth and its outer panels tipped up 12°, J79 nozzles
+// under a long tail cone, and stabilators drooped 23°. Stations measured from the F-4E three-view on Wikimedia Commons.
 // Research: .scratch/airplane-clock/research/jets/f4-phantom.md
 import type { JetSpec } from '../three/spec';
-import { joined, oval, wingPanel } from './parts';
+import { circle, joined, oval, wingPanel } from './parts';
 
 export const f4: JetSpec = {
   id: 'f4', length: 19.2, span: 11.7, height: 5.0,
   bodies: [
     { sections: [
-      oval(0, 0.02, 0.02, 0.02, -0.05), oval(1.0, 0.36, 0.35, 0.38, -0.02), oval(2.6, 0.55, 0.55, 0.56, 0), oval(4.2, 0.66, 0.62, 0.62, 0.02, 2.2, 2.4),
-      oval(7.0, 0.72, 0.62, 0.6, 0.02, 2.4, 2.6), oval(10.5, 0.82, 0.6, 0.58, 0, 2.6, 2.8), oval(13.5, 0.8, 0.58, 0.55, 0, 2.6, 2.8),
-      oval(15.5, 0.55, 0.55, 0.35, 0.18), oval(17.6, 0.3, 0.42, 0.18, 0.32), oval(19.2, 0.05, 0.12, 0.05, 0.4),
+      oval(0, 0.03, 0.03, 0.03, -0.71), oval(0.5, 0.25, 0.25, 0.25, -0.67), oval(1.2, 0.4, 0.42, 0.42, -0.58), oval(2.0, 0.5, 0.56, 0.56, -0.5, 2.2, 2.2),
+      oval(3.0, 0.55, 0.67, 0.67, -0.42, 2.3, 2.4), oval(4.3, 0.62, 0.78, 0.78, -0.34, 2.4, 2.6), oval(5.8, 0.68, 0.85, 0.85, -0.3, 2.5, 2.7),
+      oval(7.3, 0.9, 0.99, 0.99, -0.19, 2.6, 2.8), oval(8.5, 1.08, 1.18, 1.18, -0.02, 2.7, 2.9), oval(11.0, 1.11, 1.17, 1.17, -0.01, 2.8, 3),
+      oval(13.4, 1.05, 1.1, 1.1, 0.06, 2.7, 2.9), oval(14.4, 0.98, 1.0, 1.0, 0.11, 2.5, 2.6), oval(15.0, 0.6, 0.65, 0.65, 0.45, 2.2, 2.4),
+      oval(16.5, 0.34, 0.36, 0.36, 0.66), oval(18.6, 0.06, 0.12, 0.12, 0.72),
     ] },
-    { sections: [ // the long tandem canopy over both crew
-      oval(3.4, 0.08, 0.02, 0.06, 0.55), oval(4.0, 0.42, 0.4, 0.1, 0.55), oval(5.0, 0.48, 0.48, 0.1, 0.55), oval(6.4, 0.48, 0.5, 0.1, 0.55),
-      oval(7.4, 0.42, 0.4, 0.1, 0.55), oval(8.4, 0.2, 0.1, 0.1, 0.55),
-    ], finish: 'glass' },
-    { z: 0.92, mirror: true, sections: [ // the intakes beside the cockpit, running back to the engines
-      oval(5.0, 0.36, 0.55, 0.55, -0.12, 4, 4), oval(6.0, 0.42, 0.56, 0.58, -0.12, 3.5, 3.5), oval(9.0, 0.48, 0.55, 0.55, -0.1, 3, 3),
-      oval(13.0, 0.48, 0.5, 0.5, -0.12, 2.6, 2.6), oval(16.2, 0.46, 0.46, 0.46, -0.15, 2.2, 2.2),
+    { sections: [ // the long tandem canopy over both crew, flowing into the spine
+      oval(3.05, 0.3, 0.02, 0.12, 0.26), oval(3.45, 0.5, 0.18, 0.12, 0.3), oval(3.8, 0.55, 0.36, 0.12, 0.32), oval(4.2, 0.57, 0.51, 0.12, 0.34),
+      oval(4.9, 0.58, 0.71, 0.12, 0.37), oval(5.6, 0.58, 0.79, 0.12, 0.4), oval(6.4, 0.57, 0.77, 0.12, 0.44), oval(7.1, 0.52, 0.7, 0.12, 0.5),
+      oval(7.7, 0.45, 0.55, 0.12, 0.6), oval(8.2, 0.3, 0.3, 0.12, 0.8),
+    ], finish: 'glass', frames: [0.12, 0.47, 0.62] },
+    { z: 1.08, mirror: true, sections: [ // the box intakes beside the cockpit, running back into the body
+      oval(5.85, 0.3, 0.66, 0.62, 0.05, 4, 4), oval(7.0, 0.31, 0.7, 0.66, 0.02, 3.5, 3.5), oval(8.8, 0.08, 0.62, 0.62, 0, 3, 3), oval(10.5, 0.03, 0.3, 0.3, 0),
     ], openFront: true },
+    { sections: [ // the F-4E's gun fairing under the radome
+      oval(0.9, 0.05, 0.05, 0.05, -0.95), oval(1.6, 0.22, 0.2, 0.2, -1.08), oval(3.5, 0.26, 0.22, 0.2, -1.1), oval(4.6, 0.18, 0.2, 0.1, -1.04),
+    ], segs: 20 },
+    { sections: [oval(12.6, 0.04, 0.01, 0.05, 1.12), oval(13.5, 0.07, 0.1, 0.05, 1.12), oval(14.3, 0.07, 0.42, 0.05, 1.12), oval(14.9, 0.05, 0.6, 0.05, 1.1)], segs: 16 }, // the fin's dorsal fillet
+    { sections: [circle(-0.6, 0.02, -0.71), circle(0.1, 0.035, -0.71)], segs: 8, finish: 'metal' }, // the nose probe
   ],
   surfaces: [
-    { kind: 'wing', stations: joined(
-      wingPanel([8.4, -0.3, 1.1], 5.4, [11.2, -0.3, 3.65], 3.0, 0.064, 0.05, 2),
-      wingPanel([11.2, -0.3, 3.65], 3.0, [13.1, 0.22, 5.85], 1.55, 0.05, 0.03, 2),
+    { kind: 'wing', stations: joined( // 48° leading edge with the dogtooth where the outer panel starts, tipped up 12°
+      wingPanel([7.06, -0.55, 1.15], 5.79, [10.36, -0.55, 4.1], 2.95, 0.064, 0.05, 2),
+      wingPanel([10.2, -0.55, 4.11], 3.11, [12.32, -0.18, 5.85], 1.33, 0.05, 0.035, 2),
     ) },
-    { kind: 'tail', stations: wingPanel([16.6, 0.42, 0.45], 2.3, [18.1, -0.5, 2.75], 1.05, 0.06, 0.04, 2) },
-    { kind: 'fin', mirror: false, stations: wingPanel([13.9, 0.55, 0], 4.5, [17.1, 3.15, 0], 1.6, 0.05, 0.04, 3) },
+    { kind: 'tail', stations: wingPanel([15.9, 0.55, 0.25], 2.25, [17.7, -0.3, 2.45], 0.6, 0.06, 0.04, 2) }, // drooped 23°
+    { kind: 'fin', mirror: false, stations: wingPanel([13.9, 0.92, 0], 3.85, [16.9, 2.88, 0], 1.35, 0.05, 0.04, 3) },
+    { kind: 'other', stations: [{ le: [5.0, -0.55, 0.79], chord: 1.3, t: 0.025 }, { le: [4.7, 0.7, 0.79], chord: 1.6, t: 0.025 }] }, // splitter plates
   ],
-  nozzles: [{ at: [16.75, -0.18, 0.62], r: 0.46, len: 0.8, mirror: true }],
-  gear: { nose: { x: 3.0, y: -0.58, len: 1.25, r: 0.3, twin: true }, main: { x: 11.0, y: -0.35, z: 2.65, len: 1.45, r: 0.38 } },
+  nozzles: [{ at: [14.65, -0.45, 0.52], r: 0.44, len: 0.9, mirror: true }],
+  gear: { nose: { x: 4.6, y: -1.12, len: 0.75, r: 0.28, twin: true }, main: { x: 11.3, y: -0.69, z: 2.72, len: 1.0, r: 0.38 } },
   hardpoints: [
-    { at: [12.0, -0.35, 4.1], kind: 'outer' }, { at: [10.8, -0.32, 2.6], kind: 'inner' }, { at: [10.6, -0.62, 0], kind: 'belly', mirror: false },
-    { at: [8.0, -0.6, 0.55], kind: 'belly' },
+    { at: [11.6, -0.66, 3.95], kind: 'outer' }, { at: [10.6, -0.7, 2.25], kind: 'inner' }, { at: [10.4, -1.2, 0], kind: 'belly', mirror: false },
+    { at: [8.4, -1.2, 0.75], kind: 'belly' },
   ],
-  cockpit: [4.8, 0.9, 0],
-  seats: [[4.8, 0.9, 0], [6.6, 0.95, 0]],
+  cockpit: [5.1, 0.72, 0],
+  seats: [[5.1, 0.72, 0], [6.7, 0.78, 0]],
   flame: 'round',
   loads: { 1: { outer: 'aim9', inner: 'aim9', belly: 'aim120' }, 3: { outer: 'aim9', inner: 'tank', belly: 'aim120' } },
   livery: {

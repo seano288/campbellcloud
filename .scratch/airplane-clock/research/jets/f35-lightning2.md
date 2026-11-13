@@ -384,3 +384,17 @@ Gaps to close next:
 2. Confirm the DSI, canopy and bay dimensions from that drawing.
 3. Confirm the livery hex values from a photo or a verified livery file.
 4. Find a licence-checked F-35 model on Sketchfab (CC-BY, downloadable) or Poly Pizza.
+
+## Shape pass 2026-11-13
+
+Measured from the Wikimedia Commons drawing "Lockheed Martin F-35A Lightning II 3-view drawing.png"
+(https://commons.wikimedia.org/wiki/File:Lockheed_Martin_F-35A_Lightning_II_3-view_drawing.png), scaled to the 10.7 m span
+and 15.7 m length. What changed in `jets/f35.ts`:
+- **Much deeper body**: about 2.05 m from spine (2.9 m off the ground) to belly (0.84 m), where it was 1.15 m. The F-35's
+  chunky look comes from this.
+- **The nozzle ends at 14.3 m, not 15.7 m**: the stabilators reach past it (root TE 15.6 m) and set the length. The aft
+  body is a flat beaver tail out to the fin roots.
+- **DSI intakes**: bigger mouths (about 1.1 m tall) at 4.3 m with a painted bump on the fuselage side inside each one.
+- **Fins** root LE 11.6 m, tip LE 13.5 m, canted 25°; **stabilators** root LE 12.9 m to tip at z 3.65 m; **wing** 34°
+  leading edge from 7.3 m to the tip at 10.0 m, z 5.35 m, tip chord 1.45 m.
+- **Canopy** from 1.85 to 4.9 m peaking 3.06 m off the ground, pilot lowered to fit inside it; short main gear legs.

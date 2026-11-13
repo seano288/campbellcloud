@@ -434,3 +434,30 @@ Searches for Sketchfab and Poly Pizza turned up no suitable openly licensed P-51
 
 - **Verified (cited):** overall length, wingspan, height, wing area, weights, engine, 1,490 hp, 1,720 hp WEP (search), prop diameter 3.40 m, six .50 cals, 1,880 rounds, HVAR rockets, drop tank sizes, D bubble canopy, dorsal fin from D-10, root and tip chord (secondary), airfoil name, 78th FG and 332nd and 357th basics.
 - **Estimated (est.):** every fuselage station, canopy stations, radiator scoop, wing dihedral and thickness, tail, all colour hex values, sound parameters, hard point positions.
+
+## Shape pass 2026-11-13
+
+Measured the spec against the Commons P-51D three-view ("North American P-51D Mustang 3-view line drawing (no specs).png",
+US Government public domain; about 94 px/m at 1920 px wide), thrust line y = 0, x from the spinner tip.
+
+What changed in `src/time-flies/hangar/jets/p51.ts`:
+- **Nose:** slimmer and pointed. The cowling now starts at the spinner's base (0.29 m) and swells to 0.44 m above and
+  0.66 m below the thrust line by x = 2 m, so the Merlin nose tapers the way it does on the real aircraft instead of
+  being a fat tube with a step behind the spinner. Spinner length 0.62 m, tip at x = 0.
+- **Belly and radiator scoop:** the scoop mouth now hangs just under the wing at x = 3.95 m (it was 4.55 m and read as a
+  separate pod), and the fuselage itself deepens to 1.04 m below the thrust line at x = 5.7 m and sweeps up to the tail
+  wheel, so the scoop is part of the belly. Carburettor intake moved to just behind the spinner.
+- **Rear fuselage:** level spine at +0.55 m behind the canopy and a tall, narrow tail cone (it was a round, drooping
+  cone).
+- **Canopy:** bubble 3.3–5.8 m, peak 0.87 m above the thrust line at about 4.7 m, wider (0.36 m half-width).
+- **Wing:** lowered so its underside is flush with the belly (low wing), root extension ahead of the gear bays (root
+  chord 2.6 m at LE 2.5 m, 2.18 m at 1.4 m out), 1.2 m tip chord at LE 3.18 m, about 4.5° dihedral.
+- **Tail:** fin moved aft (LE 8.27 m root, 8.83 m top), top 1.67 m above the thrust line, with a squarer rounded top;
+  dorsal fillet from 6.4 m; tailplane 4.0 m span, nearly unswept (it was swept 0.5 m).
+- **Gear:** main wheels at x 2.8, track 3.58 m, tail wheel moved forward to x 7.9 m (where it is on the drawing), so it
+  sits about 13° nose up.
+- **Added:** six fishtail exhaust stacks each side (dark, 10-segment bodies), flames moved to their mouths.
+- Hardpoints moved under the new wing: inner (bombs/tanks) at 2.5 m out, clear of the wheels, outer (HVARs) at 3.4 m.
+
+Not done: the spinner is narrower than the real one (builder sets its base radius to 16% of the prop radius); canopy
+frame and sliding-hood bow; the windscreen is part of the bubble rather than a flat panel.

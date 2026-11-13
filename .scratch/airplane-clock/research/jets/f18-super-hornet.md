@@ -406,3 +406,17 @@ Known gaps to close before coding:
 - Fuselage cross-sections are estimates. Confirm with a side and top view.
 - Top-view and side-view outlines are estimates. Verify before use.
 - Super Hornet max speed: the page conflicts (Mach 1.8 vs "a little over Mach 1.6" in the FAQ). Use "about Mach 1.8" for the voice line.
+
+## Shape pass 2026-11-13
+
+Planform traced from the Commons silhouette [File:Northrop YF-17 McDonnell Douglas FA-18 Boeing FA-18EF Super Hornet.png](https://commons.wikimedia.org/wiki/File:Northrop_YF-17_McDonnell_Douglas_FA-18_Boeing_FA-18EF_Super_Hornet.png) (F/A-18F, ~15.45 px/m from both length and span; half-widths measured per row). Measured LEX half-widths: 0.57 @ 4.5, 0.80 @ 5.0, 1.00 @ 5.5, 1.21 @ 6.0, 1.42 @ 6.5, 1.59 @ 7.0, 1.76 @ 7.5, 1.85 @ 8.0, 1.98 @ 9.0; nose hw only 0.54 from 3 to 4.5 m. Side heights from photos and the 4.88 m height (no public-domain side view found). Changes to `jets/f18.ts`:
+
+- **LEX**: replaced the thin strake surface with a sharp-edged shelf body that follows the measured curve from beside the windscreen to the wing root, sitting at canopy-rail height (y ~0.2) with the fuselage rising above it, then running back over the engines to the tails.
+- **Fuselage**: slightly chined, drooped nose; broad flat-sided lower body (hw up to 1.2, belly y -0.93) over the ducts and engines, so the intakes are part of the body instead of tubes hung under it.
+- **Intakes**: square-cut boxes (n 5–6) tucked right up under the LEX at z 0.98, flat outer walls, lips at x 7.0.
+- **Wing**: root at the LEX/body junction (LE 9.2 @ z 1.3), tip LE 11.53 @ z 6.45, chord 2.12 (measured), root TE ~13.9; raised to shoulder height (y 0.15).
+- **Tails**: fins moved to the measured position (root LE 12.8 @ z 0.82, tip LE 14.85 @ z 1.70, tip y 2.82 = 4.88 m), cant 20°. Stabilators root LE 14.4, tip z 3.45, tip TE ~18.3. Nozzles at x 17.75.
+- **Canopy** taller (peak y 1.15) and pilot lowered to fit under it.
+- Hardpoints moved under the new wing; belly stations moved to the new belly and intake bottoms.
+
+Not done: the wing dogtooth, the caret (raked) intake lips — the builder's open fronts are flat — and the launch bar.

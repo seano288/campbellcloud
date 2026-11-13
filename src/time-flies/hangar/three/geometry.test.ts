@@ -23,6 +23,13 @@ describe('aircraft geometry', () => {
   it('lofts a vertical fin', () => {
     expect(signedVolume(loftSurface(panel({ le: [0, 0, 0], chord: 3 }, { le: [2, 3, 0.3], chord: 1 })))).toBeGreaterThan(0);
   });
+  it('gives a steeply swept fin its thickness sideways, not up', () => {
+    const fin = loftSurface(panel({ le: [0, 0, 0], chord: 3, t: 0.1 }, { le: [4, 1.5, 0], chord: 1, t: 0.1 })); // about 70° of sweep
+    fin.computeBoundingBox();
+    const b = fin.boundingBox!;
+    expect(b.max.z - b.min.z).toBeGreaterThan(0.1);
+    expect(signedVolume(fin)).toBeGreaterThan(0);
+  });
   it('interpolates without overshoot', () => {
     const f = pchip([0, 1, 2, 3], [0, 1, 1, 0]);
     for (let x = 0; x <= 3; x += 0.05) expect(f(x)).toBeLessThanOrEqual(1.0000001);

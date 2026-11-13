@@ -372,3 +372,30 @@ Attribution: CC BY requires credit to the author with a link and a note of chang
 - Verified wing fold geometry (hinge location, fold angle).
 - Verified tail dimensions (fin height, tailplane span/chord).
 - Verified prop rpm and firing rpm for sound.
+
+## Shape pass 2026-11-13
+
+No public-domain F4U-1D three-view turned up on Commons, so the spec was measured against the Bureau of Aeronautics
+F2G-2 three-view ("Goodyear F2G-2 Corsair 3-view line drawing.png", US Navy, public domain; about 109 px/m at full size).
+The F2G-2 is a Corsair with a bigger engine and a bubble canopy, but the same wing, tailplane and rear fuselage lines,
+so those were taken from it; the canopy and razorback are the -1D's. What the drawing settles:
+- Wing leading edge is straight across (no sweep) at about 2.32 m from the spinner; all the taper is in the trailing
+  edge. Root chord about 2.57 m, constant out to the gull bend; about 1.65 m before the big elliptical tip.
+- Gull: front view puts the bend at about 2.0–2.1 m out and about 0.8 m below the thrust line, with the inner panel
+  sloping down about 16° and the outer panel up about 10°; the tip ends near thrust-line height. That replaces the
+  estimated 20° / 5.5° in section 2k.
+- Tailplane span 16 ft 6 in (5.03 m), root chord about 1.32 m, big round tips. Main gear track 12 ft 1 in (3.68 m),
+  32 in main tyres. Three-point attitude about 15° nose up.
+
+What changed in `src/time-flies/hangar/jets/f4u.ts` (thrust line y = 0):
+- **Wing:** straight leading edge, bend moved in to 2.1 m and up to −0.8 m, outer panels rising to the tip, larger
+  elliptical tips (0.62 m), so the gull reads in the front and 3/4 views. Dark oil-cooler intake slots in the inner
+  leading edges.
+- **Fuselage:** fuller behind the cowl (top +0.74 m), a long nose to the windscreen at 4.0 m, canopy 4.0–6.0 m (top
+  1.12 m), and a razorback spine from behind the pilot's head running down into the fin.
+- **Tail:** fin with a leading edge that is shallow at the root and steep near the round top (2.45 m root chord), tailplane 5.0 m span, mounted at +0.38 m.
+- **Gear:** main legs at the bend (track 3.68 m), longer to keep the 4 m propeller clear, tail wheel moved forward to
+  8.62 m with a longer strut; sits about 15° nose up.
+- Hardpoints moved under the new wing (inner pylons 1.15 m out, rockets at 3.9 and 4.6 m, belly).
+
+Not done: cowl flaps and the -1D's framed canopy bows; wing fold.

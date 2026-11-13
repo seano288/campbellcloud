@@ -371,3 +371,21 @@ To verify manually before shipping:
 - Vertical tail cant angle (28 degrees is commonly cited, not verified here).
 - Paint hex values (estimates).
 - Heritage liveries (Langley, Hawaii, Elmendorf, Tyndall) and the Demo Team markings.
+
+## Shape pass 2026-11-13
+
+Measured from the Wikimedia Commons line drawing "Lockheed Martin F-22A Raptor 3-view line drawing.jpg"
+(https://commons.wikimedia.org/wiki/File:Lockheed_Martin_F-22A_Raptor_3-view_line_drawing.jpg), scaled to 62 ft 1 in and
+44 ft 6 in. Several estimates in section 2 above were off; the drawing's values replace them. What changed in
+`jets/f22.ts`:
+- **Deeper body.** Spine about 2.6 to 2.9 m off the ground, belly 0.9 m (the belly was 1.65 m up, so the jet looked thin
+  and stilted). The aft body is flat and boxy out to the fin roots, with a stinger between the nozzles to 18.6 m.
+- **Fins forward and upright-er.** Root LE 13.1 m, tip LE 14.4 m, root chord 4.1 m, tip 1.3 m, canted 28° (tips at
+  z 2.8 m); they were swept far back (tip LE 16.1 m).
+- **Stabilators bigger and further forward**: a diamond from root LE 14.2 m to the tip at z 4.5 m, trailing edge out to
+  18.9 m (they were small, at 16.3 m).
+- **Wing**: 41° leading edge from 7.5 m at the root to the tip at 12.63 m, z 6.85 m, the clipped tip (kink at z 6.04 m)
+  and the trailing edge swept forward to 15.5 m at z 3.08 m.
+- **Caret intakes forward and lower**, mouths at 5.3 m beside the cockpit (they started at 6.3 m), spanning about 1.0 to
+  2.1 m off the ground; flat nozzles moved to 17.6 m where the body ends.
+- **Gear** from the drawing: nose at 5.7 m, mains at 11.75 m, short legs.

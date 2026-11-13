@@ -1,45 +1,59 @@
 // North American P-51D Mustang. Length 9.83 m, span 11.28 m, wing root chord 2.58 m and tip 1.18 m, 3.40 m four-blade
-// propeller. A taildragger: it sits nose up. Research: .scratch/airplane-clock/research/jets/p51-mustang.md
-import type { JetSpec } from '../three/spec';
-import { bubble, oval, roundedPanel } from './parts';
+// propeller. A taildragger: it sits about 13° nose up. Stations measured off the Commons P-51D three-view (thrust line
+// y = 0): a slim pointed Merlin nose, a deep belly whose radiator scoop hangs under the wing with its mouth just clear of
+// it, a level spine behind the bubble canopy, and a tall narrow tail cone. Research: .scratch/airplane-clock/research/jets/p51-mustang.md
+import type { BodyPart, JetSpec } from '../three/spec';
+import { bubble, joined, oval, roundedPanel, wingPanel } from './parts';
+
+// the six fishtail exhaust stacks each side of the Merlin
+const STACKS = [1.2, 1.36, 1.52, 1.68, 1.84, 2.0].map(x => [x, 0.1, 0.36 + (x - 1.2) * 0.05] as const);
+const stack = (x: number, z: number): BodyPart => ({
+  z, mirror: true, finish: 'dark', segs: 10,
+  sections: [oval(x - 0.05, 0.035, 0.035, 0.035, 0.1), oval(x + 0.02, 0.05, 0.045, 0.045, 0.1), oval(x + 0.07, 0.05, 0.04, 0.04, 0.1)],
+});
 
 export const p51: JetSpec = {
   id: 'p51', length: 9.83, span: 11.28, height: 4.08,
   bodies: [
-    { sections: [ // cowling round the Merlin, the cockpit, and the long tapering rear fuselage
-      oval(0.62, 0.36, 0.38, 0.4, 0.02), oval(0.85, 0.44, 0.47, 0.5, 0.02), oval(1.8, 0.47, 0.52, 0.56, 0.02), oval(2.9, 0.5, 0.56, 0.62, 0.0),
-      oval(3.9, 0.48, 0.55, 0.64, 0.0), oval(5.2, 0.42, 0.42, 0.64, 0.02), oval(6.6, 0.33, 0.36, 0.56, 0.06), oval(8.0, 0.22, 0.3, 0.42, 0.1),
-      oval(9.2, 0.11, 0.22, 0.28, 0.14), oval(9.83, 0.03, 0.08, 0.08, 0.16),
+    { sections: [ // cowling round the Merlin, the cockpit, and the deep, narrow rear fuselage
+      oval(0.62, 0.29, 0.29, 0.31, 0, 2.2, 2.2), oval(0.95, 0.35, 0.34, 0.42, 0, 2.2, 2.2), oval(2.0, 0.41, 0.44, 0.66, 0, 2.2, 2.2), oval(2.9, 0.44, 0.5, 0.76, 0, 2.4, 2.2),
+      oval(3.9, 0.45, 0.53, 0.8, 0, 2.6, 2.2), oval(5.0, 0.44, 0.55, 0.92, 0, 2.6, 2.4), oval(5.7, 0.41, 0.55, 1.04, 0, 2.4, 2.6), oval(6.3, 0.36, 0.55, 0.98, 0, 2.2, 2.6),
+      oval(6.75, 0.31, 0.55, 0.76, 0, 2.2, 2.2), oval(7.6, 0.24, 0.55, 0.56, 0), oval(8.6, 0.16, 0.39, 0.39, 0.16), oval(9.4, 0.09, 0.2, 0.2, 0.33), oval(9.83, 0.03, 0.07, 0.07, 0.42),
     ] },
-    { sections: [ // the belly radiator scoop, open at the front
-      oval(4.55, 0.33, 0.16, 0.22, -0.72, 2, 3), oval(5.3, 0.36, 0.2, 0.28, -0.74, 2, 3), oval(6.8, 0.32, 0.18, 0.22, -0.68, 2, 3), oval(7.6, 0.18, 0.1, 0.08, -0.55),
-    ], openFront: true },
-    { sections: [ // carburettor air scoop under the spinner
-      oval(1.05, 0.14, 0.08, 0.1, -0.52, 2, 3), oval(1.6, 0.15, 0.08, 0.1, -0.52, 2, 3), oval(2.3, 0.08, 0.04, 0.03, -0.5),
-    ], openFront: true },
-    { sections: bubble(3.35, 5.6, 0.42, 0.34, 0.52, 0.4), finish: 'glass' },
-    { sections: [ // dorsal fin fillet running into the tail
-      oval(6.4, 0.06, 0.01, 0.05, 0.35), oval(7.6, 0.06, 0.32, 0.05, 0.35), oval(8.2, 0.05, 0.62, 0.05, 0.35),
-    ] },
+    { sections: [ // the belly radiator scoop: its mouth hangs just below the wing, then the deep belly takes over
+      oval(3.95, 0.28, 0.14, 0.14, -1.0, 2.6, 3), oval(4.5, 0.31, 0.2, 0.16, -0.98, 2.4, 3), oval(5.3, 0.31, 0.3, 0.14, -0.95, 2.2, 3),
+      oval(5.9, 0.2, 0.2, 0.08, -0.94, 2.2, 3),
+    ], openFront: true, segs: 28 },
+    { sections: [ // carburettor air scoop just behind the spinner
+      oval(0.8, 0.13, 0.07, 0.07, -0.42, 2, 3), oval(1.3, 0.15, 0.09, 0.1, -0.46, 2, 3), oval(2.4, 0.06, 0.03, 0.03, -0.66),
+    ], openFront: true, segs: 20 },
+    { sections: bubble(3.3, 5.8, 0.4, 0.36, 0.47, 0.55), finish: 'glass' },
+    { sections: [ // dorsal fin fillet, from behind the canopy up into the fin
+      oval(6.4, 0.04, 0.0, 0.05, 0.52), oval(7.6, 0.06, 0.1, 0.05, 0.52), oval(8.35, 0.07, 0.24, 0.05, 0.52), oval(8.8, 0.07, 0.3, 0.05, 0.52),
+    ], segs: 16 },
+    ...STACKS.map(([x, , z]) => stack(x, z)),
   ],
   surfaces: [
-    { kind: 'wing', stations: roundedPanel([2.55, -0.42, 0.45], 2.58, [3.35, 0.04, 5.35], 1.22, 0.15, 0.1, 0.32) },
-    { kind: 'tail', stations: roundedPanel([8.35, 0.12, 0.15], 1.25, [8.85, 0.14, 1.92], 0.72, 0.09, 0.08, 0.18) },
-    { kind: 'fin', mirror: false, stations: roundedPanel([7.95, 0.3, 0], 1.75, [8.85, 1.48, 0], 0.85, 0.09, 0.08, 0.2) },
+    { kind: 'wing', stations: joined( // low wing flush with the belly, with the root extension ahead of the gear bays
+      wingPanel([2.5, -0.62, 0.45], 2.6, [2.78, -0.54, 1.4], 2.18, 0.15, 0.145, 1),
+      roundedPanel([2.78, -0.54, 1.4], 2.18, [3.18, -0.2, 5.3], 1.2, 0.145, 0.1, 0.32),
+    ) },
+    { kind: 'tail', stations: roundedPanel([8.0, 0.22, 0.15], 1.2, [8.25, 0.24, 1.85], 0.86, 0.09, 0.08, 0.18) },
+    { kind: 'fin', mirror: false, stations: roundedPanel([8.27, 0.5, 0], 1.55, [8.83, 1.55, 0], 0.72, 0.09, 0.08, 0.12) },
   ],
   nozzles: [],
-  props: [{ at: [0.6, 0.02, 0], r: 1.7, blades: 4, spinner: 0.75, chord: 0.3 }],
-  stacks: [[1.05, 0.22, 0.45], [1.25, 0.22, 0.45], [1.45, 0.22, 0.46], [1.65, 0.22, 0.46], [1.85, 0.22, 0.47], [2.05, 0.22, 0.47]],
-  gear: { main: { x: 2.95, y: -0.5, z: 1.8, len: 1.0, r: 0.35 }, tail: { x: 8.8, y: -0.22, len: 0.32, r: 0.1 } },
-  hardpoints: [{ at: [3.2, -0.38, 1.7], kind: 'inner' }, { at: [3.45, -0.25, 3.3], kind: 'outer' }],
-  cockpit: [4.3, 0.55, 0],
+  props: [{ at: [0.62, 0, 0], r: 1.7, blades: 4, spinner: 0.62, chord: 0.3 }],
+  stacks: STACKS.map(([x, y, z]) => [x + 0.07, y, z + 0.04] as const),
+  gear: { main: { x: 2.8, y: -0.6, z: 1.79, len: 1.0, r: 0.37 }, tail: { x: 7.9, y: -0.5, len: 0.2, r: 0.1 } },
+  hardpoints: [{ at: [3.3, -0.57, 2.5], kind: 'inner' }, { at: [3.45, -0.48, 3.4], kind: 'outer' }],
+  cockpit: [4.5, 0.6, 0],
   flame: 'stacks',
   livery: {
-    factory: { base: '#b9bfc5', finish: 'metal', insignia: 'star', marks: [{ kind: 'antiglare', x0: 0.08, x1: 0.36, color: '#4b4f2f' }, { kind: 'nose', x1: 0.09, color: '#c8202f' }] },
+    factory: { base: '#b9bfc5', finish: 'metal', insignia: 'star', marks: [{ kind: 'antiglare', x0: 0.08, x1: 0.34, color: '#4b4f2f' }, { kind: 'nose', x1: 0.09, color: '#c8202f' }] },
     camo: { base: '#5c6141', under: '#8f928c', finish: 'matte', insignia: 'star', marks: [{ kind: 'camo', colors: ['#3f4630', '#76694a'], scale: 0.8, seed: 51 }] },
     squadron: { base: '#bcc2c7', finish: 'metal', insignia: 'star', marks: [ // the Tuskegee Airmen's "Red Tails"
       { kind: 'fins', color: '#c41e2a' }, { kind: 'nose', x1: 0.13, color: '#c41e2a' }, { kind: 'band', x0: 0.13, x1: 0.15, color: '#f2c230' },
-      { kind: 'wingtips', color: '#f2c230', from: 0.82 }, { kind: 'antiglare', x0: 0.15, x1: 0.36, color: '#3d4129' },
+      { kind: 'wingtips', color: '#f2c230', from: 0.82 }, { kind: 'antiglare', x0: 0.15, x1: 0.34, color: '#3d4129' },
     ] },
     airshow: { base: '#c3c8cd', finish: 'metal', insignia: 'star', marks: [ // checkerboard nose and invasion stripes
       { kind: 'checker', x0: 0.07, x1: 0.2, colors: ['#ffd400', '#141414'], n: 6 }, { kind: 'fins', color: '#1d3f8f', from: 0.15 },

@@ -374,3 +374,19 @@ What I checked:
 - F-16D two-seat dimensions: not found.
 - F-16V / Block 70 dimensions: only the Army Recognition figures (15.03 m length, 9.45 m span, 5.09 m height) and an f-16.net "31 ft span, 49 ft 3 in length, 16 ft 7 in height" figure, which conflict.
 - Thunderbirds livery: not found in sources.
+
+## Shape pass 2026-11-13
+
+Compared the spec against the public-domain Commons three-view ([File:General Dynamics F-16 Fighting Falcon 3-view line drawing.svg](https://commons.wikimedia.org/wiki/File:General_Dynamics_F-16_Fighting_Falcon_3-view_line_drawing.svg), scaled at ~89 px/m from the 5.09 m height and pitot-to-fin length). The old model read as an F-5/T-38: long needle nose, a thin round fuselage, a narrow intake tube hung underneath and strakes that barely showed. Changes to `jets/f16.ts`:
+
+- **x = 0 is now the pitot tip**: a 0.85 m metal pitot boom, then a short ogive radome whose tip droops to y -0.33. The nose no longer reads as a needle.
+- **Fuselage traced from the drawing**: flat-topped cockpit (superellipse n 2.6), then deep and flat-sided down to the intake duct (belly at y -1.05, nb 3.6), aft belly rising to -0.78 at the ventral fins, nozzle at x 14.95, y -0.1.
+- **Wing-body blend**: a new sharp-edged "tent" body (top exponent 0.9, so the upper surface is slightly concave like the real fillet) carries the strakes from beside the windscreen (x 3.5) out along the traced strake curve (hw 0.80 @ 5.15, 0.97 @ 6.05, 1.31 @ 7.4) to the wing kink at (7.6, 1.37), then the flat shelf back to the stabilators (hw 1.0). Replaces the old strake surface.
+- **Chin intake**: much wider (hw 0.70, mouth y -0.43 to -1.05, as in the front view), lip at x 4.95, fairing into the belly so it is part of the body, not a tube.
+- **Wing**: 40° LE from the kink, root TE x 11.45 (straight TE), tip chord 1.05 at z 4.72. Stabilators: root LE 12.45, tip z 2.79 with ~10° anhedral. Fin: root LE 11.3, tip LE 14.27 at y 3.1 (5.08 m above ground), 49° LE.
+- **Canopy**: tall one-piece bubble from x 3.3 to 6.9, crown y 0.95 at x 5.0; pilot lowered (cockpit y 0.52) so the helmet sits under the glass.
+- Added: dorsal spine from the canopy into the fin, drag-chute fairing at the fin root, canted ventral fins at the traced position (x 11.0–12.5).
+- Gear moved to the drawing: nose wheel x 5.93 (behind the intake lip), mains x 9.72, track 2.36 m; still 1.98 m datum, level.
+- Hardpoints moved under the new wing (tip 10.9/4.92, outer 10.1/3.55, inner 9.4/2.2, belly 8.6 y -1.08).
+
+Not done: conformal tanks, the gun port, the AoA probes, the speed-brake petals (the flat shelf stands in for them).

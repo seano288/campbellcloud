@@ -1,41 +1,48 @@
 // McDonnell Douglas AV-8B Harrier II. Length 14.12 m, span 9.25 m, height 3.55 m. A jump jet: one Pegasus engine blows
-// out of four swivelling nozzles on the fuselage sides (shown pointing aft, as in forward flight), fed by big round
-// intakes; a shoulder wing drooping down 12° to small outrigger wheels, a drooped tailplane and bicycle gear under the
-// fuselage. Research: .scratch/airplane-clock/research/jets/av8b-harrier.md
+// out of four swivelling nozzles on the fuselage sides (shown pointing aft, as in forward flight), fed by huge intakes
+// either side of a high bubble canopy; a shoulder wing drooping 12° to small outrigger wheels, a drooped tailplane, a
+// tall fin, a long tail cone, strakes under the belly and stubby bicycle gear. Planform from the AV-8B top-view
+// silhouette on Wikimedia Commons, profile from its three-view. Research: .scratch/airplane-clock/research/jets/av8b-harrier.md
 import type { JetSpec } from '../three/spec';
 import { bubble, oval, wingPanel } from './parts';
 
 export const av8b: JetSpec = {
   id: 'av8b', length: 14.12, span: 9.25, height: 3.55,
   bodies: [
-    { sections: [ // stubby nose, a fat middle round the engine, then a long thin tail cone
-      oval(0, 0.02, 0.02, 0.02, -0.1), oval(0.8, 0.3, 0.3, 0.3, -0.08), oval(2.0, 0.5, 0.5, 0.5, -0.02), oval(3.6, 0.62, 0.62, 0.62, 0.02, 2.2, 2.4),
-      oval(5.6, 0.9, 0.66, 0.72, 0.04, 2.6, 2.8), oval(7.6, 0.98, 0.64, 0.72, 0.04, 2.8, 3), oval(9.6, 0.78, 0.6, 0.62, 0.06, 2.6, 2.6),
-      oval(11.6, 0.42, 0.45, 0.4, 0.12), oval(13.4, 0.2, 0.25, 0.2, 0.2), oval(14.12, 0.06, 0.08, 0.06, 0.22),
+    { sections: [ // a drooping nose under a raised cockpit, a fat middle round the engine, then a long thin tail cone
+      oval(0, 0.02, 0.02, 0.02, -0.3), oval(0.6, 0.26, 0.21, 0.21, -0.29), oval(1.34, 0.42, 0.44, 0.44, -0.14, 2.2, 2.3), oval(2.2, 0.5, 0.5, 0.5, -0.1, 2.3, 2.4),
+      oval(3.2, 0.58, 0.56, 0.56, -0.06, 2.4, 2.6), oval(4.2, 0.7, 0.71, 0.71, 0.09, 2.6, 2.8), oval(5.5, 0.95, 0.74, 0.74, 0.12, 2.8, 3),
+      oval(7.5, 1.0, 0.74, 0.74, 0.12, 2.8, 3), oval(9.4, 0.8, 0.69, 0.69, 0.14, 2.6, 2.8), oval(10.5, 0.62, 0.58, 0.58, 0.18, 2.4, 2.4),
+      oval(11.5, 0.5, 0.48, 0.48, 0.23), oval(12.8, 0.3, 0.31, 0.31, 0.31), oval(14.12, 0.07, 0.07, 0.07, 0.42),
     ] },
-    { sections: bubble(2.3, 5.2, 0.62, 0.44, 0.62, 0.4), finish: 'glass' }, // the raised bubble canopy
-    { sections: [oval(5.0, 0.36, 0.1, 0.1, 0.62), oval(5.8, 0.42, 0.22, 0.1, 0.64), oval(9.6, 0.36, 0.18, 0.1, 0.6), oval(11.0, 0.18, 0.04, 0.1, 0.5)] }, // the spine
-    { z: 0.88, mirror: true, sections: [ // the big round intakes
-      oval(4.2, 0.36, 0.5, 0.5, -0.05, 2.2, 2.2), oval(4.9, 0.44, 0.56, 0.56, -0.05, 2.4, 2.4), oval(6.4, 0.4, 0.52, 0.56, -0.05, 2.6, 2.6), oval(7.8, 0.1, 0.3, 0.4, -0.05),
+    { sections: bubble(1.3, 4.4, 0.38, 0.45, 0.67, 0.55), finish: 'glass', frames: [0.24] }, // the raised bubble canopy
+    { sections: [oval(9.9, 0.03, 0.01, 0.05, 0.78), oval(10.7, 0.07, 0.12, 0.05, 0.78), oval(11.4, 0.07, 0.32, 0.05, 0.76), oval(11.9, 0.05, 0.5, 0.05, 0.74)], segs: 16 }, // the fin's dorsal fillet
+    { z: 0.85, mirror: true, sections: [ // the huge intakes either side of the cockpit
+      oval(3.5, 0.42, 0.49, 0.49, -0.1, 2.3, 2.3), oval(4.2, 0.44, 0.5, 0.52, -0.1, 2.4, 2.4), oval(5.5, 0.38, 0.46, 0.5, -0.1, 2.6, 2.6),
+      oval(7.0, 0.2, 0.35, 0.4, -0.12), oval(8.0, 0.05, 0.2, 0.25, -0.15),
     ], openFront: true },
   ],
   surfaces: [
-    { kind: 'wing', stations: wingPanel([6.1, 0.66, 0.6], 3.9, [8.4, -0.2, 4.62], 1.2, 0.08, 0.06, 3) }, // drooping 12°
-    { kind: 'tail', stations: wingPanel([12.0, 0.3, 0.3], 1.6, [13.0, -0.15, 2.1], 0.7, 0.05, 0.04, 2) },
-    { kind: 'fin', mirror: false, stations: wingPanel([10.8, 0.55, 0], 2.6, [12.9, 1.85, 0], 1.0, 0.06, 0.05, 3) },
+    { kind: 'wing', stations: wingPanel([6.1, 0.74, 0.6], 3.9, [8.2, -0.11, 4.62], 1.15, 0.09, 0.06, 3) }, // drooping 12°
+    { kind: 'strake', stations: [{ le: [4.9, 0.78, 0.75], chord: 2.0, t: 0.03 }, { le: [6.5, 0.71, 1.42], chord: 0.6, t: 0.03 }] }, // leading-edge root extensions
+    { kind: 'tail', stations: wingPanel([11.6, 0.76, 0.3], 1.9, [13.15, 0.23, 2.3], 0.42, 0.05, 0.04, 2) }, // drooped
+    { kind: 'fin', mirror: false, stations: [
+      { le: [11.2, 0.72, 0], chord: 2.3, t: 0.04 }, { le: [11.7, 1.1, 0], chord: 1.8, t: 0.05 }, { le: [12.75, 2.1, 0], chord: 0.75, t: 0.05 }, { le: [13.05, 2.45, 0], chord: 0.45, t: 0.05 },
+    ] },
+    { kind: 'other', stations: [{ le: [4.9, -0.58, 0.27], chord: 3.3, t: 0.03 }, { le: [5.1, -0.82, 0.27], chord: 2.9, t: 0.03 }] }, // the strakes under the belly
   ],
   nozzles: [ // the four swivelling nozzles: cool air at the front, hot exhaust at the back
-    { at: [6.1, -0.42, 1.08], r: 0.3, len: 0.6, mirror: true },
-    { at: [8.4, -0.42, 1.02], r: 0.34, len: 0.6, mirror: true },
+    { at: [6.1, -0.35, 1.12], r: 0.3, len: 0.6, mirror: true },
+    { at: [8.7, -0.35, 1.05], r: 0.34, len: 0.6, mirror: true },
   ],
   gear: { // bicycle gear: one leg in front, one behind and an outrigger under each wing
-    nose: { x: 4.2, y: -0.75, len: 0.65, r: 0.3 }, tail: { x: 8.9, y: -0.75, len: 0.63, r: 0.32 },
-    main: { x: 8.2, y: 0.05, z: 3.55, len: 1.57, r: 0.18 },
+    nose: { x: 4.4, y: -0.55, len: 0.22, r: 0.3 }, tail: { x: 9.0, y: -0.55, len: 0.2, r: 0.32 },
+    main: { x: 8.6, y: 0.26, z: 2.6, len: 1.15, r: 0.18 },
   },
   hardpoints: [
-    { at: [8.3, 0.0, 3.3], kind: 'outer' }, { at: [7.6, 0.3, 2.1], kind: 'inner' }, { at: [7.2, -0.8, 0.45], kind: 'belly' },
+    { at: [8.5, 0.08, 3.3], kind: 'outer' }, { at: [8.2, 0.3, 2.1], kind: 'inner' }, { at: [7.2, -0.62, 0.55], kind: 'belly' },
   ],
-  cockpit: [3.7, 1.08, 0],
+  cockpit: [3.0, 0.66, 0],
   flame: 'round',
   loads: { 1: { outer: 'aim9', inner: 'maverick', belly: 'pod' }, 2: { outer: 'mk82', inner: 'gbu', belly: 'pod' }, 3: { outer: 'aim9', inner: 'tank', belly: 'pod' } },
   livery: {

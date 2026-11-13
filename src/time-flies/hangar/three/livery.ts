@@ -57,6 +57,9 @@ export interface Shape {
   /** The main fuselage's centre line height, top and bottom at x (metres). */
   fuselage(x: number): { y: number; top: number; bot: number; w: number };
   cockpit: readonly [number, number, number];
+  /** Where engines exhaust (aircraft coordinates): piston stacks streak soot back along the sides, jet nozzles scorch
+   * the skin just ahead of them. */
+  exhausts?: { at: readonly [number, number, number]; r: number; kind: 'stack' | 'nozzle' }[];
 }
 
 export const ATLAS = 2048;
@@ -363,6 +366,34 @@ function weather(p: Pen, seed: number, amount: number) {
   }
 }
 
+/** Exhaust staining: soot trailing back from piston exhaust stacks, and a scorched band ahead of jet nozzles. */
+function soot(p: Pen, s: Shape, amount: number) {
+  const g = p.g, side = p.view === 'right' || p.view === 'left';
+  g.save();
+  for (const e of s.exhausts ?? []) {
+    const [x, y, z] = e.at;
+    if (e.kind === 'stack') {
+      if (!side || (p.view === 'right') !== z > 0) continue; // only on its own side
+      const len = Math.min(s.length * 0.35, 3.2), x0 = p.px(x), x1 = p.px(x + len), yc = p.py(y), h = 0.22 * p.ky;
+      const grad = g.createLinearGradient(x0, 0, x1, 0);
+      grad.addColorStop(0, `rgba(22,20,18,${0.62 * amount})`); grad.addColorStop(0.35, `rgba(30,27,24,${0.32 * amount})`); grad.addColorStop(1, 'rgba(30,27,24,0)');
+      g.fillStyle = grad;
+      g.beginPath(); // a plume that widens and sags a little as it trails back
+      g.moveTo(x0, yc - h * 0.35); g.quadraticCurveTo((x0 + x1) / 2, yc - h * 0.9, x1, yc - h * 0.4);
+      g.lineTo(x1, yc + h * 1.6); g.quadraticCurveTo((x0 + x1) / 2, yc + h * 1.1, x0, yc + h * 0.35);
+      g.closePath(); g.fill();
+    } else {
+      const len = Math.min(2.2, e.r * 4), x0 = p.px(x - len), x1 = p.px(x);
+      const grad = g.createLinearGradient(x0, 0, x1, 0);
+      grad.addColorStop(0, 'rgba(40,34,28,0)'); grad.addColorStop(0.7, `rgba(40,34,28,${0.22 * amount})`); grad.addColorStop(1, `rgba(28,24,20,${0.42 * amount})`);
+      g.fillStyle = grad;
+      const c = side ? p.py(y) : p.py(z), half = (e.r * 1.5) * p.ky;
+      g.fillRect(x0, c - half, x1 - x0, half * 2);
+    }
+  }
+  g.restore();
+}
+
 function mark(p: Pen, s: Shape, m: Mark) {
   const g = p.g, L = s.length, x0 = s.min[0], X = (f: number) => p.px(x0 + f * L), [ox, oy] = ORIGIN[p.view];
   const side = p.view === 'right' || p.view === 'left', under = p.view === 'bottom';
@@ -446,6 +477,7 @@ export function paintAtlas(canvas: HTMLCanvasElement | OffscreenCanvas, s: Shape
       for (const m of scheme.marks ?? []) mark(p, s, m);
       panelLines(p, s);
       weather(p, 11, scheme.finish === 'gloss' ? 0.5 : scheme.finish === 'metal' ? 0.6 : 1);
+      soot(p, s, scheme.finish === 'metal' ? 0.45 : scheme.finish === 'gloss' ? 0.75 : 1);
       const insignia = scheme.insignia ?? 'lowvis';
       if (insignia !== 'none') {
         const lowvis = insignia === 'lowvis';

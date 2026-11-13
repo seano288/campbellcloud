@@ -1,31 +1,36 @@
-// Lockheed Martin F-22 Raptor. Length 18.92 m, span 13.56 m, height 5.08 m. Chined stealth nose, diamond-shaped wing
-// (42° leading edge, trailing edge swept forward 17°), caliper intakes, twin tails canted out 28°, flat thrust-vectoring
-// nozzles. Research: .scratch/airplane-clock/research/jets/f22-raptor.md
+// Lockheed Martin F-22 Raptor. Length 18.92 m, span 13.56 m, height 5.08 m. A deep body with a chined stealth nose, caret
+// intakes beside the cockpit, a diamond wing (42° leading edge, trailing edge swept forward 17°, clipped tips), big
+// diamond stabilators behind it, twin tails canted out 28° on the edges of the flat aft body, and flat thrust-vectoring
+// nozzles with a stinger between them. Research: .scratch/airplane-clock/research/jets/f22-raptor.md
 import type { JetSpec } from '../three/spec';
 import { bubble, oval, wingPanel } from './parts';
 
 export const f22: JetSpec = {
   id: 'f22', length: 18.92, span: 13.56, height: 5.08,
   bodies: [
-    { sections: [ // chines along the nose (n < 2 makes the sharp edge)
-      oval(0, 0.02, 0.01, 0.01, 0), oval(1.2, 0.42, 0.25, 0.22, 0, 1.5, 1.5), oval(2.8, 0.66, 0.42, 0.35, 0.02, 1.6, 1.6), oval(4.6, 0.82, 0.56, 0.42, 0.04, 1.8, 1.7),
-      oval(7.0, 1.2, 0.58, 0.42, 0.02, 2.4, 2.4), oval(10.0, 1.5, 0.52, 0.42, 0, 2.8, 3.2), oval(14.0, 1.45, 0.45, 0.4, 0, 2.8, 3.2), oval(17.6, 1.15, 0.36, 0.32, 0, 2.6, 3),
-      oval(18.5, 1.05, 0.3, 0.28, 0, 3, 3),
+    { sections: [ // the chine runs along the centre line's height (n < 2 makes the sharp edge); a deep belly over the weapons bays
+      oval(0, 0.02, 0.01, 0.01, -0.45), oval(1.2, 0.42, 0.38, 0.28, -0.45, 1.5, 1.5), oval(2.6, 0.66, 0.78, 0.5, -0.4, 1.6, 1.6), oval(4.0, 0.85, 0.85, 0.75, -0.35, 1.8, 1.8),
+      oval(5.7, 1.1, 1.12, 0.88, -0.27, 2, 2.2), oval(7.5, 1.4, 1.05, 0.95, -0.25, 2.2, 2.6), oval(10.0, 1.55, 0.72, 1.0, -0.2, 2.4, 2.8), oval(13.1, 1.5, 0.7, 0.85, -0.2, 2.6, 2.8),
+      oval(15.5, 1.45, 0.55, 0.55, -0.2, 3.5, 3), oval(17.0, 1.35, 0.45, 0.42, -0.2, 4, 3.5), oval(17.6, 1.25, 0.32, 0.3, -0.22, 4, 4),
     ] },
-    { sections: bubble(2.9, 6.6, 0.48, 0.5, 0.62, 0.4), finish: 'glass' },
-    { z: 1.25, mirror: true, sections: [ // the caliper intakes
-      oval(6.3, 0.48, 0.5, 0.5, -0.2, 1.7, 1.7), oval(7.2, 0.52, 0.52, 0.52, -0.2, 1.8, 1.8), oval(10.0, 0.5, 0.48, 0.45, -0.15, 2.2, 2.2), oval(12.5, 0.3, 0.4, 0.38, -0.1),
+    { sections: bubble(2.5, 6.4, 0.38, 0.5, 0.72, 0.38), finish: 'glass' },
+    { z: 1.25, mirror: true, sections: [ // the caret intakes, their mouths beside the cockpit
+      oval(5.3, 0.62, 0.55, 0.55, -0.5, 2.8, 2.8), oval(6.5, 0.66, 0.56, 0.56, -0.5, 2.8, 2.8), oval(8.5, 0.72, 0.5, 0.55, -0.52, 2.6, 2.6), oval(10.5, 0.5, 0.4, 0.5, -0.55), oval(12.0, 0.2, 0.25, 0.35, -0.55),
     ], openFront: true },
+    { segs: 12, sections: [oval(16.4, 0.3, 0.2, 0.2, -0.25), oval(17.6, 0.18, 0.12, 0.12, -0.25), oval(18.6, 0.04, 0.04, 0.04, -0.25)] }, // the stinger between the nozzles
   ],
   surfaces: [
-    { kind: 'wing', stations: wingPanel([8.4, 0.0, 1.45], 7.5, [13.25, -0.05, 6.78], 1.3, 0.05, 0.03, 4) },
-    { kind: 'tail', stations: wingPanel([16.3, -0.05, 1.3], 3.0, [17.9, -0.05, 4.05], 1.4, 0.045, 0.035, 2) },
-    { kind: 'fin', stations: wingPanel([13.5, 0.45, 1.3], 3.9, [16.1, 2.9, 2.6], 1.5, 0.045, 0.035, 3) },
+    { kind: 'wing', stations: [ // diamond wing with the clipped tip
+      { le: [7.5, -0.12, 1.3], chord: 8.57, t: 0.04 }, { le: [9.08, -0.14, 3.08], chord: 6.41, t: 0.04 }, { le: [11.93, -0.18, 6.04], chord: 2.55, t: 0.035 },
+      { le: [12.63, -0.19, 6.85], chord: 1.16, t: 0.03 },
+    ] },
+    { kind: 'tail', stations: [{ le: [14.21, -0.32, 1.2], chord: 3.45, t: 0.04 }, { le: [15.65, -0.32, 2.86], chord: 3.25, t: 0.04 }, { le: [17.1, -0.32, 4.5], chord: 1.3, t: 0.035 }] },
+    { kind: 'fin', stations: wingPanel([13.1, 0.1, 1.3], 4.1, [14.4, 2.85, 2.78], 1.3, 0.045, 0.035, 3) }, // canted out 28°
   ],
-  nozzles: [{ at: [18.85, 0, 0.66], r: 0.5, len: 1.2, mirror: true, flat: { w: 0.55, h: 0.3 } }],
-  gear: { nose: { x: 4.8, y: -0.45, len: 1.35, r: 0.28 }, main: { x: 11.4, y: -0.38, z: 1.65, len: 1.3, r: 0.4 } },
-  hardpoints: [{ at: [12.4, -0.12, 4.6], kind: 'outer' }, { at: [11.3, -0.1, 3.0], kind: 'inner' }, { at: [10.6, -0.55, 0.6], kind: 'belly' }],
-  cockpit: [4.5, 1.0, 0],
+  nozzles: [{ at: [17.62, -0.25, 0.62], r: 0.5, len: 1.0, mirror: true, flat: { w: 0.5, h: 0.26 } }],
+  gear: { nose: { x: 5.7, y: -1.15, len: 0.63, r: 0.3 }, main: { x: 11.75, y: -0.75, z: 1.4, len: 0.88, r: 0.45 } },
+  hardpoints: [{ at: [12.0, -0.22, 4.6], kind: 'outer' }, { at: [11.0, -0.24, 3.0], kind: 'inner' }, { at: [10.6, -1.25, 0.6], kind: 'belly' }],
+  cockpit: [4.2, 0.7, 0],
   flame: 'flat',
   livery: {
     factory: { base: '#848a8f', under: '#8e9499', finish: 'satin', insignia: 'lowvis', marks: [{ kind: 'splinter', colors: ['#6a7075'], seed: 22 }] },

@@ -1,12 +1,15 @@
 // Builds an Aircraft from its spec: lofted bodies and surfaces, nozzles, propellers and landing gear, then dresses it for
 // its Fit: the livery atlas for Paint, Nose Art, Tail Art and the Tail Number; stores for Weapons; flames for Engine;
 // tinted glass for Canopy; and lights. It sits parked on its wheels, nose toward -x, centred on the origin.
+// Once built, its ambient occlusion is baked into every vertex and the soft contact shadow under it is drawn (ao.ts).
 import * as THREE from 'three';
 import { colourById, PROP_JETS, type Fit, type Rung, type SlotId } from '../catalog';
+import { AO_SHARED, bakeAO, contactShadow, withAO } from './ao';
+import { bladeGeometry, canopyFrame, crew, gearLeg, intake, nozzleParts, PILOT } from './details';
 import { flameLook, glow, plume, propDisc } from './effects';
-import { creased, loftBody, loftSurface, mirrored, sectionAt, type Section, type V3 } from './geometry';
+import { creased, loftBody, loftSurface, mirrored, sectionAt, type V3 } from './geometry';
 import { GOLD, paintAtlas, plainScheme, type Scheme, type Shape } from './livery';
-import { FIXED, glassMaterial, HUB, paintMaterial, RUBBER } from './materials';
+import { DETAIL, FIXED, glassMaterial, linerMaterial, paintMaterial, SHARED } from './materials';
 import type { JetSpec, Leg } from './spec';
 import { loadout, STORE_MATERIALS, type Loadout } from './stores';
 
@@ -27,16 +30,15 @@ export interface BuiltJet {
   /** The stores fitted now that can be fired or dropped (not drop tanks), each tagged by stores.ts. */
   firable(): THREE.Object3D[];
   size: { length: number; span: number; height: number };
+  /** The soft shadow on the floor right under it (y = 0, in the root's coordinates); the stage places and fades it. */
+  contact: THREE.Mesh;
+  /** How long the build took, and the occlusion bake within it (ms). */
+  timing: { build: number; ao: number };
   dress(fit: Fit): void;
   update(dt: number, t: number, engine: EngineState): void;
   dispose(): void;
 }
 
-const PILOT = {
-  suit: new THREE.MeshStandardMaterial({ color: 0x4b5a3c, roughness: 0.85 }),
-  helmet: new THREE.MeshPhysicalMaterial({ color: 0xf2f2ee, roughness: 0.3, clearcoat: 1 }),
-  visor: new THREE.MeshPhysicalMaterial({ color: 0x1a1408, metalness: 0.9, roughness: 0.05, iridescence: 0.6, side: THREE.DoubleSide }),
-};
 const v3 = (a: V3) => new THREE.Vector3(a[0], a[1], a[2]);
 
 export function schemeFor(spec: JetSpec, fit: Fit): Scheme {
@@ -49,39 +51,11 @@ export function schemeFor(spec: JetSpec, fit: Fit): Scheme {
   }
 }
 
-function wheel(leg: Leg) {
-  const g = new THREE.Group(), w = leg.r * 0.75;
-  const tire: Section[] = [
-    { x: -w / 2, w: leg.r * 0.62, top: leg.r * 0.62, bot: leg.r * 0.62 }, { x: -w * 0.42, w: leg.r * 0.92, top: leg.r * 0.92, bot: leg.r * 0.92 },
-    { x: 0, w: leg.r, top: leg.r, bot: leg.r }, { x: w * 0.42, w: leg.r * 0.92, top: leg.r * 0.92, bot: leg.r * 0.92 }, { x: w / 2, w: leg.r * 0.62, top: leg.r * 0.62, bot: leg.r * 0.62 },
-  ];
-  const t = new THREE.Mesh(loftBody(tire, { segs: 28, rings: 10 }).skin, RUBBER);
-  const hub = new THREE.Mesh(loftBody([{ x: -w * 0.52, w: leg.r * 0.58, top: leg.r * 0.58, bot: leg.r * 0.58 }, { x: w * 0.52, w: leg.r * 0.58, top: leg.r * 0.58, bot: leg.r * 0.58 }], { segs: 20, rings: 3 }).skin, HUB);
-  g.add(t, hub);
-  g.rotation.y = Math.PI / 2; // axle along z
-  return g;
-}
-
-function gearLeg(leg: Leg, z: number) {
-  const g = new THREE.Group(), bottom = leg.y - leg.len;
-  g.userData.gear = true; // retracted in flight
-  const strut = new THREE.Mesh(new THREE.CylinderGeometry(Math.max(leg.r * 0.16, 0.04), Math.max(leg.r * 0.16, 0.04), leg.len, 10), FIXED.gear);
-  strut.position.set(leg.x, leg.y - leg.len / 2, z);
-  g.add(strut);
-  const offsets = leg.twin ? [-leg.r * 0.45, leg.r * 0.45] : [0];
-  for (const o of offsets) {
-    const w = wheel(leg);
-    w.position.set(leg.x, bottom, z + o + (leg.twin ? 0 : Math.sign(z) * leg.r * 0.05));
-    g.add(w);
-  }
-  // a gear door beside the strut
-  const door = new THREE.Mesh(new THREE.BoxGeometry(leg.r * 1.6, leg.len * 0.45, 0.015), FIXED.gear);
-  door.position.set(leg.x, leg.y - leg.len * 0.22, z + (z >= 0 ? 1 : -1) * leg.r * 0.55 + (z === 0 ? leg.r * 0.55 : 0));
-  g.add(door);
-  return g;
-}
+/** One-piece canopies, with no windscreen bow. */
+const FRAMELESS = new Set(['f16', 'f22', 'f35']);
 
 export function buildJet(spec: JetSpec, fit: Fit): BuiltJet {
+  const t0 = performance.now();
   const loads: Loadout = spec.loads ?? {};
   const root = new THREE.Group(), airframe = new THREE.Group();
   root.add(airframe);
@@ -107,7 +81,25 @@ export function buildJet(spec: JetSpec, fit: Fit): BuiltJet {
     return h.children[0]!;
   };
 
-  const painted: THREE.Mesh[] = [], glass: THREE.Mesh[] = [];
+  const painted: THREE.Mesh[] = [], glass: THREE.Mesh[] = [], prop = PROP_JETS.includes(spec.id);
+  // small parts: kept out of the livery's bounds (they hang in a group of their own)
+  const details = new THREE.Group();
+  airframe.add(details);
+  const detailHolders = new Map<string, THREE.Group>();
+  const detail = (geo: THREE.BufferGeometry, mat: THREE.Material | 'paint', part?: string, left = false) => {
+    let h: THREE.Object3D = details;
+    if (part) {
+      const key = left ? `${part}:L` : part;
+      let g = detailHolders.get(key);
+      if (!g) { g = new THREE.Group(); holder(part, left).add(g); detailHolders.set(key, g); }
+      h = g;
+    }
+    const m = new THREE.Mesh(geo, mat === 'paint' ? undefined : mat);
+    m.castShadow = true; m.receiveShadow = true;
+    if (mat === 'paint') painted.push(m);
+    h.add(m);
+    return m;
+  };
   const place = (geo: THREE.BufferGeometry, finish: string | undefined, part: string | undefined, left: boolean, flat?: boolean) => {
     // faceted parts (the F-117) shade every face flat; the rest keep smooth curves but crisp edges
     const g = flat ? geo.toNonIndexed() : finish === 'glass' ? geo : creased(geo);
@@ -123,10 +115,13 @@ export function buildJet(spec: JetSpec, fit: Fit): BuiltJet {
   for (const b of spec.bodies) {
     const sides = b.mirror && b.z ? [b.z, -b.z] : [b.z ?? 0];
     for (const z of sides) {
+      const left = z < 0 && !!b.mirror;
       const built = loftBody(b.sections, { z, segs: b.segs ?? 40, openFront: b.openFront, openBack: b.openBack });
-      place(built.skin, b.finish, b.part, z < 0 && !!b.mirror);
-      if (built.front) place(built.front, 'dark', b.part, z < 0 && !!b.mirror);
-      if (built.back) place(built.back, 'dark', b.part, z < 0 && !!b.mirror);
+      place(built.skin, b.finish, b.part, left, b.flat);
+      // an open front is an intake: a duct back to the engine's fan (a scoop or a muzzle just ends dark)
+      if (built.front) for (const q of intake(b, z, !prop && !b.finish && Math.min(...b.sections.map(c => c.w)) > 0.18)) detail(q.geo, q.mat, b.part, left);
+      if (built.back) place(built.back, 'dark', b.part, left);
+      if (b.finish === 'glass' && !b.flat) for (const g of canopyFrame(b, z, b.frames ?? (FRAMELESS.has(spec.id) ? [] : [0.3]))) detail(g, 'paint', b.part, left);
     }
   }
   for (const s of spec.surfaces) {
@@ -135,35 +130,15 @@ export function buildJet(spec: JetSpec, fit: Fit): BuiltJet {
     if (s.mirror !== false) place(mirrored(geo), s.finish, s.part, true, s.flat);
   }
 
-  // in the cockpit: a dark tub, an ejection seat and a pilot in a white helmet with a dark visor
-  for (const seat of spec.seats ?? [spec.cockpit]) {
-    const [x, y, z] = seat;
-    const tub = new THREE.Mesh(loftBody([{ x: x - 0.9, w: 0.3, top: 0.05, bot: 0.25, y: y - 0.3 }, { x: x + 0.7, w: 0.32, top: 0.05, bot: 0.25, y: y - 0.3 }], { segs: 16, rings: 4, z }).skin, FIXED.black);
-    const seatBack = new THREE.Mesh(new THREE.BoxGeometry(0.14, 0.6, 0.46), FIXED.dark);
-    seatBack.position.set(x + 0.3, y - 0.15, z); seatBack.rotation.z = -0.25;
-    const body = new THREE.Mesh(new THREE.SphereGeometry(0.22, 16, 12), PILOT.suit);
-    body.scale.set(0.8, 1.1, 1.15); body.position.set(x + 0.1, y - 0.12, z);
-    const helmet = new THREE.Mesh(new THREE.SphereGeometry(0.15, 20, 16), PILOT.helmet);
-    helmet.position.set(x + 0.05, y + 0.22, z);
-    const visor = new THREE.Mesh(new THREE.SphereGeometry(0.152, 20, 12, Math.PI * 0.6, Math.PI * 0.8, Math.PI * 0.32, Math.PI * 0.3), PILOT.visor);
-    visor.position.copy(helmet.position);
-    const panel = new THREE.Mesh(new THREE.BoxGeometry(0.1, 0.2, 0.5), FIXED.dark);
-    panel.position.set(x - 0.7, y - 0.2, z);
-    airframe.add(tub, seatBack, body, helmet, visor, panel);
-  }
+  // in the cockpit: a tub, an ejection seat and a pilot in a helmet, visor down
+  for (const seat of spec.seats ?? [spec.cockpit]) details.add(...crew(seat, !prop));
 
   // nozzles, and a flame at each one
-  const flames: THREE.Mesh[] = [], nozzleGlows: THREE.Sprite[] = [];
+  const flames: THREE.Mesh[] = [], nozzleGlows: THREE.Sprite[] = [], liner = linerMaterial();
   for (const n of spec.nozzles) for (const side of n.mirror && n.at[2] ? [1, -1] : [1]) {
     const at = [n.at[0], n.at[1], n.at[2] * side] as const;
-    const w = n.flat ? n.flat.w : n.r, h = n.flat ? n.flat.h : n.r, e = n.flat ? 4 : 2;
-    const sections: Section[] = [
-      { x: at[0] - n.len, w: w * 1.08, top: h * 1.08, bot: h * 1.08, y: at[1], n: e }, { x: at[0] - n.len * 0.35, w: w * 1.02, top: h * 1.02, bot: h * 1.02, y: at[1], n: e },
-      { x: at[0], w: w * 0.92, top: h * 0.92, bot: h * 0.92, y: at[1], n: e },
-    ];
-    const built = loftBody(sections, { z: at[2], segs: 32, rings: 8, openBack: true });
-    place(built.skin, 'nozzle', n.part, side < 0);
-    place(built.back!, 'dark', n.part, side < 0);
+    const w = n.flat ? n.flat.w : n.r, h = n.flat ? n.flat.h : n.r;
+    for (const q of nozzleParts(n, at, liner)) detail(q.geo, q.mat, n.part, side < 0);
     if (spec.flame === 'round' || spec.flame === 'flat') {
       const f = plume(Math.min(w, h) * 0.9, 1);
       f.position.set(at[0] + 0.02, at[1], at[2]);
@@ -187,7 +162,7 @@ export function buildJet(spec: JetSpec, fit: Fit): BuiltJet {
   }
 
   // propellers
-  const props: { spin: THREE.Group; disc: THREE.Mesh; blades: THREE.Group; dir: number }[] = [];
+  const props: { spin: THREE.Group; disc: THREE.Mesh; blades: THREE.Group; dir: number }[] = [], spinning: THREE.Object3D[] = [];
   for (const p of spec.props ?? []) for (const side of p.mirror && p.at[2] ? [1, -1] : [1]) {
     const at = new THREE.Vector3(p.at[0], p.at[1], p.at[2] * side), hub = p.r * 0.16;
     const spin = new THREE.Group();
@@ -195,15 +170,12 @@ export function buildJet(spec: JetSpec, fit: Fit): BuiltJet {
     const spinner = loftBody([{ x: -p.spinner, w: 0.01, top: 0.01, bot: 0.01 }, { x: -p.spinner * 0.6, w: hub * 0.75, top: hub * 0.75, bot: hub * 0.75 }, { x: 0, w: hub, top: hub, bot: hub }], { segs: 28, rings: 10 }).skin;
     const sm = new THREE.Mesh(spinner, undefined);
     painted.push(sm);
-    const blades = new THREE.Group();
+    const blades = new THREE.Group(), c = (p.chord ?? 0.3) * 1.15, dir = side as 1 | -1;
+    // twisted blades, satin black with yellow tips (each blade its own geometry, so each bakes its own occlusion)
     for (let k = 0; k < p.blades; k++) {
-      const c = p.chord ?? 0.3, stations = [0.15, 0.4, 0.7, 0.9, 1].map(f => ({ le: [-c * 0.6 + 0.05 * f, 0, f * p.r] as V3, chord: c * (0.8 * (1 - 0.45 * f * f) + 0.2), t: 0.1 - 0.05 * f }));
-      const blade = new THREE.Mesh(loftSurface(stations, 6), FIXED.black);
-      const tip = new THREE.Mesh(loftSurface([{ le: [-c * 0.45, 0, p.r * 0.88], chord: c * 0.55, t: 0.06 }, { le: [-c * 0.45, 0, p.r * 1.005], chord: c * 0.35, t: 0.05 }], 6), new THREE.MeshStandardMaterial({ color: 0xf2c230, roughness: 0.5 }));
       const bladeGroup = new THREE.Group();
-      bladeGroup.add(blade, tip);
+      bladeGroup.add(new THREE.Mesh(bladeGeometry(p.r, c, 0.1, 0.9, dir), DETAIL.blade), new THREE.Mesh(bladeGeometry(p.r, c, 0.9, 1, dir), DETAIL.tip));
       bladeGroup.rotation.x = (k * Math.PI * 2) / p.blades;
-      bladeGroup.children.forEach(c => { c.rotation.z = 0.35; }); // blade pitch
       blades.add(bladeGroup);
     }
     const disc = propDisc(p.r);
@@ -214,13 +186,14 @@ export function buildJet(spec: JetSpec, fit: Fit): BuiltJet {
     h.add(spin, disc);
     disc.position.add(at);
     props.push({ spin, disc, blades, dir: side });
+    spinning.push(spin);
   }
 
   // landing gear, then sit it on its wheels
   const legs = [spec.gear.nose, spec.gear.tail].filter((l): l is Leg => !!l);
-  for (const l of legs) airframe.add(gearLeg(l, l.z ?? 0));
+  for (const l of legs) airframe.add(gearLeg(l, l.z ?? 0, painted));
   const m = spec.gear.main;
-  airframe.add(gearLeg(m, m.z ?? 0), gearLeg(m, -(m.z ?? 0)));
+  airframe.add(gearLeg(m, m.z ?? 0, painted), gearLeg(m, -(m.z ?? 0), painted));
   const contact = (l: Leg) => l.y - l.len - l.r;
   const other = spec.gear.tail ?? spec.gear.nose;
   const pitch = other ? Math.atan((contact(m) - contact(other)) / (other.x - m.x)) : 0;
@@ -240,6 +213,10 @@ export function buildJet(spec: JetSpec, fit: Fit): BuiltJet {
     fins: spec.surfaces.filter(s => s.kind === 'fin').map(s => s.stations),
     fuselage: x => { const q = at(x); return { y: q.y, top: q.top, bot: q.bot, w: q.w }; },
     cockpit: spec.cockpit,
+    exhausts: [
+      ...(spec.stacks ?? []).flatMap(q => [{ at: q, r: 0.06, kind: 'stack' as const }, { at: [q[0], q[1], -q[2]] as V3, r: 0.06, kind: 'stack' as const }]),
+      ...spec.nozzles.filter(n => !n.part).flatMap(n => (n.mirror && n.at[2] ? [n.at, [n.at[0], n.at[1], -n.at[2]] as V3] : [n.at]).map(q => ({ at: q, r: n.flat ? n.flat.h : n.r, kind: 'nozzle' as const }))),
+    ],
   };
   const canvas = document.createElement('canvas');
   const atlas = new THREE.CanvasTexture(canvas);
@@ -315,8 +292,21 @@ export function buildJet(spec: JetSpec, fit: Fit): BuiltJet {
   airframe.position.set(-(all.min.x + all.max.x) / 2, -all.min.y, -(all.min.z + all.max.z) / 2);
   const size = { length: all.max.x - all.min.x, span: all.max.z - all.min.z, height: all.max.y - all.min.y };
 
+  // bake the ambient occlusion: everything solid receives it; what moves (props, swing wings, tilting nacelles) and
+  // the glass don't cast it. Then the shared materials are swapped for the copies that read it.
+  root.updateMatrixWorld(true);
+  const moving = new Set<THREE.Object3D>();
+  for (const o of [...pivots.values(), ...spinning]) o.traverse(q => moving.add(q));
+  const receivers: THREE.Mesh[] = [];
+  airframe.traverse(o => {
+    if (!(o instanceof THREE.Mesh) || glass.includes(o) || o.parent === lights || lights.children.includes(o.parent!)) return;
+    if (painted.includes(o) || o.material instanceof THREE.MeshStandardMaterial) receivers.push(o);
+  });
+  const aoMs = bakeAO(receivers, receivers.filter(o => !moving.has(o)), root);
+  for (const o of receivers) if (!painted.includes(o) && o.material !== liner) o.material = withAO(o.material as THREE.Material);
+  const ground = contactShadow(receivers.filter(o => !spinning.some(sp => sp === o.parent?.parent?.parent)), root);
+
   let fitted: Fit | null = null, engineRung: Rung = 0, smokeRung: Rung = 0, lightRung: Rung = 0;
-  const prop = PROP_JETS.includes(spec.id);
   function dress(f: Fit) {
     const was = fitted;
     fitted = f;
@@ -327,7 +317,7 @@ export function buildJet(spec: JetSpec, fit: Fit): BuiltJet {
       const finish = scheme.finish ?? 'satin';
       if (!paint || paint.userData.finish !== finish) {
         paint?.dispose();
-        paint = paintMaterial(atlas, min, max, finish);
+        paint = paintMaterial(atlas, min, max, finish, { ao: true });
         paint.userData.finish = finish;
         for (const p of painted) p.material = paint;
       }
@@ -359,6 +349,7 @@ export function buildJet(spec: JetSpec, fit: Fit): BuiltJet {
       f.visible = th > 0.02;
     }
     for (const gl of nozzleGlows) { gl.material.opacity = 0.25 + 0.75 * th; gl.visible = th > 0.02; }
+    liner.emissiveIntensity = flames.length && spec.flame !== 'stacks' ? th * look.power * 1.6 : 0;
     spinAngle += dt * (2 + th * 60);
     for (const p of props) {
       p.spin.rotation.x = spinAngle * p.dir;
@@ -383,9 +374,11 @@ export function buildJet(spec: JetSpec, fit: Fit): BuiltJet {
       if (o instanceof THREE.Mesh || o instanceof THREE.Sprite) {
         o.geometry.dispose();
         const mats = Array.isArray(o.material) ? o.material : [o.material];
-        for (const mt of mats) if (mt && !STORE_MATERIALS.has(mt) && !Object.values(FIXED).includes(mt) && !Object.values(PILOT).includes(mt as never) && mt !== RUBBER && mt !== HUB) mt.dispose();
+        for (const mt of mats) if (mt && !STORE_MATERIALS.has(mt) && !SHARED.has(mt) && !AO_SHARED.has(mt) && !Object.values(PILOT).includes(mt as never)) mt.dispose();
       }
     });
+    liner.dispose();
+    ground.geometry.dispose(); (ground.material as THREE.MeshBasicMaterial).alphaMap?.dispose(); (ground.material as THREE.Material).dispose();
     atlas.dispose();
   }
 
@@ -395,5 +388,7 @@ export function buildJet(spec: JetSpec, fit: Fit): BuiltJet {
     stores.traverse(o => { if (o.userData.store && o.userData.store.kind !== 'tank') out.push(o); });
     return out;
   };
-  return { root, airframe, anchors, pivots, smokeFrom, guns, firable, size, dress, update, dispose };
+  const timing = { build: performance.now() - t0, ao: aoMs };
+  root.userData.timing = timing;
+  return { root, airframe, anchors, pivots, smokeFrom, guns, firable, size, contact: ground, timing, dress, update, dispose };
 }

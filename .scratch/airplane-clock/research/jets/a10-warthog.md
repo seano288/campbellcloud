@@ -431,3 +431,17 @@ Searched Sketchfab (via search and API), Poly Pizza, NASA 3D Resources, Smithson
 6. "Hog whine" and "Flying Gun": confirm or drop.
 7. Idaho ANG, shark-teeth nose art, A-10 Demo Team, retirement schemes: confirm before naming.
 8. All hex colours (§4c): tune against a reference photo.
+
+## Shape pass 2026-11-13
+
+Measured against the A-10 three-view (pixel probe; ~84 px/m lengthwise, ~86.7 px/m spanwise):
+<https://commons.wikimedia.org/wiki/File:Fairchild_Republic_A-10_Thunderbolt_II_3-view.svg>
+
+- Wing was ~1.5 m too far forward: now LE 6.72 → 7.5 m, TE 9.85 → 9.46 m (root chord 3.1, tip 2.0), flat centre section
+  to z 2.9, outer panels tipped up 7°, drooped tips. Gear pods (centre z 2.46) nose out to x 5.67, ahead of the wing.
+- Engine pods: bigger (r 0.7, 3.3 m long), lower and further out (centre y +0.78, z 1.47: they sit at the top of the
+  body's sides, not on stilts), short pylons, nozzles at 13.1.
+- Canopy: tall bubble peaking 1.37 m (0.45 above the spine) over x 1.35-5.0. Blunt nose with the GAU-8 muzzle low under
+  it (y -0.74, r 0.15). Slab-sided, square-ish body (half-width 0.78).
+- H-tail: rectangular tailplane (14.0-15.9, half-span 3.0) at y -0.12; twin fins reaching from below the tailplane
+  (-0.9) to 2.18 m. Gear re-set for the published 4.47 m; hardpoints moved under the new wing.

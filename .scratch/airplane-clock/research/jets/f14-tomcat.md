@@ -415,3 +415,17 @@ Searches were run on Sketchfab, Poly Pizza, NASA 3D Resources, Smithsonian 3D an
 - The Blueprints (commercial, SVG and PNG, 1:72 and 1:100 options): https://the-blueprints.com/blueprints/modernplanes/grumman/2169/view/grumman_f-14_tomcat
 - Navy standard characteristics chart with three-view drawings: no longer available (src: search result, "requested by NAVAIR" note)
 - No free Wikimedia Commons three-view SVG found in search.
+
+## Shape pass 2026-11-13
+
+Traced from the public-domain Commons three-view [File:Grumman F-14 Tomcat.png](https://commons.wikimedia.org/wiki/File:Grumman_F-14_Tomcat.png) (low-res, ~52 px/m at 4x; ±3%). Measured: nose hw 0.63 @ 2.5, 0.85 @ 5.3; intake lips at x 6.0, z 0.98–1.73; glove LE (6.1, 1.77) → (10.83, 3.46); wing LE at 20° to the tip; nacelle centres z ±1.35; deck/nacelle outer edge hw ~2.15 from x 9.7 to 18.3; stabilators root LE 15.35 @ z 2.0, tip z 5.0 @ LE 18.3; fin root LE ~15.5. Changes to `jets/f14.ts`:
+
+- **The pancake**: a new flat deck body (hw 2.15, flat top at y ~0.6) over the nacelles from the glove to the tail, plus a flat "beaver tail" at the end of the centre spine. The old model was a cigar with two tubes beside it.
+- **Glove**: now starts at the intake lips and sweeps sharply back (~70°) to the wing kink at (10.83, 3.46).
+- **Wing**: root station at the pivot (unchanged: x 11.5, z 2.75, so sweep still works, 0.85 rad in stage.ts), then 20° LE from the glove kink to the tip at z 9.75 (19.5 m span). Swept, the tip lands near z 6.06 (≈12.1 m span vs 11.65 published).
+- **Nacelles**: box intakes (n 6) slung under the deck at z 1.35, rounding to the nozzles.
+- **Canopy** taller and longer (tandem, to x 8.5); seats lowered so both helmets sit under the glass.
+- Fins moved aft to the traced position and shortened so the fin tip is 4.88 m above the ground; stabilators widened to the traced span; main gear lengthened to reach up to the glove (contact still level at -2.15).
+- Glove pylons moved up under the glove (y 0.2).
+
+Not done: glove vanes, raked intake lips (flat open fronts only), the overswept parked position.

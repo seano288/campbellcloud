@@ -422,3 +422,19 @@ Sketchfab's download API was reachable [api.sketchfab.com/v3/models/<uid>]. Lice
 - MILAVIA three-view: see [MIL] above.
 
 **Unverified or missing from this research:** wing root and tip chord (only derived), fuselage width/height by station (est.), stabilator and fin areas (est.), nozzle diameter (est.), canopy and intake stations (est.), FS 36375 "Ghost Gray" and FS 36081 / 36231 (not confirmed), Blue Angels and Thunderbirds exact hex values (est.), refuelling probe and tailhook (general knowledge), all sound (no recording verified).
+
+## Shape pass 2026-11-13
+
+Measured against the F-4E three-view (pixel probe of the outlines; top ~55.7 px/m, side ~54.4 px/m):
+<https://commons.wikimedia.org/wiki/File:McDonnell_Douglas_F-4E_Phantom_II_3-view_line_drawing.svg>
+
+- The body was a thin pencil (1.2 m deep). Real F-4E: ~2.35 m spine-to-belly and 2.2 m wide behind the intakes. Now a
+  deep, round-cornered body (spine +1.16, belly -1.2), a drooping radome (tip y -0.71) over the E's gun fairing, and a
+  long tail cone over the nozzles (J79 exits at x 14.65, low, z ±0.52).
+- Canopy: long tandem glazing from 3.05 to 8.2 m that flows into the straight spine, with frame bows.
+- Intakes: tall box intakes (mouth x 5.85, 1.3 m tall, outer half-width 1.38) behind splitter plates that start at x 4.7.
+- Wing: 48° LE from (7.06, z 1.15) to the tip (12.32, z 5.85), trailing edge 12.85 → 13.65, the dogtooth (0.16 m) at
+  z 4.1 where the outer panel tips up 12°. Low at y -0.55. Stabilators drooped 23° on the tail cone; fin from 13.0 to a
+  2.88 m top.
+- Body length 18.6 m plus a 0.6 m nose probe = 19.2 m. Gear re-set for 5.0 m height; hardpoints moved under the new wing.
+- Fin leading edges kept under ~58° sweep per segment (the builder's loft turns a steeper surface's thickness vertical, flattening it), with the low fillet ahead of the fin as a thin lofted body.

@@ -18,9 +18,13 @@ Research: `.scratch/airplane-clock/research/` (rendering-modeling.md compares th
 
 ## Consequences
 
-- Realism comes from proportions, materials and lighting, not modelled detail: a CC0 hangar HDRI lights and surrounds the
-  aircraft, paint is clear-coated physical material with panel lines and weathering, and normals stay crisp at chines and
-  edges. Fine details (rivets, antennas, gear doors) are simplified.
+- Realism comes from proportions, materials and lighting, with modest modelled detail: a CC0 hangar HDRI lights and
+  surrounds the aircraft, paint is clear-coated physical material with panel lines, weathering and exhaust soot, and
+  normals stay crisp at chines and edges. Ambient occlusion and the contact shadow under it are baked once per build
+  (software-rasterised depth maps, no extra render pass), so parts sit together without per-frame cost. The shared
+  builder adds the generic detail every aircraft gets from its spec (oleo gear and doors, intake ducts and fan faces,
+  petalled nozzles, twisted prop blades, the pilot, canopy frames); rivets and antennas stay painted or omitted.
+  Research: `rendering-realism-2.md`.
 - Many station values are estimates from three-views; each spec names its research note, and tuning a shape is a data edit.
 - Chop Chop's 17 helicopters are built the same way (`src/chop-chop/hangar/helis/*.ts`, builder `hangar/three/heli.ts`):
   they reuse the lofting, livery, materials, stores and weapons here and add rotors (main, tail, canted, scissored,
