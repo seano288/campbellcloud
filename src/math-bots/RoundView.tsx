@@ -6,11 +6,13 @@ import type { ProblemInstance } from '../learning/round';
 import { RoundScreen } from '../round/RoundScreen';
 import { IconButton, Stars } from '../ui/bits';
 import { EndOverlay } from './EndOverlay';
+import { player } from './game';
 import type { Asking, Meet, Problem } from './mix';
-import { screen } from './nav';
+import { fightTarget, screen } from './nav';
 import { leaveRound, round, startRound } from './round';
 import { MeetView, QuestionView } from './views';
 import { VoiceBoundary, VoiceContext } from './voice';
+import { nextRival } from './workshop/workshop';
 
 function Question({ current }: { current: ProblemInstance<Problem, string> }) {
   return (
@@ -42,6 +44,7 @@ export function RoundView({ status }: { status: ComponentChildren }) {
       {status}
     </>,
     end: r.ended && <EndOverlay key={r.roundId} result={r}
+      onFight={() => { leaveRound(); const next = nextRival(player.state.peek().workshop); if (next) { fightTarget.value = next.id as typeof fightTarget.value; screen.value = 'fight'; } else screen.value = 'league'; }}
       onWorkshop={() => { leaveRound(); screen.value = 'reward'; }}
       onAgain={() => startRound()}
       onHome={() => { leaveRound(); screen.value = 'home'; }} />,

@@ -3,7 +3,8 @@
 // the side he wants to go, with no need to drag, and every control stays clear of the screen's edges: a swipe that starts at an edge belongs
 // to iPadOS (the Dock, the app switcher, the menu bar) and a web page can't stop it. Or he touches the arena itself: the robot heads for
 // his finger while it's down, and a quick tap sends it to that spot. Then the result, with the prize
-// in a crate to open, or after a loss one line of advice and a rematch. Keys work too on a computer: arrows or WASD, space, shift.
+// in a crate to open, or after a loss one line of advice and a rematch. A loss is only "So close!" when it was; the rival is tired after
+// beating him (workshop.mercy), and he's told so and sees its life bar start short in the rematch. Keys work too on a computer: arrows or WASD, space, shift.
 // Leaving mid-fight costs nothing and pays nothing. The word rule holds: knocked out, stopped, sent spinning.
 import { useEffect, useRef, useState } from 'preact/hooks';
 import { sChime, sFanfare, sNope } from '../../audio/sfx';
@@ -29,7 +30,9 @@ import { ARENA, createFight, finished, FIGHT_SECONDS, headFor, starsFor, STEP, s
 import { createFightSound } from './sounds';
 
 type Phase = 'vs' | 'live' | 'end';
-interface Result { won: boolean; ko: boolean; stars: number; pay: Payout; tip: RivalTip }
+interface Result { won: boolean; ko: boolean; stars: number; pay: Payout; tip: RivalTip; close: boolean }
+/** A loss with the rival down to this much life or less was a close one. */
+const CLOSE = .4;
 /** Where he touched the arena. `until` is when to give up on it after his finger lifts, in case a robot or a wall is in the way. */
 interface Spot { x: number; y: number; until: number }
 /** How long the robot keeps heading for a spot once the finger is gone: long enough to cross the arena on a tap. */
@@ -111,7 +114,7 @@ export function FightScreen() {
       done = true;
       const won = s.over?.winner === 0, stars = starsFor(s);
       const pay = settleFight(r, { won, stars, picked: s.bolts });
-      setResult({ won, ko: !!s.over?.ko, stars, pay, tip: r.tip });
+      setResult({ won, ko: !!s.over?.ko, stars, pay, tip: r.tip, close: s.bots[1].hp <= s.bots[1].maxHp * CLOSE });
       setPhase('end');
     };
     const heard = (s: Fight) => {
@@ -145,7 +148,7 @@ export function FightScreen() {
       stage.frame(s, now, spot.current);
       const [you, foe] = s.bots;
       if (barYou.current) barYou.current.style.transform = `scaleX(${you.hp / you.maxHp})`;
-      if (barFoe.current) barFoe.current.style.transform = `scaleX(${foe.hp / foe.maxHp})`;
+      if (barFoe.current) barFoe.current.style.transform = `scaleX(${(foe.hp / foe.maxHp) * soft.hp})`; // a tired rival's bar starts short
       const left = Math.ceil(Math.max(0, FIGHT_SECONDS - s.t));
       if (left !== lastLeft && clock.current) { lastLeft = left; clock.current.textContent = String(left); if (left === 0 && !s.over?.ko) say('Time is up!', true); }
       const nextCd = Math.max(0, ...you.fitted.filter(a => a.part.dmg > 0).map(a => a.cd / 2.3), you.powerCd / 3.5);
@@ -155,7 +158,7 @@ export function FightScreen() {
       if (finished(s)) ended();
     };
     raf = requestAnimationFrame(loop);
-    void voice.say('Go!', ...(first ? ['Drag here to drive!', 'Tap here to hit!'] as const : []));
+    void voice.say('Go!', ...(first ? ['Press here to drive!', 'Tap here to hit!'] as const : []));
     return () => { cancelAnimationFrame(raf); removeEventListener('keydown', key); removeEventListener('keyup', key); signal.abort(); };
   }, [phase, round]);
 
@@ -204,12 +207,16 @@ export function FightScreen() {
   useEffect(() => {
     if (phase !== 'end' || !result || shown.current) return;
     shown.current = true;
-    const { won, stars, pay, tip } = result;
+    const { won, stars, pay, tip, close } = result;
     if (won) {
       sFanfare(); confetti(46, voice.signal);
       const starLine = (['1 star!', '2 stars!', '3 stars!'] as const)[stars - 1]!;
       void voice.say('You won!', starLine, ...(pay.prize ? ['Tap the crate!'] as const : []));
-    } else { sNope(); void voice.say('So close!', tip, ...(player.state.peek().workshop.charges > 0 ? ['Try again!'] as const : ['Play a Round to earn a fight!'] as const)); }
+    } else {
+      sNope();
+      const more = player.state.peek().workshop.charges > 0;
+      void voice.say(close ? 'So close!' : 'Good try!', tip, ...(more ? [r.name, 'is tired!', 'Try again!'] as const : ['Play a Round to earn a fight!'] as const));
+    }
   }, [phase, result]);
 
   const leave = () => {
@@ -225,7 +232,7 @@ export function FightScreen() {
   if (phase === 'vs') {
     return (
       <div class="fight-screen vs" data-phase="vs">
-        <header class="vs-head"><IconButton label="Workshop" onClick={() => { if (voice.active) screen.value = 'reward'; }}>🤖</IconButton></header>
+        <header class="vs-head"><IconButton label="Workshop" class="my-bot" onClick={() => { if (voice.active) screen.value = 'reward'; }}><BotView build={w.build} label={null} /></IconButton></header>
         <div class="vs-row">
           <div class="vs-bot you"><BotView build={w.build} live turn={0} /><strong>Torque</strong><span>⚡{powerOf(w.build)}</span></div>
           <div class="vs-mid">VS</div>
@@ -257,23 +264,24 @@ export function FightScreen() {
         <div class="hud foe"><b>{r.name}</b><u><i ref={barFoe} /></u></div>
         <div class="acts">
           <button class="act boost" ref={boostBtn} aria-label="Boost" onPointerDown={e => { e.preventDefault(); input.current.boost = true; }}><span>💨</span></button>
-          <button class="act hit" ref={hitBtn} aria-label="Hit" onPointerDown={e => { e.preventDefault(); input.current.hit = true; }}><span>💥</span></button>
+          <button class={`act hit ${first ? 'teach' : ''}`} ref={hitBtn} aria-label="Hit" onPointerDown={e => { e.preventDefault(); input.current.hit = true; }}><span>💥</span></button>
         </div>
       </div>
       {phase === 'end' && result && (
-        <div class="fight-result" role="dialog">
-          <h2>{result.won ? 'You won!' : 'So close!'}</h2>
+        <div class="fight-result" role="dialog"><div class={`result-card ${result.won ? 'won' : 'lost'}`}>
+          <h2>{result.won ? 'You won!' : result.close ? 'So close!' : 'Good try!'}</h2>
           {result.won && <div class="result-stars" aria-label={`${result.stars} stars`}>{'★'.repeat(result.stars)}<i>{'★'.repeat(3 - result.stars)}</i></div>}
           {result.pay.bolts > 0 && <div class="result-bolts"><CurrencyIcon kind={MATH_CURRENCY} size={40} />+{result.pay.bolts}</div>}
           {!result.won && <p class="result-tip">{result.tip}</p>}
+          {!result.won && fightsLeft > 0 && <p class="result-tired"><BotView build={r.build} turn={Math.PI} label={r.name} />{r.name} is tired!</p>}
           {(result.pay.prize ?? (result.pay.crown ? 'face:crown' as const : null)) && <Prize k={(result.pay.prize ?? 'face:crown')} onOpened={() => { sFanfare(); confetti(40, voice.signal); void voice.say(gotLine(nameOf(result.pay.prize ?? 'face:crown'))); }} />}
           <div class="btns">
-            <button class="big-btn garage" aria-label="Workshop" onClick={() => { if (voice.active) screen.value = 'reward'; }}><span class="e">🤖</span></button>
+            <button class="big-btn garage my-bot" aria-label="Workshop" onClick={() => { if (voice.active) screen.value = 'reward'; }}><BotView build={after.build} label={null} /></button>
             {fightsLeft > 0
               ? <button class="big-btn go" aria-label={result.won ? 'Next fight' : 'Fight again'} onClick={() => { if (!voice.active) return; if (result.won) { if (next) { fightTarget.value = next.id as typeof fightTarget.value; shown.current = false; setResult(null); setPhase('vs'); setRound(n => n + 1); } else screen.value = 'league'; } else again(); }}><span class="e">🥊</span></button>
               : <button class="big-btn go" aria-label="Play" onClick={() => { if (voice.active) startRound(); }}><span class="e">▶</span></button>}
           </div>
-        </div>
+        </div></div>
       )}
     </div>
   );

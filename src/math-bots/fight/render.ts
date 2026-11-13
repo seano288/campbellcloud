@@ -35,6 +35,7 @@ export function createStage(canvas: HTMLCanvasElement, reducedMotion: boolean) {
   let floor: HTMLCanvasElement | null = null, sparks: Spark[] = [], labels: Label[] = [], shake = 0, last = 0, smokeAt = 0;
 
   const burst = (x: number, y: number, n: number, color: string, speed: number, size = 7) => {
+    if (reducedMotion) { n = Math.ceil(n / 4); speed *= .35; } // Reduce Motion: a few slow sparks still say "hit", without the spray
     for (let i = 0; i < n; i++) {
       const a = Math.random() * TAU, v = speed * (.3 + Math.random() * .7), life = .22 + Math.random() * .34;
       sparks.push({ x, y, vx: Math.cos(a) * v, vy: Math.sin(a) * v, life, max: life, size: size * (.5 + Math.random() * .7), color, drag: 3 });
@@ -89,7 +90,7 @@ export function createStage(canvas: HTMLCanvasElement, reducedMotion: boolean) {
 
   function drawPickups(s: Fight) {
     for (const p of s.pickups) {
-      const bob = 1 + Math.sin((s.t - p.born) * 6) * .08;
+      const bob = reducedMotion ? 1 : 1 + Math.sin((s.t - p.born) * 6) * .08;
       c.save(); c.translate(p.x, p.y); c.scale(bob, bob);
       c.beginPath(); c.ellipse(5, 9, 28, 24, 0, 0, TAU); c.fillStyle = '#00000044'; c.fill();
       if (p.kind === 'bolt') {
@@ -132,7 +133,7 @@ export function createStage(canvas: HTMLCanvasElement, reducedMotion: boolean) {
     }
     if (f.boost > 0) burst(f.x - Math.cos(f.a) * f.stats.radius, f.y - Math.sin(f.a) * f.stats.radius, 2, '#ff9a1e', 180, 12);
     if (f.hp > 0 && f.hp < f.maxHp * .3 && t > smokeAt) { smokeAt = t + .12; const life = .7; sparks.push({ x: f.x, y: f.y, vx: 10, vy: -90, life, max: life, size: 22, color: '#2a3040aa', drag: .5 }); }
-    if (f.power > 0) { c.beginPath(); c.arc(f.x, f.y, f.stats.radius * 1.3 + Math.sin(t * 30) * 4, 0, TAU); c.lineWidth = 5; c.strokeStyle = '#fff36b'; c.stroke(); }
+    if (f.power > 0) { c.beginPath(); c.arc(f.x, f.y, f.stats.radius * 1.3 + (reducedMotion ? 0 : Math.sin(t * 30) * 4), 0, TAU); c.lineWidth = 5; c.strokeStyle = '#fff36b'; c.stroke(); }
     void s;
   }
 

@@ -7,7 +7,8 @@ import { catOf, type PartKey } from './parts';
 
 const still = () => typeof matchMedia === 'function' && matchMedia('(prefers-reduced-motion:reduce)').matches;
 
-export function BotView({ build, live = false, class: cls = '', turn = -Math.PI / 2, label }: { build: Build; live?: boolean; class?: string; turn?: number; label?: string }) {
+/** `label: null` is for a robot inside a button that already says what it is: the picture is then hidden from screen readers. */
+export function BotView({ build, live = false, class: cls = '', turn = -Math.PI / 2, label }: { build: Build; live?: boolean; class?: string; turn?: number; label?: string | null }) {
   const ref = useRef<HTMLCanvasElement>(null);
   useEffect(() => {
     const canvas = ref.current!, c = canvas.getContext('2d');
@@ -30,7 +31,9 @@ export function BotView({ build, live = false, class: cls = '', turn = -Math.PI 
     ro.observe(canvas);
     return () => { gone = true; cancelAnimationFrame(raf); ro.disconnect(); };
   }, [build, live, turn]);
-  return <canvas ref={ref} class={`bot-view ${cls}`} role="img" aria-label={label ?? 'Your robot'} />;
+  return label === null
+    ? <canvas ref={ref} class={`bot-view ${cls}`} aria-hidden="true" />
+    : <canvas ref={ref} class={`bot-view ${cls}`} role="img" aria-label={label ?? 'Your robot'} />;
 }
 
 const pics = new Map<PartKey, string>();

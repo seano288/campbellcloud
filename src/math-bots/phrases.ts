@@ -21,15 +21,15 @@ export const CHEERS = ['Great job!', 'You got it!', 'Super math!', 'Awesome!', '
 
 // ---------- the Workshop, the League and the fight ----------
 const WORKSHOP = [
-  'Tap Fight!', 'Fight!', 'You earned a fight!', 'You have 1 fight ready!', 'fights ready!', 'Play a Round to earn a fight!',
+  'Tap Fight!', 'Fight!', 'You earned a fight!', 'You have 1 fight ready!', 'fights ready!', 'Play a Round to earn a fight!', 'Play a Round to earn Bolts!',
   'Body', 'Wheels', 'Parts', 'Paint', 'Face', 'Tap a spot on your robot!', 'Take it off.', 'It costs', 'You need', 'more Bolts.', 'Your robot got stronger!',
   'League', 'Next up', 'You beat them all!', 'Beat this robot first!', 'Power',
 ] as const;
 /** A commentator's short lines. The word rule holds: knocked out, stopped, sent spinning. */
 const FIGHT = [
   'Tap again to leave.', 'Go!', 'What a hit!', 'Big hit!', 'Blocked!', 'Flipped!', 'Into the pit!', 'Got you!', 'Zoom!', 'Grab that Bolt!', 'Repair box!',
-  'You won!', 'So close!', 'Time is up!', 'Your robot is knocked out!', 'One more try!', 'Tap the crate!', '1 star!', '2 stars!', '3 stars!',
-  'Drag here to drive!', 'Tap here to hit!',
+  'You won!', 'So close!', 'Good try!', 'is tired!', 'Time is up!', 'Your robot is knocked out!', 'One more try!', 'Tap the crate!', '1 star!', '2 stars!', '3 stars!',
+  'Press here to drive!', 'Tap here to hit!',
 ] as const;
 type GotPhrase = `You got ${PartName}!`;
 export const gotLine = (name: PartName): GotPhrase => `You got ${name}!`;

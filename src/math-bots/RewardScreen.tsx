@@ -1,7 +1,7 @@
 // The Workshop: his robot, built from parts. He picks a sort of part from the tabs and taps one to fit it. A part he doesn't own yet goes on
 // the robot to try, with what it would do to his numbers, and Buy beside it, so he sees it before he spends. Parts bolt to spots on the
 // robot, which he picks by tapping them, and bigger Bodies have more spots. The one big button is the next fight, with the rival on it.
-import { useEffect, useMemo, useState } from 'preact/hooks';
+import { useEffect, useMemo, useRef, useState } from 'preact/hooks';
 import { sChime, sClink, sFanfare, sNope } from '../audio/sfx';
 import { confetti } from '../celebrate/effects';
 import { IconButton } from '../ui/bits';
@@ -40,6 +40,15 @@ export function RewardScreen() {
   const voice = useVoice(), state = player.state.value, balance = state.currency.balance, w = state.workshop;
   const [cat, setCat] = useState<Cat>('add'), [spot, setSpot] = useState<Mount>('front'), [trial, setTrial] = useState<PartKey | null>(null);
   const [blocked, setBlocked] = useState(false), [wiggle, setWiggle] = useState(false), [vault, setVault] = useState<PartKey | null>(null);
+  // On a wide, short bench (a phone on its side) the robot faces right, so the spot rings sit beside it rather than on its face.
+  const stage = useRef<HTMLDivElement>(null), [wide, setWide] = useState(false);
+  useEffect(() => {
+    const el = stage.current;
+    if (!el) return;
+    const ro = new ResizeObserver(() => setWide(el.clientWidth > el.clientHeight * 1.45));
+    ro.observe(el);
+    return () => ro.disconnect();
+  }, []);
   const spots = body(w.build.body).mounts as readonly Mount[];
   const mount = spots.includes(spot) ? spot : spots[0]!;
   const shown: Build = useMemo(() => (trial ? fitted(w.build, trial, catOf(trial) === 'add' ? mount : undefined) : w.build), [w.build, trial, mount]);
@@ -91,7 +100,7 @@ export function RewardScreen() {
     if (!trial || !voice.active || blocked) return;
     const k = trial, result = buyPart(k, catOf(k) === 'add' ? mount : undefined);
     if (result.kind === 'bought') { setTrial(null); celebrate(k); return; }
-    if (result.kind === 'need') { nope(); void voice.say('You need', sayCount(result.more), 'more Bolts.', 'Play a Round to earn a fight!'); }
+    if (result.kind === 'need') { nope(); void voice.say('You need', sayCount(result.more), 'more Bolts.', 'Play a Round to earn Bolts!'); }
   }
   function takeOff() { if (voice.active) { setTrial(null); saveBuild(stripped(w.build, mount)); sClink(); void voice.say('Take it off.'); } }
 
@@ -102,7 +111,7 @@ export function RewardScreen() {
         <IconButton label="Home" onClick={() => { if (voice.active) screen.value = 'home'; }}>🏠</IconButton>
         <h1>Workshop</h1>
         {goal
-          ? <button class={`goalchip ${balance >= priceOf(goal)! ? 'ready' : ''}`} aria-label="Goal" onClick={() => { if (voice.active) { setCat(catOf(goal)); tap(goal); } }}>
+          ? <button class={`goalchip ${balance >= priceOf(goal)! && w.charges <= 0 && !trial ? 'ready' : ''}`} aria-label="Goal" onClick={() => { if (voice.active) { setCat(catOf(goal)); tap(goal); } }}>
               <span class="gi"><PartPic k={goal} /></span>
               <span class="track"><i style={{ width: `${Math.min(100, (balance / priceOf(goal)!) * 100)}%` }} /></span>
             </button>
@@ -111,8 +120,8 @@ export function RewardScreen() {
       </header>
       <div class="work-body">
         <section class="mb-bench">
-          <div class="mb-stage">
-            <BotView build={shown} live class={`mb-canvas ${trial ? 'trying' : ''}`} />
+          <div class={`mb-stage ${wide ? 'wide' : ''}`} ref={stage}>
+            <BotView build={shown} live turn={wide ? 0 : -Math.PI / 2} class={`mb-canvas ${trial ? 'trying' : ''}`} />
             {spots.map(m => (
               <button key={m} class={`mb-spot ${m} ${cat === 'add' && m === mount ? 'on' : ''} ${shown.adds[m] ? 'full' : ''}`} aria-label={`${m} spot`} aria-pressed={cat === 'add' && m === mount} onClick={() => pickSpot(m)}>
                 {shown.adds[m] ? '' : '＋'}
@@ -130,10 +139,10 @@ export function RewardScreen() {
             </div>
           </div>
           <div class="work-go">
-            <button class={`big-btn go fight-btn ${wiggle ? 'wiggle' : ''} ${w.charges > 0 ? 'pulse' : 'short'}`} aria-label="Fight" onClick={fight}>
+            <button class={`big-btn go fight-btn ${wiggle ? 'wiggle' : ''} ${w.charges > 0 ? (trial ? '' : 'pulse') : 'short'}`} aria-label="Fight" onClick={fight}>
               {rival && <BotView build={rival.build} turn={Math.PI} class="fight-rival" label={rival.name} />}
               <span class="fight-word">Fight</span>
-              <span class="fight-price">⚡{w.charges}</span>
+              <span class="fight-price">🥊{w.charges}</span>
             </button>
             <IconButton label="League" class="trophy-btn" onClick={() => { if (voice.active) screen.value = 'league'; }}>🏆</IconButton>
             <IconButton label="Play" class={`go ${w.charges > 0 ? '' : 'armed'}`} onClick={() => { if (voice.active) startRound(); }}>▶</IconButton>

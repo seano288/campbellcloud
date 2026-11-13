@@ -27,9 +27,9 @@ export function LeagueScreen() {
   return (
     <div class="screen league-screen">
       <header class="work-head">
-        <IconButton label="Workshop" onClick={() => { if (voice.active) screen.value = 'reward'; }}>🤖</IconButton>
+        <IconButton label="Workshop" class="my-bot" onClick={() => { if (voice.active) screen.value = 'reward'; }}><BotView build={w.build} label={null} /></IconButton>
         <h1>League</h1>
-        <span class="charges" aria-label={`${w.charges} fights ready`}>⚡ {w.charges}</span>
+        <span class="charges" aria-label={`${w.charges} fights ready`}>🥊 {w.charges}</span>
       </header>
       <div class="league-grid">
         {RIVALS.map((r, i) => {

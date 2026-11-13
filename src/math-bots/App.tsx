@@ -3,7 +3,7 @@ import { unlockAudio } from '../audio/context';
 import { CurrencyPile } from '../ui/currency';
 import { HoldForProgress } from '../ui/MoveProgress';
 import { BuildLabel } from '../ui/BuildLabel';
-import { BotArt } from './BotArt';
+import { BotView } from './bot/BotView';
 import { MATH_CURRENCY } from './branding';
 import { FightScreen } from './fight/FightScreen';
 import { player, SAVE_KEY } from './game';
@@ -36,7 +36,7 @@ function Start() {
   return (
     <div class="start">
       <HoldForProgress game="math-bots" keys={[SAVE_KEY, PLACE_KEY]}><h1>Math<br />Bots</h1></HoldForProgress>
-      <div class="start-art"><BotArt /></div>
+      <div class="start-art"><BotView build={player.state.value.workshop.build} live turn={-.63} /></div>
       <button class="big-btn go start-btn" aria-label="Start" onClick={() => {
         if (!voice.active) return;
         unlockAudio(); // sound needs this tap on iPad Safari

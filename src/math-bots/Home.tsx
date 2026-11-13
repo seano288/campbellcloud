@@ -32,7 +32,7 @@ export function Home({ status }: { status: ComponentChildren }) {
         <button class="tile t-play" aria-label="Play" onClick={() => { if (voice.active) startRound(); }}><span class="e">▶</span></button>
         <button class="tile t-workshop" aria-label="Workshop" onClick={() => { if (voice.active) { screen.value = 'reward'; } }}>
           <BotView build={player.state.value.workshop.build} /><span class="nm">Workshop</span>
-          {player.state.value.workshop.charges > 0 && <span class="fights-badge" aria-hidden="true">⚡{player.state.value.workshop.charges}</span>}
+          {player.state.value.workshop.charges > 0 && <span class="fights-badge" aria-hidden="true">🥊{player.state.value.workshop.charges}</span>}
         </button>
         <div class="tile t-kinds" role="group" aria-label="My Levels">
           <h2 class="kinds-head">🏆 My Levels</h2>
