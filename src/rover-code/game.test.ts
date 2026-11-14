@@ -76,11 +76,28 @@ describe('the Space Base', () => {
     for (const s of SLOTS) keysIn(s).forEach((k, i, all) => { if (i) expect(priceOf(k)).toBeGreaterThan(priceOf(all[i - 1]!)); });
   });
   it('gives a player who had built everything something new to save for', () => {
-    const added = ['drill', 'shark', 'diamond', 'armor', 'zap', 'rainbow', 'spike', 'jet', 'dragon', 'quad', 'plasma', 'hyper', 'pink', 'yellow', 'teal', 'silver', 'navy', 'candy', 'lime'];
-    const old = { ...freshBase(), owned: ALL_KEYS.filter(k => !['rover', 'kit'].includes(tabOf(k)) && !added.includes(k.split(':')[1]!)) };
+    const added = ['drill', 'shark', 'diamond', 'armor', 'zap', 'rainbow', 'spike', 'jet', 'dragon', 'quad', 'plasma', 'hyper', 'pink', 'yellow', 'teal', 'silver', 'navy', 'candy', 'lime',
+      'bat', 'butterfly', 'eagle', 'ice', 'fire', 'starwing'];
+    const old = { ...freshBase(), owned: ALL_KEYS.filter(k => !['rover', 'kit', 'boosters'].includes(tabOf(k)) && !added.includes(k.split(':')[1]!)) };
     expect(old.owned).toHaveLength(16 + 7);
-    expect(goalOf(old)).toBe('nose:drill');
+    expect(goalOf(old)).toBe('boosters:two'); // the cheapest part that adds Power
     expect(new Set(PLANETS.map(p => p.gadget)).size).toBe(PLANETS.length);
+  });
+  it('sells Boosters, two to eight, that make the rocket stronger, and new wings that keep it as strong as Dragon Wings', () => {
+    expect(keysIn('boosters')).toHaveLength(9);
+    expect(freshBase().rocket.boosters).toBe('none');
+    expect(powerOf(freshBase().rocket)).toBe(4);
+    const buy = proposePurchase(freshBase(), 'boosters:two', 10);
+    if (buy.kind !== 'ready') throw new Error(buy.reason);
+    expect(buy.state.rocket.boosters).toBe('two');
+    expect(powerOf(buy.state.rocket)).toBe(5);
+    const top = { ...freshBase().rocket, nose: 'diamond', body: 'rainbow', fins: 'dragon', engine: 'hyper' };
+    for (const k of keysIn('fins').slice(7)) expect(powerOf(fit(top, k))).toBe(powerOf(top));
+    expect(powerOf(fit(top, 'boosters:rainbow'))).toBe(powerOf(top) + 8);
+    // a save from before the Boosters flies with none, and keeps everything else
+    const old = readBase({ owned: ['engine:twin'], rocket: { nose: 'cone', body: 'can', fins: 'little', engine: 'twin', paint: 'white' } });
+    expect(old.rocket).toEqual({ ...freshBase().rocket, engine: 'twin' });
+    expect(readBase({ rocket: { ...freshBase().rocket, boosters: 'eight' } }).rocket.boosters).toBe('none'); // not his
   });
   it('sells rovers and Kit gadgets once the rocket is done, and a save from before them keeps everything', () => {
     const rocketDone = { ...freshBase(), owned: [...freshBase().owned, ...ALL_KEYS.filter(k => !['rover', 'kit'].includes(tabOf(k)))] };
@@ -110,7 +127,7 @@ describe('the Space Base', () => {
     expect(lookOf(kit.state).kit).toContain('spoiler');
   });
   it('never drives a rover he does not own, or switches off something that is not a gadget, whatever the save says', () => {
-    const b = readBase({ rover: 'hover', off: { scout: ['antenna', 'laser'], ufo: ['siren'] } });
+    const b = readBase({ rover: 'hover', off: { scout: ['antenna', 'laser'], plane: ['siren'] } });
     expect(b.rover).toBe('scout');
     expect(b.off).toEqual({ scout: ['antenna'] });
   });

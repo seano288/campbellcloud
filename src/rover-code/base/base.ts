@@ -36,7 +36,7 @@ function readRocket(raw: unknown, owned: readonly PartKey[]): Rocket {
   const r = isRecord(raw) ? raw : {}, fresh = starterRocket();
   const slot = (s: (typeof SLOTS)[number]) => (typeof r[s] === 'string' && owned.includes(keyOf(s, r[s] as string)) ? r[s] as string : fresh[s]);
   const paint = typeof r.paint === 'string' && owned.includes(keyOf('paint', r.paint)) ? r.paint as PaintId : fresh.paint;
-  return { nose: slot('nose'), body: slot('body'), fins: slot('fins'), engine: slot('engine'), paint };
+  return { nose: slot('nose'), body: slot('body'), fins: slot('fins'), engine: slot('engine'), boosters: slot('boosters'), paint };
 }
 
 /** Whatever is missing or doesn't read comes back as the fresh value. */

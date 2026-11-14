@@ -104,6 +104,20 @@ describe('the planet drive', () => {
     const lava = PLANETS.findIndex(p => p.feature === 'lava'), hot = (kind: RoverId) => { const d = createDrive(PLANETS[lava]!, look([], kind), 1); let n = 0; for (let t = 0; t < 30 && !d.atFlag; t += DT) { stepDrive(d, DT, 1, false); n += d.events.filter(e => e === 'hot').length; } return n; };
     expect(hot('scout')).toBeGreaterThan(0);
     expect(hot('hover')).toBe(0);
+    expect(hot('ufo')).toBe(0);
+    // the Pogo Bot bounces higher than the Monster Truck, and the Rocket Car outruns the Dune Buggy
+    expect(peak('pogo')).toBeGreaterThan(peak('monster'));
+    expect(play(1, [], 999, 'rocketcar').t).toBeLessThan(play(1, [], 999, 'buggy').t);
+    // the Robo Dog jumps twice in mid-air
+    const dog = createDrive(PLANETS[1]!, look([], 'dog'), 1), boosts = [] as boolean[];
+    stepDrive(dog, DT, 0, true);
+    for (let j = 0; j < 3; j++) { for (let i = 0; i < 12; i++) stepDrive(dog, DT, 0, false); stepDrive(dog, DT, 0, true); boosts.push(dog.events.includes('boost')); }
+    expect(boosts).toEqual([true, true, false]);
+  });
+  it('scoops crystals from further off with the Digger', () => {
+    let scout = 0, digger = 0;
+    PLANETS.forEach((_, i) => { scout += play(i, [], 999).d.got; digger += play(i, [], 999, 'digger').d.got; });
+    expect(digger).toBeGreaterThan(scout);
   });
   it('stops sliding on ice with the Tank Crawler or the Snow Plow', () => {
     const ice = PLANETS.find(p => p.feature === 'ice')!, slide = (kind: RoverId, kit: FeatureId[] = []) => {

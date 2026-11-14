@@ -46,6 +46,8 @@ const BASE = [
   'Next stop', 'Build a stronger rocket to get there!', 'You built everything!', 'Your rocket got stronger!',
   // the rover tabs, added with the rovers on 2026-11-14
   'Rover', 'Gadgets', 'On!', 'Off!', 'Explore a new planet to find it!',
+  // the Boosters tab, added on 2026-11-14
+  'Boosters',
 ] as const;
 type GotLine = `You got ${ShopName}!`;
 export const gotLine = (name: ShopName) => `You got ${name}!` as GotLine;

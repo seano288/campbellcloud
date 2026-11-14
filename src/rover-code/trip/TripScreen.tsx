@@ -98,7 +98,7 @@ export function TripScreen() {
     setStarted(true);
     flight.current.started = true;
     sClink();
-    roar.current = rocketRoar(rungOf(base.rocket, 'engine')); // started inside the tap, as iPad Safari likes
+    roar.current = rocketRoar(rungOf(base.rocket, 'engine') + (rungOf(base.rocket, 'boosters') + 1) / 4); // started inside the tap, as iPad Safari likes
     void (async () => {
       for (const n of ['3', '2', '1'] as const) { countBeep(Number(n)); await Promise.all([voice.say(n), voice.wait(1000)]); if (!voice.active) return; }
       ignition(); sWhoosh(2); void voice.say('Blast off!');

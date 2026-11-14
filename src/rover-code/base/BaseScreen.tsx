@@ -21,7 +21,7 @@ import { fit, idOf, infoOf, isRoverTab, keyOf, keysIn, powerOf, SLOT_NAMES, tabO
 import { GADGETS, PLANETS, type Planet, type PlanetId } from './planets';
 import { FEATURE_IDS, featureName, featureTrick, isKit, plainLook, roverDef, type FeatureId, type RoverId, type RoverLook } from './rovers';
 
-const TAB_ICONS: Record<Tab, string> = { nose: '🔺', body: '🛢️', fins: '🪽', engine: '🔥', paint: '🎨', rover: '🚙', kit: '🧰' };
+const TAB_ICONS: Record<Tab, string> = { nose: '🔺', body: '🛢️', fins: '🪽', engine: '🔥', boosters: '🚀', paint: '🎨', rover: '🚙', kit: '🧰' };
 
 /** What a shop picture shows: the rocket with the part on, a rover on its own, or his rover wearing just that gadget. */
 function picOf(base: BaseState, k: PartKey) {
@@ -80,8 +80,8 @@ export function BaseScreen() {
   }
   function tap(k: PartKey) {
     if (!voice.active || blocked) return;
-    const engine = tabOf(k) === 'engine'; // an engine roars when he taps it, louder up the Rungs
-    if (engine) engineTest(infoOf(k).power - 1);
+    const engine = tabOf(k) === 'engine' || tabOf(k) === 'boosters'; // an engine or a booster roars when he taps it, louder up the Rungs
+    if (engine) engineTest(tabOf(k) === 'boosters' ? Math.min(6, infoOf(k).power) : infoOf(k).power - 1);
     if (isOwned(base, k) && tabOf(k) === 'rover') {
       setTrial(null); sHonk();
       updateBase(b => pickRover(b, idOf(k) as RoverId));

@@ -1,12 +1,14 @@
-// The rocket is built from four slots (Nose, Body, Fins, Engine) and a Paint. Each slot has a free starter and six Rungs bought
-// with Bolts, and each Rung adds one Power. Rungs 4 to 6 came on 2026-11-14, once he had bought everything else, to double the reward. Power is what takes the rocket further: every planet needs some (planets.ts). Paint is
+// The rocket is built from five slots (Nose, Body, Fins, Engine, Boosters) and a Paint. Each slot has a free starter and Rungs bought
+// with Bolts, and each Rung adds one Power. Boosters came on 2026-11-14 (he asked for more boosters, more kinds and more of them): the
+// starter is none at all, then two, four, six and eight strapped round the body, in plain and fancy kinds. Six more wings came at the
+// same time, all at the top Rung, so whichever he fits his rocket stays as strong. Rungs 4 to 6 came on 2026-11-14, once he had bought everything else, to double the reward. Power is what takes the rocket further: every planet needs some (planets.ts). Paint is
 // only for looks and costs a little. Rungs, like the vehicle games, so cooler parts cost more. The shop also sells rovers and Kit
 // gadgets (rovers.ts) under the same keys ("rover:monster", "kit:spoiler"); they add no Power and don't go on the rocket.
 import { KIT, KIT_IDS, ROVER_IDS, ROVERS, type KitId, type KitName, type RoverId, type RoverName } from './rovers';
 
-export const SLOTS = ['nose', 'body', 'fins', 'engine'] as const;
+export const SLOTS = ['nose', 'body', 'fins', 'engine', 'boosters'] as const;
 export type Slot = (typeof SLOTS)[number];
-export const SLOT_NAMES = { nose: 'Nose', body: 'Body', fins: 'Fins', engine: 'Engine', paint: 'Paint', rover: 'Rover', kit: 'Gadgets' } as const;
+export const SLOT_NAMES = { nose: 'Nose', body: 'Body', fins: 'Fins', engine: 'Engine', boosters: 'Boosters', paint: 'Paint', rover: 'Rover', kit: 'Gadgets' } as const;
 export type Tab = Slot | 'paint' | 'rover' | 'kit';
 export const TABS: readonly Tab[] = [...SLOTS, 'paint', 'rover', 'kit'];
 /** The tabs for his rover rather than his rocket. */
@@ -14,7 +16,8 @@ export const isRoverTab = (t: Tab) => t === 'rover' || t === 'kit';
 
 export interface Part { readonly slot: Slot; readonly id: string; readonly name: string; readonly price: number; readonly power: number }
 
-// Power is the Rung plus one: a starter adds 1, a top part 7. No price is over 100, the most the voice can say.
+// Power is the Rung plus one: a starter adds 1, a top part 7. Boosters start at none, so theirs is the Rung itself (0 to 8). No price
+// is over 100, the most the voice can say.
 export const PARTS = [
   { slot: 'nose', id: 'cone', name: 'Plain Nose', price: 0, power: 1 }, { slot: 'nose', id: 'bubble', name: 'Bubble Nose', price: 8, power: 2 },
   { slot: 'nose', id: 'needle', name: 'Needle Nose', price: 24, power: 3 }, { slot: 'nose', id: 'star', name: 'Star Nose', price: 50, power: 4 },
@@ -28,10 +31,18 @@ export const PARTS = [
   { slot: 'fins', id: 'big', name: 'Big Fins', price: 24, power: 3 }, { slot: 'fins', id: 'wing', name: 'Wing Fins', price: 50, power: 4 },
   { slot: 'fins', id: 'spike', name: 'Spike Fins', price: 55, power: 5 }, { slot: 'fins', id: 'jet', name: 'Jet Wings', price: 70, power: 6 },
   { slot: 'fins', id: 'dragon', name: 'Dragon Wings', price: 85, power: 7 },
+  { slot: 'fins', id: 'bat', name: 'Bat Wings', price: 87, power: 7 }, { slot: 'fins', id: 'butterfly', name: 'Butterfly Wings', price: 89, power: 7 },
+  { slot: 'fins', id: 'eagle', name: 'Eagle Wings', price: 91, power: 7 }, { slot: 'fins', id: 'ice', name: 'Ice Wings', price: 94, power: 7 },
+  { slot: 'fins', id: 'fire', name: 'Fire Wings', price: 97, power: 7 }, { slot: 'fins', id: 'starwing', name: 'Star Wings', price: 100, power: 7 },
   { slot: 'engine', id: 'puff', name: 'Puff Engine', price: 0, power: 1 }, { slot: 'engine', id: 'twin', name: 'Twin Engine', price: 12, power: 2 },
   { slot: 'engine', id: 'triple', name: 'Triple Engine', price: 36, power: 3 }, { slot: 'engine', id: 'mega', name: 'Mega Booster', price: 72, power: 4 },
   { slot: 'engine', id: 'quad', name: 'Quad Engine', price: 75, power: 5 }, { slot: 'engine', id: 'plasma', name: 'Plasma Engine', price: 90, power: 6 },
   { slot: 'engine', id: 'hyper', name: 'Hyper Drive', price: 100, power: 7 },
+  { slot: 'boosters', id: 'none', name: 'No Boosters', price: 0, power: 0 }, { slot: 'boosters', id: 'two', name: 'Two Boosters', price: 10, power: 1 },
+  { slot: 'boosters', id: 'four', name: 'Four Boosters', price: 20, power: 2 }, { slot: 'boosters', id: 'fire', name: 'Fire Boosters', price: 32, power: 3 },
+  { slot: 'boosters', id: 'six', name: 'Six Boosters', price: 45, power: 4 }, { slot: 'boosters', id: 'ice', name: 'Ice Boosters', price: 58, power: 5 },
+  { slot: 'boosters', id: 'gold', name: 'Gold Boosters', price: 70, power: 6 }, { slot: 'boosters', id: 'eight', name: 'Eight Boosters', price: 85, power: 7 },
+  { slot: 'boosters', id: 'rainbow', name: 'Rainbow Boosters', price: 100, power: 8 },
 ] as const satisfies readonly Part[];
 export type PartName = (typeof PARTS)[number]['name'];
 
@@ -80,8 +91,8 @@ export const STARTERS: readonly PartKey[] = ALL_KEYS.filter(k => infoOf(k).price
 export const ALL_NAMES = ALL_KEYS.map(k => infoOf(k).name);
 
 /** What's on his rocket. */
-export interface Rocket { nose: string; body: string; fins: string; engine: string; paint: PaintId }
-export const starterRocket = (): Rocket => ({ nose: 'cone', body: 'can', fins: 'little', engine: 'puff', paint: 'white' });
+export interface Rocket { nose: string; body: string; fins: string; engine: string; boosters: string; paint: PaintId }
+export const starterRocket = (): Rocket => ({ nose: 'cone', body: 'can', fins: 'little', engine: 'puff', boosters: 'none', paint: 'white' });
 export const fittedKeys = (r: Rocket): PartKey[] => [...SLOTS.map(s => keyOf(s, r[s])), keyOf('paint', r.paint)];
 export const powerOf = (r: Rocket) => SLOTS.reduce((sum, s) => sum + infoOf(keyOf(s, r[s])).power, 0);
 export const rungOf = (r: Rocket, s: Slot) => infoOf(keyOf(s, r[s])).power - 1;

@@ -181,7 +181,7 @@ button.step:active{transform:translateY(3px);box-shadow:0 1px 0 #000}
 .base-go .icon-btn{flex:none;width:max(64px,calc(76px*var(--u)));height:max(64px,calc(76px*var(--u)));font-size:calc(34px*var(--u));color:#fff}
 .big-btn.short{background:#5d6b78}
 .parts-side{position:relative;display:grid;grid-template-rows:auto minmax(0,1fr);gap:calc(8px*var(--u));min-height:0;min-width:0}
-.rc-tabs{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:6px}
+.rc-tabs{display:grid;grid-template-columns:repeat(8,minmax(0,1fr));gap:6px}
 .rc-tab{min-height:max(var(--tap),calc(60px*var(--u)));border-radius:14px;background:#1e1850;border:3px solid #fff3;font-size:calc(30px*var(--u));padding:0}
 .rc-tab.on{background:var(--yellow);border-color:#000;box-shadow:0 4px 0 #000}
 .rc-tab.rv:not(.on){background:#123a3a;border-color:#3ddc8455}

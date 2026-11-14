@@ -6,7 +6,7 @@
 // Booster jumps again in the air, the Crystal Magnet pulls crystals in, Turbo Jets go faster, the Robot Arm reaches further and the
 // Confetti Cannon fires with every jump. The Kit adds more: the Snow Plow stops him slipping on ice, the Parachute brings him down
 // slowly and the Bubble Blower blows bubbles as he goes. Each rover drives its own way too (rovers.ts): faster, higher, never
-// slipping, a jump in mid-air, or floating, so lava can't bounce it.
+// slipping, a jump in mid-air, or floating, so lava can't bounce it, and the Digger's scoop reaches further for a crystal.
 //
 // The world is 600 units tall; height is measured up from the ground's resting line.
 import { seeded, type Rng } from '../../game/rng';
@@ -139,7 +139,7 @@ export function stepDrive(d: Drive, dt: number, dir: number, jump: boolean) {
   }
   if (d.bits.length) d.bits = d.bits.filter(b => b.life > 0);
   // crystals: a touch picks one up; the Magnet pulls them in from further away, and the Robot Arm reaches a little further
-  const reach = has('magnet') ? PICK_R * 2.6 : has('arm') ? PICK_R * 1.4 : PICK_R, cy = d.y + CENTER_UP;
+  const reach = PICK_R * Math.max(has('magnet') ? 2.6 : has('arm') ? 1.4 : 1, d.rover.reach), cy = d.y + CENTER_UP;
   for (const c of d.crystals) {
     if (c.got) continue;
     const dist = Math.hypot(c.x - d.x, c.y - cy);
