@@ -1,5 +1,5 @@
-// The rocket is built from four slots (Nose, Body, Fins, Engine) and a Paint. Each slot has a free starter and three Rungs bought
-// with Bolts, and each Rung adds one Power. Power is what takes the rocket further: every planet needs some (planets.ts). Paint is
+// The rocket is built from four slots (Nose, Body, Fins, Engine) and a Paint. Each slot has a free starter and six Rungs bought
+// with Bolts, and each Rung adds one Power. Rungs 4 to 6 came on 2026-11-14, once he had bought everything else, to double the reward. Power is what takes the rocket further: every planet needs some (planets.ts). Paint is
 // only for looks and costs a little. Rungs, like the vehicle games, so cooler parts cost more.
 export const SLOTS = ['nose', 'body', 'fins', 'engine'] as const;
 export type Slot = (typeof SLOTS)[number];
@@ -9,16 +9,24 @@ export const TABS: readonly Tab[] = [...SLOTS, 'paint'];
 
 export interface Part { readonly slot: Slot; readonly id: string; readonly name: string; readonly price: number; readonly power: number }
 
-// Power is the Rung plus one: a starter adds 1, a top part 4.
+// Power is the Rung plus one: a starter adds 1, a top part 7. No price is over 100, the most the voice can say.
 export const PARTS = [
   { slot: 'nose', id: 'cone', name: 'Plain Nose', price: 0, power: 1 }, { slot: 'nose', id: 'bubble', name: 'Bubble Nose', price: 8, power: 2 },
   { slot: 'nose', id: 'needle', name: 'Needle Nose', price: 24, power: 3 }, { slot: 'nose', id: 'star', name: 'Star Nose', price: 50, power: 4 },
+  { slot: 'nose', id: 'drill', name: 'Drill Nose', price: 55, power: 5 }, { slot: 'nose', id: 'shark', name: 'Shark Nose', price: 70, power: 6 },
+  { slot: 'nose', id: 'diamond', name: 'Diamond Nose', price: 85, power: 7 },
   { slot: 'body', id: 'can', name: 'Tin Can', price: 0, power: 1 }, { slot: 'body', id: 'long', name: 'Long Hull', price: 10, power: 2 },
   { slot: 'body', id: 'stripe', name: 'Stripe Hull', price: 30, power: 3 }, { slot: 'body', id: 'gold', name: 'Gold Hull', price: 60, power: 4 },
+  { slot: 'body', id: 'armor', name: 'Armor Hull', price: 65, power: 5 }, { slot: 'body', id: 'zap', name: 'Lightning Hull', price: 80, power: 6 },
+  { slot: 'body', id: 'rainbow', name: 'Rainbow Hull', price: 95, power: 7 },
   { slot: 'fins', id: 'little', name: 'Little Fins', price: 0, power: 1 }, { slot: 'fins', id: 'swept', name: 'Swept Fins', price: 8, power: 2 },
   { slot: 'fins', id: 'big', name: 'Big Fins', price: 24, power: 3 }, { slot: 'fins', id: 'wing', name: 'Wing Fins', price: 50, power: 4 },
+  { slot: 'fins', id: 'spike', name: 'Spike Fins', price: 55, power: 5 }, { slot: 'fins', id: 'jet', name: 'Jet Wings', price: 70, power: 6 },
+  { slot: 'fins', id: 'dragon', name: 'Dragon Wings', price: 85, power: 7 },
   { slot: 'engine', id: 'puff', name: 'Puff Engine', price: 0, power: 1 }, { slot: 'engine', id: 'twin', name: 'Twin Engine', price: 12, power: 2 },
   { slot: 'engine', id: 'triple', name: 'Triple Engine', price: 36, power: 3 }, { slot: 'engine', id: 'mega', name: 'Mega Booster', price: 72, power: 4 },
+  { slot: 'engine', id: 'quad', name: 'Quad Engine', price: 75, power: 5 }, { slot: 'engine', id: 'plasma', name: 'Plasma Engine', price: 90, power: 6 },
+  { slot: 'engine', id: 'hyper', name: 'Hyper Drive', price: 100, power: 7 },
 ] as const satisfies readonly Part[];
 export type PartName = (typeof PARTS)[number]['name'];
 
@@ -31,6 +39,13 @@ export const PAINTS = [
   { id: 'green', name: 'Alien Green', price: 4, main: '#4cc46b', trim: '#1d1d1f' },
   { id: 'purple', name: 'Galaxy Purple', price: 4, main: '#8e5bd8', trim: '#ffd23f' },
   { id: 'black', name: 'Night Black', price: 6, main: '#2a2d36', trim: '#ff7a00' },
+  { id: 'pink', name: 'Bubblegum Pink', price: 8, main: '#ff7ac8', trim: '#8e5bd8' },
+  { id: 'yellow', name: 'Lemon Yellow', price: 8, main: '#ffe14d', trim: '#3a8dde' },
+  { id: 'teal', name: 'Ocean Teal', price: 8, main: '#2fb3a6', trim: '#ffd23f' },
+  { id: 'silver', name: 'Chrome Silver', price: 10, main: '#c9ccd6', trim: '#3a8dde' },
+  { id: 'navy', name: 'Midnight Blue', price: 10, main: '#22337a', trim: '#ffd23f' },
+  { id: 'candy', name: 'Cotton Candy', price: 10, main: '#ffc4e8', trim: '#43b8f0' },
+  { id: 'lime', name: 'Glow Lime', price: 12, main: '#b6ff3b', trim: '#8e5bd8' },
 ] as const satisfies readonly Paint[];
 export type PaintId = (typeof PAINTS)[number]['id'];
 export type PaintName = (typeof PAINTS)[number]['name'];

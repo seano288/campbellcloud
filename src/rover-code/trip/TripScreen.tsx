@@ -145,7 +145,7 @@ export function TripScreen() {
     const speed = Math.abs(d.vx) / TOP_SPEED;
     motor.current?.set(d.atFlag ? 0 : .15 + .85 * speed, Math.min(1, speed * .8 + (d.grounded ? 0 : .3)));
     for (const e of d.events) {
-      if (e === 'jump') sBoing();
+      if (e === 'jump' || e === 'bounce') sBoing();
       if (e === 'boost') boost();
       if (e === 'land' && falling > 150) landing(falling);
       if (e === 'hot') sizzle();

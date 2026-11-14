@@ -76,4 +76,16 @@ describe('the planet drive', () => {
     PLANETS.forEach((_, i) => { plain += play(i, [], 999).d.got; magnet += play(i, ['magnet'], 999).d.got; });
     expect(magnet).toBeGreaterThan(plain);
   });
+  it('goes faster with Turbo Jets, bounces high on a mushroom, and fires confetti from the Cannon', () => {
+    expect(play(1, ['turbo'], 999).t).toBeLessThan(play(1, [], 999).t * .9);
+    const shroom = createDrive(PLANETS.find(p => p.feature === 'mushrooms')!, [], 1);
+    let bounced = false;
+    for (let t = 0; t < 30 && !shroom.atFlag; t += DT) { stepDrive(shroom, DT, 1, false); bounced ||= shroom.events.includes('bounce'); }
+    expect(bounced).toBe(true);
+    const party = createDrive(PLANETS[0]!, ['cannon'], 1);
+    stepDrive(party, DT, 0, true);
+    expect(party.bits.length).toBeGreaterThan(0);
+    for (let i = 0; i < 200; i++) stepDrive(party, DT, 0, false);
+    expect(party.bits).toHaveLength(0);
+  });
 });

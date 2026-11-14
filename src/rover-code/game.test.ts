@@ -1,10 +1,11 @@
 import { describe, expect, it } from 'vitest';
 import type { SolvedProblem } from '../learning/session';
-import { canReach, destinationOf, freshBase, goalOf, nextPlanet, pickDestination, proposePurchase, readBase } from './base/base';
-import { fit, powerOf } from './base/parts';
+import { canReach, destinationOf, freshBase, goalOf, nextPlanet, pickDestination, priceOf, proposePurchase, readBase } from './base/base';
+import { ALL_KEYS, fit, keysIn, powerOf, SLOTS } from './base/parts';
 import { planet, PLANETS } from './base/planets';
 import { createPractice, roverSave, SAVE_KEY, SAVE_VERSION, settleTrip, type RoverState } from './game';
 import { freshLearning } from './learning';
+import { NUMBERS_TO } from './phrases';
 
 const store = (state: RoverState = roverSave.fresh()) => ({
   get state() { return state; },
@@ -63,9 +64,22 @@ describe('the Space Base', () => {
   });
   it('saves toward the cheapest part that adds Power', () => expect(goalOf(freshBase())).toBe('nose:bubble'));
   it('has a planet for every Power, and the top parts reach the last', () => {
-    const top = { ...freshBase().rocket, nose: 'star', body: 'gold', fins: 'wing', engine: 'mega' };
+    const top = { ...freshBase().rocket, nose: 'diamond', body: 'rainbow', fins: 'dragon', engine: 'hyper' };
     expect(powerOf(top)).toBe(PLANETS.at(-1)!.power);
     PLANETS.forEach((p, i) => { if (i) expect(p.power).toBeGreaterThan(PLANETS[i - 1]!.power); });
+    // the first eight planets still need only the first three Rungs
+    expect(powerOf({ ...top, nose: 'star', body: 'gold', fins: 'wing', engine: 'mega' })).toBe(planet('rainbow').power);
+  });
+  it('prices every part so the voice can say it, dearer up each slot', () => {
+    for (const k of ALL_KEYS) expect(priceOf(k)).toBeLessThanOrEqual(NUMBERS_TO);
+    for (const s of SLOTS) keysIn(s).forEach((k, i, all) => { if (i) expect(priceOf(k)).toBeGreaterThan(priceOf(all[i - 1]!)); });
+  });
+  it('gives a player who had built everything something new to save for', () => {
+    const added = ['drill', 'shark', 'diamond', 'armor', 'zap', 'rainbow', 'spike', 'jet', 'dragon', 'quad', 'plasma', 'hyper', 'pink', 'yellow', 'teal', 'silver', 'navy', 'candy', 'lime'];
+    const old = { ...freshBase(), owned: ALL_KEYS.filter(k => !added.includes(k.split(':')[1]!)) };
+    expect(old.owned).toHaveLength(16 + 7);
+    expect(goalOf(old)).toBe('nose:drill');
+    expect(new Set(PLANETS.map(p => p.gadget)).size).toBe(PLANETS.length);
   });
   it('goes somewhere new when it can, and lets him pick only planets in reach', () => {
     const b = { ...freshBase(), visits: { moon: 1 }, rocket: { ...freshBase().rocket, engine: 'twin' } };

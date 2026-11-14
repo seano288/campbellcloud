@@ -170,7 +170,7 @@ button.step:active{transform:translateY(3px);box-shadow:0 1px 0 #000}
 .planet-btn.dest{border-color:var(--yellow);box-shadow:0 0 0 3px var(--yellow)}
 .planet-btn .need{position:absolute;left:50%;bottom:-4px;transform:translateX(-50%);background:#000;color:var(--yellow);border-radius:8px;padding:0 5px;font:900 max(14px,calc(14px*var(--u))) Nunito,sans-serif;white-space:nowrap}
 .flag-mark{position:absolute;right:-4px;top:-6px;font-size:max(16px,calc(20px*var(--u)))}
-@media (max-width:560px){.planets{grid-template-columns:repeat(4,minmax(0,1fr));row-gap:6px}.planet-btn{width:min(100%,64px);justify-self:center}}
+@media (max-width:560px){.planets{grid-template-columns:repeat(6,minmax(0,1fr));row-gap:6px}.planet-btn{width:min(100%,64px);justify-self:center}}
 .base-go{display:flex;align-items:center;gap:10px;min-width:0}
 .base-go .launch-btn{flex:1;min-width:0;min-height:max(72px,calc(92px*var(--u)))}
 .base-go .icon-btn{flex:none;width:max(64px,calc(76px*var(--u)));height:max(64px,calc(76px*var(--u)));font-size:calc(34px*var(--u));color:#fff}

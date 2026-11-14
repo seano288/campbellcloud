@@ -59,8 +59,13 @@ function running(build: (c: AudioContext, out: GainNode) => { sources: AudioSche
   } catch { return SILENT; } // no audio: play on silently
 }
 
-/** The rocket's roar, by Engine Rung (0 Puff to 3 Mega Booster): a rushing flame over a deep rumble. */
-export function rocketRoar(rung: number): Running {
+/** How big an Engine sounds: a full step for each of the first three Rungs, then smaller steps, so Hyper Drive is the biggest
+ * without getting painfully loud or so deep a speaker can't play it. */
+const heft = (rung: number) => Math.min(rung, 3) + Math.max(0, rung - 3) * .35;
+
+/** The rocket's roar, by Engine Rung (0 Puff to 6 Hyper Drive): a rushing flame over a deep rumble. */
+export function rocketRoar(engineRung: number): Running {
+  const rung = heft(engineRung);
   return running((c, out) => {
     const hiss = loopedNoise(c), flame = c.createBiquadFilter(), hissGain = c.createGain();
     flame.type = 'lowpass'; flame.frequency.value = 400; flame.Q.value = .7;
@@ -118,7 +123,8 @@ export const sizzle = () => { noise({ dur: .45, vol: .28, type: 'highpass', f: 2
 export const boost = () => { noise({ dur: .3, vol: .3, type: 'bandpass', f: 500, f2: 2800 }); tone(330, .25, 'triangle', 0, .1, 880); };
 
 /** Trying an Engine at the Space Base: a short burst of its roar. */
-export function engineTest(rung: number) {
+export function engineTest(engineRung: number) {
+  const rung = heft(engineRung);
   noise({ dur: .9 + rung * .2, vol: .3 + rung * .06, f: 700 + rung * 300 });
   tone(52 - rung * 4, .9 + rung * .2, 'sawtooth', 0, .14 + rung * .03, 38);
   if (rung >= 2) noise({ dur: .5, vol: .2, type: 'bandpass', f: 400, f2: 3500 });

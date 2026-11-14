@@ -228,18 +228,18 @@ _Avoid_: repeat block, for-loop
 
 **Space Base**: where he builds his rocket, Rover Code's Garage: the launch pad, the planet map, the Launch button and the parts tray.
 
-**Rocket**: his rocket, Rover Code's Body, built from four slots (Nose, Body, Fins, Engine) and a Paint. Its Power (4 to 16) decides which planets it can reach.
+**Rocket**: his rocket, Rover Code's Body, built from four slots (Nose, Body, Fins, Engine) and a Paint. Its Power (4 to 28) decides which planets it can reach.
 
 **Launch**: one trip, earned by finishing a Round (he starts with one). It's used only when he plants his flag.
 _Avoid_: fuel, ticket
 
 **Trip**: the reward, with no puzzle in it: the launch countdown, the flight (steer with a finger, catch Bolts, dodge asteroids) and the planet drive (drive the rover, jump for crystals, plant the flag).
 
-**Planet**: one of eight in a row (Moon, Mars, Frosty, Ringo, Lava World, Crystal World, Jungle World, Rainbow World), each needing more Power.
+**Planet**: one of sixteen in a row (Moon, Mars, Frosty, Ringo, Lava World, Crystal World, Jungle World, Rainbow World, Candy World, Bubble World, Ocean World, Cactus World, Mushroom World, Thunder World, Robot World, Star World), each needing more Power.
 
 **Rover**: the yellow rover he drives on planets, and the one on the question grid.
 
-**Gadget**: a rover part won on the first visit to each planet, worn all at once. Some change the drive (Big Wheels, Solar Wings, Jump Booster, Crystal Magnet).
+**Gadget**: a rover part won on the first visit to each planet, worn all at once. Some change the drive (Big Wheels, Solar Wings, Jump Booster, Crystal Magnet, Confetti Cannon, Turbo Jets, Robot Arm).
 _Avoid_: Mod
 
 **Crystal**: what he finds on a planet, five per trip, one Bolt each.

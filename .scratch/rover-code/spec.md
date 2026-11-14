@@ -43,21 +43,21 @@ The known risk is that the puzzles are already game-like, so the reward has to b
 
 **The loop.** A finished Round earns Bolts and one launch (🚀). Bolts buy rocket parts. Parts add Power. Power reaches planets further out. Each new planet gives his rover a gadget. Every trip pays the Bolts he catches in space and the crystals he finds. He starts with one free launch, to the Moon.
 
-**The rocket (`base/parts.ts`).** Four slots, each with a free starter and three Rungs, plus Paint:
+**The rocket (`base/parts.ts`).** Four slots, each with a free starter and six Rungs, plus Paint:
 
-| Slot | Starter | Rungs (Bolts) |
-|---|---|---|
-| Nose | Plain Nose | Bubble Nose 8, Needle Nose 24, Star Nose 50 |
-| Body | Tin Can | Long Hull 10, Stripe Hull 30, Gold Hull 60 |
-| Fins | Little Fins | Swept Fins 8, Big Fins 24, Wing Fins 50 |
-| Engine | Puff Engine | Twin Engine 12, Triple Engine 36, Mega Booster 72 |
-| Paint | Snow White | Fire Red, Sky Blue, Sunset Orange, Alien Green, Galaxy Purple 4 each; Night Black 6 |
+| Slot | Starter | Rungs 1 to 3 (Bolts) | Rungs 4 to 6 (Bolts), added 2026-11-14 |
+|---|---|---|---|
+| Nose | Plain Nose | Bubble Nose 8, Needle Nose 24, Star Nose 50 | Drill Nose 55, Shark Nose 70, Diamond Nose 85 |
+| Body | Tin Can | Long Hull 10, Stripe Hull 30, Gold Hull 60 | Armor Hull 65, Lightning Hull 80, Rainbow Hull 95 |
+| Fins | Little Fins | Swept Fins 8, Big Fins 24, Wing Fins 50 | Spike Fins 55, Jet Wings 70, Dragon Wings 85 |
+| Engine | Puff Engine | Twin Engine 12, Triple Engine 36, Mega Booster 72 | Quad Engine 75, Plasma Engine 90 (blue flames), Hyper Drive 100 |
+| Paint | Snow White | Fire Red, Sky Blue, Sunset Orange, Alien Green, Galaxy Purple 4 each; Night Black 6 | Bubblegum Pink, Lemon Yellow, Ocean Teal 8 each; Chrome Silver, Midnight Blue, Cotton Candy 10 each; Glow Lime 12 |
 
-Power is the sum of the four slots' Rungs plus one (4 to 16). Paint adds none. As in Math Bots' Workshop, a part he hasn't got goes on the rocket to try, with its Power and Buy beside it; buying fits it. The Goal is the cheapest part that adds Power, or the one he tapped and couldn't afford. Every part together costs 384 Bolts, and the paints 26.
+Power is the sum of the four slots' Rungs plus one (4 to 28). Paint adds none. No price is over 100, the most the recorded numbers go. As in Math Bots' Workshop, a part he hasn't got goes on the rocket to try, with its Power and Buy beside it; buying fits it. The Goal is the cheapest part that adds Power, or the one he tapped and couldn't afford. Every part together costs 1,309 Bolts (384 for Rungs 1 to 3, 925 for Rungs 4 to 6), and the paints 92.
 
-**The planets (`base/planets.ts`).** Moon (Power 4), Mars 5, Frosty 7, Ringo 9, Lava World 11, Crystal World 13, Jungle World 14, Rainbow World 16. Launch goes to the nearest new planet the rocket can reach, otherwise the furthest one he's been to. He can tap any planet in reach on the map to go there instead; a planet out of reach says "Build a stronger rocket to get there!" and shows the Power it needs.
+**The planets (`base/planets.ts`).** Moon (Power 4), Mars 5, Frosty 7, Ringo 9, Lava World 11, Crystal World 13, Jungle World 14, Rainbow World 16, then (added 2026-11-14) Candy World 17, Bubble World 18 (the floatiest), Ocean World 20, Cactus World 21, Mushroom World 23 (big mushrooms bounce him high), Thunder World 24 (lightning far off), Robot World 26, Star World 28. Launch goes to the nearest new planet the rocket can reach, otherwise the furthest one he's been to. He can tap any planet in reach on the map to go there instead; a planet out of reach says "Build a stronger rocket to get there!" and shows the Power it needs.
 
-**Gadgets, one per first visit, all worn at once:** Antenna (Moon), Big Wheels (Mars, jumps higher), Headlights (Frosty), Solar Wings (Ringo, glides), Jump Booster (Lava World, jumps again in the air), Crystal Magnet (Crystal World, pulls crystals in), Siren Lights (Jungle World), Rainbow Trail (Rainbow World).
+**Gadgets, one per first visit, all worn at once:** Antenna (Moon), Big Wheels (Mars, jumps higher), Headlights (Frosty), Solar Wings (Ringo, glides), Jump Booster (Lava World, jumps again in the air), Crystal Magnet (Crystal World, pulls crystals in), Siren Lights (Jungle World), Rainbow Trail (Rainbow World), Confetti Cannon (Candy World, fires with each jump), Bubble Dome (Bubble World), Satellite Dish (Ocean World), Racing Stripes (Cactus World), Gold Wheels (Mushroom World), Turbo Jets (Thunder World, drives a third faster), Robot Arm (Robot World, reaches crystals a little further), Star Shield (Star World).
 
 **The trip (`trip/`), on a 2D canvas, no 3D.**
 1. **Launch:** his rocket on the pad. He presses the big red button; "3, 2, 1, Blast off!" with a rumble, smoke and a shake.
@@ -71,6 +71,7 @@ Power is the sum of the four slots' Rungs plus one (4 to 16). Paint adds none. A
 - The launch is used, and the trip paid, only when the flag is planted. Leaving halfway (🏠 twice) costs nothing and pays nothing. A reload during a trip lands at the Base.
 - Revisiting a planet pays the same Bolts but gives no gadget.
 - Mars needs one upgrade (8 to 12 Bolts, about two Rounds), so the first new planet comes quickly; the last needs every top part.
+- **Doubled on 2026-11-14.** He had bought every part and been to every planet within a day, so the reward was doubled: Rungs 4 to 6 in every slot, seven more paints, eight more planets and eight more gadgets. Payouts were left as they were, so the new half takes him roughly two and a half times as long as the first. A save that had everything keeps it; the Goal moves to Drill Nose.
 - No Legendary or vault in this game (Math Bots' Balance Lock and the others are not copied). Could be added later.
 
 **Controls stay off the edges**, as Math Bots' fight learned: the bottom band and the sides belong to iPadOS, so ◀ ▶, ⤴ and the big buttons sit above a floor of at least 56px and away from the sides.
