@@ -3,8 +3,9 @@
 // to an image and kept.
 import { useEffect, useRef } from 'preact/hooks';
 import type { Rocket } from '../base/parts';
-import type { GadgetId, Planet } from '../base/planets';
-import { drawGlobe, drawRocket, drawRover, ROCKET_SPAN, ROVER_SPAN } from './draw';
+import type { Planet } from '../base/planets';
+import type { RoverLook } from '../base/rovers';
+import { drawGlobe, drawRocket, drawRover, ROCKET_SPAN, roverSpan } from './draw';
 
 const still = () => typeof matchMedia === 'function' && matchMedia('(prefers-reduced-motion:reduce)').matches;
 type Draw = (c: CanvasRenderingContext2D, w: number, h: number, t: number) => void;
@@ -45,13 +46,15 @@ export function RocketView({ rocket, live = false, flame = 0, class: cls = '', l
     draw={(c, w, h, t) => { fitRocket(c, w, h, .92, flame > 0); drawRocket(c, rocket, { flame: live ? flame : flame * .8, t }); }} />;
 }
 
-export function RoverView({ gadgets, live = false, class: cls = '', label = 'Your rover' }: { gadgets: readonly GadgetId[]; live?: boolean; class?: string; label?: string | null }) {
-  return <CanvasArt class={`rover-view ${cls}`} live={live} label={label} deps={[gadgets.join(), live]}
-    draw={(c, w, h, t) => {
-      const k = Math.min(w / (ROVER_SPAN.right - ROVER_SPAN.left), h / (ROVER_SPAN.bottom - ROVER_SPAN.top)) * .92;
-      c.translate(w / 2, h / 2 + ((ROVER_SPAN.top + ROVER_SPAN.bottom) / -2) * k); c.scale(k, k);
-      drawRover(c, gadgets, { spin: t * 2, t });
-    }} />;
+/** Fits a rover to a box, standing in the middle. */
+const fitRover = (c: CanvasRenderingContext2D, look: RoverLook, w: number, h: number, pad = .92) => {
+  const span = roverSpan(look), k = Math.min(w / (span.right - span.left), h / (span.bottom - span.top)) * pad;
+  c.translate(w / 2, h / 2 + ((span.top + span.bottom) / -2) * k); c.scale(k, k);
+};
+
+export function RoverView({ look, live = false, class: cls = '', label = 'Your rover' }: { look: RoverLook; live?: boolean; class?: string; label?: string | null }) {
+  return <CanvasArt class={`rover-view ${cls}`} live={live} label={label} deps={[look.kind, look.kit.join(), live]}
+    draw={(c, w, h, t) => { fitRover(c, look, w, h); drawRover(c, look, { spin: t * 2, t }); }} />;
 }
 
 export function GlobeView({ planet, class: cls = '', label }: { planet: Pick<Planet, 'globe' | 'feature' | 'id'>; class?: string; label?: string | null }) {
@@ -75,6 +78,21 @@ export function rocketPic(rocket: Rocket, focus: Focus = 'whole') {
       else { c.translate(75, focus === 'top' ? 125 : 22); c.scale(.62, .62); }
       drawRocket(c, rocket, { flame: focus === 'bottom' ? .6 : 0 });
     }
+    url = canvas.toDataURL('image/png');
+    pics.set(key, url);
+  }
+  return url;
+}
+
+/** A rover drawn once to a picture, for the rover and gadget trays. */
+export function roverPic(look: RoverLook) {
+  const key = `rover|${look.kind}|${look.kit.join()}`;
+  let url = pics.get(key);
+  if (!url) {
+    const canvas = document.createElement('canvas');
+    canvas.width = 190; canvas.height = 150;
+    const c = canvas.getContext('2d');
+    if (c) { fitRover(c, look, 190, 150, .98); drawRover(c, look, { t: .6 }); }
     url = canvas.toDataURL('image/png');
     pics.set(key, url);
   }

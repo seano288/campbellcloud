@@ -6,7 +6,7 @@
 // Controls stay clear of the screen's bottom edge and sides, which belong to iPadOS (a swipe that starts there opens the Dock or the app
 // switcher, and a page can't stop it), as in Math Bots' fight. Keys work on a computer: arrows, space.
 import { useEffect, useRef, useState } from 'preact/hooks';
-import { sBoing, sChime, sClink, sFanfare, sSiren, sWhoosh } from '../../audio/sfx';
+import { sBoing, sChime, sClink, sFanfare, sPop, sSiren, sWhoosh } from '../../audio/sfx';
 import { confetti } from '../../celebrate/effects';
 import { earnedLine } from '../../currency/kind';
 import { seeded } from '../../game/rng';
@@ -14,15 +14,16 @@ import { IconButton } from '../../ui/bits';
 import { CurrencyIcon } from '../../ui/currency';
 import { GlobeView, RocketView, RoverView } from '../art/Art';
 import { rungOf } from '../base/parts';
-import { CRYSTALS, SPACE_BOLTS, type TripPay } from '../base/base';
+import { CRYSTALS, lookOf, SPACE_BOLTS, type TripPay } from '../base/base';
 import { GADGETS, planet as planetBy, type GadgetId } from '../base/planets';
+import type { RoverLook } from '../base/rovers';
 import { ROVER_CURRENCY } from '../branding';
 import { player, settleTrip } from '../game';
 import { launch, screen, tripTo } from '../nav';
 import { backLine, exploredLine, gadgetLine, type Phrase } from '../phrases';
 import { startRound } from '../round';
 import { useVoiceScope, type VoiceScope } from '../voice';
-import { createDrive, drawDrive, progress, stepDrive, TOP_SPEED, type Drive } from './drive';
+import { createDrive, drawDrive, FIREWORK_AT, progress, stepDrive, TOP_SPEED, type Drive } from './drive';
 import { climb, CLIMB_S, createFlight, drawFlight, LAND_S, resize, stepFlight, type Flight } from './flight';
 import { boost, clunk, countBeep, ignition, landing, rocketRoar, roverMotor, sizzle, touchdown, type Running } from './sounds';
 
@@ -62,7 +63,7 @@ function chatter(voice: VoiceScope) {
 
 export function TripScreen() {
   const voice = useVoiceScope(), state = player.state.value, base = state.base, planet = planetBy(tripTo.value);
-  const first = base.trips === 0, newPlanet = !(base.visits[planet.id] ?? 0);
+  const first = base.trips === 0, newPlanet = !(base.visits[planet.id] ?? 0), look = useRef(lookOf(base)).current;
   const [phase, setPhase] = useState<Phase>('flight'), [armed, setArmed] = useState(false), [pay, setPay] = useState<TripPay | null>(null);
   const [started, setStarted] = useState(false), [caught, setCaught] = useState(0), [got, setGot] = useState(0), [atFlag, setAtFlag] = useState(false), [planted, setPlanted] = useState(false);
   const canvas = useRef<HTMLCanvasElement>(null), bar = useRef<HTMLElement>(null);
@@ -124,7 +125,7 @@ export function TripScreen() {
       if (e === 'arrive') { sWhoosh(1.5); say('Landing!'); }
       if (e === 'done') {
         roar.current?.stop(); roar.current = null; touchdown();
-        drive.current = createDrive(planet, base.gadgets, base.trips * 31 + 7); setPhase('drive');
+        drive.current = createDrive(planet, look, base.trips * 31 + 7); setPhase('drive');
       }
     }
   }, (c, w, h) => drawFlight(c, flight.current, w, h, base.rocket, planet, reduced(), pointer.current));
@@ -133,7 +134,7 @@ export function TripScreen() {
   useEffect(() => {
     if (phase !== 'drive') return;
     motor.current = roverMotor();
-    if (base.gadgets.includes('siren')) sSiren(); // his Siren Lights, as the rover rolls out
+    if (look.kit.includes('siren')) sSiren(); // his Siren Lights, as the rover rolls out
     void voice.say(newPlanet ? 'Drive to the flag!' : backLine(planet.said as Parameters<typeof backLine>[0]), ...(newPlanet ? [] : ['Drive to the flag!' as const]), ...(first ? ['Hold the arrows to drive!', 'Tap the button to jump!'] as const : []));
     return () => { motor.current?.stop(); motor.current = null; };
   }, [phase]);
@@ -153,17 +154,18 @@ export function TripScreen() {
       if (e === 'flag') { setAtFlag(true); sFanfare(); void voice.say('Plant your flag!'); }
     }
     if (bar.current) bar.current.style.transform = `scaleX(${progress(d)})`;
-  }, (c, w, h) => drawDrive(c, drive.current!, w, h, base.rocket, plantAt.current ? Math.min(1, (performance.now() - plantAt.current) / 900) : 0, reduced()));
+  }, (c, w, h) => drawDrive(c, drive.current!, w, h, base.rocket, plantAt.current ? (performance.now() - plantAt.current) / 1000 : 0, reduced()));
 
   function plant() {
     if (planted || !voice.active || !drive.current) return;
     setPlanted(true);
     plantAt.current = performance.now();
     sFanfare(); confetti(50, voice.signal);
-    const d = drive.current, paid = settleTrip(player, planet.id, flight.current.caught, d.got);
+    const d = drive.current, paid = settleTrip(player, planet.id, flight.current.caught, d.got), fireworks = look.kit.includes('fireworks');
     setPay(paid);
+    if (fireworks) for (const at of FIREWORK_AT) voice.wait(at * 1000).then(() => { if (voice.active) sPop(); }, () => {});
     void (async () => {
-      await voice.wait(1100);
+      await voice.wait(fireworks ? 3000 : 1100); // the Fireworks get time to go off
       if (!voice.active) return;
       setPhase('end');
       if (!paid) return;
@@ -227,7 +229,7 @@ export function TripScreen() {
           <h2>{planet.name}</h2>
           <GlobeView planet={planet} class="result-globe" label={null} />
           {pay && pay.bolts > 0 && <div class="result-bolts"><CurrencyIcon kind={ROVER_CURRENCY} size={40} />+{pay.bolts}</div>}
-          {pay?.gadget && <Prize gadget={pay.gadget} gadgets={after.gadgets} />}
+          {pay?.gadget && <Prize gadget={pay.gadget} look={lookOf(after)} />}
           <div class="btns">
             <button class="big-btn garage my-rocket" aria-label="Space Base" onClick={() => { if (voice.active) screen.value = 'base'; }}><RocketView rocket={after.rocket} label={null} /></button>
             {after.launches > 0
@@ -240,10 +242,10 @@ export function TripScreen() {
   );
 }
 
-function Prize({ gadget, gadgets }: { gadget: GadgetId; gadgets: readonly GadgetId[] }) {
+function Prize({ gadget, look }: { gadget: GadgetId; look: RoverLook }) {
   return (
     <div class="prize">
-      <RoverView gadgets={gadgets} live label={`Your rover with ${GADGETS[gadget]}`} />
+      <RoverView look={look} live label={`Your rover with ${GADGETS[gadget]}`} />
       <span class="prize-name">{GADGETS[gadget]}</span>
     </div>
   );

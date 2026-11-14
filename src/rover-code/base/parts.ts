@@ -1,11 +1,16 @@
 // The rocket is built from four slots (Nose, Body, Fins, Engine) and a Paint. Each slot has a free starter and six Rungs bought
 // with Bolts, and each Rung adds one Power. Rungs 4 to 6 came on 2026-11-14, once he had bought everything else, to double the reward. Power is what takes the rocket further: every planet needs some (planets.ts). Paint is
-// only for looks and costs a little. Rungs, like the vehicle games, so cooler parts cost more.
+// only for looks and costs a little. Rungs, like the vehicle games, so cooler parts cost more. The shop also sells rovers and Kit
+// gadgets (rovers.ts) under the same keys ("rover:monster", "kit:spoiler"); they add no Power and don't go on the rocket.
+import { KIT, KIT_IDS, ROVER_IDS, ROVERS, type KitId, type KitName, type RoverId, type RoverName } from './rovers';
+
 export const SLOTS = ['nose', 'body', 'fins', 'engine'] as const;
 export type Slot = (typeof SLOTS)[number];
-export const SLOT_NAMES = { nose: 'Nose', body: 'Body', fins: 'Fins', engine: 'Engine', paint: 'Paint' } as const;
-export type Tab = Slot | 'paint';
-export const TABS: readonly Tab[] = [...SLOTS, 'paint'];
+export const SLOT_NAMES = { nose: 'Nose', body: 'Body', fins: 'Fins', engine: 'Engine', paint: 'Paint', rover: 'Rover', kit: 'Gadgets' } as const;
+export type Tab = Slot | 'paint' | 'rover' | 'kit';
+export const TABS: readonly Tab[] = [...SLOTS, 'paint', 'rover', 'kit'];
+/** The tabs for his rover rather than his rocket. */
+export const isRoverTab = (t: Tab) => t === 'rover' || t === 'kit';
 
 export interface Part { readonly slot: Slot; readonly id: string; readonly name: string; readonly price: number; readonly power: number }
 
@@ -50,17 +55,23 @@ export const PAINTS = [
 export type PaintId = (typeof PAINTS)[number]['id'];
 export type PaintName = (typeof PAINTS)[number]['name'];
 
-/** One part or paint, as the save keeps it: "engine:twin", "paint:red". */
-export type PartKey = `${Slot}:${string}` | `paint:${PaintId}`;
-export const ALL_KEYS: readonly PartKey[] = [...PARTS.map(p => `${p.slot}:${p.id}` as PartKey), ...PAINTS.map(p => `paint:${p.id}` as PartKey)];
+/** One thing in the shop, as the save keeps it: "engine:twin", "paint:red", "rover:monster", "kit:spoiler". */
+export type PartKey = `${Slot}:${string}` | `paint:${PaintId}` | `rover:${RoverId}` | `kit:${KitId}`;
+export const ALL_KEYS: readonly PartKey[] = [
+  ...PARTS.map(p => `${p.slot}:${p.id}` as PartKey), ...PAINTS.map(p => `paint:${p.id}` as PartKey),
+  ...ROVER_IDS.map(id => `rover:${id}` as PartKey), ...KIT_IDS.map(id => `kit:${id}` as PartKey),
+];
 export const isPartKey = (x: unknown): x is PartKey => typeof x === 'string' && (ALL_KEYS as readonly string[]).includes(x);
 export const tabOf = (k: PartKey): Tab => k.split(':')[0] as Tab;
 export const idOf = (k: PartKey) => k.split(':')[1]!;
 export const keyOf = (tab: Tab, id: string) => `${tab}:${id}` as PartKey;
 
-export function infoOf(k: PartKey): { name: PartName | PaintName; price: number; power: number } {
+export type ShopName = PartName | PaintName | RoverName | KitName;
+export function infoOf(k: PartKey): { name: ShopName; price: number; power: number } {
   const tab = tabOf(k), id = idOf(k);
   if (tab === 'paint') { const p = PAINTS.find(p => p.id === id)!; return { name: p.name, price: p.price, power: 0 }; }
+  if (tab === 'rover') { const r = ROVERS.find(r => r.id === id)!; return { name: r.name, price: r.price, power: 0 }; }
+  if (tab === 'kit') { const g = KIT.find(g => g.id === id)!; return { name: g.name, price: g.price, power: 0 }; }
   const p = PARTS.find(p => p.slot === tab && p.id === id)!;
   return { name: p.name, price: p.price, power: p.power };
 }
@@ -75,7 +86,9 @@ export const fittedKeys = (r: Rocket): PartKey[] => [...SLOTS.map(s => keyOf(s, 
 export const powerOf = (r: Rocket) => SLOTS.reduce((sum, s) => sum + infoOf(keyOf(s, r[s])).power, 0);
 export const rungOf = (r: Rocket, s: Slot) => infoOf(keyOf(s, r[s])).power - 1;
 export const paintOf = (r: Rocket) => PAINTS.find(p => p.id === r.paint) ?? PAINTS[0];
+/** The rocket with this part on it; a rover or a Kit gadget leaves the rocket as it is. */
 export function fit(r: Rocket, k: PartKey): Rocket {
   const tab = tabOf(k), id = idOf(k);
+  if (isRoverTab(tab)) return r;
   return tab === 'paint' ? { ...r, paint: id as PaintId } : { ...r, [tab]: id };
 }

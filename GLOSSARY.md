@@ -237,9 +237,13 @@ _Avoid_: fuel, ticket
 
 **Planet**: one of sixteen in a row (Moon, Mars, Frosty, Ringo, Lava World, Crystal World, Jungle World, Rainbow World, Candy World, Bubble World, Ocean World, Cactus World, Mushroom World, Thunder World, Robot World, Star World), each needing more Power.
 
-**Rover**: the yellow rover he drives on planets, and the one on the question grid.
+**Rover**: the rover he drives on planets. He starts with the yellow Scout Rover (also the one on the question grid) and can buy five more kinds at the Space Base (Dune Buggy, Monster Truck, Tank Crawler, Spider Walker, Hover Rover), each with its own Trick. He drives one at a time.
 
-**Gadget**: a rover part won on the first visit to each planet, worn all at once. Some change the drive (Big Wheels, Solar Wings, Jump Booster, Crystal Magnet, Confetti Cannon, Turbo Jets, Robot Arm).
-_Avoid_: Mod
+**Trick**: what a rover or a Kit gadget does to the drive, said when he taps it: "It goes extra fast!", "It jumps extra high!", "It never slips on ice!", "It can jump in the air!", "It floats!".
+
+**Gadget**: a thing a rover wears. Sixteen are won, one on the first visit to each planet; eight more (the Kit) are bought. Each rover has its own set switched on, and a gadget is on unless he has switched it off on that rover. Some change the drive (Big Wheels, Solar Wings, Jump Booster, Crystal Magnet, Confetti Cannon, Turbo Jets, Robot Arm, Snow Plow, Bubble Blower, Parachute, Fireworks).
+_Avoid_: Mod, feature (to him)
+
+**Kit**: the gadgets bought with Bolts rather than won on a planet: Spoiler, Flame Decals, Snow Plow, Bubble Blower, Parachute, Disco Ball, Fireworks, Alien Pal.
 
 **Crystal**: what he finds on a planet, five per trip, one Bolt each.

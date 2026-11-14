@@ -1,8 +1,9 @@
-// The reward's pictures, drawn in code on a 2D canvas: his rocket from its parts, his rover from the side with every gadget it has
-// won, and the planets as globes. The Base, the flight and the planet drive all use these, so the rocket he built is the one that
-// flies. Family look: thick dark outlines, flat toy colours, one highlight.
+// The reward's pictures, drawn in code on a 2D canvas: his rocket from its parts, whichever rover he drives from the side with every
+// gadget he has put on it, and the planets as globes. The Base, the flight and the planet drive all use these, so the rocket he built
+// is the one that flies. Family look: thick dark outlines, flat toy colours, one highlight.
 import { paintOf, type Rocket } from '../base/parts';
-import type { GadgetId, Planet } from '../base/planets';
+import type { Planet } from '../base/planets';
+import type { FeatureId, RoverLook } from '../base/rovers';
 
 const O = '#11131c', TAU = Math.PI * 2;
 type C = CanvasRenderingContext2D;
@@ -138,96 +139,274 @@ export function star(c: C, x: number, y: number, r: number, fill: string, lw = 5
   c.closePath(); c.fillStyle = fill; c.fill(); outline(c, lw);
 }
 
-/** Room the rover takes round its middle, so a view can fit it. */
+/** Room the Scout takes round its middle, so a view can fit it; roverSpan() is taller for the tall rovers. */
 export const ROVER_SPAN = { left: -95, right: 95, top: -130, bottom: 52 };
 
 /**
- * The rover from the side, facing right, standing on y = 0 at its wheels' bottoms. `spin` turns the wheels, `t` blinks the siren and
- * turns the Star Shield, `go` (0 to 1, how fast it's driving) lights the Turbo Jets. It wears every gadget it has.
+ * Where things go on a rover, so every gadget fits every kind: its body (`l` back to `r` front, `top` to `bottom`), the roof of its
+ * cab, the cab's middle, its camera mast (standing at `mast`,`mastY`, `mastH` tall) and the top of the camera head.
  */
-export function drawRover(c: C, gadgets: readonly GadgetId[], { spin = 0, t = 0, go = 0 }: { spin?: number; t?: number; go?: number } = {}) {
-  const has = (g: GadgetId) => gadgets.includes(g), wr = has('wheels') ? 24 : 17, axle = -wr;
+interface Frame {
+  l: number; r: number; top: number; bottom: number;
+  roof: number; cab: number;
+  mast: number; mastY: number; mastH: number; headY: number;
+  /** The body's outline as a path, for filling and for clipping the stripes and flames to it. */
+  hull: (c: C) => void;
+  colour: string;
+  /** The window the driver looks out of (an Alien Pal sits in it), or null for an open seat. */
+  window: readonly [number, number, number, number] | null;
+}
+const box = (x: number, y: number, w: number, h: number, rad: number) => (c: C) => { c.roundRect(x, y, w, h, rad); };
+const frame = (f: Omit<Frame, 'headY'>): Frame => ({ ...f, headY: f.mastY - f.mastH - 22 });
+/** Wheel radius (or tread wheel, foot or hover pad size): bigger with Big Wheels. */
+const wheelR = (look: RoverLook) => {
+  const big = look.kit.includes('wheels');
+  return look.kind === 'monster' ? (big ? 38 : 30) : look.kind === 'buggy' ? (big ? 25 : 19) : look.kind === 'tank' ? (big ? 18 : 14) : big ? 24 : 17;
+};
+/** How high the Hover Rover floats, bobbing. */
+const floatOf = (t: number) => 34 + Math.sin(t * 3) * 4;
+
+function frameOf(look: RoverLook, t: number): Frame {
+  const wr = wheelR(look);
+  switch (look.kind) {
+    case 'buggy': { // low and wedge-shaped, with a roll cage over an open seat
+      const bottom = -wr - 4, top = bottom - 28, l = -72, r = 70;
+      return frame({ l, r, top, bottom, roof: top - 44, cab: -14, mast: 18, mastY: top - 44, mastH: 4, colour: '#e63946', window: null,
+        hull: c => { c.moveTo(l + 8, top); c.lineTo(r - 36, top); c.lineTo(r, top + 14); c.lineTo(r, bottom - 6); c.quadraticCurveTo(r, bottom, r - 8, bottom); c.lineTo(l + 6, bottom); c.quadraticCurveTo(l, bottom, l, bottom - 6); c.lineTo(l, top + 8); c.quadraticCurveTo(l, top, l + 8, top); c.closePath(); } });
+    }
+    case 'monster': { // a truck body up high on huge wheels, with a cab on top
+      const bottom = -2 * wr - 6, top = bottom - 34, l = -78, r = 76;
+      return frame({ l, r, top, bottom, roof: top - 30, cab: 1, mast: 54, mastY: top, mastH: 8, colour: '#4cc46b', window: [-26, top - 24, 54, 18], hull: box(l, top, r - l, bottom - top, 12) });
+    }
+    case 'tank': { // on two long treads, with a sloped cab
+      const tread = 2 * wr + 12, bottom = -tread + 2, top = bottom - 32, l = -60, r = 60;
+      return frame({ l, r, top, bottom, roof: top - 24, cab: -12, mast: 38, mastY: top, mastH: 22, colour: '#ff8a1f', window: [-34, top - 19, 40, 14], hull: box(l, top, r - l, bottom - top, 10) });
+    }
+    case 'spider': { // a round body on six walking legs
+      const bottom = -70, top = -120, l = -58, r = 56;
+      return frame({ l, r, top, bottom, roof: top, cab: -8, mast: 26, mastY: top + 2, mastH: 8, colour: '#8e5bd8', window: [-38, top + 12, 50, 22], hull: box(l, top, r - l, bottom - top, 25) });
+    }
+    case 'hover': { // a floating pill with glowing pads underneath
+      const bottom = -floatOf(t), top = bottom - 38, l = -78, r = 78;
+      return frame({ l, r, top, bottom, roof: top, cab: -20, mast: 40, mastY: top + 2, mastH: 14, colour: '#eef2f7', window: [-56, top + 9, 64, 18], hull: box(l, top, r - l, bottom - top, 19) });
+    }
+    default: { // the Scout: a box on six wheels, with the camera on a mast
+      const axle = -wr, top = axle - 58, bottom = axle - 12;
+      return frame({ l: -64, r: 64, top, bottom, roof: top, cab: -25, mast: 30, mastY: top, mastH: 34, colour: '#ffd23f', window: [-52, top + 10, 54, 24], hull: box(-64, top, 128, bottom - top, 14) });
+    }
+  }
+}
+
+/** Room a rover takes, so a view can fit it: the Scout's, with more on top for a tall one or a Disco Ball. */
+export function roverSpan(look: RoverLook) {
+  const f = frameOf(look, 0), extra = look.kit.includes('disco') ? 34 : 0;
+  return { ...ROVER_SPAN, top: Math.min(ROVER_SPAN.top, f.headY - extra - 2, f.roof - (look.kit.includes('antenna') ? 60 : 0)) };
+}
+
+function wheel(c: C, x: number, axle: number, wr: number, spin: number, gold: boolean) {
+  c.beginPath(); c.arc(x, axle, wr, 0, TAU); c.fillStyle = '#2a2d36'; c.fill(); outline(c, 5);
+  if (gold) { c.beginPath(); c.arc(x, axle, wr * .72, 0, TAU); c.lineWidth = 3; c.strokeStyle = '#ffd23f'; c.stroke(); }
+  c.beginPath(); c.arc(x, axle, wr * .45, 0, TAU); c.fillStyle = gold ? '#ffd23f' : '#c9ccd6'; c.fill(); outline(c, 3);
+  c.save(); c.translate(x, axle); c.rotate(spin); c.strokeStyle = O; c.lineWidth = 3;
+  for (let i = 0; i < 3; i++) { c.rotate(TAU / 3); c.beginPath(); c.moveTo(wr * .5, 0); c.lineTo(wr * .9, 0); c.stroke(); }
+  c.restore();
+}
+/** A strut or bar: a dark outline with a grey middle. */
+function bar(c: C, pts: readonly (readonly [number, number])[], w: number, col = '#9aa3ad') {
+  c.beginPath(); pts.forEach(([x, y], i) => (i ? c.lineTo(x, y) : c.moveTo(x, y))); outline(c, w + 4); c.strokeStyle = col; c.lineWidth = w; c.stroke();
+}
+
+/**
+ * The Spider Walker's legs on one side, behind its body: the front and back ones bend up to a knee outside the body and down to the
+ * ground, like a spider's. The `far` side is darker and steps the other way. Each leg steps in turn as it walks.
+ */
+function legs(c: C, f: Frame, foot: number, spin: number, far: boolean, gold: boolean) {
+  const hy = (f.top + f.bottom) / 2;
+  [-30, 0, 30].forEach((hip, i) => {
+    const p = spin * .5 + i * 2.1 + (far ? Math.PI : 0), shift = far ? -10 : 0;
+    const fx = hip * 2.1 + shift + Math.sin(p) * 14, lift = Math.max(0, Math.cos(p)) * 14, kx = hip * 2.5 + shift, ky = f.top + 2 - lift * .5;
+    bar(c, [[hip + shift, hy], [kx, ky], [fx, -lift - 4]], 8, far ? '#5a3a8f' : '#b48cf0');
+    c.beginPath(); c.arc(kx, ky, 5, 0, TAU); c.fillStyle = far ? '#3d2766' : '#ffd23f'; c.fill(); outline(c, 3);
+    c.beginPath(); c.arc(fx, -lift - 4, foot, 0, TAU); c.fillStyle = gold ? '#ffd23f' : far ? '#5b6170' : '#c9ccd6'; c.fill(); outline(c, 4);
+  });
+}
+
+function alien(c: C, x: number, y: number, s: number, t: number) {
+  c.save(); c.translate(x, y); c.rotate(Math.sin(t * 2) * .12);
+  for (const sx of [-1, 1]) { c.beginPath(); c.moveTo(sx * s * .4, -s * .8); c.lineTo(sx * s * .7, -s * 1.6); outline(c, 3); c.beginPath(); c.arc(sx * s * .7, -s * 1.6, s * .22, 0, TAU); c.fillStyle = '#ffd23f'; c.fill(); outline(c, 2); }
+  c.beginPath(); c.ellipse(0, 0, s, s * .9, 0, 0, TAU); c.fillStyle = '#7ee05a'; c.fill(); outline(c, 3);
+  for (const sx of [-1, 1]) { c.beginPath(); c.ellipse(sx * s * .38, -s * .1, s * .26, s * .34, sx * .3, 0, TAU); c.fillStyle = O; c.fill(); c.beginPath(); c.arc(sx * s * .38 - s * .08, -s * .22, s * .09, 0, TAU); c.fillStyle = '#fff'; c.fill(); }
+  c.beginPath(); c.arc(0, s * .28, s * .3, .2, Math.PI - .2); c.lineWidth = 2; c.strokeStyle = O; c.stroke();
+  c.restore();
+}
+
+/**
+ * A rover from the side, facing right, standing on y = 0. `look` is which rover and what it wears. `spin` turns the wheels (and walks
+ * the Spider's legs), `t` blinks the siren, turns the Star Shield and the Disco Ball and bobs the Hover Rover, `go` (0 to 1, how fast
+ * it's driving) lights the Turbo Jets, and `chute` opens the Parachute.
+ */
+export function drawRover(c: C, look: RoverLook, { spin = 0, t = 0, go = 0, chute = false }: { spin?: number; t?: number; go?: number; chute?: boolean } = {}) {
+  const has = (g: FeatureId) => look.kit.includes(g), f = frameOf(look, t), wr = wheelR(look), gold = has('gold'), kind = look.kind;
+  const { l, r, top, bottom } = f, mid = (l + r) / 2, lightY = top + Math.min(22, (bottom - top) / 2);
+  if (has('chute') && chute) { // the Parachute, open above it
+    const cx = mid - 6, cy = f.roof - 120, w = 82;
+    for (const [x, y] of [[l + 22, top], [mid, f.roof], [r - 22, top]] as const) { c.beginPath(); c.moveTo(x, y); c.lineTo(cx + (x - mid) * 2.2, cy); c.lineWidth = 2.5; c.strokeStyle = O; c.stroke(); }
+    c.beginPath(); c.arc(cx, cy, w, Math.PI, 0); for (let i = 4; i >= 0; i--) c.quadraticCurveTo(cx - w + (i + .5) * w * .4, cy + 14, cx - w + i * w * .4, cy); c.closePath();
+    c.fillStyle = '#e63946'; c.fill(); c.save(); c.clip(); c.fillStyle = '#f4f6fa'; for (const k of [-1, 1]) { c.beginPath(); c.moveTo(cx, cy - w); c.lineTo(cx + k * w * .5, cy + 20); c.lineTo(cx + k * w * .15, cy + 20); c.closePath(); c.fill(); } c.restore();
+    c.beginPath(); c.arc(cx, cy, w, Math.PI, 0); outline(c, 5);
+  }
   if (has('turbo')) { // two chrome pipes low on the back, burning when it goes fast
-    for (const y of [axle - 21, axle - 11]) {
-      if (go > .15) { const len = 18 + 26 * go + Math.sin(t * 50 + y) * 5; c.beginPath(); c.moveTo(-88, y - 4); c.lineTo(-88 - len, y + 3); c.lineTo(-88, y + 9); c.closePath(); c.fillStyle = '#3ad0ff'; c.fill(); }
-      c.beginPath(); c.roundRect(-90, y - 4, 34, 11, 4); c.fillStyle = '#d7dce4'; c.fill(); outline(c, 4);
+    for (const y of [bottom - 9, bottom + 1]) {
+      if (go > .15) { const len = 18 + 26 * go + Math.sin(t * 50 + y) * 5; c.beginPath(); c.moveTo(l - 24, y - 4); c.lineTo(l - 24 - len, y + 3); c.lineTo(l - 24, y + 9); c.closePath(); c.fillStyle = '#3ad0ff'; c.fill(); }
+      c.beginPath(); c.roundRect(l - 26, y - 4, 34, 11, 4); c.fillStyle = '#d7dce4'; c.fill(); outline(c, 4);
     }
   }
   if (has('booster')) { // a jet on the back
-    c.beginPath(); c.roundRect(-82, axle - 52, 26, 30, 8); c.fillStyle = '#7d8794'; c.fill(); outline(c, 5);
-    c.beginPath(); c.moveTo(-82, axle - 44); c.lineTo(-96, axle - 50); c.lineTo(-96, axle - 24); c.lineTo(-82, axle - 30); c.closePath(); c.fillStyle = '#ff7a00'; c.fill(); outline(c, 4);
+    c.beginPath(); c.roundRect(l - 18, top + 6, 26, 30, 8); c.fillStyle = '#7d8794'; c.fill(); outline(c, 5);
+    c.beginPath(); c.moveTo(l - 18, top + 14); c.lineTo(l - 32, top + 8); c.lineTo(l - 32, top + 34); c.lineTo(l - 18, top + 28); c.closePath(); c.fillStyle = '#ff7a00'; c.fill(); outline(c, 4);
   }
-  const bodyTop = axle - 58, bodyBottom = axle - 12;
+  if (has('bubbles')) { // a bubble wand off the back corner
+    bar(c, [[l + 4, top + 4], [l - 14, top - 12]], 4);
+    c.beginPath(); c.arc(l - 21, top - 18, 9, 0, TAU); c.lineWidth = 8; c.strokeStyle = O; c.stroke(); c.lineWidth = 4; c.strokeStyle = '#ff7ac8'; c.stroke();
+  }
   if (has('cannon')) { // the Confetti Cannon, on the back, pointing up
-    c.save(); c.translate(-54, bodyTop + 6); c.rotate(-2.3);
+    c.save(); c.translate(l + 10, top + 6); c.rotate(-2.3);
     c.beginPath(); c.roundRect(-4, -12, 46, 24, 7); c.fillStyle = '#8e5bd8'; c.fill(); outline(c, 5);
     for (const [x, col] of [[10, '#ffd23f'], [24, '#4cc46b']] as const) { c.fillStyle = col; c.fillRect(x, -12, 6, 24); }
     c.beginPath(); c.roundRect(-4, -12, 46, 24, 7); outline(c, 5);
     c.restore();
   }
-  // body
-  c.beginPath(); c.roundRect(-64, bodyTop, 128, bodyBottom - bodyTop, 14); c.fillStyle = '#ffd23f'; c.fill();
-  if (has('stripes')) { c.save(); c.clip(); c.fillStyle = '#e63946'; c.fillRect(-64, bodyBottom - 18, 128, 8); c.fillStyle = '#f4f6fa'; c.fillRect(-64, bodyBottom - 10, 128, 4); c.fillRect(-64, bodyBottom - 22, 128, 4); c.restore(); }
-  c.beginPath(); c.roundRect(-64, bodyTop, 128, bodyBottom - bodyTop, 14); outline(c, 6);
-  c.beginPath(); c.roundRect(-52, bodyTop + 10, 54, 24, 6); c.fillStyle = '#2f6fd6'; c.fill(); outline(c, 4);
-  shine(c, -20, bodyTop + 8, 30, 4);
+  if (has('spoiler')) { // a racing wing on the back
+    bar(c, [[l + 14, top + 2], [l + 10, top - 20]], 5, '#2a2d36');
+    c.beginPath(); c.roundRect(l - 16, top - 30, 52, 11, 4); c.fillStyle = '#e63946'; c.fill(); outline(c, 4);
+  }
+  // what stands behind the body
+  if (kind === 'spider') { legs(c, f, wr * .45, spin, true, gold); legs(c, f, wr * .5, spin, false, gold); }
+  if (kind === 'hover') for (const x of [-44, 44]) { // the pads' glow down to the ground
+    c.save(); c.globalAlpha = .22 + .08 * Math.sin(t * 6 + x); c.beginPath(); c.moveTo(x - 18, bottom + 4); c.lineTo(x + 18, bottom + 4); c.lineTo(x + 30, 0); c.lineTo(x - 30, 0); c.closePath(); c.fillStyle = '#3ad0ff'; c.fill();
+    c.globalAlpha = .5; c.beginPath(); c.ellipse(x, -2, 32, 6, 0, 0, TAU); c.fill(); c.restore();
+  }
+  if (kind === 'monster') for (const s of [-1, 1]) bar(c, [[s * 22, bottom - 2], [s * 50, -wr]], 6); // the struts down to the wheels
+  if (kind === 'buggy') { // the roll cage, behind the seat
+    c.beginPath(); c.roundRect(l + 32, top - 26, 18, 28, 6); c.fillStyle = '#2a2d36'; c.fill(); outline(c, 4);
+  }
+  // the body
+  c.beginPath(); f.hull(c); c.fillStyle = f.colour; c.fill();
+  if (has('stripes') || has('flames')) {
+    c.save(); c.beginPath(); f.hull(c); c.clip();
+    if (has('flames')) {
+      const h = bottom - top, W = (r - l) * .7, ym = top + h * .62;
+      for (const [len, yc, th, col] of [[W, ym, h * .46, '#ff5a10'], [W * .7, ym - h * .2, h * .3, '#ff5a10'], [W * .62, ym, h * .24, '#ffd23f']] as const) {
+        c.beginPath(); c.moveTo(r + 2, yc - th / 2); c.quadraticCurveTo(r - len * .5, yc - th * .9, r - len, yc - th * .1); c.quadraticCurveTo(r - len * .5, yc + th * .7, r + 2, yc + th / 2); c.closePath(); c.fillStyle = col; c.fill();
+        c.lineWidth = 2.5; c.strokeStyle = O; c.stroke();
+      }
+    }
+    if (has('stripes')) { c.fillStyle = '#e63946'; c.fillRect(l, bottom - 18, r - l, 8); c.fillStyle = '#f4f6fa'; c.fillRect(l, bottom - 10, r - l, 4); c.fillRect(l, bottom - 22, r - l, 4); }
+    c.restore();
+  }
+  c.beginPath(); f.hull(c); outline(c, 6);
+  shine(c, mid - 20, top + 8, (r - l) * .23, 4);
+  // its cab
+  if (kind === 'monster') { c.beginPath(); c.roundRect(-34, f.roof, 70, top - f.roof + 4, [12, 12, 0, 0]); c.fillStyle = f.colour; c.fill(); outline(c, 6); }
+  if (kind === 'tank') { c.beginPath(); c.moveTo(l + 14, top + 2); c.lineTo(l + 22, f.roof); c.lineTo(r - 50, f.roof); c.lineTo(r - 38, top + 2); c.closePath(); c.fillStyle = f.colour; c.fill(); outline(c, 6); }
+  if (f.window) {
+    const [x, y, w, h] = f.window;
+    c.beginPath(); c.roundRect(x, y, w, h, 6); c.fillStyle = kind === 'hover' ? '#3ad0ff' : '#2f6fd6'; c.fill();
+    if (has('alien')) { c.save(); c.clip(); alien(c, x + w / 2, y + h * .78, h * .42, t); c.restore(); }
+    c.beginPath(); c.roundRect(x, y, w, h, 6); outline(c, 4);
+  } else if (has('alien')) alien(c, l + 46, top - 16, 11, t); // in the buggy's seat
+  if (kind === 'buggy') bar(c, [[l + 18, top + 1], [l + 28, f.roof], [f.mast, f.roof], [r - 38, top + 2]], 5, '#d7dce4');
+  if (kind === 'hover') { c.fillStyle = '#3ad0ff'; c.fillRect(l + 10, bottom - 12, r - l - 20, 5); }
   if (has('dome')) { // a glass bubble over the cab
-    c.beginPath(); c.arc(-25, bodyTop + 2, 32, Math.PI, 0); c.closePath(); c.save(); c.globalAlpha = .45; c.fillStyle = '#bfe8ff'; c.fill(); c.restore(); outline(c, 4);
-    shine(c, -38, bodyTop - 14, 6, 10);
+    c.beginPath(); c.arc(f.cab, f.roof + 2, 32, Math.PI, 0); c.closePath(); c.save(); c.globalAlpha = .45; c.fillStyle = '#bfe8ff'; c.fill(); c.restore(); outline(c, 4);
+    shine(c, f.cab - 13, f.roof - 14, 6, 10);
+  }
+  if (has('fireworks')) { // three little rockets in a box on the back
+    for (const [x, col] of [[l + 30, '#e63946'], [l + 39, '#ffd23f'], [l + 48, '#3a8dde']] as const) {
+      c.beginPath(); c.moveTo(x - 4, top - 6); c.lineTo(x - 4, top - 18); c.lineTo(x, top - 26); c.lineTo(x + 4, top - 18); c.lineTo(x + 4, top - 6); c.closePath(); c.fillStyle = col; c.fill(); outline(c, 3);
+    }
+    c.beginPath(); c.roundRect(l + 24, top - 10, 30, 12, 3); c.fillStyle = '#2a2d36'; c.fill(); outline(c, 4);
   }
   // mast and camera head
-  c.beginPath(); c.moveTo(30, bodyTop); c.lineTo(30, bodyTop - 34); outline(c, 9); c.strokeStyle = '#d7dce4'; c.lineWidth = 4; c.stroke();
-  c.beginPath(); c.roundRect(14, bodyTop - 56, 44, 26, 9); c.fillStyle = '#f4f6fa'; c.fill(); outline(c, 5);
-  c.beginPath(); c.arc(46, bodyTop - 43, 7, 0, TAU); c.fillStyle = O; c.fill();
-  c.beginPath(); c.arc(48, bodyTop - 45, 2.5, 0, TAU); c.fillStyle = '#fff'; c.fill();
+  const hy = f.headY;
+  if (f.mastH > 0) { c.beginPath(); c.moveTo(f.mast, f.mastY); c.lineTo(f.mast, f.mastY - f.mastH); outline(c, 9); c.strokeStyle = '#d7dce4'; c.lineWidth = 4; c.stroke(); }
+  c.beginPath(); c.roundRect(f.mast - 16, hy, 44, 26, 9); c.fillStyle = '#f4f6fa'; c.fill(); outline(c, 5);
+  c.beginPath(); c.arc(f.mast + 16, hy + 13, 7, 0, TAU); c.fillStyle = O; c.fill();
+  c.beginPath(); c.arc(f.mast + 18, hy + 11, 2.5, 0, TAU); c.fillStyle = '#fff'; c.fill();
   if (has('dish')) { // a satellite dish on an arm off the mast
-    c.beginPath(); c.moveTo(30, bodyTop - 18); c.lineTo(8, bodyTop - 26); outline(c, 6); c.strokeStyle = '#d7dce4'; c.lineWidth = 2.5; c.stroke();
-    c.save(); c.translate(4, bodyTop - 30); c.rotate(-.5);
+    c.beginPath(); c.moveTo(f.mast, Math.min(hy + 38, f.mastY)); c.lineTo(f.mast - 22, hy + 30); outline(c, 6); c.strokeStyle = '#d7dce4'; c.lineWidth = 2.5; c.stroke();
+    c.save(); c.translate(f.mast - 26, hy + 26); c.rotate(-.5);
     c.beginPath(); c.arc(0, 0, 17, Math.PI, 0); c.closePath(); c.fillStyle = '#f4f6fa'; c.fill(); outline(c, 4);
     c.beginPath(); c.moveTo(0, 0); c.lineTo(0, -14); c.lineWidth = 3; c.strokeStyle = O; c.stroke(); c.beginPath(); c.arc(0, -16, 3.5, 0, TAU); c.fillStyle = '#e63946'; c.fill();
     c.restore();
   }
+  if (has('disco')) { // a mirror ball on the camera, turning and throwing sparkles
+    const bx = f.mast + 6, by = hy - 20;
+    bar(c, [[bx, hy], [bx, by + 10]], 3);
+    c.beginPath(); c.arc(bx, by, 13, 0, TAU); c.fillStyle = '#c9ccd6'; c.fill();
+    c.save(); c.clip(); for (let i = 0; i < 6; i++) for (let j = 0; j < 4; j++) { c.fillStyle = ['#ffffff', '#9fd8ff', '#ff9ad5', '#ffe14d'][(i + j + Math.floor(t * 6)) % 4]!; c.fillRect(bx - 13 + i * 5 + ((t * 20) % 5), by - 13 + j * 7, 4, 6); } c.restore();
+    c.beginPath(); c.arc(bx, by, 13, 0, TAU); outline(c, 4);
+    for (let i = 0; i < 4; i++) { const a = t * 3 + (i * TAU) / 4; c.save(); c.globalAlpha = .7; star(c, bx + Math.cos(a) * 26, by + Math.sin(a) * 12, 4.5, ['#ff7ac8', '#3ad0ff', '#ffe14d', '#4cc46b'][i]!, 1.5); c.restore(); }
+  }
   if (has('antenna')) {
-    c.beginPath(); c.moveTo(-44, bodyTop); c.lineTo(-56, bodyTop - 46); outline(c, 6); c.strokeStyle = '#d7dce4'; c.lineWidth = 2.5; c.stroke();
-    c.beginPath(); c.arc(-56, bodyTop - 50, 7, 0, TAU); c.fillStyle = '#e63946'; c.fill(); outline(c, 4);
+    c.beginPath(); c.moveTo(l + 20, top); c.lineTo(l + 8, top - 46); outline(c, 6); c.strokeStyle = '#d7dce4'; c.lineWidth = 2.5; c.stroke();
+    c.beginPath(); c.arc(l + 8, top - 50, 7, 0, TAU); c.fillStyle = '#e63946'; c.fill(); outline(c, 4);
+  }
+  if (has('chute') && !chute) { // the Parachute, packed
+    c.beginPath(); c.roundRect(f.mast + 2, f.roof - 16, 24, 17, 6); c.fillStyle = '#e63946'; c.fill(); outline(c, 4);
+    c.fillStyle = '#f4f6fa'; c.fillRect(f.mast + 12, f.roof - 14, 4, 13);
   }
   if (has('wings')) for (const s of [-1, 1]) {
-    c.save(); c.translate(-10, bodyTop - 6); c.rotate(s * .32);
+    c.save(); c.translate(mid - 10, f.roof - 6); c.rotate(s * .32);
     c.beginPath(); c.roundRect(s > 0 ? 0 : -70, -10, 70, 18, 4); c.fillStyle = '#2f6fd6'; c.fill(); outline(c, 4);
     c.restore();
   }
   if (has('siren')) { // on top of the Bubble Dome when it has one
-    const on = Math.floor(t * 4) % 2 === 0, sy = has('dome') ? bodyTop - 42 : bodyTop - 14, sx = has('dome') ? -45 : -30;
+    const on = Math.floor(t * 4) % 2 === 0, sy = has('dome') ? f.roof - 42 : f.roof - 14, sx = has('dome') ? f.cab - 20 : f.cab - 5;
     c.beginPath(); c.roundRect(sx, sy, 40, 14, 6); c.fillStyle = on ? '#e63946' : '#3a8dde'; c.fill(); outline(c, 4);
     if (on) { c.save(); c.globalAlpha = .35; c.beginPath(); c.arc(sx + 20, sy + 6, 34, 0, TAU); c.fillStyle = '#ff5a5a'; c.fill(); c.restore(); }
   }
   if (has('arm')) { // a robot arm folded on the front, with a claw
-    c.beginPath(); c.moveTo(50, bodyTop + 6); c.lineTo(70, bodyTop - 22); c.lineTo(86, bodyTop - 2); outline(c, 11); c.strokeStyle = '#9aa3ad'; c.lineWidth = 6; c.stroke();
-    for (const [x, y] of [[50, bodyTop + 6], [70, bodyTop - 22]] as const) { c.beginPath(); c.arc(x, y, 6, 0, TAU); c.fillStyle = '#ff8a1f'; c.fill(); outline(c, 3); }
-    c.beginPath(); c.moveTo(80, bodyTop + 4); c.lineTo(84, bodyTop + 14); c.moveTo(92, bodyTop + 2); c.lineTo(92, bodyTop + 13); c.lineWidth = 5; c.strokeStyle = O; c.stroke();
+    bar(c, [[r - 14, top + 6], [r + 6, top - 22], [r + 22, top - 2]], 6);
+    for (const [x, y] of [[r - 14, top + 6], [r + 6, top - 22]] as const) { c.beginPath(); c.arc(x, y, 6, 0, TAU); c.fillStyle = '#ff8a1f'; c.fill(); outline(c, 3); }
+    c.beginPath(); c.moveTo(r + 16, top + 4); c.lineTo(r + 20, top + 14); c.moveTo(r + 28, top + 2); c.lineTo(r + 28, top + 13); c.lineWidth = 5; c.strokeStyle = O; c.stroke();
   }
   if (has('lights')) {
-    c.save(); c.globalAlpha = .3; c.beginPath(); c.moveTo(66, axle - 36); c.lineTo(200, axle - 76); c.lineTo(200, axle + 6); c.closePath(); c.fillStyle = '#fff6c2'; c.fill(); c.restore();
-    c.beginPath(); c.arc(64, axle - 36, 8, 0, TAU); c.fillStyle = '#fff6c2'; c.fill(); outline(c, 4);
+    c.save(); c.globalAlpha = .3; c.beginPath(); c.moveTo(r + 2, lightY); c.lineTo(r + 136, lightY - 40); c.lineTo(r + 136, lightY + 42); c.closePath(); c.fillStyle = '#fff6c2'; c.fill(); c.restore();
+    c.beginPath(); c.arc(r, lightY, 8, 0, TAU); c.fillStyle = '#fff6c2'; c.fill(); outline(c, 4);
   }
   if (has('magnet')) {
-    c.beginPath(); c.moveTo(60, axle - 24); c.lineTo(84, axle - 24); outline(c, 8); c.strokeStyle = '#9aa3ad'; c.lineWidth = 4; c.stroke();
-    c.beginPath(); c.arc(92, axle - 24, 11, -Math.PI / 2, Math.PI / 2); c.lineWidth = 12; c.strokeStyle = O; c.stroke(); c.lineWidth = 7; c.strokeStyle = '#e63946'; c.stroke();
+    bar(c, [[r - 4, bottom - 12], [r + 20, bottom - 12]], 4);
+    c.beginPath(); c.arc(r + 28, bottom - 12, 11, -Math.PI / 2, Math.PI / 2); c.lineWidth = 12; c.strokeStyle = O; c.stroke(); c.lineWidth = 7; c.strokeStyle = '#e63946'; c.stroke();
   }
-  // wheels on rocker arms
-  c.beginPath(); c.moveTo(-46, axle); c.lineTo(-10, bodyBottom + 4); c.lineTo(46, axle); outline(c, 8); c.strokeStyle = '#9aa3ad'; c.lineWidth = 4; c.stroke();
-  const gold = has('gold');
-  for (const x of [-46, 0, 46]) {
-    c.beginPath(); c.arc(x, axle, wr, 0, TAU); c.fillStyle = '#2a2d36'; c.fill(); outline(c, 5);
-    if (gold) { c.beginPath(); c.arc(x, axle, wr * .72, 0, TAU); c.lineWidth = 3; c.strokeStyle = '#ffd23f'; c.stroke(); }
-    c.beginPath(); c.arc(x, axle, wr * .45, 0, TAU); c.fillStyle = gold ? '#ffd23f' : '#c9ccd6'; c.fill(); outline(c, 3);
-    c.save(); c.translate(x, axle); c.rotate(spin); c.strokeStyle = O; c.lineWidth = 3;
-    for (let i = 0; i < 3; i++) { c.rotate(TAU / 3); c.beginPath(); c.moveTo(wr * .5, 0); c.lineTo(wr * .9, 0); c.stroke(); }
-    c.restore();
+  if (has('plow')) { // a snow plow blade low on the front
+    const y1 = bottom - 6, y2 = Math.max(bottom + 8, -4), x = r + 6;
+    bar(c, [[r - 6, bottom - 4], [x + 4, (y1 + y2) / 2]], 4, '#5b6170');
+    c.beginPath(); c.moveTo(x, y1 - 6); c.lineTo(x + 14, y1 - 10); c.quadraticCurveTo(x + 8, (y1 + y2) / 2, x + 24, y2); c.lineTo(x + 4, y2); c.quadraticCurveTo(x - 2, (y1 + y2) / 2, x, y1 - 6); c.closePath();
+    c.fillStyle = '#ffb02e'; c.fill(); c.save(); c.clip(); c.strokeStyle = O; c.lineWidth = 4; for (let k = -2; k < 5; k++) { c.beginPath(); c.moveTo(x - 6, y1 + k * 12); c.lineTo(x + 30, y1 + k * 12 - 14); c.stroke(); } c.restore();
+    c.beginPath(); c.moveTo(x, y1 - 6); c.lineTo(x + 14, y1 - 10); c.quadraticCurveTo(x + 8, (y1 + y2) / 2, x + 24, y2); c.lineTo(x + 4, y2); c.quadraticCurveTo(x - 2, (y1 + y2) / 2, x, y1 - 6); c.closePath(); outline(c, 4);
+  }
+  // what it stands on
+  if (kind === 'scout') {
+    bar(c, [[-46, -wr], [-10, bottom + 4], [46, -wr]], 4);
+    for (const x of [-46, 0, 46]) wheel(c, x, -wr, wr, spin, gold);
+  }
+  if (kind === 'buggy') for (const x of [-50, 48]) wheel(c, x, -wr, wr, spin, gold);
+  if (kind === 'monster') for (const x of [-50, 50]) wheel(c, x, -wr, wr, spin, gold);
+  if (kind === 'tank') {
+    const h = 2 * wr + 12;
+    c.beginPath(); c.roundRect(-70, -h, 140, h, h / 2); c.fillStyle = '#2a2d36'; c.fill(); outline(c, 5);
+    c.save(); c.beginPath(); c.roundRect(-66, -h + 4, 132, h - 8, h / 2 - 4); c.setLineDash([7, 7]); c.lineDashOffset = -spin * wr; c.lineWidth = 5; c.strokeStyle = '#7d8794'; c.stroke(); c.restore();
+    for (const x of [-46, -16, 16, 46]) wheel(c, x, -h / 2, wr, spin, gold);
+  }
+  if (kind === 'hover') for (const x of [-44, 44]) {
+    const w = wr > 17 ? 56 : 42;
+    c.beginPath(); c.roundRect(x - w / 2, bottom - 4, w, 13, 6); c.fillStyle = gold ? '#ffd23f' : '#7d8794'; c.fill(); outline(c, 4);
+    c.beginPath(); c.roundRect(x - w / 2 + 6, bottom + 5, w - 12, 4, 2); c.fillStyle = '#3ad0ff'; c.fill();
   }
   if (has('shield')) for (let i = 0; i < 3; i++) { // three stars going round it
     const a = t * 2.2 + (i * TAU) / 3;
-    c.save(); c.globalAlpha = Math.sin(a) < 0 ? .55 : 1; star(c, Math.cos(a) * 84, bodyTop + 4 + Math.sin(a) * 26, 10, '#ffe14d', 3); c.restore();
+    c.save(); c.globalAlpha = Math.sin(a) < 0 ? .55 : 1; star(c, mid + Math.cos(a) * 84, top + 4 + Math.sin(a) * 26, 10, '#ffe14d', 3); c.restore();
   }
 }
 

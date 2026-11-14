@@ -159,6 +159,11 @@ button.step:active{transform:translateY(3px);box-shadow:0 1px 0 #000}
 .launch-pad .rocket-view{position:absolute;left:6%;top:3%;width:58%;height:94%}
 .launch-pad .rocket-view.trying{filter:drop-shadow(0 0 12px #ffd23f)}
 .launch-pad .rover-view.parked{position:absolute;right:3%;bottom:4%;width:30%;height:30%}
+/* on the rover tabs: his rover big in front, the rocket small behind it */
+.launch-pad .rocket-view,.launch-pad .rover-view.parked{transition:all .3s ease}
+.launch-pad.garage .rocket-view{left:2%;top:4%;width:30%;height:52%;opacity:.8}
+.launch-pad.garage .rover-view.parked{left:6%;right:6%;bottom:5%;width:88%;height:66%}
+.launch-pad .rover-view.parked.trying{filter:drop-shadow(0 0 12px #ffd23f)}
 .power{position:absolute;right:8px;top:8px;display:flex;flex-direction:column;align-items:center;background:#000;border:3px solid var(--yellow);border-radius:14px;padding:4px 12px;color:#fff;min-height:var(--tap)}
 .pw-word{font:900 max(14px,calc(15px*var(--u))) Nunito,sans-serif}
 .pw-num{font:400 calc(34px*var(--u))/1 Bungee,sans-serif;color:var(--yellow)}
@@ -176,12 +181,16 @@ button.step:active{transform:translateY(3px);box-shadow:0 1px 0 #000}
 .base-go .icon-btn{flex:none;width:max(64px,calc(76px*var(--u)));height:max(64px,calc(76px*var(--u)));font-size:calc(34px*var(--u));color:#fff}
 .big-btn.short{background:#5d6b78}
 .parts-side{position:relative;display:grid;grid-template-rows:auto minmax(0,1fr);gap:calc(8px*var(--u));min-height:0;min-width:0}
-.rc-tabs{display:grid;grid-template-columns:repeat(5,1fr);gap:6px}
+.rc-tabs{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:6px}
 .rc-tab{min-height:max(var(--tap),calc(60px*var(--u)));border-radius:14px;background:#1e1850;border:3px solid #fff3;font-size:calc(30px*var(--u));padding:0}
 .rc-tab.on{background:var(--yellow);border-color:#000;box-shadow:0 4px 0 #000}
+.rc-tab.rv:not(.on){background:#123a3a;border-color:#3ddc8455}
 .rc-tray{display:grid;grid-template-columns:repeat(auto-fill,minmax(max(100px,calc(124px*var(--u))),1fr));grid-auto-rows:max-content;gap:calc(8px*var(--u));overflow-y:auto;overscroll-behavior:contain;touch-action:pan-y;padding-bottom:calc(84px*var(--u));min-height:0}
 .rc-tile{position:relative;display:flex;flex-direction:column;align-items:center;gap:2px;padding:6px 4px;border-radius:14px;background:#1e1850;border:3px solid #fff3;color:#fff;font:800 max(14px,calc(15px*var(--u)))/1.1 Nunito,sans-serif}
 .rc-tile .part-pic{width:calc(80px*var(--u));height:calc(100px*var(--u));min-width:56px;min-height:70px;object-fit:contain;display:block}
+.rc-tile .part-pic.rover-pic{width:calc(110px*var(--u));height:calc(88px*var(--u));min-width:76px;min-height:60px}
+.rc-tile.unfound .part-pic{opacity:.5}
+.tag-globe{width:22px;height:22px}
 .mt-name{min-height:2.2em;display:grid;place-items:center;text-align:center}
 .mt-tag{display:inline-flex;align-items:center;gap:2px;min-height:1.3em;font-size:max(15px,1.1em);color:#ffd97a}
 .rc-tile.locked{background:#120f33}
@@ -235,11 +244,15 @@ button.step:active{transform:translateY(3px);box-shadow:0 1px 0 #000}
   .trip-result .big-btn.my-rocket{width:72px;height:72px}
   .rc-tile{padding:3px 4px}
   .rc-tile .part-pic{min-height:0;height:52px;width:52px}
-  .mt-name{min-height:0}
+  .rc-tile .part-pic.rover-pic{min-width:0;height:48px;width:62px}
+  .rc-tile .part-pic.rover-pic{width:calc(110px*var(--u));height:calc(88px*var(--u));min-width:76px;min-height:60px}
+.rc-tile.unfound .part-pic{opacity:.5}
+.tag-globe{width:22px;height:22px}
+.mt-name{min-height:0}
 }
 
 @media (prefers-reduced-motion:reduce){
-  .rover-pos,.rover-turn{transition:none}
+  .rover-pos,.rover-turn,.launch-pad .rocket-view,.launch-pad .rover-view.parked{transition:none}
   .boom,.ctl.jump.teach,.step.hint,.pad-arrow.hint,.count.hint,.option.hint,.choice.hint{animation:none}
   .ctl.jump.teach,.step.hint,.pad-arrow.hint,.count.hint,.option.hint,.choice.hint{outline:5px solid var(--yellow);outline-offset:3px}
 }

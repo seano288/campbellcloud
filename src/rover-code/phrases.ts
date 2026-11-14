@@ -4,8 +4,9 @@
 import { earnedLine, type EarnedLine } from '../currency/kind';
 import { ROVER_CURRENCY } from './branding';
 import { LOCKED_HINTS, MODE_IDS, MODE_NAMES, type ModeName } from './learning';
-import { ALL_NAMES, type PaintName, type PartName } from './base/parts';
+import { ALL_NAMES, type ShopName } from './base/parts';
 import { GADGETS, PLANETS, type GadgetName, type PlanetName, type PlanetSaid } from './base/planets';
+import { TRICKS, type Trick } from './base/rovers';
 import type { Dir } from './code/grid';
 import type { SpaceThing, Token } from './code/problems';
 
@@ -43,9 +44,11 @@ const BASE = [
   'Space Base!', 'Nose', 'Body', 'Fins', 'Engine', 'Paint', 'It costs', 'Bolts.', 'You need', 'more Bolts.', 'Play a Round to earn Bolts!',
   'Power', 'You have 1 launch ready!', 'launches ready!', 'Tap Launch!', 'Play a Round to earn a launch!', 'You earned a launch!',
   'Next stop', 'Build a stronger rocket to get there!', 'You built everything!', 'Your rocket got stronger!',
+  // the rover tabs, added with the rovers on 2026-11-14
+  'Rover', 'Gadgets', 'On!', 'Off!', 'Explore a new planet to find it!',
 ] as const;
-type GotLine = `You got ${PartName | PaintName}!`;
-export const gotLine = (name: PartName | PaintName) => `You got ${name}!` as GotLine;
+type GotLine = `You got ${ShopName}!`;
+export const gotLine = (name: ShopName) => `You got ${name}!` as GotLine;
 type ExploredLine = `You explored ${PlanetSaid}!`;
 type BackLine = `Welcome back to ${PlanetSaid}!`;
 type GadgetLine = `Your rover got ${GadgetName}!`;
@@ -69,11 +72,11 @@ export const numberPhrases = () => Array.from({ length: NUMBERS_TO + 1 }, (_, n)
 
 export type Phrase = (typeof GAME)[number] | (typeof CHEERS)[number] | EarnedPhrase | ModePhrase | (typeof LOCKED_HINTS)[keyof typeof LOCKED_HINTS]
   | `${number}` | (typeof QUESTIONS)[number] | (typeof TEACHING)[number] | (typeof MEETING)[number] | (typeof BASE)[number] | (typeof TRIP)[number]
-  | PartName | PaintName | GotLine | PlanetName | ExploredLine | BackLine | GadgetLine;
+  | ShopName | GotLine | PlanetName | ExploredLine | BackLine | GadgetLine | GadgetName | Trick;
 
 export const PHRASES = [
   ...GAME, ...CHEERS, ...Array.from({ length: MOST_EARNED }, (_, i) => earnedLine(ROVER_CURRENCY, i + 1)), ...modePhrases(), ...Object.values(LOCKED_HINTS),
   ...numberPhrases(), ...QUESTIONS, ...TEACHING, ...MEETING, ...BASE, ...TRIP,
   ...ALL_NAMES, ...ALL_NAMES.map(gotLine), ...PLANETS.flatMap(p => [p.name, exploredLine(p.said), backLine(p.said)] as const),
-  ...Object.values(GADGETS).map(gadgetLine),
+  ...Object.values(GADGETS).map(gadgetLine), ...Object.values(GADGETS), ...TRICKS,
 ] as const satisfies readonly Phrase[];

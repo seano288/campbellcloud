@@ -4,11 +4,14 @@
 // the flag spot is at the far end. Nothing can go wrong: lava only bounces him up (and Mushroom World's mushrooms bounce him higher),
 // and he can drive back for a crystal he missed. His gadgets change the drive: Big Wheels jump higher, Solar Wings glide, the Jump
 // Booster jumps again in the air, the Crystal Magnet pulls crystals in, Turbo Jets go faster, the Robot Arm reaches further and the
-// Confetti Cannon fires with every jump.
+// Confetti Cannon fires with every jump. The Kit adds more: the Snow Plow stops him slipping on ice, the Parachute brings him down
+// slowly and the Bubble Blower blows bubbles as he goes. Each rover drives its own way too (rovers.ts): faster, higher, never
+// slipping, a jump in mid-air, or floating, so lava can't bounce it.
 //
 // The world is 600 units tall; height is measured up from the ground's resting line.
 import { seeded, type Rng } from '../../game/rng';
-import type { GadgetId, Planet } from '../base/planets';
+import type { Planet } from '../base/planets';
+import { roverDef, type FeatureId, type RoverDef, type RoverLook } from '../base/rovers';
 import { CRYSTALS } from '../base/base';
 import { drawCrystal, drawGlobe, drawRocket, drawRover, star } from '../art/draw';
 import type { Rocket } from '../base/parts';
@@ -20,8 +23,8 @@ const ROVER_SCALE = .55, CENTER_UP = 46;
 export interface Crystal { x: number; y: number; got: boolean }
 /** `boost`: a second jump in mid-air (the Jump Booster). */
 export type DriveEvent = 'jump' | 'boost' | 'land' | 'crystal' | 'hot' | 'bounce' | 'flag';
-/** A bit of the Confetti Cannon's confetti, flying. */
-export interface Bit { x: number; y: number; vx: number; vy: number; col: string; life: number }
+/** A bit of the Confetti Cannon's confetti, flying, or one of the Bubble Blower's bubbles, floating up. */
+export interface Bit { x: number; y: number; vx: number; vy: number; col: string; life: number; bubble?: boolean }
 export interface Drive {
   t: number;
   x: number;
@@ -43,7 +46,12 @@ export interface Drive {
   bits: Bit[];
   rng: Rng;
   planet: Planet;
-  gadgets: readonly GadgetId[];
+  look: RoverLook;
+  rover: RoverDef;
+  /** The Parachute is open. */
+  chute: boolean;
+  /** Time to the Bubble Blower's next bubble. */
+  puff: number;
 }
 
 /** The planet's ground: hills from a few waves, craters for the rocky ones, and flat at both ends for the rocket and the flag. */
@@ -61,7 +69,7 @@ export function groundOf(p: Planet): (x: number) => number {
   };
 }
 
-export function createDrive(p: Planet, gadgets: readonly GadgetId[], seed: number): Drive {
+export function createDrive(p: Planet, look: RoverLook, seed: number): Drive {
   const ground = groundOf(p), rng = seeded(seed);
   const crystals = Array.from({ length: CRYSTALS }, (_, i) => {
     const x = TRACK * (.16 + i * .17) + (rng() - .5) * 160, high = i % 2 === 1;
@@ -69,12 +77,17 @@ export function createDrive(p: Planet, gadgets: readonly GadgetId[], seed: numbe
   });
   const lava = p.feature === 'lava' ? [[1500, 1640], [2900, 3060]] as const : [];
   const pads = p.feature === 'mushrooms' ? [[1260, 1370], [2380, 2490], [3460, 3570]] as const : [];
-  return { t: 0, x: START_X, y: ground(START_X), vx: 0, vy: 0, grounded: true, airJumps: 0, spin: 0, facing: 1, crystals, got: 0, atFlag: false, events: [], ground, lava, pads, bits: [], rng, planet: p, gadgets };
+  const rover = roverDef(look.kind);
+  return { t: 0, x: START_X, y: ground(START_X), vx: 0, vy: 0, grounded: true, airJumps: rover.airJumps + (look.kit.includes('booster') ? 1 : 0), spin: 0, facing: 1, crystals, got: 0, atFlag: false, events: [], ground, lava, pads, bits: [], rng, planet: p, look, rover, chute: false, puff: 0 };
 }
 
-const jumpSpeed = (d: Drive) => Math.sqrt(2 * d.planet.gravity * JUMP_HEIGHT * (d.gadgets.includes('wheels') ? 1.4 : 1));
-/** How fast it goes flat out: Turbo Jets add a third. */
-export const topSpeed = (gadgets: readonly GadgetId[]) => TOP_SPEED * (gadgets.includes('turbo') ? 1.3 : 1);
+const jumpSpeed = (d: Drive) => Math.sqrt(2 * d.planet.gravity * JUMP_HEIGHT * (d.look.kit.includes('wheels') ? 1.4 : 1) * d.rover.jump);
+/** How fast it goes flat out: the rover's own speed, and Turbo Jets add a third. */
+export const topSpeed = (look: RoverLook) => TOP_SPEED * roverDef(look.kind).speed * (look.kit.includes('turbo') ? 1.3 : 1);
+/** Jumps in mid-air: the Spider Walker's own, and one from the Jump Booster. */
+const airJumpsOf = (d: Drive) => d.rover.airJumps + (d.look.kit.includes('booster') ? 1 : 0);
+/** The Parachute holds his fall to this. */
+const CHUTE_FALL = 240;
 const CONFETTI = ['#ff5a5a', '#ffd23f', '#4cc46b', '#3a8dde', '#ff7ac8', '#ffffff'];
 
 /** `dir`: -1, 0 or 1 from the arrows; `jump`: he pressed jump this step. */
@@ -82,8 +95,8 @@ export function stepDrive(d: Drive, dt: number, dir: number, jump: boolean) {
   d.events = [];
   d.t += dt;
   if (d.atFlag) { d.vx = 0; return; }
-  const icy = d.planet.feature === 'ice', has = (g: GadgetId) => d.gadgets.includes(g);
-  const top = topSpeed(d.gadgets);
+  const has = (g: FeatureId) => d.look.kit.includes(g), icy = d.planet.feature === 'ice' && !d.rover.grip && !has('plow');
+  const top = topSpeed(d.look);
   if (dir) { d.vx += dir * (icy ? 420 : 760) * (has('turbo') ? 1.25 : 1) * dt; d.facing = dir > 0 ? 1 : -1; }
   else { const slow = (icy ? 220 : 900) * dt; d.vx = Math.abs(d.vx) <= slow ? 0 : d.vx - Math.sign(d.vx) * slow; }
   d.vx = Math.max(-top, Math.min(top, d.vx));
@@ -106,15 +119,24 @@ export function stepDrive(d: Drive, dt: number, dir: number, jump: boolean) {
   }
   d.x = nx;
   if (!d.grounded) {
-    const glide = has('wings') && d.vy < 0 ? .45 : 1;
+    const glide = d.vy < 0 ? (has('wings') ? .45 : 1) * (d.rover.hover ? .6 : 1) : 1;
     d.vy -= d.planet.gravity * glide * dt;
+    if (has('chute') && d.vy < -CHUTE_FALL) { d.vy = -CHUTE_FALL; d.chute = true; }
     d.y += d.vy * dt;
-    if (d.y <= floor) { d.y = floor; d.vy = 0; d.grounded = true; d.airJumps = has('booster') ? 1 : 0; d.events.push('land'); }
-  } else d.airJumps = has('booster') ? 1 : 0;
+    if (d.y <= floor) { d.y = floor; d.vy = 0; d.grounded = true; d.chute = false; d.airJumps = airJumpsOf(d); d.events.push('land'); }
+  } else { d.airJumps = airJumpsOf(d); d.chute = false; }
   d.spin += d.vx * dt / 14;
-  for (const [a, b] of d.lava) if (d.grounded && d.x > a && d.x < b) { d.vy = jumpSpeed(d) * .75; d.grounded = false; d.events.push('hot'); }
+  if (!d.rover.hover) for (const [a, b] of d.lava) if (d.grounded && d.x > a && d.x < b) { d.vy = jumpSpeed(d) * .75; d.grounded = false; d.events.push('hot'); }
   for (const [a, b] of d.pads) if (d.grounded && d.x > a && d.x < b) { d.vy = jumpSpeed(d) * 1.3; d.grounded = false; d.events.push('bounce'); }
-  for (const b of d.bits) { b.vy -= 500 * dt; b.vx *= 1 - dt * 1.5; b.x += b.vx * dt; b.y += b.vy * dt; b.life -= dt; }
+  if (has('bubbles') && Math.abs(d.vx) > 60 && (d.puff -= dt) <= 0) { // a bubble out of the wand, now and then
+    d.puff = .16 + d.rng() * .12;
+    d.bits.push({ x: d.x - d.facing * 50, y: d.y + 70, vx: -d.facing * (30 + d.rng() * 50), vy: 40 + d.rng() * 50, col: '#ffffff', life: 1.6 + d.rng(), bubble: true });
+  }
+  for (const b of d.bits) {
+    if (b.bubble) { b.vy += 20 * dt; b.x += (b.vx + Math.sin(b.life * 6) * 30) * dt; b.y += b.vy * dt; } // bubbles float up and wobble
+    else { b.vy -= 500 * dt; b.vx *= 1 - dt * 1.5; b.x += b.vx * dt; b.y += b.vy * dt; }
+    b.life -= dt;
+  }
   if (d.bits.length) d.bits = d.bits.filter(b => b.life > 0);
   // crystals: a touch picks one up; the Magnet pulls them in from further away, and the Robot Arm reaches a little further
   const reach = has('magnet') ? PICK_R * 2.6 : has('arm') ? PICK_R * 1.4 : PICK_R, cy = d.y + CENTER_UP;
@@ -129,6 +151,7 @@ export function stepDrive(d: Drive, dt: number, dir: number, jump: boolean) {
 
 // ---------- drawing ----------
 
+/** `planted`: seconds since he planted his flag, 0 before. */
 export function drawDrive(c: CanvasRenderingContext2D, d: Drive, w: number, h: number, rocket: Rocket, planted: number, reduced: boolean) {
   const k = h / VIEW_H, viewW = w / k, p = d.planet;
   const cam = Math.max(0, Math.min(TRACK - viewW + 80, d.x - viewW * .36));
@@ -201,22 +224,49 @@ export function drawDrive(c: CanvasRenderingContext2D, d: Drive, w: number, h: n
   const fy = sy(d.ground(FLAG_AT));
   c.beginPath(); c.ellipse(FLAG_AT, fy, 70, 14, 0, 0, Math.PI * 2); c.fillStyle = '#3ddc8455'; c.fill(); c.lineWidth = 5; c.strokeStyle = '#3ddc84'; c.stroke();
   if (planted > 0) {
-    const up = Math.min(1, planted), pole = 150 * up;
+    const up = Math.min(1, planted / .9), pole = 150 * up;
     c.lineWidth = 9; c.strokeStyle = '#11131c'; c.beginPath(); c.moveTo(FLAG_AT, fy); c.lineTo(FLAG_AT, fy - pole); c.stroke();
     c.lineWidth = 4; c.strokeStyle = '#e6e9ef'; c.stroke();
     c.save(); c.translate(FLAG_AT, fy - pole); c.beginPath(); c.moveTo(0, 0); c.lineTo(78, 18 + Math.sin(d.t * 5) * 4); c.lineTo(0, 46); c.closePath(); c.fillStyle = '#ffd23f'; c.fill(); c.lineWidth = 5; c.strokeStyle = '#11131c'; c.stroke();
     star(c, 26, 22, 12, '#e63946', 3); c.restore();
   } else if (!reduced) { c.globalAlpha = .5 + .5 * Math.sin(d.t * 4); star(c, FLAG_AT, fy - 60, 18, '#3ddc84'); c.globalAlpha = 1; }
+  if (planted > 0 && d.look.kit.includes('fireworks')) drawFireworks(c, FLAG_AT, fy, planted);
   // the rainbow trail
-  if (d.gadgets.includes('trail') && Math.abs(d.vx) > 40) ['#ff5a5a', '#ffb02e', '#ffe14d', '#4cc46b', '#3a8dde'].forEach((col, i) => { c.fillStyle = col; c.fillRect(d.x - d.facing * (60 + 70), sy(d.y) - 26 + i * 6, d.facing * 70, 6); });
+  if (d.look.kit.includes('trail') && Math.abs(d.vx) > 40) ['#ff5a5a', '#ffb02e', '#ffe14d', '#4cc46b', '#3a8dde'].forEach((col, i) => { c.fillStyle = col; c.fillRect(d.x - d.facing * (60 + 70), sy(d.y) - 26 + i * 6, d.facing * 70, 6); });
   // the rover, tilted with the ground under it
   const slope = Math.atan2(d.ground(d.x + 20) - d.ground(d.x - 20), 40);
   c.save(); c.translate(d.x, sy(d.y)); c.rotate(d.grounded ? -slope : Math.max(-.5, Math.min(.5, -d.vy / 1600))); c.scale(d.facing * ROVER_SCALE, ROVER_SCALE);
-  drawRover(c, d.gadgets, { spin: d.spin, t: d.t, go: Math.min(1, Math.abs(d.vx) / TOP_SPEED) });
+  drawRover(c, d.look, { spin: d.spin, t: d.t, go: Math.min(1, Math.abs(d.vx) / TOP_SPEED), chute: d.chute });
   c.restore();
-  // the Confetti Cannon's confetti
-  for (const b of d.bits) { c.save(); c.globalAlpha = Math.min(1, b.life * 2); c.translate(b.x, sy(b.y)); c.rotate(b.life * 9 + b.x); c.fillStyle = b.col; c.fillRect(-6, -3, 12, 6); c.restore(); }
+  // the Confetti Cannon's confetti and the Bubble Blower's bubbles
+  for (const b of d.bits) {
+    c.save(); c.globalAlpha = Math.min(1, b.life * 2); c.translate(b.x, sy(b.y));
+    if (b.bubble) { const r = 9 + (b.x % 7); c.beginPath(); c.arc(0, 0, r, 0, Math.PI * 2); c.fillStyle = '#ffffff22'; c.fill(); c.lineWidth = 3; c.strokeStyle = '#ffffffdd'; c.stroke(); c.beginPath(); c.arc(-r * .35, -r * .35, r * .22, 0, Math.PI * 2); c.fillStyle = '#ffffff'; c.fill(); }
+    else { c.rotate(b.life * 9 + b.x); c.fillStyle = b.col; c.fillRect(-6, -3, 12, 6); }
+    c.restore();
+  }
   c.restore();
+}
+
+/** When the Fireworks go off over the flag, in seconds after it's planted. */
+export const FIREWORK_AT = [.35, .8, 1.25, 1.7, 2.1] as const;
+const FIREWORK_COLOURS = ['#ff5a5a', '#ffd23f', '#3ad0ff', '#7ee05a', '#ff7ac8'];
+/** Five bursts over the flag, one after another, each a ring of sparks flying out and fading. */
+function drawFireworks(c: CanvasRenderingContext2D, x: number, groundY: number, s: number) {
+  FIREWORK_AT.forEach((at, i) => {
+    const age = s - at;
+    if (age < -.35 || age > 1.2) return;
+    const bx = x + [-120, 90, -30, 150, -170][i]!, by = groundY - [300, 340, 380, 280, 330][i]!, col = FIREWORK_COLOURS[i]!;
+    if (age < 0) { const k = 1 + age / .35; c.fillStyle = '#fff6c2'; c.beginPath(); c.arc(x + (bx - x) * k, groundY + (by - groundY) * k, 5, 0, Math.PI * 2); c.fill(); return; } // going up
+    const out = 110 * (1 - (1 - Math.min(1, age / .6)) ** 2), fade = Math.max(0, 1 - age / 1.2);
+    c.save(); c.globalAlpha = fade;
+    for (let k = 0; k < 14; k++) {
+      const a = (k / 14) * Math.PI * 2, px = bx + Math.cos(a) * out, py = by + Math.sin(a) * out + age * age * 40;
+      c.beginPath(); c.moveTo(bx + Math.cos(a) * out * .6, by + Math.sin(a) * out * .6 + age * age * 30); c.lineTo(px, py); c.lineWidth = 5; c.lineCap = 'round'; c.strokeStyle = col; c.stroke();
+      star(c, px, py, 6, k % 2 ? '#ffffff' : col, 1.5);
+    }
+    c.restore();
+  });
 }
 
 /** What hangs in each new planet's sky: bubbles drifting up, storm clouds and lightning, big twinkly stars, a desert sun. */

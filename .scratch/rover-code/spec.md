@@ -59,7 +59,7 @@ Power is the sum of the four slots' Rungs plus one (4 to 28). Paint adds none. N
 
 **Gadgets, one per first visit, all worn at once:** Antenna (Moon), Big Wheels (Mars, jumps higher), Headlights (Frosty), Solar Wings (Ringo, glides), Jump Booster (Lava World, jumps again in the air), Crystal Magnet (Crystal World, pulls crystals in), Siren Lights (Jungle World), Rainbow Trail (Rainbow World), Confetti Cannon (Candy World, fires with each jump), Bubble Dome (Bubble World), Satellite Dish (Ocean World), Racing Stripes (Cactus World), Gold Wheels (Mushroom World), Turbo Jets (Thunder World, drives a third faster), Robot Arm (Robot World, reaches crystals a little further), Star Shield (Star World).
 
-**The trip (`trip/`), on a 2D canvas, no 3D.**
+**The trip (`trip/`), on a 2D canvas, no 3D.** He drives whichever rover he picked, wearing what he switched on.
 1. **Launch:** his rocket on the pad. He presses the big red button; "3, 2, 1, Blast off!" with a rumble, smoke and a shake.
 2. **Flight (about 22 seconds):** the sky goes from blue to black. He steers by moving a finger anywhere on the screen (or the arrow keys). Three Bolts float down to catch; asteroids drift down to dodge. A bump only wobbles the rocket and knocks it aside. Nothing is lost and the rocket always arrives. The planet rises up and the rocket goes in to land.
 3. **The planet:** side view. The rover rolls out past the rocket. He holds ◀ ▶ to drive and taps ⤴ to jump, with the planet's own gravity (the Moon's jumps are slow and floaty, ice is slippery, lava only bounces him up). Five crystals, some low and some up high for a jump. At the far end he stops on the flag spot and taps 🚩 to plant his flag.
@@ -73,6 +73,26 @@ Power is the sum of the four slots' Rungs plus one (4 to 28). Paint adds none. N
 - Mars needs one upgrade (8 to 12 Bolts, about two Rounds), so the first new planet comes quickly; the last needs every top part.
 - **Doubled on 2026-11-14.** He had bought every part and been to every planet within a day, so the reward was doubled: Rungs 4 to 6 in every slot, seven more paints, eight more planets and eight more gadgets. Payouts were left as they were, so the new half takes him roughly two and a half times as long as the first. A save that had everything keeps it; the Goal moves to Drill Nose.
 - No Legendary or vault in this game (Math Bots' Balance Lock and the others are not copied). Could be added later.
+
+**Rovers and gadgets (added 2026-11-14, `base/rovers.ts`).** The parent asked for "different kinds of rovers" and a way "to equip them with various features". Two more tabs at the Space Base, 🚙 Rover and 🧰 Gadgets, after Paint. On those tabs the pad shows his rover big with the rocket small behind it.
+
+| Rover | Bolts | Trick (said when tapped) |
+|---|---|---|
+| Scout Rover | free | none: the all-rounder he had |
+| Dune Buggy | 20 | "It goes extra fast!": top speed ×1.3 |
+| Monster Truck | 40 | "It jumps extra high!": jump height ×1.45 |
+| Tank Crawler | 60 | "It never slips on ice!": a little slower |
+| Spider Walker | 80 | "It can jump in the air!": one mid-air jump (two with the Jump Booster) |
+| Hover Rover | 100 | "It floats!": a bit faster, never slips, lava can't bounce it, comes down slowly |
+
+- **One rover at a time.** Tapping a rover he owns drives it (with a honk). Tapping one he hasn't got parks it on the pad to try, with Buy, like a part. Buying it drives it.
+- **Gadgets are switched on and off per rover.** The Gadgets tab lists every gadget: the ones he has first (✓ on, "Off" off; a tap flips it and says "On!" or "Off!"), then the Kit to buy, then the planets' gadgets he hasn't found yet (faded, with the planet's globe; a tap says "Explore a new planet to find it!"). Each rover keeps its own set. A gadget is on unless he switched it off on that rover, so a new one goes on every rover, and a save from before this keeps everything on the Scout.
+- **No limit on how many a rover wears.** He had sixteen on at once and liked it; a slot limit would have taken things away. The choice is in switching off what he doesn't want (Solar Wings' glide, say).
+- **The Kit, bought with Bolts:** Spoiler 10, Flame Decals 15, Snow Plow 25 (never slips on ice), Bubble Blower 35 (bubbles as he drives), Parachute 45 (opens as he falls and holds the fall to a float), Disco Ball 55 (turns on the camera, throwing sparkles), Fireworks 70 (five bursts over the flag when he plants it, with pops; the end card waits for them), Alien Pal 85 (an alien rides along in the window).
+- **Every gadget fits every rover.** Each rover is drawn from a frame (body, roof, cab, mast, window), and the gadgets hang off the frame, so the Turbo Jets sit on any rover's back and the Alien Pal looks out of any rover's window. With everything on it's busy, as the Scout was.
+- **The Goal** is still the cheapest part that adds Power first; once the rocket is done it is the cheapest rover or Kit gadget (the Spoiler).
+- **Content added:** 300 Bolts of rovers and 340 of Kit, all at or under 100. 59 new clips (the names, the tricks, the bare gadget names, "Rover", "Gadgets", "On!", "Off!").
+- Checked with `tools/rover-code/garage-tour.ts` (buys the Monster Truck, switches the Antenna off, tries the Spoiler, taps an unfound gadget, drives to the flag with Fireworks) at all four sizes, and `tools/rover-code/rovers-sheet.ts` (every rover plain, with everything, and with the Parachute open).
 
 **Controls stay off the edges**, as Math Bots' fight learned: the bottom band and the sides belong to iPadOS, so ◀ ▶, ⤴ and the big buttons sit above a floor of at least 56px and away from the sides.
 
@@ -90,7 +110,7 @@ Made in code (shared `src/audio/sfx.ts`, plus `trip/sounds.ts`), no files. Puzzl
 
 ## Save
 
-`rover-code-save`, version 1 (a version it doesn't know reads as a blank save, like the other games), and `rover-code-place` for the screen and the Round in progress.
+`rover-code-save`, version 1 (the rover he drives, `rover`, and what's switched off on each, `off`, were added without a version change: a save without them reads as the Scout with everything on) (a version it doesn't know reads as a blank save, like the other games), and `rover-code-place` for the screen and the Round in progress.
 
 ## Open questions for the parent
 

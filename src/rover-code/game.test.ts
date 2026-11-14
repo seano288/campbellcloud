@@ -1,7 +1,8 @@
 import { describe, expect, it } from 'vitest';
 import type { SolvedProblem } from '../learning/session';
-import { canReach, destinationOf, freshBase, goalOf, nextPlanet, pickDestination, priceOf, proposePurchase, readBase } from './base/base';
-import { ALL_KEYS, fit, keysIn, powerOf, SLOTS } from './base/parts';
+import { canReach, destinationOf, freshBase, goalOf, isWorn, lookOf, nextPlanet, pickDestination, pickRover, priceOf, proposePurchase, readBase, toggleFeature } from './base/base';
+import { ALL_KEYS, fit, keysIn, powerOf, SLOTS, tabOf } from './base/parts';
+import { ROVERS } from './base/rovers';
 import { planet, PLANETS } from './base/planets';
 import { createPractice, roverSave, SAVE_KEY, SAVE_VERSION, settleTrip, type RoverState } from './game';
 import { freshLearning } from './learning';
@@ -15,7 +16,7 @@ const store = (state: RoverState = roverSave.fresh()) => ({
 describe('the save', () => {
   it('has its own key and a version', () => { expect(SAVE_KEY).toBe('rover-code-save'); expect(SAVE_VERSION).toBe(1); });
   it('round-trips', () => {
-    const base = { ...freshBase(), owned: [...freshBase().owned, 'engine:twin' as const], rocket: fit(freshBase().rocket, 'engine:twin'), launches: 3, trips: 2, visits: { moon: 2 }, gadgets: ['antenna' as const], destination: 'moon' as const };
+    const base = { ...freshBase(), owned: [...freshBase().owned, 'engine:twin' as const], rocket: fit(freshBase().rocket, 'engine:twin'), launches: 3, trips: 2, visits: { moon: 2 }, gadgets: ['antenna' as const], destination: 'moon' as const, rover: 'scout' as const, off: { scout: ['antenna' as const] } };
     const s: RoverState = { learning: freshLearning(), currency: { balance: 17 }, base };
     expect(roverSave.decode(JSON.parse(JSON.stringify(roverSave.encode(s))))).toEqual(s);
   });
@@ -76,10 +77,42 @@ describe('the Space Base', () => {
   });
   it('gives a player who had built everything something new to save for', () => {
     const added = ['drill', 'shark', 'diamond', 'armor', 'zap', 'rainbow', 'spike', 'jet', 'dragon', 'quad', 'plasma', 'hyper', 'pink', 'yellow', 'teal', 'silver', 'navy', 'candy', 'lime'];
-    const old = { ...freshBase(), owned: ALL_KEYS.filter(k => !added.includes(k.split(':')[1]!)) };
+    const old = { ...freshBase(), owned: ALL_KEYS.filter(k => !['rover', 'kit'].includes(tabOf(k)) && !added.includes(k.split(':')[1]!)) };
     expect(old.owned).toHaveLength(16 + 7);
     expect(goalOf(old)).toBe('nose:drill');
     expect(new Set(PLANETS.map(p => p.gadget)).size).toBe(PLANETS.length);
+  });
+  it('sells rovers and Kit gadgets once the rocket is done, and a save from before them keeps everything', () => {
+    const rocketDone = { ...freshBase(), owned: [...freshBase().owned, ...ALL_KEYS.filter(k => !['rover', 'kit'].includes(tabOf(k)))] };
+    expect(goalOf(rocketDone)).toBe('kit:spoiler');
+    const old = readBase({ owned: rocketDone.owned, gadgets: ['antenna', 'siren'] });
+    expect(old.rover).toBe('scout');
+    expect(lookOf(old)).toEqual({ kind: 'scout', kit: ['antenna', 'siren'] }); // every gadget he won is still on
+    expect(ROVERS[0].price).toBe(0);
+    for (const r of ROVERS.slice(1)) expect(r.price).toBeGreaterThan(0);
+  });
+  it('buys a rover and drives it, and switches gadgets on and off for each rover', () => {
+    const b = { ...freshBase(), gadgets: ['antenna' as const, 'wheels' as const] };
+    expect(pickRover(b, 'monster')).toBeNull(); // not his yet
+    const bought = proposePurchase(b, 'rover:monster', 50);
+    if (bought.kind !== 'ready') throw new Error(bought.reason);
+    expect(bought.cost).toBe(40);
+    expect(bought.state.rover).toBe('monster');
+    expect(bought.state.rocket).toEqual(b.rocket);
+    const off = toggleFeature(bought.state, 'antenna')!;
+    expect(isWorn(off, 'antenna')).toBe(false);
+    expect(lookOf(off)).toEqual({ kind: 'monster', kit: ['wheels'] });
+    expect(lookOf(off, 'scout').kit).toEqual(['antenna', 'wheels']); // the Scout still wears it
+    expect(isWorn(toggleFeature(off, 'antenna')!, 'antenna')).toBe(true);
+    expect(toggleFeature(b, 'magnet')).toBeNull(); // not won yet
+    const kit = proposePurchase(pickRover(off, 'scout')!, 'kit:spoiler', 10);
+    if (kit.kind !== 'ready') throw new Error(kit.reason);
+    expect(lookOf(kit.state).kit).toContain('spoiler');
+  });
+  it('never drives a rover he does not own, or switches off something that is not a gadget, whatever the save says', () => {
+    const b = readBase({ rover: 'hover', off: { scout: ['antenna', 'laser'], ufo: ['siren'] } });
+    expect(b.rover).toBe('scout');
+    expect(b.off).toEqual({ scout: ['antenna'] });
   });
   it('goes somewhere new when it can, and lets him pick only planets in reach', () => {
     const b = { ...freshBase(), visits: { moon: 1 }, rocket: { ...freshBase().rocket, engine: 'twin' } };
