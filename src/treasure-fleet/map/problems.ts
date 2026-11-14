@@ -192,7 +192,9 @@ export function makeKeyCount(stretch: Stretch, rng: Rng): KeyCount {
     const more = scatter(rng, base, [], [...Array.from({ length: count }, () => ask), ...others, ...(rng() < .5 ? [others[0]!] : [])]);
     if (!more) return null;
     const map: IsleMap = { ...base, things: more };
-    return { kind: 'key', form: 'count', map, key: keyOf(map), ask, count, choices: [count - 1, count, count + 1], rose: 'none' };
+    // three numbers in a row, with the right one first, in the middle or last, so the middle button isn't always it
+    const lo = Math.max(1, count - int(rng, 0, 2));
+    return { kind: 'key', form: 'count', map, key: keyOf(map), ask, count, choices: [lo, lo + 1, lo + 2], rose: 'none' };
   });
 }
 

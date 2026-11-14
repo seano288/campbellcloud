@@ -4,7 +4,9 @@
 // chest comes up and opens.
 //
 // The world is 600 units tall; heights are measured up from the sand.
-export const BEACH = 2300, X_AT = BEACH - 220, START_X = 260, VIEW_H = 600, GROUND_Y = 470;
+// The sand runs on well past the X, so the camera never has to stop at the end of the beach: on a wide screen (a phone on its side)
+// that would leave the X and the chest at the right edge, under the dig button.
+export const X_AT = 2080, BEACH = X_AT + 900, START_X = 260, VIEW_H = 600, GROUND_Y = 470;
 export const WALK = 270, JUMP_V = 820, GRAVITY = 2000, CRAB_R = 30, PIRATE_R = 28, DIGS = 3;
 /** Where the crabs live, each pacing about its own spot. */
 export const CRAB_AT = [760, 1260, 1760] as const;
@@ -66,7 +68,8 @@ export function stepWalk(w: Walk, dt: number, walking: boolean, jump: boolean) {
       w.events.push('nip');
     } else if (!w.cleared.has(i) && w.x > c.x + CRAB_R && w.y > 0) { w.cleared.add(i); w.events.push('hop-over'); }
   }
-  if (w.x >= X_AT - 4) { w.x = X_AT; w.atX = true; w.vx = 0; w.events.push('at-x'); }
+  // only once he's back on the sand: a jump that carries him to the X would otherwise leave him digging in mid-air
+  if (w.x >= X_AT - 4 && w.grounded) { w.x = X_AT; w.atX = true; w.vx = 0; w.events.push('at-x'); }
 }
 
 /** He tapped dig at the X. The third dig brings the chest up. */

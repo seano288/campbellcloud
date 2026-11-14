@@ -19,7 +19,7 @@ screen.subscribe(() => {
 /** Where he was, so a reload brings him back to it (src/save/place.ts). A Voyage isn't a place: a reload during one lands at the Shipyard. */
 export const PLACE_KEY = 'treasure-fleet-place';
 export const place = createPlace(PLACE_KEY, ['home', 'shipyard', 'hoard', 'round'], ['mix']); // every Round is a mix
-screen.subscribe(s => place.screen(s));
+screen.subscribe(s => place.screen(s === 'voyage' ? 'shipyard' : s));
 
 /** Off to the island Set Sail goes to. */
 export function setSail() {

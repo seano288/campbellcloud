@@ -259,7 +259,7 @@ button.key-row:active{transform:translateY(3px);box-shadow:0 1px 0 #000}
 .voy-progress{position:absolute;left:max(80px,calc(env(safe-area-inset-left) + 80px));right:max(80px,calc(env(safe-area-inset-right) + 80px));top:calc(max(8px,env(safe-area-inset-top)) + max(54px,calc(64px*var(--u))));height:14px;border-radius:7px;background:#0008;border:3px solid #000}
 .voy-progress i{position:absolute;inset:0;background:var(--green);border-radius:4px;transform-origin:left;transform:scaleX(0)}
 .voy-progress span{position:absolute;right:-14px;top:-14px;font-size:22px}
-.voy-ready{position:absolute;left:0;right:0;bottom:calc(var(--floor) + 10px);display:flex;justify-content:center;pointer-events:none}
+.voy-ready{position:absolute;left:0;right:0;top:38%;transform:translateY(-50%);display:flex;justify-content:center;pointer-events:none}
 .voy-ready>*{pointer-events:auto}
 .set-sail,.dig-btn{width:max(110px,calc(150px*var(--u)));height:max(110px,calc(150px*var(--u)));border-radius:50%;padding:0}
 .set-sail .e,.dig-btn .e{font-size:calc(64px*var(--u))}

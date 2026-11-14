@@ -67,6 +67,7 @@ describe('on the island', () => {
       while (!w.atX && t < 60) { const jump = t >= next; if (jump) next += jumpEvery; stepWalk(w, DT, true, jump); t += DT; }
       expect(w.atX).toBe(true);
       expect(w.x).toBe(X_AT);
+      expect(w.y).toBe(0); // on the sand, never stopped in mid-air
       expect(t).toBeLessThan(25);
       for (let i = 0; i < DIGS; i++) expect(dig(w)).toBe(true);
       expect(w.open).toBe(true);
@@ -78,6 +79,17 @@ describe('on the island', () => {
     let t = 0;
     while (!w.atX && t < 120) { stepWalk(w, DT, Math.floor(t * 2) % 2 === 0, Math.floor(t * 3) % 5 === 0); t += DT; }
     expect(w.atX).toBe(true);
+  });
+  it('lands before he digs when a jump carries him to the X', () => {
+    for (let k = 0; k < 40; k++) {
+      const w = createWalk();
+      w.crabs.forEach(c => { c.hidden = 1e9; }); // no crabs in the way: only the jump matters here
+      while (w.x < X_AT - 60 - k * 5) stepWalk(w, DT, true, false);
+      stepWalk(w, DT, true, true);
+      while (!w.atX) stepWalk(w, DT, true, false);
+      expect(w.y).toBe(0);
+      expect(w.grounded).toBe(true);
+    }
   });
   it('can hop a crab cleanly with a well-timed jump', () => {
     const w = createWalk();

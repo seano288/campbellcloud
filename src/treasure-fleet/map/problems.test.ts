@@ -133,6 +133,19 @@ describe('Follow the Clues', () => {
   }));
 });
 
+describe('Map Key counting', () => {
+  it('puts the right number in every place among its choices, so the middle button is not always it', () => {
+    const places = new Set<number>();
+    for (let seed = 1; seed <= 200; seed++) {
+      const q = makeKey(3, 0, seeded(seed));
+      if (q.form !== 'count') continue;
+      expect(q.choices).toEqual([q.choices[0]!, q.choices[0]! + 1, q.choices[0]! + 2]); // three in a row, smallest first
+      places.add(q.choices.indexOf(q.count));
+    }
+    expect([...places].sort()).toEqual([0, 1, 2]);
+  });
+});
+
 describe('From Above', () => {
   it('has exactly one map whose things go left to right as in the scene', () => each((level, stretch, seed) => {
     const q = makeAbove(level, stretch, seeded(seed));
