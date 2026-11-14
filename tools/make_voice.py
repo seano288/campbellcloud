@@ -8,6 +8,7 @@
   .venv/bin/python tools/make_voice.py --collection sight-squad --out public/sight-squad-voice --index src/sight-squad/voice.gen.ts
   .venv/bin/python tools/make_voice.py --collection math-bots --out public/math-bots-voice --index src/math-bots/voice.gen.ts
   .venv/bin/python tools/make_voice.py --collection rover-code --out public/rover-code-voice --index src/rover-code/voice.gen.ts
+  .venv/bin/python tools/make_voice.py --collection treasure-fleet --out public/treasure-fleet-voice --index src/treasure-fleet/voice.gen.ts
 
 Select phrases through tools/phrases.ts and write recordings and a typed index to explicit locations.
 Only missing clips are recorded. Cleanup touches only the selected directory, whose .voice-collection
@@ -25,7 +26,9 @@ VOICES = {'purrdoku': ('en-GB-RyanNeural', '-5%'),
           # Math Bots chains numbers into lines: Aria keeps "plus" and "ten" crisp, and teens clearly longer than decades
           'math-bots': ('en-US-AriaNeural', '-8%'),
           # Rover Code chains numbers into lines like Math Bots, and says directions and pattern pieces one clip at a time
-          'rover-code': ('en-US-AriaNeural', '-8%')}
+          'rover-code': ('en-US-AriaNeural', '-8%'),
+          # Treasure Fleet chains directions and grid squares ("Go", "north", "2", "squares."; "Tap", "B.", "2") and says letter names
+          'treasure-fleet': ('en-US-AriaNeural', '-8%')}
 ROOT = Path(__file__).resolve().parent.parent
 
 

@@ -17,6 +17,8 @@ import { mathBuild } from './math-bots-build';
 import { iconSvg as mathIcon } from '../src/math-bots/icon';
 import { roverBuild } from './rover-code-build';
 import { iconSvg as roverIcon } from '../src/rover-code/icon';
+import { fleetBuild } from './treasure-fleet-build';
+import { iconSvg as fleetIcon } from '../src/treasure-fleet/icon';
 import { iconSvg as purrdokuIcon } from '../src/purrdoku/art';
 import { purrdokuBuild } from './purrdoku-build';
 import { favicon, homeScreenIcons } from './icons';
@@ -70,6 +72,7 @@ export const SECTIONS: readonly { title: string; games: readonly Tile[] }[] = [
     { path: 'sight-squad', name: 'Sight Squad', blurb: 'Sight words, build an army', icon: squadIcon },
     { path: 'math-bots', name: 'Math Bots', blurb: 'First-grade math, robot combat', icon: mathIcon },
     { path: 'rover-code', name: 'Rover Code', blurb: 'Coding and logic, launch a rocket', icon: roverIcon },
+    { path: 'treasure-fleet', name: 'Treasure Fleet', blurb: 'Maps and directions, sail a pirate ship', icon: fleetIcon },
   ] },
   { title: 'Just for Fun', games: [
     { path: 'hunch', name: 'Hunch', blurb: 'Guess the five-letter word', icon: hunchIcon },
@@ -138,6 +141,7 @@ await build({ ...staticBuild(chopBuild), logLevel: 'warn' });
 await build({ ...staticBuild(squadBuild), logLevel: 'warn' });
 await build({ ...staticBuild(mathBuild), logLevel: 'warn' });
 await build({ ...staticBuild(roverBuild), logLevel: 'warn' });
+await build({ ...staticBuild(fleetBuild), logLevel: 'warn' });
 await build({ ...hunchBuild(), logLevel: 'warn' });
 await build({ ...staticBuild(purrdokuBuild), logLevel: 'warn' });
 console.log(`Built ${SITE}/: landing page, ${GAMES.map(g => g.path).join(', ')}`);

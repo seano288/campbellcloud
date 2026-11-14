@@ -247,3 +247,44 @@ _Avoid_: Mod, feature (to him)
 **Kit**: the gadgets bought with Bolts rather than won on a planet: Spoiler, Flame Decals, Snow Plow, Bubble Blower, Parachute, Disco Ball, Fireworks, Alien Pal.
 
 **Crystal**: what he finds on a planet, five per trip, one Bolt each.
+
+## Treasure Fleet
+
+Treasure Fleet reuses Math Bots' and Rover Code's terms where they mean the same thing (Mixed Round, Mastery, Stretch, Bolt, Meeting, Goal, Part, Rung). It has no Tune-Up. These are its own:
+
+**Game Modes (Treasure Fleet)**: the five kinds of question, all asked on an island map: Where Is It (tap the thing in a position or direction from another), Map Key (what the symbols mean), Grid Square (name a square by its letter and number), Follow the Clues (spoken directions from a star to the treasure) and From Above (which map shows a scene seen from the side). Where Is It and Map Key are open from the start; Grid Square opens at Where Is It Level 2, From Above at Map Key Level 2, and Follow the Clues once both Where Is It and Map Key reach Level 2.
+
+**Map**: the parchment island a question is asked on, in squares, with things standing on some of them. North is always up. Left and right are the screen's, never a character's.
+
+**Symbol**: one of the eight things drawn on maps, the map key and the sea chart: palm tree, hut, cave, hill, rock, dock, bridge (only on a river) and river.
+_Avoid_: icon, picture (to him)
+
+**Map Key**: the panel beside a map that shows each symbol with its word. Also the name of the kind that teaches it.
+_Avoid_: legend
+
+**Compass Rose**: the N E S W star in a map's corner. He meets it once, with the rhyme "Never Eat Soggy Waffles", before the first question that uses it.
+
+**Grid Square**: a square named by a letter along the bottom and a number up the side, letter first (B3). Each column letter has its own colour.
+
+**Clue**: one spoken direction in Follow the Clues: "Go north 2 squares", or at Level 3 a landmark, "Go east to the hut".
+
+**Shipyard**: where he builds his ship, Treasure Fleet's Garage: the dock, the sea chart, the Set Sail button and the parts tray.
+
+**Ship**: his ship, Treasure Fleet's Body, built from four slots (Hull, Sails, Cannons, Figurehead) and a Flag (an emblem he buys and colours he picks for free). It starts as a rowing boat with a bedsheet sail and ends as a galleon. Its Range (4 to 16) decides which islands it can reach.
+
+**Range**: how far the ship can sail, Treasure Fleet's Power: one for each slot's Rung plus one.
+
+**Voyage**: one trip, earned by finishing a Round (he starts with one): sailing to an island (the sea, from above), then the island (from the side) and the dig. It's used only when the chest opens.
+_Avoid_: launch, ticket
+
+**Sea Chart**: the map of the islands in the Shipyard, with a compass rose and a key; tapping an island in reach makes it the next stop. It is never a question.
+
+**Island**: one of eight (Turtle Island, Palm Island, Parrot Island, Skull Rock, Mermaid Lagoon, Volcano Island, Kraken Reef, Starfall Island), each needing more Range and each hiding one Treasure.
+
+**Treasure**: the named prize in an island's chest the first time he digs there (the Golden Compass, the Ruby Skull, the Kraken's Pearl...). Every chest also holds gold (Bolts).
+_Avoid_: Trophy (Trophies are earned by playing well; Treasures by sailing)
+
+**Hoard**: the cave where every Treasure he has found is shown, with his ship moored outside.
+
+**Barrel**: what floats by at sea, three a Voyage, one Bolt each.
+

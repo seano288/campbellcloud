@@ -1,0 +1,330 @@
+/* Treasure Fleet: Time Flies' styles (imported before this file, as Math Bots and Rover Code do) in sea blue, parchment and brass, with
+   the family look kept: Bungee titles, Nunito reading, thick black outlines and chunky drop shadows that press in. Colour signals stay the
+   family's: green is Go and right, yellow is look here, orange is being read aloud. Question maps are parchment on a sea-blue card. Every
+   rule here is scoped to a Treasure Fleet class, so nothing leaks into another kind's screen. */
+:root{--deep:#0d3b5e;--sea:#1f6fae;--sea-2:#2f8fd8;--parch:#f3e3b5;--parch-2:#e2c98c;--brass:#c9a227;--brass-2:#8a6a12;--ink-brown:#2a1a0e;--floor:max(56px,calc(env(safe-area-inset-bottom) + 40px))}
+html,body{background:var(--deep)}
+.tf-start{background:radial-gradient(circle at 50% 18%,#3aa0e0,#0d3b5e 72%)}
+.tf-start h1{color:#fff;text-shadow:3px 3px 0 var(--brass-2),6px 6px 0 #000}
+.tf-start .ship-view{width:calc(280px*var(--u));height:calc(260px*var(--u));min-width:170px;min-height:160px}
+.home-screen:has(.tf-home),.round-screen,.yard-screen,.hoard-screen{background:radial-gradient(circle at 80% 0%,#2f8fd8,#155a8f 45%,#0d3b5e)}
+.home-screen:has(.tf-home) .home-head h1{color:var(--yellow);text-shadow:2px 2px 0 var(--brass-2),4px 4px 0 #000}
+
+/* the ship and islands, anywhere */
+.ship-view{display:block;overflow:visible}
+.ship-sea{fill:#2f8fd8;stroke:#0d3b5e;stroke-width:4}
+.ship-sea.front{fill:#4aa3df99;stroke:none}
+.ship-bob{animation:shipbob 3s ease-in-out infinite;transform-box:fill-box;transform-origin:center bottom}
+@keyframes shipbob{50%{transform:translateY(5px) rotate(-1.5deg)}}
+.flag-wave{animation:flagwave 1.2s ease-in-out infinite;transform-box:fill-box;transform-origin:left center}
+@keyframes flagwave{50%{transform:skewY(-6deg) scaleX(.94)}}
+.island-badge{display:block;overflow:visible}
+
+/* ---------- Home: Play, the Shipyard, the Hoard, My Levels ---------- */
+.home.tf-home{grid-template-areas:"p p" "y h" "k k";grid-template-rows:minmax(0,1fr) minmax(0,.75fr) auto;grid-template-columns:1.3fr 1fr}
+@media (orientation:landscape){.home.tf-home{grid-template-areas:"p y" "p h" "k k";grid-template-rows:minmax(0,1fr) minmax(0,.7fr) auto;grid-template-columns:1.2fr 1fr}}
+.tf-home .t-play{grid-area:p;background:#ffd23f}
+.tf-home .t-play .e{display:grid;place-items:center;width:calc(150px*var(--u));height:calc(150px*var(--u));min-width:72px;min-height:72px;border-radius:50%;border:4px solid #000;background:var(--go);color:#fff;font-size:calc(72px*var(--u));box-shadow:0 7px 0 #000}
+.tf-home .t-play:active .e{box-shadow:0 2px 0 #000}
+.tf-home .t-yard{grid-area:y;position:relative;flex-direction:column;gap:2px;background:linear-gradient(#7cc6f2,#2f8fd8 62%,#1f6fae);color:#fff;overflow:hidden}
+.tf-home .t-yard .ship-view{flex:1;min-height:0;width:100%}
+.tf-home .t-hoard{grid-area:h;position:relative;flex-direction:column;gap:2px;background:radial-gradient(circle at 50% 80%,#7a5a2a,#3a2716 70%);color:#fff}
+.tf-home .nm{font-size:max(15px,calc(24px*var(--u)));text-shadow:2px 2px 0 #000;white-space:nowrap}
+.hoard-pile{font-size:max(30px,calc(56px*var(--u)));line-height:1;filter:drop-shadow(0 0 10px #ffd23f)}
+.voyage-badge{position:absolute;right:8px;top:8px;background:#000;color:var(--yellow);border-radius:999px;padding:3px 12px;font:900 max(16px,calc(22px*var(--u))) Nunito,sans-serif;border:2px solid var(--yellow)}
+.tf-home .t-kinds{grid-area:k;background:#fbf1d4;display:grid;grid-template-columns:repeat(2,1fr);grid-auto-rows:minmax(max(48px,calc(54px*var(--u))),auto);column-gap:calc(10px*var(--u));padding:calc(6px*var(--u)) calc(12px*var(--u)) calc(10px*var(--u));cursor:default}
+.tf-home .t-kinds:active{transform:none;box-shadow:0 7px 0 #000}
+.tf-home .kinds-head{grid-column:1/-1;margin:0;font:400 max(14px,calc(16px*var(--u))) Bungee,sans-serif;text-align:center;letter-spacing:.04em;color:#0009}
+.tf-home .kind{position:relative;display:flex;align-items:center;gap:8px;background:none;border:0;border-top:2px solid #0002;padding:2px;min-height:44px;text-align:left;color:#000;cursor:default}
+.tf-home .kind .ki{font-size:max(20px,calc(26px*var(--u)));line-height:1}
+.tf-home .kind .kb{flex:1;min-width:0;display:flex;flex-direction:column;gap:3px}
+.tf-home .kind .kn{font:900 max(14px,calc(18px*var(--u))) Nunito,sans-serif;line-height:1.1}
+.tf-home .kind .lvl{gap:0;width:100%;max-width:max(70px,calc(120px*var(--u)));height:max(8px,calc(10px*var(--u)));border-radius:99px;overflow:hidden;background:#0002}
+.tf-home .kind .lvl i{flex:1;width:auto;height:100%;border:0;border-radius:0;background:none}
+.tf-home .kind .lvl i+i{border-left:2px solid #fbf1d4}
+.tf-home .kind .lvl i.on{background:var(--orange)}
+.tf-home .kind.locked{filter:grayscale(.9) brightness(.85);opacity:.7}
+.tf-home .kind.fresh{animation:pulse 1s infinite}
+.tf-home .kind .badge{position:absolute;right:-2px;top:2px;font-size:calc(18px*var(--u))}
+@media (orientation:landscape) and (max-height:520px){
+  .home.tf-home{grid-template-areas:"p k" "y k" "h k";grid-template-rows:minmax(0,1.3fr) minmax(0,1fr) minmax(0,.7fr);grid-template-columns:1fr 1.25fr}
+  .tf-home .t-kinds{grid-template-columns:1fr;grid-auto-rows:minmax(44px,auto)}
+  .tf-home .kinds-head{position:absolute;width:1px;height:1px;overflow:hidden;clip-path:inset(50%)}
+  .tf-home .t-hoard{flex-direction:row;gap:8px}.tf-home .hoard-pile{font-size:26px}
+}
+@media (max-width:430px) and (orientation:portrait){.tf-home .t-kinds{grid-template-columns:1fr}}
+
+/* ---------- a question: the ask bar, then the map (and the key or choices beside it when there's width) ---------- */
+.round-screen .card:has(.tf){position:relative;background:#e7f3fb}
+.game.tf{justify-content:flex-start;gap:calc(8px*var(--u));padding:calc(10px*var(--u));overflow:hidden}
+.game.tf .ask{flex:none;width:100%;max-width:100%}
+.game.tf .ask h2{flex:1;min-width:0;font:900 max(20px,calc(30px*var(--u)))/1.15 Nunito,sans-serif;text-align:left;text-wrap:balance}
+.game.tf .help-btn{flex:none;font-size:max(20px,calc(24px*var(--u)));padding:4px 12px}
+.tf-body{flex:1;min-height:0;width:100%;display:flex;flex-direction:column;gap:calc(10px*var(--u));align-items:stretch}
+.tf-stage{position:relative;flex:1 1 0;min-height:0;min-width:0;display:flex;align-items:center;justify-content:center}
+.tf-controls{flex:none;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:calc(10px*var(--u))}
+@media (orientation:landscape){.tf-body{flex-direction:row}.tf-controls{flex:0 1 auto;min-width:0;max-width:44%}}
+
+/* the map */
+.isle-map{display:block;width:100%;height:100%;max-width:calc(760px*var(--u) + 120px);overflow:visible}
+.isle-map .parchment{fill:var(--parch);stroke:var(--ink-brown);stroke-width:6}
+.isle-map .sea{fill:#9fd0e8;stroke:#5a9cc2;stroke-width:3}
+.isle-map .land{fill:#f1dda4;stroke:#a88a4a;stroke-width:5;stroke-linejoin:round}
+.isle-map .river{fill:#4aa3df;stroke:#2a6f9f;stroke-width:4}
+.isle-map .river.lit{fill:#7cc4f5;stroke:var(--yellow);stroke-width:8;animation:riverlit 1s infinite}
+@keyframes riverlit{50%{stroke-width:14}}
+.isle-map .sq{fill:#ffffff22;stroke:#a88a4a;stroke-width:2.5;stroke-dasharray:7 7}
+.isle-map .sq.on{fill:#ffd23f66;stroke:#c99a00;stroke-dasharray:none}
+.isle-map .sq.meet{fill:#ffd23f}
+.isle-map .grid-edge{fill:none;stroke:var(--ink-brown);stroke-width:4}
+.isle-map .gl{font:900 54px Nunito,sans-serif}
+.isle-map .gl.number{fill:var(--ink-brown)}
+.isle-map .gl.on{paint-order:stroke;stroke:#ffd23f;stroke-width:14px}
+.isle-map .thing.wrong{opacity:.45}
+.isle-map .halo{fill:#ffd23f88;stroke:#ffd23f;stroke-width:6}
+.isle-map .thing.glow .halo{animation:halo 1s infinite}
+.isle-map .thing.pulse .halo{fill:#ffffffaa;stroke:#ff7a00;animation:halo .8s infinite}
+.isle-map .thing.right .halo{fill:#3ddc8488;stroke:#178046}
+@keyframes halo{50%{stroke-width:14px}}
+.isle-map .hit{fill:transparent;cursor:pointer;outline:none}
+.isle-map .hit:focus-visible{stroke:var(--orange);stroke-width:6}
+.isle-map .ray-line{fill:none;stroke:#ff7a00;stroke-width:12;stroke-linecap:round;stroke-dasharray:1;stroke-dashoffset:1;animation:sweep .9s ease-out forwards}
+.isle-map .ray-head{fill:none;stroke:#ff7a00;stroke-width:12;stroke-linecap:round;opacity:0;animation:appear .2s .8s forwards}
+@keyframes sweep{to{stroke-dashoffset:0}}
+@keyframes appear{to{opacity:1}}
+.isle-map .span-band{fill:#ff7a0033;stroke:#ff7a00;stroke-width:6;stroke-dasharray:12 8}
+.isle-map .trail{fill:none;stroke:#c81d25;stroke-width:10;stroke-dasharray:4 16;stroke-linecap:round;stroke-linejoin:round}
+.isle-map .sq-glow{fill:#ffd23f;stroke:#c99a00;stroke-width:5;animation:halo 1s infinite}
+.isle-map .sq-tried{font:900 60px Nunito,sans-serif;fill:#a88a4a}
+.isle-map .count-badge circle{fill:var(--yellow);stroke:#000;stroke-width:4}
+.isle-map .count-badge text{font:900 26px Nunito,sans-serif;fill:#000}
+.isle-map.thumb{max-width:none}
+.sym-icon{display:block;flex:none;overflow:visible}
+
+/* the compass rose */
+.rose{display:block;width:100%;height:100%;overflow:visible}
+.rose-letter{font:400 26px Bungee,sans-serif;fill:var(--ink-brown)}
+.rose-pt.lit path{animation:none}
+.rose-pt[role=button]{cursor:pointer}
+.stage-rose{position:absolute;right:2px;top:2px;width:max(64px,calc(96px*var(--u)));height:max(64px,calc(96px*var(--u)));transition:transform .4s cubic-bezier(.3,1.4,.5,1);transform-origin:top right;pointer-events:none;filter:drop-shadow(0 3px 0 #0004)}
+.stage-rose.big{transform:scale(1.9)}
+.tf.meet .ask{justify-content:center}
+.tf.meet .ask h2{flex:none;text-align:center}
+.meet-rose{flex:1;min-height:0;width:100%;display:grid;place-items:center}
+.meet-rose .rose{width:min(80vw,62vh,520px);height:min(80vw,62vh,520px)}
+.on-btn{min-width:max(84px,calc(104px*var(--u)));min-height:max(72px,calc(88px*var(--u)));border-radius:50%;font-size:calc(40px*var(--u))}
+
+/* the map key */
+.map-key{display:flex;flex-direction:column;gap:calc(4px*var(--u));padding:calc(8px*var(--u)) calc(10px*var(--u));background:var(--parch);border:4px solid var(--ink-brown);border-radius:16px;box-shadow:0 5px 0 #000;min-width:min(100%,220px)}
+.map-key:not(.tappable){display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:4px 10px}
+.key-title{grid-column:1/-1;font:400 max(15px,calc(18px*var(--u))) Bungee,sans-serif;color:var(--ink-brown);text-align:center}
+.key-row{display:flex;align-items:center;gap:10px;padding:2px 8px;border-radius:12px;font:900 max(17px,calc(22px*var(--u))) Nunito,sans-serif;color:var(--ink-brown);border:3px solid transparent;text-align:left}
+.key-row .sym-icon{width:max(36px,calc(48px*var(--u)));height:max(36px,calc(48px*var(--u)))}
+button.key-row{background:#fffaf0;border-color:#a88a4a;box-shadow:0 4px 0 #000;min-height:max(48px,calc(58px*var(--u)))}
+button.key-row:active{transform:translateY(3px);box-shadow:0 1px 0 #000}
+.key-row.lit{background:#ffd23f;border-color:#000;animation:hint 1s infinite}
+.key-row.hint{animation:hint 1s infinite}
+.key-row.wrong{opacity:.45;box-shadow:none}
+.key-row.right{background:#c9f0d8;border-color:var(--go)}
+.tf .map-key.tappable{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:calc(8px*var(--u))}
+@media (orientation:landscape){.tf .map-key.tappable{grid-template-columns:1fr}.tf .map-key:not(.tappable){grid-template-columns:1fr}}
+
+/* answer choices */
+.tf .choices{display:grid;gap:calc(12px*var(--u));width:min(100%,520px)}
+.tf .choices.nums,.tf .choices.squares{grid-template-columns:repeat(3,1fr)}
+.tf .choices .choice{min-height:max(64px,calc(88px*var(--u)));font:900 max(30px,calc(46px*var(--u))) Nunito,sans-serif;padding:6px}
+.tf .choice.hint{animation:hint 1s infinite}
+.tf .choice.wrong{opacity:.45;box-shadow:none}
+.sq-name b{font-weight:900}
+.tf .ask h2 .sq-name{display:inline-block;background:#fff;border:3px solid #000;border-radius:12px;padding:0 10px;margin-left:4px;font-size:1.2em}
+.tf .choices.maps{grid-template-columns:repeat(var(--n,3),minmax(0,1fr));width:100%}
+.tf .choices.maps.n2{--n:2}
+.tf .map-choice{padding:4px;background:#fffaf0;aspect-ratio:5/4}
+.tf .map-choice .isle-map{width:100%;height:100%}
+.tf.above .tf-body{flex-direction:column}
+.tf.above .tf-controls{max-width:none;width:100%}
+.scene{display:block;width:100%;height:100%;max-height:calc(300px*var(--u) + 60px);overflow:visible}
+.scene-sky{fill:#bfe6ff;stroke:var(--ink-brown);stroke-width:6}
+.scene-sand{fill:#f1dda4;stroke:var(--ink-brown);stroke-width:6}
+.scene-halo{fill:#ffd23f66;stroke:#ffd23f;stroke-width:6}
+
+/* Follow the Clues */
+.start-mark{filter:drop-shadow(0 0 6px #fff)}
+.clues{display:flex;flex-wrap:wrap;gap:calc(8px*var(--u));justify-content:center}
+.clue-chip{display:flex;align-items:center;gap:6px;padding:6px 12px;background:var(--parch);border:4px solid var(--ink-brown);border-radius:16px;box-shadow:0 4px 0 #000;font:900 max(24px,calc(34px*var(--u))) Nunito,sans-serif;color:var(--ink-brown);min-height:56px}
+.clue-chip.lit{background:var(--yellow)}
+.clue-arrow{width:max(34px,calc(44px*var(--u)));height:max(34px,calc(44px*var(--u)))}
+.clue-dir{font:400 max(20px,calc(26px*var(--u))) Bungee,sans-serif}
+.clue-chip .sym-icon{width:max(34px,calc(44px*var(--u)));height:max(34px,calc(44px*var(--u)))}
+.x-mark{animation:pop .3s}
+
+/* ---------- the end of a Round ---------- */
+.tf-reward{background:radial-gradient(circle at 50% 30%,#2f8fd8,#0d3b5e 70%)}
+.earned-voyage{font:900 calc(30px*var(--u)) Nunito,sans-serif;color:var(--yellow);background:#000;border-radius:999px;padding:6px 20px}
+.tf-reward .btns{align-items:center}
+.big-btn.my-ship{padding:calc(4px*var(--u));width:max(96px,calc(122px*var(--u)));height:max(96px,calc(122px*var(--u)));flex:none;background:#7cc6f2}
+.big-btn.my-ship .ship-view{width:100%;height:100%}
+.reward .btns .big-btn.my-ship,.voy-result .big-btn.my-ship{padding:4px}
+.sail-btn{gap:12px;min-height:max(96px,calc(122px*var(--u)));padding:calc(10px*var(--u)) calc(24px*var(--u));font-size:calc(34px*var(--u))}
+.sail-isle{width:calc(84px*var(--u));height:calc(70px*var(--u));min-width:54px;min-height:44px;flex:none}
+.sail-word{font:400 max(20px,calc(32px*var(--u))) Bungee,sans-serif;white-space:nowrap}
+.sail-count{font-size:.68em;background:#0006;border-radius:12px;padding:2px 10px;white-space:nowrap}
+.tf-reward .btns .again.second{font-size:calc(28px*var(--u));padding:calc(18px*var(--u)) calc(24px*var(--u))}
+
+/* ---------- the Shipyard: the dock, the chart and Set Sail on one side, the parts on the other ---------- */
+.yard-screen,.hoard-screen{gap:calc(8px*var(--u));padding:max(8px,env(safe-area-inset-top)) max(10px,env(safe-area-inset-right)) max(10px,env(safe-area-inset-bottom)) max(10px,env(safe-area-inset-left));color:#fff}
+.yard-screen .work-head,.hoard-screen .work-head{display:flex;align-items:center;gap:10px;flex:none;min-width:0}
+.yard-screen .work-head h1,.hoard-screen .work-head h1{margin:0 auto 0 0;font:400 calc(32px*var(--u)) Bungee,sans-serif;color:var(--yellow);min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;text-shadow:2px 2px 0 #000}
+@media (max-width:430px){.yard-screen .work-head h1,.hoard-screen .work-head h1{font-size:18px}}
+.yard-screen .goalchip .gi{width:calc(48px*var(--u));height:calc(40px*var(--u));min-width:36px;min-height:30px}
+.yard-body{flex:1;min-height:0;display:grid;grid-template-columns:minmax(0,1.1fr) minmax(0,1fr);gap:calc(12px*var(--u))}
+@media (orientation:portrait){.yard-body{grid-template-columns:minmax(0,1fr);grid-template-rows:minmax(0,1.5fr) minmax(0,1fr)}}
+.dock-side{display:grid;grid-template-rows:minmax(0,1fr) minmax(0,1fr) auto;gap:calc(8px*var(--u));min-height:0;min-width:0}
+@media (orientation:portrait){.dock-side{grid-template-columns:minmax(0,1fr) minmax(0,1.15fr);grid-template-rows:minmax(0,1fr) auto}.dock-side .yard-go{grid-column:1/-1}}
+@media (orientation:portrait) and (max-width:560px){.dock-side{grid-template-columns:minmax(0,1fr);grid-template-rows:minmax(0,.75fr) minmax(0,1fr) auto}.yard-body{grid-template-rows:minmax(0,1.7fr) minmax(0,1fr)}}
+.dock{position:relative;min-height:0;border-radius:18px;border:4px solid #000;overflow:hidden;background:linear-gradient(#9fd8ff,#cfeaff 55%,#2f8fd8 55%,#1f6fae)}
+.dock .ship-view{position:absolute;inset:4% 4% 2% 4%;width:92%;height:94%}
+.dock .ship-view.trying{filter:drop-shadow(0 0 12px #ffd23f)}
+.range{position:absolute;right:8px;top:8px;display:flex;flex-direction:column;align-items:center;background:#000;border:3px solid var(--yellow);border-radius:14px;padding:4px 12px;color:#fff;min-height:var(--tap)}
+.rg-word{font:900 max(14px,calc(15px*var(--u))) Nunito,sans-serif}
+.rg-num{font:400 calc(30px*var(--u))/1 Bungee,sans-serif;color:var(--yellow);white-space:nowrap}
+.rg-num.up{color:#6ef0a8}.rg-num.down{color:#ff8b7a}
+/* the chart keeps its shape (5 by 4), so islands never pile up on a squashed one */
+.chart-cell{min-height:0;min-width:0;container-type:size;display:grid;place-items:center}
+.sea-chart{position:relative;width:min(100cqw,125cqh);height:min(100cqh,80cqw);min-height:0;border-radius:18px;border:4px solid var(--ink-brown);overflow:hidden;background:var(--parch)}
+.chart-sea{position:absolute;inset:6px;width:calc(100% - 12px);height:calc(100% - 12px)}
+.chart-water{fill:#a8d4ea;stroke:#5a9cc2;stroke-width:.6}
+.route{fill:none;stroke:#c81d25;stroke-width:3;stroke-dasharray:2 6;stroke-linecap:round}
+.chart-port{position:absolute;transform:translate(-50%,-50%);font-size:max(20px,calc(28px*var(--u)));filter:drop-shadow(0 2px 0 #fff)}
+.chart-isle{position:absolute;transform:translate(-50%,-50%);width:clamp(44px,15%,96px);aspect-ratio:128/100;min-height:44px;padding:0;background:none;border:0;border-radius:14px}
+.chart-isle svg{width:100%;height:100%;overflow:visible}
+.chart-isle.far svg{filter:grayscale(.85) brightness(.75)}
+.chart-isle.dest{outline:4px solid var(--yellow);outline-offset:2px;background:#ffd23f44}
+.chart-isle .need{position:absolute;left:50%;bottom:-6px;transform:translateX(-50%);background:#000;color:var(--yellow);border-radius:8px;padding:0 5px;font:900 max(13px,calc(14px*var(--u))) Nunito,sans-serif;white-space:nowrap}
+.chart-rose{position:absolute;right:4px;top:4px;width:max(48px,calc(70px*var(--u)));height:max(48px,calc(70px*var(--u)));padding:0;background:none;border:0}
+.chart-key{position:absolute;left:6px;top:6px;display:flex;flex-direction:column;gap:2px;padding:4px 8px;background:#fffaf0e6;border:2px solid var(--ink-brown);border-radius:10px;color:var(--ink-brown);font:900 max(12px,calc(14px*var(--u))) Nunito,sans-serif}
+.chart-key span{display:flex;align-items:center;gap:4px}
+.chart-key svg{width:22px;height:18px;overflow:visible}
+.chart-key .kx{color:#c81d25}
+@media (max-height:520px),(max-width:430px){.chart-key{display:none}}
+.yard-go{display:flex;align-items:center;gap:10px;min-width:0}
+.yard-go .sail-btn{flex:1;min-width:0;min-height:max(68px,calc(88px*var(--u)))}
+.yard-go .icon-btn{flex:none;width:max(64px,calc(76px*var(--u)));height:max(64px,calc(76px*var(--u)));font-size:calc(34px*var(--u));color:#fff}
+.big-btn.short{background:#5d6b78}
+.yard-screen .parts-side{position:relative;display:grid;grid-template-rows:auto minmax(0,1fr);gap:calc(8px*var(--u));min-height:0;min-width:0}
+.tf-tabs{display:grid;grid-template-columns:repeat(5,1fr);gap:6px}
+.tf-tab{min-height:max(var(--tap),calc(58px*var(--u)));border-radius:14px;background:#0d3b5e;border:3px solid #fff3;font-size:calc(28px*var(--u));padding:0}
+.tf-tab.on{background:var(--yellow);border-color:#000;box-shadow:0 4px 0 #000}
+.tf-tray{display:grid;grid-template-columns:repeat(auto-fill,minmax(max(100px,calc(124px*var(--u))),1fr));grid-auto-rows:max-content;gap:calc(8px*var(--u));overflow-y:auto;overscroll-behavior:contain;touch-action:pan-y;padding-bottom:calc(84px*var(--u));min-height:0}
+.tf-tile{position:relative;display:flex;flex-direction:column;align-items:center;gap:2px;padding:6px 4px;border-radius:14px;background:#0d3b5e;border:3px solid #fff3;color:#fff;font:800 max(14px,calc(15px*var(--u)))/1.1 Nunito,sans-serif}
+.tf-tile .part-pic{width:calc(110px*var(--u));height:calc(90px*var(--u));min-width:80px;min-height:64px;display:block}
+.mt-name{min-height:2.2em;display:grid;place-items:center;text-align:center}
+.mt-tag{display:inline-flex;align-items:center;gap:2px;min-height:1.3em;font-size:max(15px,1.1em);color:#ffd97a}
+.tf-tile.locked{background:#082a44}
+.tf-tile.can{border-color:var(--yellow)}
+.tf-tile.on{border-color:var(--green);background:#143526;color:#c4f7dc}.tf-tile.on .mt-tag{color:#8ff0bf}
+.tf-tile.trying{border-color:#fff;outline:3px solid var(--yellow);outline-offset:1px}
+.swatches-row{grid-column:1/-1;display:flex;flex-wrap:wrap;gap:8px;justify-content:center;padding:6px 0}
+.flag-swatch{width:max(48px,calc(56px*var(--u)));height:max(48px,calc(56px*var(--u)));border-radius:12px;border:4px solid #000;box-shadow:0 4px 0 #000;font:900 24px Nunito,sans-serif;padding:0}
+.flag-swatch.on{outline:4px solid var(--yellow);outline-offset:2px}
+.yard-screen .buybar{position:absolute;left:0;right:0;bottom:0;display:flex;align-items:center;gap:10px;padding:8px;background:#000;border:3px solid var(--yellow);border-radius:16px;box-shadow:0 -4px 18px #0009}
+.yard-screen .buybar .x{flex:none;width:var(--tap);height:var(--tap);border-radius:50%;background:#0d3b5e;color:#fff;border:0;font-size:20px}
+.yard-screen .buy-name{flex:1;min-width:0;color:#fff;font:900 max(16px,calc(22px*var(--u))) Nunito,sans-serif}
+.yard-screen .buy{font-size:calc(30px*var(--u));padding:calc(8px*var(--u)) calc(22px*var(--u));flex:none}
+
+/* ---------- the Hoard ---------- */
+.hoard-count{font:900 max(18px,calc(24px*var(--u))) Nunito,sans-serif;background:#000;border:3px solid var(--yellow);border-radius:999px;padding:4px 14px;color:var(--yellow);white-space:nowrap}
+.cave{flex:1;min-height:0;display:grid;grid-template-rows:minmax(0,1fr) auto;gap:10px;padding:calc(14px*var(--u));border:4px solid #000;border-radius:60px 60px 18px 18px;background:radial-gradient(ellipse at 50% 30%,#5a4430,#2a1d12 70%,#140d07)}
+.ledges{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));grid-auto-rows:minmax(0,1fr);gap:calc(10px*var(--u));min-height:0}
+@media (max-width:560px) and (orientation:portrait){.ledges{grid-template-columns:repeat(2,minmax(0,1fr))}}
+.ledge{display:flex;flex-direction:column;align-items:center;justify-content:flex-end;gap:6px;min-height:44px;min-width:0;padding:6px 4px 8%;border-radius:18px;border:3px solid #0008;background:linear-gradient(#0000 66%,#6b4a2a 66%,#4a3018);color:#fff;font:900 max(13px,calc(16px*var(--u)))/1.1 Nunito,sans-serif;text-align:center}
+.ledge.got{border-color:var(--glow,#ffd23f);box-shadow:inset 0 0 30px var(--glow,#ffd23f)}
+.ledge .treasure{font-size:max(34px,calc(64px*var(--u)));line-height:1;filter:drop-shadow(0 0 12px var(--glow,#ffd23f));animation:pop .5s}
+.ledge.empty .ledge-isle{width:max(40px,calc(64px*var(--u)));height:max(30px,calc(48px*var(--u)));opacity:.5;filter:grayscale(.7)}
+.ledge.empty .ledge-name{opacity:.6}
+.cave-mouth{display:flex;align-items:flex-end;justify-content:center;gap:16px}
+.moored{width:max(120px,calc(200px*var(--u)));height:max(90px,calc(150px*var(--u)));padding:0;background:none;border:0}
+.moored .ship-view{width:100%;height:100%}
+.sail-small{font-size:calc(30px*var(--u));padding:calc(10px*var(--u)) calc(22px*var(--u))}
+@media (orientation:landscape) and (max-height:520px){.cave{border-radius:30px 30px 14px 14px;padding:8px;grid-template-columns:minmax(0,1fr) auto;grid-template-rows:minmax(0,1fr)}.cave-mouth{flex-direction:column;align-items:center}.moored{width:110px;height:80px}}
+
+/* ---------- the Voyage: the canvas fills the screen; controls stay off the bottom edge and the sides ---------- */
+.voyage-screen{position:fixed;inset:0;overflow:hidden;touch-action:none;overscroll-behavior:none;-webkit-user-select:none;user-select:none;-webkit-touch-callout:none;background:var(--deep);color:#fff}
+.voy-canvas{position:absolute;inset:0;width:100%;height:100%;display:block;touch-action:none}
+.voy-hud{position:absolute;left:0;right:0;top:0;display:flex;align-items:center;gap:10px;padding:max(8px,env(safe-area-inset-top)) max(12px,env(safe-area-inset-right)) 0 max(12px,env(safe-area-inset-left));pointer-events:none}
+.voy-hud>*{pointer-events:auto}
+.voy-to{display:flex;align-items:center;gap:6px;margin-right:auto;font:400 max(16px,calc(24px*var(--u))) Bungee,sans-serif;text-shadow:2px 2px 0 #000;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.voy-to .island-badge{width:calc(48px*var(--u));height:calc(38px*var(--u));min-width:36px;min-height:28px;flex:none}
+.voy-count{display:flex;align-items:center;gap:6px;background:#000c;border:3px solid var(--yellow);border-radius:999px;padding:3px 14px 3px 8px;font:900 max(18px,calc(24px*var(--u))) Nunito,sans-serif;color:var(--yellow);white-space:nowrap}
+.voy-progress{position:absolute;left:max(80px,calc(env(safe-area-inset-left) + 80px));right:max(80px,calc(env(safe-area-inset-right) + 80px));top:calc(max(8px,env(safe-area-inset-top)) + max(54px,calc(64px*var(--u))));height:14px;border-radius:7px;background:#0008;border:3px solid #000}
+.voy-progress i{position:absolute;inset:0;background:var(--green);border-radius:4px;transform-origin:left;transform:scaleX(0)}
+.voy-progress span{position:absolute;right:-14px;top:-14px;font-size:22px}
+.voy-ready{position:absolute;left:0;right:0;bottom:calc(var(--floor) + 10px);display:flex;justify-content:center;pointer-events:none}
+.voy-ready>*{pointer-events:auto}
+.set-sail,.dig-btn{width:max(110px,calc(150px*var(--u)));height:max(110px,calc(150px*var(--u)));border-radius:50%;padding:0}
+.set-sail .e,.dig-btn .e{font-size:calc(64px*var(--u))}
+.voy-ctl{position:absolute;bottom:var(--floor);pointer-events:none}
+.voy-ctl>*{pointer-events:auto}
+.voy-ctl.right{right:max(28px,calc(env(safe-area-inset-right) + 28px))}
+.voyage-screen .ctl{pointer-events:auto;width:max(96px,calc(128px*var(--u)));height:max(96px,calc(128px*var(--u)));border-radius:50%;border:4px solid #000;box-shadow:0 6px 0 #000;font-size:calc(56px*var(--u));padding:0;touch-action:none;color:#fff}
+.voyage-screen .ctl:active{transform:translateY(4px);box-shadow:0 2px 0 #000}
+.voyage-screen .ctl.cannon{background:radial-gradient(circle at 40% 35%,#ff6b6b,#d62828 60%,#8a1010)}
+.voyage-screen .ctl.jump{background:var(--go)}
+.voyage-screen .ctl.teach,.voyage-screen .ctl.pulse{animation:pulse 1s infinite}
+.walk-hint{position:absolute;left:50%;bottom:calc(var(--floor) + 30px);transform:translateX(-50%);background:#000a;border-radius:999px;padding:6px 16px;font:900 max(16px,calc(22px*var(--u))) Nunito,sans-serif;pointer-events:none;white-space:nowrap}
+.voy-result{position:fixed;inset:0;z-index:5;display:grid;place-items:center;background:#000a;padding:14px;text-align:center;overflow-y:auto}
+.voy-result .result-card{display:flex;flex-direction:column;align-items:center;gap:calc(12px*var(--u));max-width:min(640px,100%);padding:calc(22px*var(--u)) calc(30px*var(--u));border:4px solid #000;border-radius:24px;background:radial-gradient(circle at 50% 0%,#2f8fd8,#0d3b5e 70%);box-shadow:0 8px 0 #000,0 18px 40px #000a}
+.voy-result h2{margin:0;font:400 calc(42px*var(--u)) Bungee,sans-serif;color:var(--yellow);text-shadow:3px 3px 0 #000}
+.voy-result .prize{display:flex;flex-direction:column;align-items:center;gap:4px}
+.prize-art{font-size:calc(110px*var(--u));line-height:1;filter:drop-shadow(0 0 22px var(--glow,#ffd23f));animation:pop .6s cubic-bezier(.2,1.5,.4,1)}
+.prize-name{font:900 calc(28px*var(--u)) Nunito,sans-serif;color:var(--yellow)}
+.result-isle{width:calc(140px*var(--u));height:calc(110px*var(--u));min-width:90px;min-height:70px}
+.result-bolts{display:flex;align-items:center;gap:8px;font:900 calc(34px*var(--u)) Nunito,sans-serif;color:#fff}
+.voy-result .btns{display:flex;gap:16px;align-items:center;flex-wrap:wrap;justify-content:center}
+.voy-result .big-btn.go{font-size:calc(36px*var(--u));padding:calc(16px*var(--u)) calc(36px*var(--u))}
+.hoard-btn{width:max(96px,calc(110px*var(--u)));height:max(96px,calc(110px*var(--u)));padding:0;background:#3a2716;font-size:calc(52px*var(--u))}
+@media (orientation:landscape) and (max-height:520px){
+  .voy-result .result-card{gap:4px;padding:8px 20px}
+  .voy-result h2{font-size:24px}
+  .prize-art{font-size:56px}
+  .result-isle{display:none}
+  .voy-result .btns .big-btn{width:auto;height:auto;min-height:64px;padding:6px 22px}
+  .voy-result .big-btn.my-ship{width:72px;height:72px}
+  .voy-result .hoard-btn{width:72px;height:72px;font-size:36px;padding:0}
+  .tf-tile{padding:3px 4px}
+  .tf-tile .part-pic{min-height:0;height:48px;width:60px;min-width:0}
+  .mt-name{min-height:0}
+  .dock-side{grid-template-columns:minmax(0,1fr) minmax(0,1.3fr);grid-template-rows:minmax(0,1fr) auto}
+  .dock-side .yard-go{grid-column:1/-1}
+  .yard-go .sail-btn{min-height:60px}
+}
+
+@media (prefers-reduced-motion:reduce){
+  .ship-bob,.flag-wave,.isle-map .thing .halo,.isle-map .river.lit,.isle-map .sq-glow,.key-row.lit,.key-row.hint,.tf .choice.hint,.voyage-screen .ctl.teach,.voyage-screen .ctl.pulse,.prize-art,.ledge .treasure{animation:none}
+  .isle-map .ray-line{animation:none;stroke-dashoffset:0}.isle-map .ray-head{animation:none;opacity:1}
+  .stage-rose{transition:none}
+  .key-row.hint,.tf .choice.hint{outline:5px solid var(--yellow);outline-offset:3px}
+}
+
+/* a phone on its side: everything tighter, so the map and its key or choices fit side by side; every target stays 44px or more */
+@media (orientation:landscape) and (max-height:520px){
+  /* the question bar becomes a column on the left, so the map has the whole height (a 5 by 5 grid's squares stay 44px or more) */
+  .game.tf{padding:4px 8px;gap:8px;flex-direction:row;align-items:stretch}
+  .game.tf .ask{width:auto;max-width:26%;flex:none;flex-direction:column;align-items:flex-start;justify-content:flex-start;gap:6px}
+  .game.tf .ask h2{flex:none;font-size:17px}
+  .game.tf.meet{flex-direction:column}.game.tf.meet .ask{max-width:100%;flex-direction:row;align-items:center;justify-content:center}
+  .game.tf .say-btn,.game.tf .help-btn{width:44px;height:44px;min-height:44px;padding:0}
+  .tf-body{gap:8px}
+  .tf-controls{gap:6px}
+  .tf .choices .choice{min-height:48px;font-size:26px}
+  .key-row{font-size:15px;padding:0 6px}
+  button.key-row{min-height:44px}
+  .key-row .sym-icon{width:30px;height:30px}
+  .map-key{padding:4px 8px;gap:2px}
+  .tf .map-key.tappable{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .clue-chip{min-height:44px;padding:2px 8px;font-size:22px}
+  .stage-rose{width:56px;height:56px}
+  .tf .map-choice{aspect-ratio:auto;height:100%;min-height:60px}
+  .tf.above .tf-body{flex-direction:row}.tf.above .tf-controls{max-width:58%;width:auto}
+  .tf .choices.maps{grid-template-columns:1fr;grid-auto-rows:minmax(0,1fr);height:100%}
+}
