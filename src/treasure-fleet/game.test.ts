@@ -3,6 +3,7 @@ import type { SolvedProblem } from '../learning/session';
 import { BARRELS, canReach, CHEST_GOLD, destinationOf, freshFleet, goalOf, nextIsland, pickColour, pickDestination, proposePurchase, readFleet } from './fleet/fleet';
 import { island, ISLANDS } from './fleet/islands';
 import { ALL_KEYS, fit, infoOf, PARTS, rangeOf, SLOTS, STARTERS } from './fleet/parts';
+import { NUMBERS_TO } from './phrases';
 import { createPractice, fleetSave, SAVE_KEY, SAVE_VERSION, settleVoyage, type FleetGame } from './game';
 import { freshLearning } from './learning';
 
@@ -58,14 +59,19 @@ describe('the Shipyard', () => {
     expect(canReach(f, island('turtle'))).toBe(true);
     expect(canReach(f, island('palm'))).toBe(false);
   });
-  it('has four slots, each a free starter and three upgrades costing about 8, 25 and 55', () => {
+  it('has four slots, each a free starter, three upgrades costing about 8, 25 and 55, then three more up to 100', () => {
     for (const slot of SLOTS) {
       const prices = PARTS.filter(p => p.slot === slot).map(p => p.price);
       expect(prices[0]).toBe(0);
       expect(prices[1]).toBeGreaterThanOrEqual(8); expect(prices[1]).toBeLessThanOrEqual(12);
       expect(prices[2]).toBeGreaterThanOrEqual(20); expect(prices[2]).toBeLessThanOrEqual(30);
       expect(prices[3]).toBeGreaterThanOrEqual(50); expect(prices[3]).toBeLessThanOrEqual(60);
+      expect(prices).toHaveLength(7);
+      prices.forEach((p, i) => { if (i) expect(p).toBeGreaterThan(prices[i - 1]!); });
+      expect(PARTS.filter(p => p.slot === slot).map(p => p.range)).toEqual([1, 2, 3, 4, 5, 6, 7]);
     }
+    // the voice says every price, and its numbers go to 100
+    for (const k of ALL_KEYS) expect(infoOf(k).price).toBeLessThanOrEqual(NUMBERS_TO);
     expect(STARTERS).toHaveLength(SLOTS.length + 1); // and the skull flag
   });
   it('buys a part, fits it, and takes the Range that reaches the second island: one upgrade', () => {
@@ -83,12 +89,26 @@ describe('the Shipyard', () => {
     expect(pickColour(freshFleet(), 'gold').ship.colour).toBe('gold');
   });
   it('has an island for every few upgrades, and the top parts reach the last', () => {
-    const top = { ...freshFleet().ship, hull: 'galleon', sails: 'royal', cannons: 'golden', figurehead: 'serpent' };
+    const top = { ...freshFleet().ship, hull: 'ghost', sails: 'dragon', cannons: 'thunder', figurehead: 'phoenix' };
     expect(rangeOf(top)).toBe(ISLANDS.at(-1)!.range);
-    expect(ISLANDS).toHaveLength(8);
+    // the first eight still open with Rungs 1 to 3, as before
+    expect(rangeOf({ ...top, hull: 'galleon', sails: 'royal', cannons: 'golden', figurehead: 'serpent' })).toBe(island('star').range);
+    expect(ISLANDS).toHaveLength(16);
     ISLANDS.forEach((i, k) => { if (k) expect(i.range).toBeGreaterThan(ISLANDS[k - 1]!.range); });
-    expect(new Set(ISLANDS.map(i => i.treasure)).size).toBe(8);
-    expect(ALL_KEYS.filter(k => infoOf(k).price > 0).reduce((s, k) => s + infoOf(k).price, 0)).toBeLessThan(400);
+    expect(new Set(ISLANDS.map(i => i.treasure)).size).toBe(16);
+    expect(new Set(ISLANDS.map(i => i.art)).size).toBe(16);
+    expect(ALL_KEYS.filter(k => infoOf(k).price > 0).reduce((s, k) => s + infoOf(k).price, 0)).toBeLessThan(1400);
+  });
+  it('keeps everything a save had before the new rewards, and sets the next Goal among them', () => {
+    const old = SLOTS.flatMap(slot => PARTS.filter(p => p.slot === slot && p.range <= 4).map(p => `${slot}:${p.id}`));
+    const f = readFleet({ owned: [...old, 'flag:shark', 'flag:dragon'], ship: { hull: 'galleon', sails: 'royal', cannons: 'golden', figurehead: 'serpent', flag: 'dragon', colour: 'gold' }, visits: { star: 1 }, hoard: ISLANDS.slice(0, 8).map(i => i.id) });
+    expect(f.ship.hull).toBe('galleon');
+    expect(f.hoard).toHaveLength(8);
+    expect(nextIsland(f)!.id).toBe('turtle'); // he never sailed to the first ones in this made-up save
+    const g = goalOf(f)!;
+    expect(infoOf(g).range).toBe(5);
+    expect(nextIsland({ visits: Object.fromEntries(ISLANDS.slice(0, 8).map(i => [i.id, 1])) })!.id).toBe('shell');
+    expect(canReach(f, island('shell'))).toBe(false);
   });
   it('goes somewhere new when it can, and lets him pick only islands in reach', () => {
     const f = { ...freshFleet(), visits: { turtle: 1 }, hoard: ['turtle' as const], ship: fit(freshFleet().ship, 'hull:sloop') };

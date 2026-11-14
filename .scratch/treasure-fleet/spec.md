@@ -56,19 +56,21 @@ Never a red X: the thing he tapped just fades a little, and the lesson runs on t
 
 **The loop.** A finished Round earns Bolts and one Voyage (⛵). Bolts buy ship parts. Parts add Range. Range reaches islands further out. Each island's treasure goes in his Hoard the first time he digs there. He starts with one free Voyage, to Turtle Island.
 
-**The Ship (`fleet/parts.ts`).** Four slots, each with a free starter and three upgrades, plus a Flag:
+**The Ship (`fleet/parts.ts`).** Four slots, each with a free starter and six upgrades, plus a Flag:
 
-| Slot | Starter | Upgrades (Bolts) |
-|---|---|---|
-| Hull | Rowing Boat | Sloop 10, Brig 28, Galleon 60 |
-| Sails | Bedsheet Sail | Patched Sails 8, Square Sails 25, Royal Sails 55 |
-| Cannons | Little Cannon | Twin Cannons 8, Big Cannons 25, Golden Cannons 55 |
-| Figurehead | Plain Bow | Seagull 8, Mermaid 22, Sea Serpent 50 |
-| Flag | Skull Flag | Shark Flag 4, Dragon Flag 6; colours (black, red, blue, green, purple, gold) free |
+| Slot | Starter | Rungs 1 to 3 (Bolts) | Rungs 4 to 6 (Bolts), added 2026-11-14 |
+|---|---|---|---|
+| Hull | Rowing Boat | Sloop 10, Brig 28, Galleon 60 | Frigate 65 (blue), Battleship 80 (two rows of guns), Ghost Ship 95 (glows) |
+| Sails | Bedsheet Sail | Patched Sails 8, Square Sails 25, Royal Sails 55 | Striped Sails 60, Rainbow Sails 75, Dragon Wings 90 |
+| Cannons | Little Cannon | Twin Cannons 8, Big Cannons 25, Golden Cannons 55 | Silver Cannons 60, Fire Cannons 75, Thunder Cannons 90 |
+| Figurehead | Plain Bow | Seagull 8, Mermaid 22, Sea Serpent 50 | Great Shark 60, Unicorn 75, Phoenix 90 |
+| Flag | Skull Flag | Shark Flag 4, Dragon Flag 6 | Anchor 8, Sword 10, Octopus 12, Star 14, Crown 16, Parrot Flag 18 |
 
-The hull sets the size and the masts (a rowing boat with one stick, a sloop, a two-masted brig, a three-masted galleon); sails dress each mast; cannons show at the side and fire more shots at sea (1, 2, 2, 3); the figurehead rides the bow. Range is the sum of the four slots' upgrades plus one each (4 to 16). As in Rover Code, a part he hasn't got goes on the ship to try, with Buy beside it; one he can't afford becomes his Goal. Everything together costs 354 Bolts, the flags 10.
+Colours (black, red, blue, green, purple, gold) are free.
 
-**The islands (`fleet/islands.ts`).** Turtle Island (Range 4, the Golden Compass), Palm Island 5 (the Silver Spyglass), Parrot Island 7 (the Jade Parrot), Skull Rock 9 (the Ruby Skull), Mermaid Lagoon 11 (the Emerald Crown), Volcano Island 13 (the Dragon Egg), Kraken Reef 14 (the Kraken's Pearl), Starfall Island 16 (the Diamond Anchor). Set Sail goes to the nearest island he hasn't dug on, if the ship can reach it, otherwise the furthest he's been.
+The hull sets the size and the masts (a rowing boat with one stick, a sloop, a two-masted brig, a three-masted galleon); sails dress each mast; cannons show at the side and fire more shots at sea (1, 2, 2, 3, 3, 4, 5); the figurehead rides the bow. Range is the sum of the four slots' upgrades plus one each (4 to 28). No price is over 100, the most the recorded numbers go. As in Rover Code, a part he hasn't got goes on the ship to try, with Buy beside it; one he can't afford becomes his Goal. Everything together costs 1,269 Bolts (354 for Rungs 1 to 3, 915 for Rungs 4 to 6), the flags 88.
+
+**The islands (`fleet/islands.ts`).** Turtle Island (Range 4, the Golden Compass), Palm Island 5 (the Silver Spyglass), Parrot Island 7 (the Jade Parrot), Skull Rock 9 (the Ruby Skull), Mermaid Lagoon 11 (the Emerald Crown), Volcano Island 13 (the Dragon Egg), Kraken Reef 14 (the Kraken's Pearl), Starfall Island 16 (the Diamond Anchor), then (added 2026-11-14) Seashell Cove 17 (the Magic Conch), Iceberg Island 18 (the Crystal Sword), Banana Island 20 (the Golden Banana), Lighthouse Point 21 (the Lucky Lantern), Shipwreck Bay 23 (the Old Pirate Map), Thunder Isle 24 (the Storm Bell), Ghost Island 26 (the Silver Key), Rainbow Reef 28 (the Rainbow Diamond). Each has its own sand, sea and sky, and most of the new ones a landmark on the sea chart in place of a palm. Set Sail goes to the nearest island he hasn't dug on, if the ship can reach it, otherwise the furthest he's been.
 
 **The sea chart.** The island picker in the Shipyard is itself a map: islands where they lie (further ones further from the port), north up, a compass rose and a key (⚓ port, island, ✕ treasure). The next stop is ringed and joined to the port by a dotted line; islands out of reach are grey with the Range they need ("Build a faster ship to get there!"). It is never a question and can't be got wrong.
 
@@ -78,7 +80,7 @@ The hull sets the size and the masts (a rowing boat with one stick, a sloop, a t
 2. **The island, from the side.** His pirate (bandana in his flag's colour) steps off at the start of the beach. He holds anywhere on the sand to walk and taps ⤴ to jump. Three crabs pace the beach; walking into one only bumps him back a step, and it ducks into the sand for a moment so nothing can stop him. At the X, he taps ⛏️ three times; the chest rises and opens.
 3. **What he found.** "You found the Golden Compass!" (or "Welcome back to Turtle Island! You found gold!"), the Bolts, then 💎 (the Hoard), his ship (the Shipyard), and ⛵ again if he has another Voyage, else ▶.
 
-**The Hoard.** A cave with eight ledges. Each treasure he has found sits lit on its own ledge; the rest show the island that holds them ("Sail further to find this one!"). His ship is moored at the cave mouth. Nothing here can be lost.
+**The Hoard.** A cave with sixteen ledges (eight to a row on a wide screen). Each treasure he has found sits lit on its own ledge; the rest show the island that holds them ("Sail further to find this one!"). His ship is moored at the cave mouth. Nothing here can be lost.
 
 **Economy defaults, for the parent to confirm.**
 
@@ -86,17 +88,18 @@ The hull sets the size and the masts (a rowing boat with one stick, a sloop, a t
 - A Voyage pays at most 6 Bolts: up to 3 barrels plus 3 gold in every chest. A Round pays at most 6, so the reward roughly doubles a Round's Bolts, as Rover Code's does. `BARRELS` and `CHEST_GOLD` in `fleet/fleet.ts` are where to change it.
 - Revisiting an island pays the same Bolts but no new treasure.
 - The second island needs one upgrade (8 to 10 Bolts, about two Rounds); the last needs every top part.
+- **More than doubled on 2026-11-14**, the day it was built, at the parent's request: Rungs 4 to 6 in every slot, six more flags and eight more islands and treasures (22 rewards to 48). Payouts were left as they were, as in Rover Code's doubling. A save that had everything keeps it; the Goal moves to the cheapest Rung 4 part. The sea chart was laid out again for sixteen islands, still roughly further out the more Range they need.
 - The Voyage is used, and paid, only when the chest opens. Leaving halfway (🏠 twice) costs nothing and pays nothing. A reload during a Voyage lands at the Shipyard.
 
 **Controls stay off the edges**, as Math Bots' fight learned: the cannon, jump and dig buttons sit at the right, above a floor of at least 56px and 28px in from the side; steering and walking are touches anywhere on the picture.
 
 ## Look
 
-The family look in sea blue, parchment and brass: Bungee titles, Nunito for reading, 4px black outlines, solid drop shadows that press in. Question maps are parchment islands on a strip of sea, drawn in code from eight symbols (palm tree, hut, cave, hill, rock, dock, bridge, river) that are also the sea chart's. The ship is drawn in code (SVG from the side in the Shipyard, the end of a Round and the Hoard; canvas from above at sea and small from the side at anchor) from the parts he has fitted, so the ship he built is the one that sails. Treasures are emoji (🧭 🔭 🦜 💀 👑 🥚 🦪 ⚓) with a glow in the island's colour. Icon: a little ship under a skull flag sailing toward a red X on a torn scrap of map.
+The family look in sea blue, parchment and brass: Bungee titles, Nunito for reading, 4px black outlines, solid drop shadows that press in. Question maps are parchment islands on a strip of sea, drawn in code from eight symbols (palm tree, hut, cave, hill, rock, dock, bridge, river) that are also the sea chart's. The ship is drawn in code (SVG from the side in the Shipyard, the end of a Round and the Hoard; canvas from above at sea and small from the side at anchor) from the parts he has fitted, so the ship he built is the one that sails. Treasures are emoji (🧭 🔭 🦜 💀 👑 🥚 🦪 ⚓ 🐚 🗡️ 🍌 🏮 🗺️ 🔔 🗝️ 💎) with a glow in the island's colour. Icon: a little ship under a skull flag sailing toward a red X on a torn scrap of map.
 
 ## Voice
 
-Aria at -8%, recorded with `tools/make_voice.py --collection treasure-fleet` (edge-tts): 445 clips (6.5 MB) in `public/treasure-fleet-voice/`, trimmed as they decode. Questions are whole sentences where there are few enough of them (all 48 "What is left of the palm tree?" lines, the 15 "between" pairs said in one fixed order, and so on), so they sound natural. Directions, clues and grid squares are chained from pieces: "Go", "north", "2", "squares."; "Then go", "east", "to the hut."; "Tap", "B.", "2". Letter names are recorded as the capital and a full stop, Sight Squad's trick, and come out as the very same clips Sight Squad already uses. Answer buttons are never read out (Math Bots' rule).
+Aria at -8%, recorded with `tools/make_voice.py --collection treasure-fleet` (edge-tts): 513 clips in `public/treasure-fleet-voice/`, trimmed as they decode. Questions are whole sentences where there are few enough of them (all 48 "What is left of the palm tree?" lines, the 15 "between" pairs said in one fixed order, and so on), so they sound natural. Directions, clues and grid squares are chained from pieces: "Go", "north", "2", "squares."; "Then go", "east", "to the hut."; "Tap", "B.", "2". Letter names are recorded as the capital and a full stop, Sight Squad's trick, and come out as the very same clips Sight Squad already uses. Answer buttons are never read out (Math Bots' rule).
 
 ## Save
 

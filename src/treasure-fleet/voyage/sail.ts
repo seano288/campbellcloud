@@ -56,7 +56,7 @@ export function createSail(aspect: number, guns: number, rng: Rng): Sail {
   const width = widthFor(aspect);
   return {
     t: 0, width, x: width / 2, heading: 0, kick: 0, wobble: 0, floaters: [], tentacles: [], balls: [], splashes: [], barrels: 0, splashed: 0, bumps: 0,
-    sentBarrels: 0, sentTentacles: 0, sentRocks: 0, nextRock: 2.5, reload: 0, guns: Math.max(1, Math.min(3, guns)), scroll: 0, started: false, done: false, events: [], rng,
+    sentBarrels: 0, sentTentacles: 0, sentRocks: 0, nextRock: 2.5, reload: 0, guns: Math.max(1, Math.min(5, guns)), scroll: 0, started: false, done: false, events: [], rng,
   };
 }
 export const resizeSail = (s: Sail, aspect: number) => {

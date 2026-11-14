@@ -270,7 +270,7 @@ _Avoid_: legend
 
 **Shipyard**: where he builds his ship, Treasure Fleet's Garage: the dock, the sea chart, the Set Sail button and the parts tray.
 
-**Ship**: his ship, Treasure Fleet's Body, built from four slots (Hull, Sails, Cannons, Figurehead) and a Flag (an emblem he buys and colours he picks for free). It starts as a rowing boat with a bedsheet sail and ends as a galleon. Its Range (4 to 16) decides which islands it can reach.
+**Ship**: his ship, Treasure Fleet's Body, built from four slots (Hull, Sails, Cannons, Figurehead) and a Flag (an emblem he buys and colours he picks for free). It starts as a rowing boat with a bedsheet sail and ends as a ghost ship. Its Range (4 to 28) decides which islands it can reach.
 
 **Range**: how far the ship can sail, Treasure Fleet's Power: one for each slot's Rung plus one.
 
@@ -279,7 +279,7 @@ _Avoid_: launch, ticket
 
 **Sea Chart**: the map of the islands in the Shipyard, with a compass rose and a key; tapping an island in reach makes it the next stop. It is never a question.
 
-**Island**: one of eight (Turtle Island, Palm Island, Parrot Island, Skull Rock, Mermaid Lagoon, Volcano Island, Kraken Reef, Starfall Island), each needing more Range and each hiding one Treasure.
+**Island**: one of sixteen (Turtle Island, Palm Island, Parrot Island, Skull Rock, Mermaid Lagoon, Volcano Island, Kraken Reef, Starfall Island, Seashell Cove, Iceberg Island, Banana Island, Lighthouse Point, Shipwreck Bay, Thunder Isle, Ghost Island, Rainbow Reef), each needing more Range and each hiding one Treasure.
 
 **Treasure**: the named prize in an island's chest the first time he digs there (the Golden Compass, the Ruby Skull, the Kraken's Pearl...). Every chest also holds gold (Bolts).
 _Avoid_: Trophy (Trophies are earned by playing well; Treasures by sailing)

@@ -1,26 +1,35 @@
 // Drawing the Voyage on a canvas: the sea from above with his ship (built from his parts, so the ship he built is the one that sails),
 // barrels, rocks, tentacles and splashes; then the island from the side with his pirate, the crabs, the X and the chest.
-import { colourOf, rungOf, type Ship } from '../fleet/parts';
+import { colourOf, GUN_METAL, rungOf, type Ship } from '../fleet/parts';
 import type { IslandDef } from '../fleet/islands';
 import { ARRIVE_S, SAIL_S, SHIP_Y, type Sail } from './sail';
 import { BEACH, dune, GROUND_Y, START_X, VIEW_H, X_AT, type Walk } from './island';
 
 const O = '#1d140c';
 const outline = (c: CanvasRenderingContext2D, w = 5) => { c.lineWidth = w; c.strokeStyle = O; c.lineJoin = 'round'; c.lineCap = 'round'; c.stroke(); };
+/** Hull wood by Rung, as in the Shipyard (art/ShipView.tsx). */
+const WOOD = ['#a8743c', '#9b5f2e', '#7e4a24', '#5e3218', '#2f4f7a', '#3a1f12', '#5f8f88'] as const;
+const RAINBOW = ['#ff5a5a', '#ffb02e', '#ffe14d', '#4cd07a', '#4aa8ff', '#9a6bff'] as const;
+/** The sail cloth by Rung; Rainbow Sails (5) take a colour per mast. */
+const clothOf = (sails: number, mast: number) => (sails === 0 ? '#f4f6fa' : sails === 5 ? RAINBOW[(mast * 2) % RAINBOW.length]! : sails === 6 ? '#8a1c2b' : sails >= 3 ? '#fff6dc' : sails === 2 ? '#f4f1e8' : '#e8dcc0');
+const FIGURE = ['', '#ffffff', '#3ec7b2', '#3fa34d', '#8a9aa8', '#fbf7ff', '#e8573a'] as const;
+/** Bigger hulls grow less past the galleon, so the ship stays clear of the barrels' lane on a phone. */
+const grow = (rung: number, a: number, b: number) => Math.min(rung, 3) * a + Math.max(0, rung - 3) * b;
 
 // ---------- the sea, from above ----------
 
 /** His ship from above, bow up, centred on 0,0. A rowing boat is short with one mast; a galleon is long with three. */
 export function drawShipTop(c: CanvasRenderingContext2D, ship: Ship, t: number) {
   const hull = rungOf(ship, 'hull'), sails = rungOf(ship, 'sails'), guns = rungOf(ship, 'cannons'), fig = rungOf(ship, 'figurehead');
-  const len = 120 + hull * 32, half = 30 + hull * 7, wood = ['#a8743c', '#9b5f2e', '#7e4a24', '#5e3218'][hull]!;
+  const len = 120 + grow(hull, 32, 10), half = 30 + grow(hull, 7, 2), wood = WOOD[hull]!;
+  if (hull === 6) { c.beginPath(); c.ellipse(0, 0, half * 1.4, len * .58, 0, 0, Math.PI * 2); c.fillStyle = '#b8ffe633'; c.fill(); }
   // wake
   c.fillStyle = '#ffffff55';
   c.beginPath(); c.moveTo(-half * .7, len * .45); c.lineTo(-half * 1.6, len * .9 + Math.sin(t * 6) * 6); c.lineTo(half * 1.6, len * .9 + Math.cos(t * 6) * 6); c.lineTo(half * .7, len * .45); c.closePath(); c.fill();
   // cannons out of the sides
-  for (let i = 0; i <= guns; i++) for (const side of [-1, 1]) {
-    const y = -len * .15 + i * len * .16;
-    c.fillStyle = guns >= 3 ? '#ffd23f' : '#3a3d44'; c.beginPath(); c.roundRect(side * half - (side > 0 ? 0 : 16), y - 5, 16, 10, 4); c.fill(); outline(c, 3);
+  for (let i = 0; i <= Math.min(guns, 4); i++) for (const side of [-1, 1]) {
+    const y = -len * .2 + i * len * (guns > 3 ? .13 : .16);
+    c.fillStyle = GUN_METAL[guns]!; c.beginPath(); c.roundRect(side * half - (side > 0 ? 0 : 16), y - 5, 16, 10, 4); c.fill(); outline(c, 3);
   }
   // hull
   c.beginPath();
@@ -34,19 +43,25 @@ export function drawShipTop(c: CanvasRenderingContext2D, ship: Ship, t: number) 
   c.strokeStyle = '#00000022'; c.lineWidth = 2; for (let y = -len * .3; y < len * .38; y += 12) { c.beginPath(); c.moveTo(-half * .6, y); c.lineTo(half * .6, y); c.stroke(); }
   // masts and sails, seen from above: a yard across each mast with the sail billowing forward
   const masts = hull === 0 ? [0] : hull === 1 ? [-.05] : hull === 2 ? [-.2, .18] : [-.27, 0, .26];
-  const cloth = sails === 0 ? '#f4f6fa' : sails === 3 ? '#fff6dc' : sails === 2 ? '#f4f1e8' : '#e8dcc0';
   masts.forEach((m, i) => {
-    const y = m * len, span = (half * 1.2 + sails * 10) * (i === Math.floor(masts.length / 2) ? 1 : .85);
-    c.beginPath(); c.moveTo(-span, y + 6); c.quadraticCurveTo(0, y - 22 - sails * 4, span, y + 6); c.quadraticCurveTo(0, y - 6, -span, y + 6); c.fillStyle = cloth; c.fill(); outline(c, 4);
+    const y = m * len, s3 = Math.min(sails, 3) + (sails > 3 ? .6 : 0), span = (half * 1.2 + s3 * 10) * (i === Math.floor(masts.length / 2) ? 1 : .85);
+    c.beginPath(); c.moveTo(-span, y + 6); c.quadraticCurveTo(0, y - 22 - s3 * 4, span, y + 6); c.quadraticCurveTo(0, y - 6, -span, y + 6); c.fillStyle = clothOf(sails, i); c.fill(); outline(c, 4);
     if (sails === 0) { c.strokeStyle = '#7fb3e6'; c.lineWidth = 4; c.beginPath(); c.moveTo(-span * .6, y - 2); c.quadraticCurveTo(0, y - 14, span * .6, y - 2); c.stroke(); }
     if (sails === 3) { c.strokeStyle = '#c81d25'; c.lineWidth = 5; c.beginPath(); c.moveTo(-span * .7, y - 4); c.quadraticCurveTo(0, y - 18, span * .7, y - 4); c.stroke(); }
+    if (sails === 4) { c.strokeStyle = '#d62828'; c.lineWidth = 6; c.beginPath(); for (const k of [-.5, 0, .5]) { c.moveTo(span * k, y + 2); c.lineTo(span * k, y - 14 + Math.abs(k) * 10); } c.stroke(); }
+    if (sails === 6) { c.strokeStyle = '#f2c79b'; c.lineWidth = 3; c.beginPath(); for (const k of [-.7, -.3, .3, .7]) { c.moveTo(0, y - 6); c.lineTo(span * k, y + 2); } c.stroke(); }
     c.beginPath(); c.arc(0, y + 4, 7, 0, Math.PI * 2); c.fillStyle = '#8a5a2b'; c.fill(); outline(c, 3);
   });
   // his flag, streaming back from the main mast
   const main = masts[Math.floor(masts.length / 2)]! * len, col = colourOf(ship.colour);
   c.beginPath(); c.moveTo(0, main + 4); c.quadraticCurveTo(14 + Math.sin(t * 8) * 5, main + 26, 4, main + 46); c.lineTo(-10, main + 30); c.closePath(); c.fillStyle = col.cloth; c.fill(); outline(c, 3);
   // figurehead at the bow
-  if (fig > 0) { c.beginPath(); c.arc(0, -len / 2 - 6, 8 + fig, 0, Math.PI * 2); c.fillStyle = fig === 1 ? '#ffffff' : fig === 2 ? '#3ec7b2' : '#3fa34d'; c.fill(); outline(c, 3); }
+  if (fig > 0) {
+    c.beginPath(); c.arc(0, -len / 2 - 6, 8 + Math.min(fig, 4), 0, Math.PI * 2); c.fillStyle = FIGURE[fig]!; c.fill(); outline(c, 3);
+    if (fig === 5) { c.beginPath(); c.moveTo(-3, -len / 2 - 14); c.lineTo(0, -len / 2 - 34); c.lineTo(3, -len / 2 - 14); c.closePath(); c.fillStyle = '#ffd23f'; c.fill(); outline(c, 2); }
+    if (fig === 6) for (const sd of [-1, 1]) { c.beginPath(); c.moveTo(sd * 8, -len / 2 - 6); c.quadraticCurveTo(sd * 30, -len / 2 - 20, sd * 22, -len / 2 + 8); c.closePath(); c.fillStyle = '#ffb02e'; c.fill(); outline(c, 2); }
+    if (fig === 4) { c.beginPath(); c.moveTo(0, -len / 2 - 2); c.lineTo(0, -len / 2 - 26); c.lineTo(10, -len / 2 - 6); c.closePath(); c.fillStyle = '#8a9aa8'; c.fill(); outline(c, 2); }
+  }
 }
 
 function drawBarrel(c: CanvasRenderingContext2D, r: number, spin: number) {
@@ -139,18 +154,19 @@ export function drawSail(c: CanvasRenderingContext2D, s: Sail, w: number, h: num
 
 /** His ship from the side, small, at anchor: hull, masts, sails and flag in his colours. */
 function drawShipSide(c: CanvasRenderingContext2D, ship: Ship, t: number) {
-  const hull = rungOf(ship, 'hull'), sails = rungOf(ship, 'sails'), half = 80 + hull * 24, masts = hull === 0 ? [0] : hull === 1 ? [0] : hull === 2 ? [-.35, .3] : [-.5, 0, .45];
+  const hull = rungOf(ship, 'hull'), sails = rungOf(ship, 'sails'), half = 80 + grow(hull, 24, 6), masts = hull === 0 ? [0] : hull === 1 ? [0] : hull === 2 ? [-.35, .3] : [-.5, 0, .45];
   c.rotate(Math.sin(t * 1.6) * .03);
   masts.forEach((m, i) => {
-    const x = m * half, top = -110 - hull * 20 - (i === Math.floor(masts.length / 2) ? 20 : 0);
+    const x = m * half, top = -110 - grow(hull, 20, 4) - (i === Math.floor(masts.length / 2) ? 20 : 0);
     c.beginPath(); c.moveTo(x, 0); c.lineTo(x, top); c.lineWidth = 8; c.strokeStyle = O; c.stroke();
-    const sw = 30 + sails * 8;
+    const sw = 30 + Math.min(sails, 3) * 8 + (sails > 3 ? 4 : 0);
     c.beginPath(); c.moveTo(x - sw, top + 16); c.quadraticCurveTo(x + 6, top + 6, x + sw, top + 16); c.lineTo(x + sw, top + 90); c.quadraticCurveTo(x + 6, top + 82, x - sw, top + 90); c.closePath();
-    c.fillStyle = sails === 0 ? '#f4f6fa' : '#f4f1e8'; c.fill(); outline(c, 4);
+    c.fillStyle = sails === 0 ? '#f4f6fa' : sails >= 4 ? clothOf(sails, i) : '#f4f1e8'; c.fill(); outline(c, 4);
+    if (sails === 4) { c.fillStyle = '#d62828'; for (const k of [-.5, .1]) c.fillRect(x + sw * k, top + 14, sw * .3, 74); }
     if (i === Math.floor(masts.length / 2)) { c.beginPath(); c.moveTo(x, top); c.lineTo(x + 44, top + 8 + Math.sin(t * 6) * 3); c.lineTo(x, top + 24); c.closePath(); c.fillStyle = colourOf(ship.colour).cloth; c.fill(); outline(c, 3); }
   });
   c.beginPath(); c.moveTo(-half, -18); c.lineTo(-half + 14, 30); c.quadraticCurveTo(0, 40, half - 20, 30); c.lineTo(half + 12, -22); c.closePath();
-  c.fillStyle = ['#a8743c', '#9b5f2e', '#7e4a24', '#5e3218'][hull]!; c.fill(); outline(c);
+  c.fillStyle = WOOD[hull]!; c.fill(); outline(c);
 }
 
 function drawPirate(c: CanvasRenderingContext2D, ship: Ship, t: number, moving: boolean, digging: number) {
@@ -209,7 +225,7 @@ function drawChest(c: CanvasRenderingContext2D, rise: number, open: number, art:
 export function drawIsland(c: CanvasRenderingContext2D, wk: Walk, w: number, h: number, ship: Ship, isle: IslandDef, digT: number, openT: number) {
   const k = h / VIEW_H, viewW = w / k, cam = Math.max(0, Math.min(BEACH - viewW, wk.x - viewW * .35));
   const sky = c.createLinearGradient(0, 0, 0, h);
-  sky.addColorStop(0, '#7cc6f2'); sky.addColorStop(1, '#d6f0ff');
+  sky.addColorStop(0, isle.sky); sky.addColorStop(1, '#d6f0ff');
   c.fillStyle = sky; c.fillRect(0, 0, w, h);
   c.save(); c.scale(k, k);
   // sun and far sea

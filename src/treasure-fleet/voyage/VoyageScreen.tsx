@@ -29,7 +29,7 @@ import { createSail, fire, resizeSail, stepSail, widthFor, type Sail } from './s
 
 type Phase = 'sail' | 'island' | 'end';
 /** Shots per tap of the cannon, by the cannons he has fitted. */
-const GUNS = [1, 2, 2, 3] as const;
+const GUNS = [1, 2, 2, 3, 3, 4, 5] as const;
 const reduced = () => typeof matchMedia === 'function' && matchMedia('(prefers-reduced-motion:reduce)').matches;
 
 /** Runs a loop on a canvas sized to its box: `step` advances the world by dt, `draw` paints it. */

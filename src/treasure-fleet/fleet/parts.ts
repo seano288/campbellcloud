@@ -10,7 +10,8 @@ export const TABS: readonly Tab[] = [...SLOTS, 'flag'];
 
 export interface Part { readonly slot: Slot; readonly id: string; readonly name: string; readonly price: number; readonly range: number }
 
-// Range is the Rung plus one: a starter adds 1, a top part 4. Prices are about 8, 25 and 55 by step.
+// Range is the Rung plus one: a starter adds 1, a Rung 6 part 7. Prices are about 8, 25 and 55 for Rungs 1 to 3, then 60 to 100 for
+// Rungs 4 to 6 (added 2026-11-14, when he had bought everything). No price is over 100, the most the recorded numbers go.
 export const PARTS = [
   { slot: 'hull', id: 'rowboat', name: 'Rowing Boat', price: 0, range: 1 }, { slot: 'hull', id: 'sloop', name: 'Sloop', price: 10, range: 2 },
   { slot: 'hull', id: 'brig', name: 'Brig', price: 28, range: 3 }, { slot: 'hull', id: 'galleon', name: 'Galleon', price: 60, range: 4 },
@@ -20,7 +21,17 @@ export const PARTS = [
   { slot: 'cannons', id: 'big', name: 'Big Cannons', price: 25, range: 3 }, { slot: 'cannons', id: 'golden', name: 'Golden Cannons', price: 55, range: 4 },
   { slot: 'figurehead', id: 'plain', name: 'Plain Bow', price: 0, range: 1 }, { slot: 'figurehead', id: 'gull', name: 'Seagull', price: 8, range: 2 },
   { slot: 'figurehead', id: 'mermaid', name: 'Mermaid', price: 22, range: 3 }, { slot: 'figurehead', id: 'serpent', name: 'Sea Serpent', price: 50, range: 4 },
+  { slot: 'hull', id: 'frigate', name: 'Frigate', price: 65, range: 5 }, { slot: 'hull', id: 'warship', name: 'Battleship', price: 80, range: 6 },
+  { slot: 'hull', id: 'ghost', name: 'Ghost Ship', price: 95, range: 7 },
+  { slot: 'sails', id: 'striped', name: 'Striped Sails', price: 60, range: 5 }, { slot: 'sails', id: 'rainbow', name: 'Rainbow Sails', price: 75, range: 6 },
+  { slot: 'sails', id: 'dragon', name: 'Dragon Wings', price: 90, range: 7 },
+  { slot: 'cannons', id: 'silver', name: 'Silver Cannons', price: 60, range: 5 }, { slot: 'cannons', id: 'fire', name: 'Fire Cannons', price: 75, range: 6 },
+  { slot: 'cannons', id: 'thunder', name: 'Thunder Cannons', price: 90, range: 7 },
+  { slot: 'figurehead', id: 'shark', name: 'Great Shark', price: 60, range: 5 }, { slot: 'figurehead', id: 'unicorn', name: 'Unicorn', price: 75, range: 6 },
+  { slot: 'figurehead', id: 'phoenix', name: 'Phoenix', price: 90, range: 7 },
 ] as const satisfies readonly Part[];
+/** The cannons' metal, by Rung: iron, then gold, silver, fire red and thunder purple. */
+export const GUN_METAL = ['#3a3d44', '#3a3d44', '#3a3d44', '#ffd23f', '#d6dde5', '#e8573a', '#7a4fd8'] as const;
 export type PartName = (typeof PARTS)[number]['name'];
 
 export interface Emblem { readonly id: string; readonly name: string; readonly price: number }
@@ -28,6 +39,12 @@ export const EMBLEMS = [
   { id: 'skull', name: 'Skull Flag', price: 0 },
   { id: 'shark', name: 'Shark Flag', price: 4 },
   { id: 'dragon', name: 'Dragon Flag', price: 6 },
+  { id: 'anchor', name: 'Anchor Flag', price: 8 },
+  { id: 'swords', name: 'Sword Flag', price: 10 },
+  { id: 'octopus', name: 'Octopus Flag', price: 12 },
+  { id: 'star', name: 'Star Flag', price: 14 },
+  { id: 'crown', name: 'Crown Flag', price: 16 },
+  { id: 'parrot', name: 'Parrot Flag', price: 18 },
 ] as const satisfies readonly Emblem[];
 export type EmblemId = (typeof EMBLEMS)[number]['id'];
 export type EmblemName = (typeof EMBLEMS)[number]['name'];
@@ -69,7 +86,7 @@ export interface Ship { hull: string; sails: string; cannons: string; figurehead
 export const starterShip = (): Ship => ({ hull: 'rowboat', sails: 'sheet', cannons: 'little', figurehead: 'plain', flag: 'skull', colour: 'black' });
 export const fittedKeys = (s: Ship): PartKey[] => [...SLOTS.map(slot => keyOf(slot, s[slot])), keyOf('flag', s.flag)];
 export const rangeOf = (s: Ship) => SLOTS.reduce((sum, slot) => sum + infoOf(keyOf(slot, s[slot])).range, 0);
-/** 0 for a starter, 3 for a top part. */
+/** 0 for a starter, 6 for a top part. */
 export const rungOf = (s: Ship, slot: Slot) => infoOf(keyOf(slot, s[slot])).range - 1;
 export function fit(s: Ship, k: PartKey): Ship {
   const tab = tabOf(k), id = idOf(k);
