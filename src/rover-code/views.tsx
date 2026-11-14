@@ -346,7 +346,7 @@ export function MeetView({ current, waiting }: { current: ProblemInstance<Meet, 
     if (!current.signal.aborted) current.actions.submit('ok');
   }
   return (
-    <div class={cls('game', 'rc', 'meet', current.problem.meeting)} data-ready={ready && !running && !waiting ? 'yes' : 'no'}>
+    <div class={cls('game', 'rc', 'meet', `meet-${current.problem.meeting}`)} data-ready={ready && !running && !waiting ? 'yes' : 'no'}>
       <div class="ask"><h2>{m.lines[0]}</h2></div>
       <div class="rc-body">
         <div class="rc-stage"><GridView grid={m.grid} lesson={lesson} label="The rover and the flag" /></div>
