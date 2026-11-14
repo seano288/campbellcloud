@@ -124,12 +124,18 @@ export function ShipArt({ ship, bob = true }: { ship: Ship; bob?: boolean }) {
 /** Each hull's box, so a rowing boat fills its picture as well as a galleon does. */
 const BOXES = ['-125 -180 250 245', '-145 -215 290 280', '-160 -232 320 297', '-178 -252 356 317'] as const;
 
+/** A patch of sea under the ship: a wavy top that tapers into a rounded belly, so it reads as water wherever it sits, not a box. */
+const SEA_BACK = 'M-180 22 Q-158 10 -135 16 T-90 18 T0 18 T90 18 T135 16 Q158 10 180 22 Q150 62 0 64 Q-150 62 -180 22 Z';
+const SEA_LINE = 'M-170 18 Q-150 8 -135 16 T-90 18 T0 18 T90 18 T135 16 Q150 8 170 18';
+const SEA_FRONT = 'M-150 34 Q-120 24 -90 30 T0 30 T90 30 Q120 24 150 34 Q120 58 0 60 Q-120 58 -150 34 Z';
+
 export function ShipView({ ship, class: cls = '', label = 'Your ship', sea = true }: { ship: Ship; class?: string; label?: string | null; sea?: boolean }) {
   return (
     <svg class={`ship-view ${cls}`} viewBox={BOXES[rungOf(ship, 'hull')]} {...(label ? { role: 'img', 'aria-label': label } : { 'aria-hidden': 'true' })}>
-      {sea && <path d="M-180 18 Q-135 6 -90 18 T0 18 T90 18 T180 18 V65 H-180 Z" class="ship-sea" />}
+      {sea && <path d={SEA_BACK} class="ship-sea" />}
+      {sea && <path d={SEA_LINE} class="ship-sea-line" />}
       <ShipArt ship={ship} />
-      {sea && <path d="M-180 30 Q-135 20 -90 30 T0 30 T90 30 T180 30 V65 H-180 Z" class="ship-sea front" />}
+      {sea && <path d={SEA_FRONT} class="ship-sea front" />}
     </svg>
   );
 }

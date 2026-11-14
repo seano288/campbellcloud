@@ -1,10 +1,11 @@
-// Home: one Play tile, the biggest thing on the screen (every Round mixes the kinds he has opened), the Shipyard tile with his ship on
-// it, the Hoard tile with his treasure count, and a board with his Level in each kind. Tapping a kind says its name, and a locked one
+// Home: one Play tile, the biggest thing on the screen (a treasure map with ▶ on the X; every Round mixes the kinds he has opened), the Shipyard tile with his ship on
+// it, the Hoard tile with its chest and his treasure count, and a board with his Level in each kind. Tapping a kind says its name, and a locked one
 // says what opens it.
 import { useEffect } from 'preact/hooks';
 import type { ComponentChildren } from 'preact';
 import { sBad } from '../audio/sfx';
 import { LevelDots } from '../ui/bits';
+import { Chest, PlayMap, SpotX } from './art/HomeArt';
 import { ShipView } from './art/ShipView';
 import { ISLANDS } from './fleet/islands';
 import { player } from './game';
@@ -31,13 +32,19 @@ export function Home({ status }: { status: ComponentChildren }) {
     <div class="screen home-screen">
       <header class="home-head"><h1>Treasure Fleet</h1>{status}</header>
       <div class="home tf-home">
-        <button class="tile t-play" aria-label="Play" onClick={() => { if (voice.active) startRound(); }}><span class="e">▶</span></button>
+        <button class="tile t-play" aria-label="Play" onClick={() => { if (voice.active) startRound(); }}>
+          <PlayMap />
+          <span class="spot"><SpotX /><span class="e">▶</span></span>
+        </button>
         <button class="tile t-yard" aria-label="Shipyard" onClick={() => { if (voice.active) screen.value = 'shipyard'; }}>
           <ShipView ship={fleet.ship} label={null} /><span class="nm">Shipyard</span>
           {fleet.voyages > 0 && <span class="voyage-badge" aria-hidden="true">⛵{fleet.voyages}</span>}
         </button>
         <button class="tile t-hoard" aria-label="Hoard" onClick={() => { if (voice.active) screen.value = 'hoard'; }}>
-          <span class="hoard-pile" aria-hidden="true">{fleet.hoard.length ? fleet.hoard.slice(-3).map(id => ISLANDS.find(i => i.id === id)!.art).join('') : '🗝️'}</span>
+          <span class="hoard-art" aria-hidden="true">
+            {fleet.hoard.length > 0 && <span class="hoard-pile">{fleet.hoard.slice(-3).map(id => ISLANDS.find(i => i.id === id)!.art).join('')}</span>}
+            <Chest open={fleet.hoard.length > 0} />
+          </span>
           <span class="nm">Hoard {fleet.hoard.length}/{ISLANDS.length}</span>
         </button>
         <div class="tile t-kinds" role="group" aria-label="My Levels">
