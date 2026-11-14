@@ -7,6 +7,7 @@
   .venv/bin/python tools/make_voice.py --collection chop-chop --out public/chop-chop-voice --index src/chop-chop/voice.gen.ts
   .venv/bin/python tools/make_voice.py --collection sight-squad --out public/sight-squad-voice --index src/sight-squad/voice.gen.ts
   .venv/bin/python tools/make_voice.py --collection math-bots --out public/math-bots-voice --index src/math-bots/voice.gen.ts
+  .venv/bin/python tools/make_voice.py --collection rover-code --out public/rover-code-voice --index src/rover-code/voice.gen.ts
 
 Select phrases through tools/phrases.ts and write recordings and a typed index to explicit locations.
 Only missing clips are recorded. Cleanup touches only the selected directory, whose .voice-collection
@@ -22,7 +23,9 @@ VOICES = {'purrdoku': ('en-GB-RyanNeural', '-5%'),
           # Sight Squad teaches reading, so short vowels must be crisp: Ava blurs them ("did" sounds like "dead", "hat" like "hot")
           'sight-squad': ('en-US-AriaNeural', '-8%'),
           # Math Bots chains numbers into lines: Aria keeps "plus" and "ten" crisp, and teens clearly longer than decades
-          'math-bots': ('en-US-AriaNeural', '-8%')}
+          'math-bots': ('en-US-AriaNeural', '-8%'),
+          # Rover Code chains numbers into lines like Math Bots, and says directions and pattern pieces one clip at a time
+          'rover-code': ('en-US-AriaNeural', '-8%')}
 ROOT = Path(__file__).resolve().parent.parent
 
 

@@ -209,3 +209,37 @@ _Avoid_: Mod (Math Bots has parts, not Mods)
 **Legendary (Math Bots)**: Rainbow Paint, Lightning Drum, Dragon Armour, Comet Wheels. Never bought with Bolts and never the Goal, and each waits on the dearest part of its sort.
 
 **Balance Lock**: the vault that holds every Legendary in Math Bots. Tapping an open Legendary asks him to make two pans the same, a Weigh-In as hard as his own Level. It costs no Bolts, a miss costs nothing, and it changes no Level.
+
+## Rover Code
+
+Rover Code reuses Math Bots' terms where they mean the same thing (Mixed Round, Mastery, Stretch, Bolt, Tune-Up, Meeting, Goal, Part, Power). These are its own:
+
+**Game Modes (Rover Code)**: the four kinds of question: Drive It (build a program that takes the rover to the flag), Patterns (what comes next), Bug Hunt (find and fix the wrong step) and Loops (a step done again and again). Drive It and Patterns are open from the start; Bug Hunt opens at Drive It Level 2, and Loops once both Drive It and Patterns reach Level 2.
+
+**Program**: the row of arrow steps he taps into the program bar. Each step moves the rover one square up, right, down or left as the screen shows it, never "turn left". Any program that ends on the flag is right.
+_Avoid_: code, commands (to him)
+
+**Step**: one arrow in a program.
+
+**Loop**: some steps done a number of times, shown as a 🔁 block with ×3. Rover Code's own word for what code calls repeat.
+_Avoid_: repeat block, for-loop
+
+**Bug**: the one wrong step in a Bug Hunt program. A Bug Hunt is only made when exactly one step can be changed to fix it.
+
+**Space Base**: where he builds his rocket, Rover Code's Garage: the launch pad, the planet map, the Launch button and the parts tray.
+
+**Rocket**: his rocket, Rover Code's Body, built from four slots (Nose, Body, Fins, Engine) and a Paint. Its Power (4 to 16) decides which planets it can reach.
+
+**Launch**: one trip, earned by finishing a Round (he starts with one). It's used only when he plants his flag.
+_Avoid_: fuel, ticket
+
+**Trip**: the reward, with no puzzle in it: the launch countdown, the flight (steer with a finger, catch Bolts, dodge asteroids) and the planet drive (drive the rover, jump for crystals, plant the flag).
+
+**Planet**: one of eight in a row (Moon, Mars, Frosty, Ringo, Lava World, Crystal World, Jungle World, Rainbow World), each needing more Power.
+
+**Rover**: the yellow rover he drives on planets, and the one on the question grid.
+
+**Gadget**: a rover part won on the first visit to each planet, worn all at once. Some change the drive (Big Wheels, Solar Wings, Jump Booster, Crystal Magnet).
+_Avoid_: Mod
+
+**Crystal**: what he finds on a planet, five per trip, one Bolt each.
