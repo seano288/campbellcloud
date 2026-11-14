@@ -229,7 +229,7 @@ export function drawIsland(c: CanvasRenderingContext2D, wk: Walk, w: number, h: 
   c.fillStyle = sky; c.fillRect(0, 0, w, h);
   c.save(); c.scale(k, k);
   // sun and far sea
-  c.beginPath(); c.arc(viewW - 90, 80, 40, 0, Math.PI * 2); c.fillStyle = '#ffd23f'; c.fill(); outline(c, 4);
+  c.beginPath(); c.arc(viewW - 110, 150, 40, 0, Math.PI * 2); c.fillStyle = '#ffd23f'; c.fill(); outline(c, 4);
   c.fillStyle = isle.sea; c.fillRect(0, GROUND_Y - 120, viewW, 120);
   c.translate(-cam, 0);
   // his ship at anchor, off the start of the beach

@@ -276,9 +276,10 @@ button.key-row:active{transform:translateY(3px);box-shadow:0 1px 0 #000}
 .voy-to{display:flex;align-items:center;gap:6px;margin-right:auto;font:400 max(16px,calc(24px*var(--u))) Bungee,sans-serif;text-shadow:2px 2px 0 #000;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .voy-to .island-badge{width:calc(48px*var(--u));height:calc(38px*var(--u));min-width:36px;min-height:28px;flex:none}
 .voy-count{display:flex;align-items:center;gap:6px;background:#000c;border:3px solid var(--yellow);border-radius:999px;padding:3px 14px 3px 8px;font:900 max(18px,calc(24px*var(--u))) Nunito,sans-serif;color:var(--yellow);white-space:nowrap}
-.voy-progress{position:absolute;left:max(80px,calc(env(safe-area-inset-left) + 80px));right:max(80px,calc(env(safe-area-inset-right) + 80px));top:calc(max(8px,env(safe-area-inset-top)) + max(54px,calc(64px*var(--u))));height:14px;border-radius:7px;background:#0008;border:3px solid #000}
-.voy-progress i{position:absolute;inset:0;background:var(--green);border-radius:4px;transform-origin:left;transform:scaleX(0)}
-.voy-progress span{position:absolute;right:-14px;top:-14px;font-size:22px}
+.voy-progress{flex:1 1 0;min-width:110px;max-width:520px;display:flex;align-items:center;gap:6px;background:#000c;border:3px solid var(--yellow);border-radius:999px;padding:6px 8px 6px 14px;height:max(36px,calc(44px*var(--u)));box-sizing:border-box}
+.voy-progress i{position:relative;flex:1;height:12px;border-radius:6px;background:#ffffff33;overflow:hidden}
+.voy-progress b{position:absolute;inset:0;background:var(--green);border-radius:6px;transform-origin:left;transform:scaleX(0)}
+.voy-progress span{font-size:max(16px,calc(20px*var(--u)));line-height:1}
 .voy-ready{position:absolute;left:0;right:0;top:38%;transform:translateY(-50%);display:flex;justify-content:center;pointer-events:none}
 .voy-ready>*{pointer-events:auto}
 .set-sail,.dig-btn{width:max(110px,calc(150px*var(--u)));height:max(110px,calc(150px*var(--u)));border-radius:50%;padding:0}

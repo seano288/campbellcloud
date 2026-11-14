@@ -4,7 +4,7 @@
 // only when the chest opens: leaving halfway (🏠 twice) costs nothing and pays nothing.
 //
 // Controls stay clear of the screen's bottom edge and sides, which belong to iPadOS, as in Math Bots' fight. Keys work on a computer:
-// arrows to steer or walk, space to fire or jump.
+// arrows to steer or walk, space to fire, jump or dig.
 import { useEffect, useRef, useState } from 'preact/hooks';
 import { sBoing, sChime, sClink, sCrunch, sFanfare, sPop, sThud, sWhoosh } from '../../audio/sfx';
 import { confetti } from '../../celebrate/effects';
@@ -77,7 +77,7 @@ export function VoyageScreen() {
 
   useEffect(() => { void voice.say('Set sail!'); }, []);
   // the browser tour reads how far the Voyage has got (tools/treasure-fleet/tour.ts)
-  if (import.meta.env.DEV) (window as unknown as { __voyage(): unknown }).__voyage = () => ({ t: sea.current.t, frames: frames.current, walkX: walk.current.x });
+  if (import.meta.env.DEV) (window as unknown as { __voyage(): unknown }).__voyage = () => ({ t: sea.current.t, frames: frames.current, walkX: walk.current.x, dug: walk.current.dug });
   useEffect(() => {
     const key = (e: KeyboardEvent) => {
       const k = e.key.toLowerCase();
@@ -132,6 +132,7 @@ export function VoyageScreen() {
   }, [phase]);
   useCanvasLoop(canvas, phase === 'island', dt => {
     const w = walk.current, walking = holding.current || keys.current.has('arrowright') || keys.current.has('d');
+    if (w.atX && jump.current) { jump.current = false; digHere(); }
     stepWalk(w, dt, walking, jump.current);
     jump.current = false;
     for (const e of w.events) {
@@ -186,7 +187,7 @@ export function VoyageScreen() {
   const down = (e: PointerEvent) => {
     canvas.current?.setPointerCapture(e.pointerId);
     if (phase === 'sail') aim(e);
-    if (phase === 'island' && !walk.current.atX) holding.current = true;
+    if (phase === 'island') { if (walk.current.atX) digHere(); else holding.current = true; }
   };
   const up = () => { finger.current = null; holding.current = false; };
   const after = player.state.value.fleet;
@@ -199,9 +200,9 @@ export function VoyageScreen() {
       <header class="voy-hud">
         <IconButton label={armed ? 'Tap again to leave' : 'Leave'} class={armed ? 'armed' : ''} onClick={leave}>🏠</IconButton>
         <span class="voy-to"><IslandBadge island={isle} />{isle.name}</span>
+        {phase === 'island' && <span class="voy-progress" aria-hidden="true"><i><b ref={bar} /></i><span>❌</span></span>}
         {phase === 'sail' && <span class="voy-count" aria-label={`${barrels} barrels`}><span aria-hidden="true">🛢️</span>{barrels}/{BARRELS}</span>}
       </header>
-      {phase === 'island' && <div class="voy-progress" aria-hidden="true"><i ref={bar} /><span>❌</span></div>}
       {phase === 'sail' && !started && (
         <div class="voy-ready"><button class="big-btn go set-sail pulse" aria-label="Set sail" onClick={start}><span class="e">⛵</span></button></div>
       )}
@@ -213,7 +214,7 @@ export function VoyageScreen() {
       )}
       {phase === 'island' && !atX && <div class="walk-hint" aria-hidden="true">👆 hold to walk</div>}
       {phase === 'island' && atX && !opened && (
-        <div class="voy-ctl right"><button class="big-btn go dig-btn pulse" aria-label="Dig" onClick={digHere}><span class="e">⛏️</span></button></div>
+        <div class="voy-ctl right"><button class="big-btn go dig-btn pulse" aria-label="Dig" onPointerDown={e => { e.preventDefault(); e.stopPropagation(); digHere(); }}><span class="e">⛏️</span></button></div>
       )}
       {phase === 'end' && (
         <div class="voy-result" role="dialog"><div class="result-card">

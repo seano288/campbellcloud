@@ -210,7 +210,13 @@ for (let i = 0; i < 40 && !(await page.getByRole('button', { name: 'Dig' }).coun
 }
 if (await page.getByRole('button', { name: 'Dig' }).count()) {
   await shot('voyage-x');
-  for (let i = 0; i < 3; i++) { await tap('Dig'); await page.waitForTimeout(400); }
+  // by touch, as on the iPad (a mouse click got through where a finger didn't): the button, then the sand anywhere
+  const digBox = (await page.getByRole('button', { name: 'Dig' }).boundingBox())!;
+  await page.touchscreen.tap(digBox.x + digBox.width / 2, digBox.y + digBox.height / 2);
+  await page.waitForTimeout(400);
+  if ((await page.evaluate(() => (window as unknown as { __voyage(): { dug: number } }).__voyage().dug)) !== 1) problems.push('a tap on the Dig button did not dig');
+  for (let i = 0; i < 2; i++) { await page.touchscreen.tap(box.x + box.width * .4, box.y + box.height * .5); await page.waitForTimeout(400); }
+  if (!(await page.locator('.voyage-screen.end, .voyage-screen [data-opened]').count()) && (await page.evaluate(() => (window as unknown as { __voyage(): { dug: number } }).__voyage().dug)) < 3) problems.push('a tap on the sand at the X did not dig');
   await page.waitForTimeout(3500);
   await shot('voyage-result');
   const f = (await saved()).fleet;
