@@ -6,13 +6,14 @@
 // Controls stay clear of the screen's bottom edge and sides, which belong to iPadOS (a swipe that starts there opens the Dock or the app
 // switcher, and a page can't stop it), as in Math Bots' fight. Keys work on a computer: arrows, space.
 import { useEffect, useRef, useState } from 'preact/hooks';
-import { sBoing, sChime, sClink, sEngine, sFanfare, sThud, sWhoosh } from '../../audio/sfx';
+import { sBoing, sChime, sClink, sFanfare, sSiren, sWhoosh } from '../../audio/sfx';
 import { confetti } from '../../celebrate/effects';
 import { earnedLine } from '../../currency/kind';
 import { seeded } from '../../game/rng';
 import { IconButton } from '../../ui/bits';
 import { CurrencyIcon } from '../../ui/currency';
 import { GlobeView, RocketView, RoverView } from '../art/Art';
+import { rungOf } from '../base/parts';
 import { CRYSTALS, SPACE_BOLTS, type TripPay } from '../base/base';
 import { GADGETS, planet as planetBy, type GadgetId } from '../base/planets';
 import { ROVER_CURRENCY } from '../branding';
@@ -21,8 +22,9 @@ import { launch, screen, tripTo } from '../nav';
 import { backLine, exploredLine, gadgetLine, type Phrase } from '../phrases';
 import { startRound } from '../round';
 import { useVoiceScope, type VoiceScope } from '../voice';
-import { createDrive, drawDrive, progress, stepDrive, type Drive } from './drive';
-import { createFlight, drawFlight, resize, stepFlight, type Flight } from './flight';
+import { createDrive, drawDrive, progress, stepDrive, TOP_SPEED, type Drive } from './drive';
+import { climb, CLIMB_S, createFlight, drawFlight, LAND_S, resize, stepFlight, type Flight } from './flight';
+import { boost, clunk, countBeep, ignition, landing, rocketRoar, roverMotor, sizzle, touchdown, type Running } from './sounds';
 
 type Phase = 'flight' | 'drive' | 'end';
 const reduced = () => typeof matchMedia === 'function' && matchMedia('(prefers-reduced-motion:reduce)').matches;
@@ -67,8 +69,12 @@ export function TripScreen() {
   const flight = useRef<Flight>(createFlight(1, seeded(Date.now() >>> 0))), drive = useRef<Drive | null>(null);
   const pointer = useRef<number | null>(null), keys = useRef(new Set<string>()), dir = useRef(0), jump = useRef(false), plantAt = useRef(0);
   const say = useRef(chatter(voice)).current;
+  const roar = useRef<Running | null>(null), motor = useRef<Running | null>(null);
 
-  useEffect(() => { void voice.say('Press the big button to launch!'); }, []);
+  useEffect(() => {
+    void voice.say('Press the big button to launch!');
+    return () => { roar.current?.stop(); motor.current?.stop(); };
+  }, []);
   // keys on a computer
   useEffect(() => {
     const key = (e: KeyboardEvent) => {
@@ -91,9 +97,10 @@ export function TripScreen() {
     setStarted(true);
     flight.current.started = true;
     sClink();
+    roar.current = rocketRoar(rungOf(base.rocket, 'engine')); // started inside the tap, as iPad Safari likes
     void (async () => {
-      for (const n of ['3', '2', '1'] as const) { sThud(); await Promise.all([voice.say(n), voice.wait(1000)]); if (!voice.active) return; }
-      sEngine(2.4); sWhoosh(2); void voice.say('Blast off!');
+      for (const n of ['3', '2', '1'] as const) { countBeep(Number(n)); await Promise.all([voice.say(n), voice.wait(1000)]); if (!voice.active) return; }
+      ignition(); sWhoosh(2); void voice.say('Blast off!');
     })();
   }
 
@@ -103,29 +110,45 @@ export function TripScreen() {
     if (c.clientHeight) { const aspect = c.clientWidth / c.clientHeight; if (Math.abs(Math.max(560, 1000 * aspect) - f.width) > 1) resize(f, aspect); }
     const kx = dir.current;
     stepFlight(f, dt, pointer.current, kx);
+    // the roar: a pilot flame on the pad, building through the countdown, full at lift-off, easing off to land
+    const ct = climb(f);
+    if (f.started) roar.current?.set(
+      ct < -1.2 ? .12 : ct < 0 ? .35 + .5 * (1 + ct / 1.2) : ct < 2 ? 1 : ct < CLIMB_S ? .75 : .75 - .5 * Math.min(1, (ct - CLIMB_S) / LAND_S),
+      ct < 0 ? .1 : ct < CLIMB_S ? .5 + .5 * (ct / CLIMB_S) : .4);
     for (const e of f.events) {
       if (e === 'catch') { sChime(); setCaught(f.caught); }
-      if (e === 'bonk') sThud();
+      if (e === 'bonk') clunk();
       if (e === 'blast') say('Move your finger to steer!');
       if (e === 'first-bolt') say('Catch the Bolts!');
       if (e === 'first-rock') say('Look out!');
       if (e === 'arrive') { sWhoosh(1.5); say('Landing!'); }
-      if (e === 'done') { drive.current = createDrive(planet, base.gadgets, base.trips * 31 + 7); setPhase('drive'); }
+      if (e === 'done') {
+        roar.current?.stop(); roar.current = null; touchdown();
+        drive.current = createDrive(planet, base.gadgets, base.trips * 31 + 7); setPhase('drive');
+      }
     }
   }, (c, w, h) => drawFlight(c, flight.current, w, h, base.rocket, planet, reduced(), pointer.current));
 
   // the planet
   useEffect(() => {
     if (phase !== 'drive') return;
+    motor.current = roverMotor();
+    if (base.gadgets.includes('siren')) sSiren(); // his Siren Lights, as the rover rolls out
     void voice.say(newPlanet ? 'Drive to the flag!' : backLine(planet.said as Parameters<typeof backLine>[0]), ...(newPlanet ? [] : ['Drive to the flag!' as const]), ...(first ? ['Hold the arrows to drive!', 'Tap the button to jump!'] as const : []));
+    return () => { motor.current?.stop(); motor.current = null; };
   }, [phase]);
   useCanvasLoop(canvas, phase === 'drive', dt => {
-    const d = drive.current!;
+    const d = drive.current!, falling = -d.vy;
     stepDrive(d, dt, planted ? 0 : dir.current, jump.current);
     jump.current = false;
+    // the motor: a quiet hum standing still, revving with his speed and higher with the wheels off the ground; off at the flag
+    const speed = Math.abs(d.vx) / TOP_SPEED;
+    motor.current?.set(d.atFlag ? 0 : .15 + .85 * speed, Math.min(1, speed * .8 + (d.grounded ? 0 : .3)));
     for (const e of d.events) {
       if (e === 'jump') sBoing();
-      if (e === 'hot') { sBoing(); sThud(); }
+      if (e === 'boost') boost();
+      if (e === 'land' && falling > 150) landing(falling);
+      if (e === 'hot') sizzle();
       if (e === 'crystal') { sChime(); setGot(d.got); if (d.got <= 2) say('A crystal!'); }
       if (e === 'flag') { setAtFlag(true); sFanfare(); void voice.say('Plant your flag!'); }
     }

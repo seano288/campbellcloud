@@ -83,6 +83,10 @@ The family look in deep-space navy and violet: Bungee titles, Nunito for reading
 
 Aria at -8%, recorded with `tools/make_voice.py --collection rover-code` (edge-tts), 301 clips in `public/rover-code-voice/`, trimmed as they decode and chained like Math Bots' ("It costs", "12", "Bolts."). Answer buttons are never read out (Math Bots' rule); every question, lesson, purchase and trip line is. All phrases are recorded; none is pending.
 
+## Sounds
+
+Made in code (shared `src/audio/sfx.ts`, plus `trip/sounds.ts`), no files. Puzzles: a clink per tap, a tick per square driven, a thud at a rock, the shared right and wrong sounds. The trip has two sounds that run the whole time: the rocket's roar through the flight (louder and deeper with each Engine Rung, building through the countdown and easing off to land) and the rover's motor on the planet, which revs with his speed. Also countdown beeps, ignition, a clunk off an asteroid, touchdown, a bump when the rover lands, a lava sizzle, a Jump Booster puff, and the siren when the rover rolls out with Siren Lights. Tapping an engine at the Space Base plays a burst of its roar.
+
 ## Save
 
 `rover-code-save`, version 1 (a version it doesn't know reads as a blank save, like the other games), and `rover-code-place` for the screen and the Round in progress.

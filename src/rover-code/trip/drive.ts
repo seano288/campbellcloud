@@ -17,7 +17,8 @@ export const TOP_SPEED = 340, JUMP_HEIGHT = 170, PICK_R = 72;
 const ROVER_SCALE = .55, CENTER_UP = 46;
 
 export interface Crystal { x: number; y: number; got: boolean }
-export type DriveEvent = 'jump' | 'land' | 'crystal' | 'hot' | 'flag';
+/** `boost`: a second jump in mid-air (the Jump Booster). */
+export type DriveEvent = 'jump' | 'boost' | 'land' | 'crystal' | 'hot' | 'flag';
 export interface Drive {
   t: number;
   x: number;
@@ -75,10 +76,11 @@ export function stepDrive(d: Drive, dt: number, dir: number, jump: boolean) {
   else { const slow = (icy ? 220 : 900) * dt; d.vx = Math.abs(d.vx) <= slow ? 0 : d.vx - Math.sign(d.vx) * slow; }
   d.vx = Math.max(-TOP_SPEED, Math.min(TOP_SPEED, d.vx));
   if (jump && (d.grounded || d.airJumps > 0)) {
-    if (!d.grounded) d.airJumps--;
-    d.vy = jumpSpeed(d) * (d.grounded ? 1 : .8);
+    const air = !d.grounded;
+    if (air) d.airJumps--;
+    d.vy = jumpSpeed(d) * (air ? .8 : 1);
     d.grounded = false;
-    d.events.push('jump');
+    d.events.push(air ? 'boost' : 'jump');
   }
   const nx = Math.max(60, Math.min(TRACK - 40, d.x + d.vx * dt)), floor = d.ground(nx);
   if (d.grounded) {

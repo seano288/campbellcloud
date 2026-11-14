@@ -3,7 +3,13 @@
 let ctx: AudioContext | null = null;
 
 export function audio(): AudioContext {
-  ctx ??= new AudioContext();
+  if (!ctx) {
+    // An iPhone or iPad set to silent (the switch, or Silent Mode in Control Center) mutes Web Audio but not a video. Asking for
+    // 'playback' (Safari 16.4 and later) lets the games play like a video does, still following the volume buttons.
+    const session = (navigator as Navigator & { audioSession?: { type: string } }).audioSession;
+    if (session) try { session.type = 'playback'; } catch { /* not allowed here: play as before */ }
+    ctx = new AudioContext();
+  }
   // iPad Safari parks the context as 'interrupted', not 'suspended', when the screen locks, the app goes
   // to the background or a call comes in, so wake it from anything that isn't running
   if (ctx.state !== 'running') ctx.resume().catch(() => {});

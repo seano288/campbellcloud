@@ -13,6 +13,7 @@ import { buy, player, updateBase } from '../game';
 import { launch, screen } from '../nav';
 import { gotLine, NUMBERS_TO, type Phrase } from '../phrases';
 import { startRound } from '../round';
+import { engineTest } from '../trip/sounds';
 import { useVoice } from '../voice';
 import { allOwned, allowed, canReach, destinationOf, goalOf, isOwned, pickDestination, priceOf, selectGoal, visited } from './base';
 import { fit, infoOf, keysIn, powerOf, SLOT_NAMES, tabOf, TABS, type PartKey, type Tab } from './parts';
@@ -52,15 +53,18 @@ export function BaseScreen() {
   }
   function tap(k: PartKey) {
     if (!voice.active || blocked) return;
+    const engine = tabOf(k) === 'engine'; // an engine roars when he taps it, louder up the Rungs
+    if (engine) engineTest(infoOf(k).power - 1);
     if (isOwned(base, k)) {
       setTrial(null);
       const next = fit(base.rocket, k);
       if (allowed(base, next)) updateBase(b => ({ ...b, rocket: next }));
-      sClink(); void voice.say(infoOf(k).name);
+      if (!engine) sClink();
+      void voice.say(infoOf(k).name);
       return;
     }
     setTrial(k);
-    sChime();
+    if (!engine) sChime();
     const price = priceOf(k);
     void voice.say(infoOf(k).name, 'It costs', n(price), 'Bolts.', ...(balance < price ? ['You need' as const, n(price - balance), 'more Bolts.' as const] : []));
   }
