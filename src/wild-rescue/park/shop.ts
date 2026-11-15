@@ -1,20 +1,20 @@
-// Everything Bolts buy: the truck's four slots (each a free starter and six upgrades), its paints, the Park's habitats, an extra or
+// Everything Bolts buy: the truck's four slots (each a free starter and six upgrades), a buddy to ride along, its paints, the Park's habitats, an extra or
 // two for each habitat, and decorations for the paths. Every price is at most 100, the most the recorded numbers go.
 //
-// Some upgrades open new rescues (the "openers"): Mud Tires reach the forest, Sand Tires the desert and Snow Tracks the polar lands;
+// Some upgrades open new rescues (the "openers"): Mud Tires reach the forest and the rainforest, Sand Tires the desert and Snow Tracks the polar lands;
 // the Boat Trailer reaches ponds and rivers, the Water Tank carries ocean animals, the Big Crate carries large animals and the Giant
 // Trailer the biggest. The rest are for looks and a little speed, as Rover Code's Rungs 4 to 6 are.
 import type { HabitatId } from '../facts/habitats';
 
-export const SLOTS = ['tires', 'winch', 'lights', 'carrier'] as const;
+export const SLOTS = ['tires', 'winch', 'lights', 'carrier', 'buddy'] as const;
 export type Slot = (typeof SLOTS)[number];
-export const SLOT_NAMES = { tires: 'Tires', winch: 'Winch', lights: 'Lights', carrier: 'Carrier', paint: 'Paint' } as const;
+export const SLOT_NAMES = { tires: 'Tires', winch: 'Winch', lights: 'Lights', carrier: 'Carrier', buddy: 'Buddy', paint: 'Paint' } as const;
 
-export interface Part { readonly slot: Slot; readonly id: string; readonly name: string; readonly price: number; readonly rung: number; readonly opens?: string }
+export interface Part { readonly slot: Slot; readonly id: string; readonly name: string; readonly price: number; readonly rung: number; readonly opens?: string; readonly icon?: string }
 
 export const PARTS = [
   { slot: 'tires', id: 'street', name: 'Street Tires', price: 0, rung: 0 },
-  { slot: 'tires', id: 'mud', name: 'Mud Tires', price: 8, rung: 1, opens: 'They can drive in the forest!' },
+  { slot: 'tires', id: 'mud', name: 'Mud Tires', price: 8, rung: 1, opens: 'They can drive in the forest and the rainforest!' },
   { slot: 'tires', id: 'sand', name: 'Sand Tires', price: 20, rung: 2, opens: 'They can drive in the desert!' },
   { slot: 'tires', id: 'snow', name: 'Snow Tracks', price: 35, rung: 3, opens: 'They can drive on ice and snow!' },
   { slot: 'tires', id: 'big', name: 'Big Tires', price: 55, rung: 4 },
@@ -41,6 +41,20 @@ export const PARTS = [
   { slot: 'carrier', id: 'giant', name: 'Giant Trailer', price: 65, rung: 4, opens: 'It can carry the biggest animals!' },
   { slot: 'carrier', id: 'ambulance', name: 'Animal Ambulance', price: 80, rung: 5 },
   { slot: 'carrier', id: 'hauler', name: 'Super Hauler', price: 100, rung: 6 },
+  // a buddy rides along in the cab window: for looks only, so any one can go on
+  { slot: 'buddy', id: 'none', name: 'No Buddy', price: 0, rung: 0 },
+  { slot: 'buddy', id: 'puppy', name: 'Puppy', price: 5, rung: 1, icon: '🐶' },
+  { slot: 'buddy', id: 'kitty', name: 'Kitty', price: 8, rung: 2, icon: '🐱' },
+  { slot: 'buddy', id: 'hamster', name: 'Hamster', price: 12, rung: 3, icon: '🐹' },
+  { slot: 'buddy', id: 'bunny', name: 'Bunny', price: 16, rung: 4, icon: '🐰' },
+  { slot: 'buddy', id: 'piglet', name: 'Piglet', price: 20, rung: 5, icon: '🐷' },
+  { slot: 'buddy', id: 'panda', name: 'Panda', price: 26, rung: 6, icon: '🐼' },
+  { slot: 'buddy', id: 'foxcub', name: 'Fox Cub', price: 32, rung: 7, icon: '🦊' },
+  { slot: 'buddy', id: 'koala', name: 'Koala', price: 40, rung: 8, icon: '🐨' },
+  { slot: 'buddy', id: 'dino', name: 'Dino', price: 50, rung: 9, icon: '🦖' },
+  { slot: 'buddy', id: 'unicorn', name: 'Unicorn', price: 65, rung: 10, icon: '🦄' },
+  { slot: 'buddy', id: 'dragon', name: 'Dragon', price: 80, rung: 11, icon: '🐲' },
+  { slot: 'buddy', id: 'robot', name: 'Robot', price: 95, rung: 12, icon: '🤖' },
 ] as const satisfies readonly Part[];
 export type PartName = (typeof PARTS)[number]['name'];
 export type OpensLine = Extract<(typeof PARTS)[number], { opens: string }>['opens'];
@@ -60,6 +74,21 @@ export const PAINTS = [
   { id: 'zebra', name: 'Zebra Stripes', price: 10, body: '#f4f6f8', trim: '#1d1d1f', pattern: 'stripes' },
   { id: 'giraffe', name: 'Giraffe Spots', price: 12, body: '#f2c14e', trim: '#8a4f1a', pattern: 'spots' },
   { id: 'camo', name: 'Jungle Camo', price: 12, body: '#6f8f4a', trim: '#3f5a2a', pattern: 'camo' },
+  { id: 'mint', name: 'Mint Green', price: 6, body: '#7fdcb0', trim: '#3f9a72', pattern: null },
+  { id: 'lime', name: 'Lemon Lime', price: 6, body: '#b6e04a', trim: '#6f9a1a', pattern: null },
+  { id: 'brown', name: 'Chocolate Brown', price: 6, body: '#7a4a2a', trim: '#4a2a14', pattern: null },
+  { id: 'silver', name: 'Shiny Silver', price: 10, body: '#c9d1d9', trim: '#7a8794', pattern: null },
+  { id: 'gold', name: 'Shiny Gold', price: 16, body: '#f2c43a', trim: '#a87a00', pattern: null },
+  { id: 'tiger', name: 'Tiger Stripes', price: 12, body: '#ff8a1f', trim: '#1d1d1f', pattern: 'stripes' },
+  { id: 'cow', name: 'Cow Spots', price: 12, body: '#f4f6f8', trim: '#1d1d1f', pattern: 'cow' },
+  { id: 'leopard', name: 'Leopard Spots', price: 14, body: '#e8b860', trim: '#4a2a14', pattern: 'spots' },
+  { id: 'dots', name: 'Polka Dots', price: 14, body: '#3d9be0', trim: '#f4f6f8', pattern: 'dots' },
+  { id: 'ladybug', name: 'Ladybug', price: 16, body: '#e63946', trim: '#1d1d1f', pattern: 'dots' },
+  { id: 'checks', name: 'Checkers', price: 16, body: '#f4f6f8', trim: '#1d1d1f', pattern: 'checks' },
+  { id: 'candy', name: 'Candy Stripes', price: 18, body: '#f4f6f8', trim: '#e63946', pattern: 'stripes' },
+  { id: 'flames', name: 'Racing Flames', price: 20, body: '#2a2d33', trim: '#ff7a1a', pattern: 'flames' },
+  { id: 'stars', name: 'Starry Night', price: 20, body: '#1f2f6a', trim: '#ffd23f', pattern: 'stars' },
+  { id: 'rainbow', name: 'Rainbow', price: 24, body: '#e63946', trim: '#7a4fd8', pattern: 'rainbow' },
 ] as const;
 export type PaintId = (typeof PAINTS)[number]['id'];
 export type PaintName = (typeof PAINTS)[number]['name'];
@@ -73,12 +102,13 @@ export const PARK_HABITATS = [
   { id: 'forest', name: 'Forest', price: 30 },
   { id: 'pond', name: 'Pond', price: 45 },
   { id: 'desert', name: 'Desert', price: 60 },
+  { id: 'rainforest', name: 'Rainforest', price: 70 },
   { id: 'ocean', name: 'Ocean Pool', price: 80 },
   { id: 'polar', name: 'Polar Ice', price: 100 },
 ] as const satisfies readonly { id: HabitatId; name: string; price: number }[];
 export type PlotName = (typeof PARK_HABITATS)[number]['name'];
 
-/** Two extras for each habitat, for looks: each shows inside its habitat. */
+/** Five extras for each habitat, for looks: each shows inside its habitat. */
 export const EXTRAS = [
   { id: 'hay', home: 'farm', name: 'Hay Bales', price: 8, icon: '🌾' },
   { id: 'tractor', home: 'farm', name: 'Tractor', price: 20, icon: '🚜' },
@@ -94,6 +124,32 @@ export const EXTRAS = [
   { id: 'shells', home: 'ocean', name: 'Seashells', price: 28, icon: '🐚' },
   { id: 'icecave', home: 'polar', name: 'Ice Cave', price: 14, icon: '🧊' },
   { id: 'lights', home: 'polar', name: 'Northern Lights', price: 30, icon: '🌌' },
+  { id: 'sunflowers', home: 'farm', name: 'Sunflowers', price: 12, icon: '🌻' },
+  { id: 'pumpkins', home: 'farm', name: 'Pumpkin Patch', price: 16, icon: '🎃' },
+  { id: 'appletree', home: 'farm', name: 'Apple Tree', price: 26, icon: '🍎' },
+  { id: 'rock', home: 'grassland', name: 'Big Rock', price: 12, icon: '🪨' },
+  { id: 'wildflowers', home: 'grassland', name: 'Wildflowers', price: 16, icon: '🌼' },
+  { id: 'nests', home: 'grassland', name: 'Bird Nests', price: 28, icon: '🪹' },
+  { id: 'pines', home: 'forest', name: 'Pine Trees', price: 12, icon: '🌲' },
+  { id: 'berries', home: 'forest', name: 'Berry Bushes', price: 18, icon: '🫐' },
+  { id: 'treehouse', home: 'forest', name: 'Tree House', price: 30, icon: '🛖' },
+  { id: 'dock', home: 'pond', name: 'Fishing Dock', price: 12, icon: '🎣' },
+  { id: 'canoe', home: 'pond', name: 'Canoe', price: 18, icon: '🛶' },
+  { id: 'pondbow', home: 'pond', name: 'Rainbow', price: 30, icon: '🌈' },
+  { id: 'blooms', home: 'desert', name: 'Desert Flowers', price: 14, icon: '🌺' },
+  { id: 'pots', home: 'desert', name: 'Clay Pots', price: 20, icon: '🏺' },
+  { id: 'shade', home: 'desert', name: 'Sun Shade', price: 30, icon: '⛱️' },
+  { id: 'castle', home: 'ocean', name: 'Sand Castle', price: 16, icon: '🏰' },
+  { id: 'kelp', home: 'ocean', name: 'Sea Kelp', price: 20, icon: '🌿' },
+  { id: 'sailboat', home: 'ocean', name: 'Sailboat', price: 30, icon: '⛵' },
+  { id: 'snowman', home: 'polar', name: 'Snowman', price: 16, icon: '☃️' },
+  { id: 'sled', home: 'polar', name: 'Sled', price: 22, icon: '🛷' },
+  { id: 'snowflakes', home: 'polar', name: 'Snowflakes', price: 30, icon: '❄️' },
+  { id: 'bananas', home: 'rainforest', name: 'Banana Tree', price: 10, icon: '🍌' },
+  { id: 'vines', home: 'rainforest', name: 'Hanging Vines', price: 14, icon: '🍃' },
+  { id: 'orchids', home: 'rainforest', name: 'Orchids', price: 18, icon: '🌸' },
+  { id: 'waterfall', home: 'rainforest', name: 'Waterfall', price: 24, icon: '🏞️' },
+  { id: 'bridge', home: 'rainforest', name: 'Rope Bridge', price: 30, icon: '🌉' },
 ] as const satisfies readonly { id: string; home: HabitatId; name: string; price: number; icon: string }[];
 export type ExtraName = (typeof EXTRAS)[number]['name'];
 
@@ -110,6 +166,25 @@ export const DECOS = [
   { id: 'tower', name: 'Lookout Tower', price: 40, icon: '🔭' },
   { id: 'train', name: 'Park Train', price: 60, icon: '🚂' },
   { id: 'balloon', name: 'Hot Air Balloon', price: 80, icon: '🎈' },
+  { id: 'sign', name: 'Welcome Sign', price: 5, icon: '🪧' },
+  { id: 'flags', name: 'Flags', price: 6, icon: '🎏' },
+  { id: 'recycling', name: 'Recycling Bins', price: 7, icon: '♻️' },
+  { id: 'icecream', name: 'Ice Cream Cart', price: 12, icon: '🍦' },
+  { id: 'popcorn', name: 'Popcorn Stand', price: 15, icon: '🍿' },
+  { id: 'snacks', name: 'Snack Bar', price: 18, icon: '🌭' },
+  { id: 'bubbles', name: 'Bubble Machine', price: 22, icon: '🫧' },
+  { id: 'splash', name: 'Splash Pad', price: 25, icon: '💦' },
+  { id: 'band', name: 'Bandstand', price: 28, icon: '🎺' },
+  { id: 'playground', name: 'Playground', price: 32, icon: '🛝' },
+  { id: 'golf', name: 'Mini Golf', price: 36, icon: '⛳' },
+  { id: 'tent', name: 'Big Tent', price: 42, icon: '🎪' },
+  { id: 'bus', name: 'Tour Bus', price: 48, icon: '🚌' },
+  { id: 'carousel', name: 'Carousel', price: 55, icon: '🎠' },
+  { id: 'gondola', name: 'Sky Gondola', price: 62, icon: '🚡' },
+  { id: 'ferris', name: 'Ferris Wheel', price: 70, icon: '🎡' },
+  { id: 'rocket', name: 'Rocket Ride', price: 78, icon: '🚀' },
+  { id: 'coaster', name: 'Roller Coaster', price: 88, icon: '🎢' },
+  { id: 'fireworks', name: 'Fireworks', price: 100, icon: '🎆' },
 ] as const;
 export type DecoName = (typeof DECOS)[number]['name'];
 
@@ -138,10 +213,12 @@ export const STARTERS: readonly ItemKey[] = ITEMS.filter(i => i.price === 0).map
 export const ALL_NAMES = [...new Set(ITEMS.map(i => i.name))];
 export const partOf = (k: ItemKey) => PARTS.find(p => `${p.slot}:${p.id}` === k);
 export const paintOf = (id: string) => PAINTS.find(p => p.id === id) ?? PAINTS[0];
+/** The buddy riding along, or nothing. */
+export const buddyIcon = (id: string) => PARTS.find(p => p.slot === 'buddy' && p.id === id && 'icon' in p) as { icon: string } | undefined;
 
 /** What's on his truck. */
-export interface Truck { tires: string; winch: string; lights: string; carrier: string; paint: PaintId }
-export const starterTruck = (): Truck => ({ tires: 'street', winch: 'rope', lights: 'plain', carrier: 'little', paint: 'orange' });
+export interface Truck { tires: string; winch: string; lights: string; carrier: string; buddy: string; paint: PaintId }
+export const starterTruck = (): Truck => ({ tires: 'street', winch: 'rope', lights: 'plain', carrier: 'little', buddy: 'none', paint: 'orange' });
 export const rungOf = (t: Truck, slot: Slot) => PARTS.find(p => p.slot === slot && p.id === t[slot])?.rung ?? 0;
 export const fittedKeys = (t: Truck): ItemKey[] => [...SLOTS.map(s => keyOf(s, t[s])), keyOf('paint', t.paint)];
 export function fit(t: Truck, k: ItemKey): Truck {

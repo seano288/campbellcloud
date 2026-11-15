@@ -297,7 +297,7 @@ Wild Rescue reuses Math Bots', Rover Code's and Treasure Fleet's terms where the
 **Facts table**: the hand-checked data every question is made from (`src/wild-rescue/facts/`): the animals, the body parts, living things and needs, the babies, and the sky and seasons. A question can only offer what the table says is plainly right or plainly wrong.
 _Avoid_: question bank
 
-**Habitat**: one of seven places an animal lives: ocean, pond and river, forest, grassland, desert, polar, farm. Only an animal with one clear habitat is asked about or lives in the Park. Also the Park's plots for them (the farm's is the Barn, the ocean's the Ocean Pool, the polar one Polar Ice).
+**Habitat**: one of eight places an animal lives: ocean, pond and river, forest, rainforest, grassland, desert, polar, farm. Only an animal with one clear habitat is asked about or lives in the Park. Also the Park's plots for them (the farm's is the Barn, the ocean's the Ocean Pool, the polar one Polar Ice).
 _Avoid_: biome, home (to him, "its home" is fine in speech)
 
 **Did You Know**: the one short true line each animal carries, said when it comes home to the Park, when he taps it there, and in a fuller lesson.
@@ -311,13 +311,15 @@ _Avoid_: voyage, launch, ticket
 
 **Release**: a call once every animal his truck can reach is already home: the same drive and Job, and then the animal goes back to the wild. It pays the same and the Park keeps what it has.
 
-**Truck**: his rescue truck, Wild Rescue's Body, built from four slots (Tires, Winch, Lights, Carrier) and a Paint. Some parts open rescues: Mud Tires the forest, Sand Tires the desert, Snow Tracks the polar lands, the Boat Trailer the ponds, the Water Tank the ocean, the Big Crate large animals and the Giant Trailer the biggest.
+**Truck**: his rescue truck, Wild Rescue's Body, built from four slots (Tires, Winch, Lights, Carrier), a Buddy who rides in the cab window, and a Paint. Some parts open rescues: Mud Tires the forest and the rainforest, Sand Tires the desert, Snow Tracks the polar lands, the Boat Trailer the ponds, the Water Tank the ocean, the Big Crate large animals and the Giant Trailer the biggest.
 
 **Garage**: where he builds the truck (Wild Rescue reuses the word for its own truck).
 
 **Park**: the map of habitat plots he buys with Bolts, where his rescued animals live, with Extras inside the habitats and Decorations on the path. He carries each new animal to its habitat there.
 
-**Extra**: one of two things for looks inside each habitat (Hay Bales, Lily Pads, Northern Lights...).
+**Extra**: one of five things for looks inside each habitat (Hay Bales, Lily Pads, Northern Lights, Banana Tree...).
 
-**Decoration**: a thing for the Park's path (Flower Beds, Fountain, Park Train...).
+**Decoration**: a thing for the Park's path (Flower Beds, Fountain, Park Train, Ferris Wheel...).
+
+**Buddy**: a friend who rides along in the truck's cab window (Puppy to Robot), for looks only.
 

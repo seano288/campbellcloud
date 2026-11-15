@@ -41,7 +41,7 @@ function readTruck(raw: unknown, owned: readonly ItemKey[]): Truck {
   const r = isRecord(raw) ? raw : {}, fresh = starterTruck(), ok = (k: ItemKey) => owned.includes(k);
   const slot = (s: (typeof SLOTS)[number]) => (typeof r[s] === 'string' && ok(keyOf(s, r[s] as string)) ? r[s] as string : fresh[s]);
   const paint = typeof r.paint === 'string' && ok(keyOf('paint', r.paint)) ? r.paint as PaintId : fresh.paint;
-  return { tires: slot('tires'), winch: slot('winch'), lights: slot('lights'), carrier: slot('carrier'), paint };
+  return { tires: slot('tires'), winch: slot('winch'), lights: slot('lights'), carrier: slot('carrier'), buddy: slot('buddy'), paint };
 }
 
 /** Whatever is missing or doesn't read comes back fresh. An animal is never both in the Park and in his hands. */
@@ -62,7 +62,7 @@ export function readRescue(raw: unknown): RescueState {
 const ownsPart = (s: Pick<RescueState, 'owned'>, slot: string, ids: readonly string[]) => ids.some(id => isOwned(s, keyOf(slot as never, id)));
 const bestTires = (s: Pick<RescueState, 'owned'>) => Math.max(...PARTS.filter(p => p.slot === 'tires' && isOwned(s, keyOf('tires', p.id))).map(p => p.rung));
 /** The tire Rung each terrain needs. */
-export const TIRES_FOR: Partial<Record<HabitatId, number>> = { forest: 1, desert: 2, polar: 3 };
+export const TIRES_FOR: Partial<Record<HabitatId, number>> = { forest: 1, rainforest: 1, desert: 2, polar: 3 };
 const CARRIES_LARGE = ['big', 'giant', 'ambulance', 'hauler'], CARRIES_GIANT = ['giant', 'ambulance', 'hauler'];
 
 /** What stops him rescuing this animal, each as the cheapest thing that would fix it (empty: he can go). */

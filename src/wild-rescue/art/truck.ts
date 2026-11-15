@@ -1,7 +1,8 @@
 // The rescue truck from the side, facing right, built from the parts he has fitted: the paint, the tires (bigger and knobblier up
 // the Rungs, tracks for snow), the winch on the front bumper, the lights on the roof and the carrier on the back. A string, so the
-// same truck is drawn in the Garage and on the Rescue's canvas. The door has a paw print; an animal can ride in the carrier.
-import { paintOf, PARTS, type Truck } from '../park/shop';
+// same truck is drawn in the Garage and on the Rescue's canvas. The door has a paw print; an animal can ride in the carrier, and his
+// buddy (an emoji) looks out of the cab window.
+import { buddyIcon, paintOf, PARTS, type Truck } from '../park/shop';
 
 const O = '#1d1d1f';
 const L = (w = 4) => `stroke="${O}" stroke-width="${w}" stroke-linejoin="round" stroke-linecap="round"`;
@@ -23,12 +24,20 @@ function wheel(cx: number, cy: number, r: number, tires: string) {
 function paintFill(paint: string) {
   const p = paintOf(paint), id = `wr-pat-${p.id}`;
   if (!p.pattern) return { fill: p.body, defs: '' };
-  const inner = p.pattern === 'stripes'
-    ? `<rect width="24" height="24" fill="${p.body}"/><path d="M0 0 L10 0 L24 14 L24 24 Z" fill="${p.trim}"/>`
-    : p.pattern === 'spots'
-      ? `<rect width="30" height="30" fill="${p.body}"/><path d="M4 6 L12 3 L16 10 L10 15 Z M18 18 L27 17 L26 26 L18 25 Z" fill="${p.trim}"/>`
-      : `<rect width="34" height="34" fill="${p.body}"/><path d="M2 4 Q10 0 14 8 Q8 14 2 10 Z M18 16 Q28 12 30 22 Q22 28 16 24 Z" fill="${p.trim}"/><path d="M20 2 Q28 4 26 10 Q20 10 20 2 Z M4 22 Q12 20 12 28 Q6 32 4 22 Z" fill="#c9b27a"/>`;
-  const size = p.pattern === 'stripes' ? 24 : p.pattern === 'spots' ? 30 : 34;
+  const bg = (n: number) => `<rect width="${n}" height="${n}" fill="${p.body}"/>`;
+  const star = (x: number, y: number, r: number) => `<path d="M${x} ${y - r} L${x + r * .3} ${y - r * .3} L${x + r} ${y - r * .2} L${x + r * .45} ${y + r * .25} L${x + r * .6} ${y + r} L${x} ${y + r * .55} L${x - r * .6} ${y + r} L${x - r * .45} ${y + r * .25} L${x - r} ${y - r * .2} L${x - r * .3} ${y - r * .3} Z" fill="${p.trim}"/>`;
+  const PATTERNS: Record<NonNullable<typeof p.pattern>, [number, string]> = {
+    stripes: [24, `${bg(24)}<path d="M0 0 L10 0 L24 14 L24 24 Z" fill="${p.trim}"/>`],
+    spots: [30, `${bg(30)}<path d="M4 6 L12 3 L16 10 L10 15 Z M18 18 L27 17 L26 26 L18 25 Z" fill="${p.trim}"/>`],
+    camo: [34, `${bg(34)}<path d="M2 4 Q10 0 14 8 Q8 14 2 10 Z M18 16 Q28 12 30 22 Q22 28 16 24 Z" fill="${p.trim}"/><path d="M20 2 Q28 4 26 10 Q20 10 20 2 Z M4 22 Q12 20 12 28 Q6 32 4 22 Z" fill="#c9b27a"/>`],
+    cow: [48, `${bg(48)}<path d="M4 6 Q14 0 22 8 Q24 18 12 20 Q2 18 4 6 Z M30 26 Q42 22 46 32 Q44 44 32 42 Q24 36 30 26 Z" fill="${p.trim}"/>`],
+    dots: [20, `${bg(20)}<circle cx="6" cy="6" r="4" fill="${p.trim}"/><circle cx="16" cy="16" r="4" fill="${p.trim}"/>`],
+    checks: [20, `${bg(20)}<rect width="10" height="10" fill="${p.trim}"/><rect x="10" y="10" width="10" height="10" fill="${p.trim}"/>`],
+    flames: [40, `${bg(40)}<path d="M0 40 Q4 24 12 30 Q12 14 22 20 Q24 6 32 22 Q38 16 40 40 Z" fill="${p.trim}"/><path d="M8 40 Q12 32 16 34 Q18 24 24 30 Q28 24 32 40 Z" fill="#ffd23f"/>`],
+    stars: [36, `${bg(36)}${star(9, 10, 5)}${star(27, 26, 4)}<circle cx="28" cy="8" r="1.5" fill="#fff"/><circle cx="8" cy="28" r="1.5" fill="#fff"/>`],
+    rainbow: [60, ['#e63946', '#ff9a1f', '#ffd23f', '#2bb673', '#3d9be0', '#7a4fd8'].map((c, i) => `<rect y="${i * 10}" width="60" height="10" fill="${c}"/>`).join('')],
+  };
+  const [size, inner] = PATTERNS[p.pattern];
   return { fill: `url(#${id})`, defs: `<pattern id="${id}" width="${size}" height="${size}" patternUnits="userSpaceOnUse">${inner}</pattern>` };
 }
 
@@ -63,7 +72,7 @@ function carrier(id: string, base: number, rider: string) {
 
 /** The inside of a TRUCK_W × TRUCK_H SVG. `rider`: an emoji or drawn animal riding in the carrier. */
 export function truckInner(t: Truck, rider = ''): string {
-  const tr = rung('tires', t.tires), r = WHEEL_R[tr]!, axle = TRUCK_H - 6 - r, deck = axle - r * .35 - 6;
+  const tr = rung('tires', t.tires), r = (WHEEL_R as readonly number[])[tr] ?? WHEEL_R[0], axle = TRUCK_H - 6 - r, deck = axle - r * .35 - 6;
   const p = paintOf(t.paint), { fill, defs } = paintFill(t.paint);
   const cab = `<path d="M124 ${deck} V${deck - 58} Q124 ${deck - 66} 132 ${deck - 66} H188 Q198 ${deck - 66} 204 ${deck - 50} L214 ${deck - 30} Q236 ${deck - 28} 238 ${deck - 14} V${deck} Z" fill="${fill}" ${L()}/>`;
   const bed = `<rect x="20" y="${deck - 8}" width="108" height="16" rx="4" fill="${fill}" ${L()}/>`;
@@ -73,8 +82,10 @@ export function truckInner(t: Truck, rider = ''): string {
   const wheels = t.tires === 'snow'
     ? `<rect x="${44 - r}" y="${axle - r - 4}" width="${42 + 2 * r}" height="${2 * r + 8}" rx="${r + 4}" fill="#2a2d33" ${L(3.5)}/><rect x="${164 - r}" y="${axle - r - 4}" width="${42 + 2 * r}" height="${2 * r + 8}" rx="${r + 4}" fill="#2a2d33" ${L(3.5)}/>${[65, 185].map(x => `<circle cx="${x - 14}" cy="${axle}" r="${r * .6}" fill="#d6dde5" ${L(2.5)}/><circle cx="${x + 14}" cy="${axle}" r="${r * .6}" fill="#d6dde5" ${L(2.5)}/>`).join('')}`
     : wheel(65, axle, r, t.tires) + wheel(185, axle, r, t.tires);
+  const b = buddyIcon(t.buddy);
+  const buddy = b ? `<text x="178" y="${deck - 33}" font-size="24" text-anchor="middle" font-family="system-ui, 'Apple Color Emoji', 'Noto Color Emoji', sans-serif">${b.icon}</text>` : '';
   const riderAt = rider ? `<g transform="translate(${t.carrier === 'giant' ? 52 : 86} ${deck - 30})">${rider}</g>` : '';
-  return `<defs>${defs}</defs>${carrier(t.carrier, deck - 8, riderAt)}${bed}${cab}${window}${paw}${bumper}${lights(t.lights, 160, deck - 66)}${winch(t.winch, 232, deck + 6)}${wheels}`;
+  return `<defs>${defs}</defs>${carrier(t.carrier, deck - 8, riderAt)}${bed}${cab}${window}${buddy}${paw}${bumper}${lights(t.lights, 160, deck - 66)}${winch(t.winch, 232, deck + 6)}${wheels}`;
 }
 
 export const truckSvg = (t: Truck, rider = '') => `<svg xmlns="http://www.w3.org/2000/svg" viewBox="-14 -40 ${TRUCK_W + 40} ${TRUCK_H + 44}">${truckInner(t, rider)}</svg>`;

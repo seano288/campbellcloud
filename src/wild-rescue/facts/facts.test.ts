@@ -21,7 +21,7 @@ describe('the animals table', () => {
     for (const a of ANIMALS) if ('drawn' in a.art) expect(DRAWN[a.art.drawn], a.id).toBeTruthy();
     // the table the brief asks for: which are emoji and which are drawn
     const drawn = ANIMALS.filter(a => 'drawn' in a.art).map(a => a.id).sort();
-    expect(drawn).toEqual(['arcticfox', 'dragonfly', 'fennec', 'ostrich', 'meerkat', 'rattlesnake', 'roadrunner', 'seaturtle', 'snowyowl', 'tortoise', 'walrus', 'woodpecker'].sort());
+    expect(drawn).toEqual(['arcticfox', 'arctichare', 'dragonfly', 'fennec', 'jackrabbit', 'narwhal', 'ostrich', 'meerkat', 'rattlesnake', 'roadrunner', 'seaturtle', 'snowyowl', 'tortoise', 'toucan', 'walrus', 'woodpecker'].sort());
   });
   it('has unique ids and names, and "An" only before a vowel sound', () => {
     expect(new Set(ANIMALS.map(a => a.id)).size).toBe(ANIMALS.length);
@@ -39,8 +39,8 @@ describe('the animals table', () => {
     expect(ANIMALS.filter(a => poleOf(a) === 'south').map(a => a.id)).toEqual(['penguin']);
     expect(poleOf(animal('polarbear'))).toBe('north');
   });
-  it('has 45 animals to rescue, every one with a clear home, a call and a job, from every habitat', () => {
-    expect(RESCUABLE).toHaveLength(45);
+  it('has 67 animals to rescue, every one with a clear home, a call and a job, from every habitat', () => {
+    expect(RESCUABLE).toHaveLength(67);
     for (const a of RESCUABLE) {
       expect(a.home, a.id).not.toBeNull();
       expect(a.rescue.call.toLowerCase(), a.id).toContain(a.name.split(' ').at(-1)!);

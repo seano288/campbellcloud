@@ -1,6 +1,6 @@
 # Spec: Wild Rescue (first-grade science, a rescue truck and a wildlife park)
 
-Status: built on 2026-11-14 from `brief.md`, playable at `/wild-rescue/` with a tile on the landing page. Every decision below is a **default for the parent to confirm**. Not yet run on a real iPad.
+Status: built on 2026-11-14 from `brief.md`, playable at `/wild-rescue/` with a tile on the landing page. The same day the parent asked for "2x-3x more rewards": a Rainforest habitat, 22 more animals (67), a Buddy for the truck, 15 more paints, five Extras a habitat and 19 more Decorations, with payouts unchanged (as Rover Code and Treasure Fleet). Every decision below is a **default for the parent to confirm**. Not yet run on a real iPad.
 
 A new learning game on the family site, built the same way as Rover Code and Treasure Fleet (`src/rover-code/`, `src/treasure-fleet/`), for the same player (6 to 7, reads numbers and short words, leans on the recorded voice, alone on an iPad 9). Short mixed Rounds earn Bolts, spent on his rescue truck and his wildlife park. Each Round also earns a Rescue call: he drives the truck out himself, does a hands-on job for the animal, and carries it home to its habitat in the Park.
 
@@ -55,7 +55,7 @@ Never a red X: what he tapped just fades a little. Every miss teaches the fact w
 
 **The loop.** A finished Round earns Bolts and one Rescue call (📻). Bolts build habitats in the Park and upgrade the truck; some upgrades open new terrain and bigger animals. A call is only ever for an animal whose habitat he owns and whose terrain and size his truck can manage, so no animal is ever left without a home. He starts with one free call, for a sheep for the free Barn.
 
-**The truck (`park/shop.ts`).** Four slots, each a free starter and six upgrades, plus Paint. Every price is at most 100.
+**The truck (`park/shop.ts`).** Four slots, each a free starter and six upgrades, plus a Buddy and Paint. Every price is at most 100.
 
 | Slot | Starter | Rungs 1 to 3 | Rungs 4 to 6 |
 |---|---|---|---|
@@ -63,13 +63,16 @@ Never a red X: what he tapped just fades a little. Every miss teaches the fact w
 | Winch | Rope Winch | Steel Winch 8, Power Winch 22, Crane Arm 45 | Super Winch 60, Turbo Winch 75, Mega Crane 90 |
 | Lights | Headlights | Roof Light 6, Light Bar 18, Big Siren 35 | Spotlight 55, Rainbow Lights 70, Star Beacon 85 |
 | Carrier | Little Crate | Big Crate 10 (large animals), Boat Trailer 25 (ponds and rivers), Water Tank 45 (ocean animals) | Giant Trailer 65 (the biggest: elephant, giraffe, rhino, hippo), Animal Ambulance 80, Super Hauler 100 |
-| Paint | Rescue Orange | Ranger Green, Sky Blue, Sunny Yellow, Fire Red 4; Grape Purple, Snow White, Night Black 6; Bubblegum Pink, Ocean Teal 8 | Zebra Stripes 10, Giraffe Spots 12, Jungle Camo 12 |
+| Paint | Rescue Orange | Ranger Green, Sky Blue, Sunny Yellow, Fire Red 4; Grape Purple, Snow White, Night Black, Mint Green, Lemon Lime, Chocolate Brown 6; Bubblegum Pink, Ocean Teal 8; Shiny Silver 10; Shiny Gold 16 | Zebra Stripes 10, Giraffe Spots 12, Jungle Camo 12, Tiger Stripes 12, Cow Spots 12, Leopard Spots 14, Polka Dots 14, Ladybug 16, Checkers 16, Candy Stripes 18, Racing Flames 20, Starry Night 20, Rainbow 24 |
+| Buddy | No Buddy | Puppy 5, Kitty 8, Hamster 12, Bunny 16, Piglet 20, Panda 26 | Fox Cub 32, Koala 40, Dino 50, Unicorn 65, Dragon 80, Robot 95 |
 
-A better tire does the job of the ones before (Snow Tracks drive in the forest). The gear a call needs goes on the truck for that trip if he owns it but has something else fitted. Better tires drive a little faster; a better winch lifts in fewer taps (5 down to 2). The rest are for looks: the truck in the Garage, on the Home tile and on the Rescue canvas is one drawing (`art/truck.ts`) of what he fitted. As in the other games, a part he hasn't got goes on the truck to try, with Buy beside it; one he can't afford becomes his Goal. A part that opens rescues says so ("They can drive in the desert!").
+The Buddy (an emoji) looks out of the cab window, in the Garage and on the drive; it is for looks only.
 
-**The Park (`park/Park.tsx`).** A map of seven habitat plots: Barn (free), Grassland 15, Forest 30, Pond 45, Desert 60, Ocean Pool 80, Polar Ice 100 (the brief's prices). Each has two Extras for looks (14 in all, 8 to 30 Bolts: Hay Bales, Tractor, Water Hole, Acacia Tree, Hollow Log, Mushroom Ring, Lily Pads, Cattail Reeds, Cactus Garden, Oasis, Coral Reef, Seashells, Ice Cave, Northern Lights), and the path takes 11 Decorations (4 to 80: Flower Beds, Benches, Lamp Posts, Picnic Tables, Fountain, Butterfly Garden, Gift Shop, Animal Hospital, Lookout Tower, Park Train, Hot Air Balloon). His animals wander their plots; tapping one plays a little made-up sound and its did-you-know line; with 🧺 Feed on, a tap gives it its snack (a real food for it). Tapping a habitat says what it is like, "Rescue animals to fill it!", or, if the truck can't reach its animals yet, "Your truck needs Sand Tires." Nothing here can be lost.
+Mud Tires reach the forest and the rainforest. A better tire does the job of the ones before (Snow Tracks drive in the forest). The gear a call needs goes on the truck for that trip if he owns it but has something else fitted. Better tires drive a little faster; a better winch lifts in fewer taps (5 down to 2). The rest are for looks: the truck in the Garage, on the Home tile and on the Rescue canvas is one drawing (`art/truck.ts`) of what he fitted. As in the other games, a part he hasn't got goes on the truck to try, with Buy beside it; one he can't afford becomes his Goal. A part that opens rescues says so ("They can drive in the desert!").
 
-**45 animals to rescue**, five to eight a habitat (the brief's 24, doubled): sheep, chicken, pig, goat, cow, horse, donkey (farm); lion, zebra, giraffe, elephant, rhino, bison, kangaroo, ostrich (grassland); bear, chipmunk, deer, raccoon, moose, wolf, woodpecker (forest); frog, beaver, swan, hippo, crocodile, dragonfly (pond); camel, fennec fox, roadrunner, meerkat, rattlesnake, desert tortoise (desert); sea turtle, octopus, crab, shark, dolphin, pufferfish (ocean); polar bear, penguin, walrus, arctic fox, snowy owl (polar). The whale and the jellyfish are asked about but not rescued.
+**The Park (`park/Park.tsx`).** A map of eight habitat plots: Barn (free), Grassland 15, Forest 30, Pond 45, Desert 60, Rainforest 70, Ocean Pool 80, Polar Ice 100 (the brief's prices, and the Rainforest added in the eighth spot). Each has five Extras for looks (40 in all, 8 to 30 Bolts: Hay Bales, Tractor, Sunflowers, Pumpkin Patch, Apple Tree; Water Hole, Acacia Tree, Big Rock, Wildflowers, Bird Nests; Hollow Log, Mushroom Ring, Pine Trees, Berry Bushes, Tree House; Lily Pads, Cattail Reeds, Fishing Dock, Canoe, Rainbow; Cactus Garden, Oasis, Desert Flowers, Clay Pots, Sun Shade; Banana Tree, Hanging Vines, Orchids, Waterfall, Rope Bridge; Coral Reef, Seashells, Sand Castle, Sea Kelp, Sailboat; Ice Cave, Northern Lights, Snowman, Sled, Snowflakes), and the path takes 30 Decorations (4 to 100: Flower Beds, Benches, Lamp Posts, Picnic Tables, Fountain, Butterfly Garden, Gift Shop, Animal Hospital, Lookout Tower, Park Train, Hot Air Balloon, Welcome Sign, Flags, Recycling Bins, Ice Cream Cart, Popcorn Stand, Snack Bar, Bubble Machine, Splash Pad, Bandstand, Playground, Mini Golf, Big Tent, Tour Bus, Carousel, Sky Gondola, Ferris Wheel, Rocket Ride, Roller Coaster, Fireworks), on two rows once there are many. His animals wander their plots; tapping one plays a little made-up sound and its did-you-know line; with 🧺 Feed on, a tap gives it its snack (a real food for it). Tapping a habitat says what it is like, "Rescue animals to fill it!", or, if the truck can't reach its animals yet, "Your truck needs Sand Tires." Nothing here can be lost.
+
+**67 animals to rescue**, seven to ten a habitat (the brief's 24, nearly tripled): sheep, chicken, pig, goat, cow, horse, donkey, turkey, llama (farm); lion, zebra, giraffe, elephant, rhino, bison, kangaroo, ostrich, leopard (grassland); bear, chipmunk, deer, raccoon, moose, wolf, woodpecker, skunk, badger (forest); monkey, gorilla, sloth, parrot, orangutan, tiger, toucan (rainforest); frog, beaver, swan, hippo, crocodile, dragonfly, goose, otter (pond); camel, fennec fox, roadrunner, meerkat, rattlesnake, desert tortoise, scorpion, jackrabbit (desert); sea turtle, octopus, crab, shark, dolphin, pufferfish, seal, squid, lobster, tropical fish (ocean); polar bear, penguin, walrus, arctic fox, snowy owl, narwhal, arctic hare (polar). The new ones are in the research notes, with what is never offered as wrong for them. Drawn as well as the others: toucan, jackrabbit, arctic hare, narwhal. The whale and the jellyfish are asked about but not rescued.
 
 **The call.** The radio crackles over a siren: "Calling all rangers!" and the animal's own call ("A sea turtle is caught in a fishing net!"), with a picture of the animal in its habitat. He taps Go. The next call is from the habitat with the fewest animals so far, so a newly bought habitat fills first.
 
@@ -81,14 +84,14 @@ A better tire does the job of the ones before (Snow Tracks drive in the forest).
 
 **Placing it.** He taps a habitat. After four seconds the right one starts to glow, softly. A wrong one (or one he hasn't bought) just has the animal shake its head and stay in his hands: "Not here!" The right one takes it: "Welcome home! A camel lives in the desert. A camel can go a long time without drinking water." It's never a test: no misses are counted. An animal in his hands stays there through a reload (it's in the save), and the Start tap takes him straight to the Park.
 
-**Release.** Once every animal his truck can reach is home, a call is a release: the same call, drive and job, then "This one is going back to the wild." and it runs off. It pays the same; the Park keeps what it has. (With everything bought, all 45 are home and every call is a release.)
+**Release.** Once every animal his truck can reach is home, a call is a release: the same call, drive and job, then "This one is going back to the wild." and it runs off. It pays the same; the Park keeps what it has. (With everything bought, all 67 are home and every call is a release.)
 
 **Economy defaults, for the parent to confirm.**
 
 - One call per finished Round; one free call to start. Calls don't expire.
 - A Rescue pays at most 4 Bolts, for the Bolts picked up on the drive (`DRIVE_BOLTS` in `park/rescue.ts`). A Round pays at most 6.
 - The call is used, and the Bolts paid, only when the animal is in the crate. Leaving halfway (🏠 twice) costs nothing and pays nothing. A reload during a Rescue lands at the Garage with the call still there.
-- **Everything together costs 2,145 Bolts**: truck parts 1,182 (tires 288, winch 300, lights 269, carrier 325), paints 84, habitats 330, extras 252, decorations 297. Reaching all 45 animals needs the six habitats and seven pieces of gear: 538 Bolts, roughly 55 Rounds and Rescues. The rest is more to earn, not bigger payouts, as the parent asked after Rover Code.
+- **Everything together costs 4,147 Bolts** (it was 2,145 when first built): truck parts 1,182 (tires 288, winch 300, lights 269, carrier 325), buddies 449, paints 294, habitats 400, extras 776, decorations 1,046. Reaching all 67 animals needs the seven habitats and seven pieces of gear: 608 Bolts. The rest is more to earn, not bigger payouts, as the parent asked after Rover Code.
 - **The first steps:** the free call (a sheep), then the farm's small animals; the cow, horse and donkey need the Big Crate (10, the first Goal), then the Grassland (15). The Goal is always the cheapest thing that brings the nearest new animal closer.
 
 **Controls stay off the edges**, as Math Bots' fight learned: the jump and winch buttons sit at the right above a floor of at least 56px and 28px in from the side; driving is a hold anywhere on the picture.
@@ -99,7 +102,7 @@ Ranger green and khaki with a bright orange truck, in the family look: Bungee ti
 
 ## Voice
 
-Aria at -8%, recorded with `tools/make_voice.py --collection wild-rescue` (edge-tts): **734 clips, 11.6 MB** in `public/wild-rescue-voice/` (the most sentences of any game; Treasure Fleet has 513 clips and 7.6 MB, Sight Squad 30 MB). Questions, lessons, did-you-know lines and calls are whole sentences from the facts tables (so a fact is worded once). Prices and counts are chained from number clips ("It costs", "45", "Bolts."), a bought thing from "You got" and its name.
+Aria at -8%, recorded with `tools/make_voice.py --collection wild-rescue` (edge-tts): **899 clips, about 16 MB** in `public/wild-rescue-voice/` (the most sentences of any game; Treasure Fleet has 513 clips and 7.6 MB, Sight Squad 30 MB). Questions, lessons, did-you-know lines and calls are whole sentences from the facts tables (so a fact is worded once). Prices and counts are chained from number clips ("It costs", "45", "Bolts."), a bought thing from "You got" and its name.
 
 ## Save
 
@@ -110,7 +113,7 @@ Aria at -8%, recorded with `tools/make_voice.py --collection wild-rescue` (edge-
 1. The facts: please read `research/first-grade-science.md`, especially "Facts I'd most like a parent to check" and the simplifications (one Polar habitat, penguins and snowy owls in it, seasons as most of the U.S. sees them).
 2. Does his class say "fall" or "autumn"? "Grassland" or "savanna"? "Polar" or "Arctic"?
 3. Should a Rescue pay Bolts at all, or just bring the animal home?
-4. Is 2,145 Bolts of content the right size, given he bought everything in Rover Code within a day? It's about 215 Round-and-Rescues at full pay.
+4. Is 4,147 Bolts of content the right size? It's about 415 Round-and-Rescues at full pay (it was 2,145 before the parent asked for more).
 5. Should he choose which animal to rescue (a list of calls), rather than the game picking the habitat with the fewest animals?
 6. Are made-up animal sounds right in the Park, or should tapping only say the did-you-know line?
 7. Is the 16-of-20 Mastery rule too slow for kinds this short? The other games use the same.

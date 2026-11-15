@@ -172,7 +172,7 @@ export function Park() {
               );
             })}
           </div>
-          <div class="park-path" aria-label="Decorations">
+          <div class={`park-path ${DECOS.filter(d => isOwned(rescue, keyOf('deco', d.id))).length > 14 ? 'many' : ''}`} aria-label="Decorations">
             <span class="gate" aria-hidden="true">🚪</span>
             {DECOS.filter(d => isOwned(rescue, keyOf('deco', d.id)) || trial === keyOf('deco', d.id)).map(d => (
               <span key={d.id} class={`deco ${trial === keyOf('deco', d.id) ? 'ghost' : ''}`} aria-hidden="true">{d.icon}</span>

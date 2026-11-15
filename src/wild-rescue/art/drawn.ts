@@ -5,6 +5,22 @@ const O = '#1d1d1f';
 const line = (w = 4) => `stroke="${O}" stroke-width="${w}" stroke-linejoin="round" stroke-linecap="round"`;
 const eye = (x: number, y: number, r = 4.5) => `<circle cx="${x}" cy="${y}" r="${r}" fill="${O}"/><circle cx="${x + r * .35}" cy="${y - r * .35}" r="${r * .35}" fill="#fff"/>`;
 
+/** A hare sitting, facing right: the desert's jackrabbit (with its very long ears) and the arctic hare (shorter ears, white). */
+function hare(fur: string, belly: string, short = false) {
+  const ear = short ? 22 : 36;
+  return `
+    <circle cx="16" cy="70" r="9" fill="${belly}" ${line(3.5)}/>
+    <path d="M18 84 Q12 50 44 46 Q72 44 74 70 Q72 88 46 88 Q24 90 18 84 Z" fill="${fur}" ${line()}/>
+    <path d="M30 88 Q24 78 34 74 Q52 80 56 90 Z" fill="${fur}" ${line(3.5)}/>
+    <path d="M64 84 L66 94 H76" fill="none" ${line(3.5)}/>
+    <path d="M66 40 Q58 ${40 - ear} 66 ${36 - ear} Q76 ${40 - ear} 74 40 Z" fill="${fur}" ${line(3.5)}/>
+    <path d="M76 40 Q76 ${42 - ear} 86 ${40 - ear} Q92 ${46 - ear} 82 42 Z" fill="${fur}" ${line(3.5)}/>
+    <path d="M68 36 Q66 ${48 - ear} 70 ${44 - ear}" stroke="#f7b7a3" stroke-width="4" stroke-linecap="round" fill="none"/>
+    <path d="M58 58 Q58 38 76 38 Q94 40 94 56 Q90 68 76 68 Q62 68 58 58 Z" fill="${fur}" ${line()}/>
+    <path d="M44 66 Q50 78 62 80" stroke="${belly}" stroke-width="6" stroke-linecap="round" fill="none"/>
+    ${eye(80, 50, 3.6)}<ellipse cx="93" cy="57" rx="3" ry="2.5" fill="#e88a9a"/><path d="M90 62 l8 2 M90 64 l7 4" stroke="${O}" stroke-width="1.5"/>`;
+}
+
 export const DRAWN: Record<string, string> = {
   seaturtle: `
     <path d="M18 66 Q6 74 4 86 Q18 84 30 72 Z" fill="#5fae6a" ${line(3.5)}/>
@@ -98,6 +114,27 @@ export const DRAWN: Record<string, string> = {
     <circle cx="40" cy="36" r="10" fill="#ffd23f" ${line(3.5)}/><circle cx="60" cy="36" r="10" fill="#ffd23f" ${line(3.5)}/>
     <circle cx="40" cy="36" r="5" fill="${O}"/><circle cx="60" cy="36" r="5" fill="${O}"/><path d="M47 44 L50 52 L53 44 Z" fill="#3a3a3a"/>
     <path d="M30 86 Q34 96 42 88 Q46 96 50 88 M50 88 Q54 96 58 88 Q66 96 70 86" fill="#fbfdff" ${line(3.5)}/>`,
+
+  toucan: `
+    <path d="M6 90 Q40 84 94 90" stroke="#7a4f2a" stroke-width="7" stroke-linecap="round" fill="none"/>
+    <path d="M26 84 L16 98 L34 90 Z" fill="#1d1d1f" ${line(3)}/>
+    <path d="M24 86 Q14 56 26 34 Q38 22 52 30 Q60 46 54 66 Q48 82 24 86 Z" fill="#1d1d1f" ${line()}/>
+    <path d="M38 40 Q50 38 54 48 Q52 60 42 60 Q34 52 38 40 Z" fill="#ffd23f"/>
+    <path d="M38 86 L36 92 M46 84 L48 92" stroke="#3d9be0" stroke-width="4" stroke-linecap="round"/>
+    <path d="M50 30 Q70 18 94 34 Q86 46 54 44 Z" fill="#ff9a1f" ${line(3.5)}/>
+    <path d="M54 44 Q76 46 92 36 L94 34 Q80 40 54 38" fill="#e63946" ${line(2.5)}/>
+    <path d="M86 32 Q92 32 94 34" stroke="${O}" stroke-width="3" fill="none"/>
+    <circle cx="46" cy="34" r="6" fill="#7cd0f5" ${line(2.5)}/>${eye(47, 34, 3)}`,
+  jackrabbit: hare('#b89870', '#e8d6b6'),
+  arctichare: hare('#f4f8fb', '#ffffff', true),
+  narwhal: `
+    <path d="M10 60 Q2 46 6 38 Q14 48 20 54 Q20 44 28 38 Q28 54 22 64 Z" fill="#8fa3b8" ${line(3.5)}/>
+    <path d="M18 60 Q30 36 62 36 Q86 38 88 56 Q86 72 62 74 Q34 76 18 60 Z" fill="#a9bccf" ${line()}/>
+    <path d="M30 52 l4 -2 M42 46 l5 -1 M40 60 l5 0 M54 44 l4 1 M56 66 l4 -1" stroke="#6f839a" stroke-width="3" stroke-linecap="round"/>
+    <path d="M34 66 Q60 74 82 62 Q76 72 60 74 Q44 74 34 66 Z" fill="#e8eef4"/>
+    <path d="M58 70 Q60 82 70 84 Q70 76 66 70 Z" fill="#8fa3b8" ${line(3)}/>
+    <path d="M86 50 L100 22" stroke="${O}" stroke-width="7" stroke-linecap="round"/><path d="M86 50 L100 22" stroke="#fffaf0" stroke-width="3.5" stroke-linecap="round"/>
+    <path d="M89 44 l3 1 M92 38 l3 1 M95 32 l3 1" stroke="#c9b27a" stroke-width="2"/>${eye(76, 52, 3.2)}<path d="M80 62 Q84 64 86 60" stroke="${O}" stroke-width="2.5" fill="none"/>`,
 
   // ---------- baby stages ----------
   tadpole: `

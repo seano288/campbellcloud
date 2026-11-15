@@ -1,5 +1,5 @@
 // The Garage: his rescue truck, the big Rescue! button with his calls, and the parts tray. He picks a slot from the tabs (Tires,
-// Winch, Lights, Carrier, Paint) and taps a part: one he owns goes on, one he doesn't goes on the truck to try, with Buy beside it, so
+// Winch, Lights, Carrier, Buddy, Paint) and taps a part: one he owns goes on, one he doesn't goes on the truck to try, with Buy beside it, so
 // he sees it before he spends. A part that opens new rescues says so ("They can drive in the desert!"). The Goal chip shows what he's
 // saving for: the cheapest thing that brings a new animal closer.
 import { useEffect, useMemo, useState } from 'preact/hooks';
@@ -15,11 +15,11 @@ import { NUMBERS_TO, type Phrase } from '../phrases';
 import { startRound } from '../round';
 import { useVoice } from '../voice';
 import { allOwned, allowed, goalOf, isOwned, priceOf, selectGoal } from './rescue';
-import { fit, idOf, item, keysIn, paintOf, partOf, SLOT_NAMES, tabOf, type ItemKey, type Tab, type Truck } from './shop';
+import { buddyIcon, fit, idOf, item, keysIn, paintOf, partOf, SLOT_NAMES, tabOf, type ItemKey, type Tab, type Truck } from './shop';
 
-const TABS = ['tires', 'winch', 'lights', 'carrier', 'paint'] as const satisfies readonly Tab[];
+const TABS = ['tires', 'winch', 'lights', 'carrier', 'buddy', 'paint'] as const satisfies readonly Tab[];
 type GarageTab = (typeof TABS)[number];
-const TAB_ICONS: Record<GarageTab, string> = { tires: '🛞', winch: '🪝', lights: '🚨', carrier: '📦', paint: '🎨' };
+const TAB_ICONS: Record<GarageTab, string> = { tires: '🛞', winch: '🪝', lights: '🚨', carrier: '📦', buddy: '🐶', paint: '🎨' };
 export const n = (x: number): Phrase => `${Math.min(x, NUMBERS_TO)}` as Phrase;
 
 /** The goal chip in a header: what he's saving for and how close he is. Tapping it goes to it. */
@@ -140,8 +140,10 @@ export function Garage() {
   );
 }
 
-/** A part on the truck, or for a paint just a swatch. */
+/** A part on the truck, for a paint just a swatch, and a buddy big. */
 function PartPic({ truck, tab, paint }: { truck: Truck; tab: GarageTab; paint: string }) {
+  const b = tab === 'buddy' ? buddyIcon(truck.buddy) : undefined;
+  if (b) return <span class="pic emo item-pic" aria-hidden="true">{b.icon}</span>;
   if (tab === 'paint') {
     const p = paintOf(paint);
     return <span class={`swatch-pic ${p.pattern ?? ''}`} style={{ background: p.body, '--trim': p.trim }} aria-hidden="true" />;

@@ -25,8 +25,8 @@ export const widthFor = (aspect: number) => VIEW_H * Math.max(.6, Math.min(2.4, 
 export const TRUCK_SCALE = .74;
 const TRUCK_PX_W = TRUCK_BOX.w * TRUCK_SCALE, TRUCK_PX_H = TRUCK_BOX.h * TRUCK_SCALE, WHEEL_BOTTOM = (TRUCK_H - 6 - TRUCK_BOX.y) * TRUCK_SCALE;
 
-const DIRT: Record<HabitatId, string> = { farm: '#8a6a3a', grassland: '#b89a4a', forest: '#5a4a2a', pond: '#7a6a3a', desert: '#e2b25e', ocean: '#e9d39a', polar: '#dfeaf2' };
-const FAR: Record<HabitatId, string> = { farm: '#9fcf78', grassland: '#c9b45a', forest: '#2f6a2a', pond: '#7cbf6a', desert: '#e9bf72', ocean: '#2f8fd8', polar: '#bcd8ea' };
+const DIRT: Record<HabitatId, string> = { farm: '#8a6a3a', grassland: '#b89a4a', forest: '#5a4a2a', rainforest: '#5a3f22', pond: '#7a6a3a', desert: '#e2b25e', ocean: '#e9d39a', polar: '#dfeaf2' };
+const FAR: Record<HabitatId, string> = { farm: '#9fcf78', grassland: '#c9b45a', forest: '#2f6a2a', rainforest: '#1f6a3a', pond: '#7cbf6a', desert: '#e9bf72', ocean: '#2f8fd8', polar: '#bcd8ea' };
 
 /** Draws an animal at (x, y) bottom-centre, `size` world units tall, facing left (toward the truck as it comes, and the way it
  *  drives home). Most of Apple's animals already face left; the drawn ones face right, so they're turned. */

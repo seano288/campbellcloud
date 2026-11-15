@@ -1,10 +1,13 @@
-// The seven habitats, as a first grader meets them. Plain data, no game code. The game's questions, its lessons and the Park all
+// The eight habitats, as a first grader meets them. Plain data, no game code. The game's questions, its lessons and the Park all
 // read these, so a habitat is named and described the same way everywhere.
 //
 // "Polar" is one habitat at this age, but it is really two places at opposite ends of the Earth: penguins live in the far south and
 // polar bears in the far north. They are never shown as neighbours (see animals.ts, `pole`).
+//
+// A rainforest is a forest too, so every rainforest animal has the forest as `notWrong`, and a forest animal that some rainforests
+// also have (bears, deer, woodpeckers) has the rainforest.
 
-export const HABITAT_IDS = ['ocean', 'pond', 'forest', 'grassland', 'desert', 'polar', 'farm'] as const;
+export const HABITAT_IDS = ['ocean', 'pond', 'forest', 'rainforest', 'grassland', 'desert', 'polar', 'farm'] as const;
 export type HabitatId = (typeof HABITAT_IDS)[number];
 
 export interface Habitat {
@@ -27,6 +30,7 @@ export const HABITATS = [
   { id: 'ocean', name: 'Ocean', lives: 'in the ocean', about: 'The ocean is big and salty.', ground: '#2f8fd8', sky: '#9fd8f5', accent: '#f2d38a', sign: '🌊' },
   { id: 'pond', name: 'Pond and river', lives: 'in ponds and rivers', about: 'Ponds and rivers have fresh water.', ground: '#5aa9d6', sky: '#bfe6f5', accent: '#5fb34a', sign: '💧' },
   { id: 'forest', name: 'Forest', lives: 'in the forest', about: 'A forest has lots of trees.', ground: '#3f8a3a', sky: '#bfe3b0', accent: '#7a4f2a', sign: '🌲' },
+  { id: 'rainforest', name: 'Rainforest', lives: 'in the rainforest', about: 'A rainforest is warm and wet, with lots of rain.', ground: '#2e7d4f', sky: '#a8dcb8', accent: '#e85d3a', sign: '🌴' },
   { id: 'grassland', name: 'Grassland', lives: 'in the grassland', about: 'A grassland is wide and flat, with tall grass.', ground: '#d8c25a', sky: '#f6e7a6', accent: '#8a9a3a', sign: '🌾' },
   { id: 'desert', name: 'Desert', lives: 'in the desert', about: 'A desert is hot and dry.', ground: '#f0c97a', sky: '#ffe3b0', accent: '#d9822b', sign: '🏜️' },
   { id: 'polar', name: 'Polar', lives: 'in the icy polar lands', about: 'The polar lands are icy and cold.', ground: '#eef6fb', sky: '#cfe8f6', accent: '#7fb8dc', sign: '❄️' },
@@ -45,8 +49,9 @@ export const VERY_DIFFERENT: Record<HabitatId, readonly HabitatId[]> = {
   ocean: ['desert', 'farm', 'forest', 'grassland'],
   pond: ['desert', 'polar'],
   forest: ['ocean', 'desert', 'polar'],
+  rainforest: ['desert', 'polar'],
   grassland: ['ocean', 'polar'],
-  desert: ['ocean', 'pond', 'forest', 'polar'],
-  polar: ['desert', 'pond', 'forest', 'grassland', 'farm'],
+  desert: ['ocean', 'pond', 'forest', 'rainforest', 'polar'],
+  polar: ['desert', 'pond', 'forest', 'rainforest', 'grassland', 'farm'],
   farm: ['ocean', 'polar'],
 };

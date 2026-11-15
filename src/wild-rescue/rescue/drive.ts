@@ -38,12 +38,13 @@ const COURSES: Record<HabitatId, readonly ObstacleKind[]> = {
   farm: ['mud', 'log', 'stream'],
   grassland: ['rock', 'stream', 'rock'],
   forest: ['log', 'mud', 'log'],
+  rainforest: ['mud', 'stream', 'log'],
   pond: ['stream', 'mud', 'stream'],
   desert: ['sand', 'rock', 'sand'],
   ocean: ['sand', 'rock', 'stream'],
   polar: ['snow', 'stream', 'snow'],
 };
-const HILLS: Record<HabitatId, number> = { farm: 18, grassland: 14, forest: 26, pond: 12, desert: 42, ocean: 10, polar: 22 };
+const HILLS: Record<HabitatId, number> = { farm: 18, grassland: 14, forest: 26, rainforest: 30, pond: 12, desert: 42, ocean: 10, polar: 22 };
 const WIDTH: Record<ObstacleKind, number> = { mud: 220, sand: 260, snow: 240, stream: 150, log: 34, rock: 40 };
 
 export function createDrive(home: HabitatId, tiresRung: number): Drive {

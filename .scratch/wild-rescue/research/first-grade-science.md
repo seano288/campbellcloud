@@ -76,8 +76,39 @@ Listed in the order I'm least sure the wording is right for him:
 11. The habitat of each animal in the table (`home`), and especially: crocodile (ponds and rivers), hippo (ponds and rivers), kangaroo (grassland), ostrich (grassland), meerkat (desert), roadrunner (desert), rattlesnake (desert), donkey (farm), moose and wolf (forest).
 12. Each rescue call is made up but meant to be the kind of thing that happens (a turtle in a net, a cub in a hole, a snake in garden netting).
 
+## Added on 2026-11-14 with the extra rewards
+
+A **Rainforest** habitat ("A rainforest is warm and wet, with lots of rain.") and 22 more animals to rescue, every one with a home, a
+did-you-know and a call, from the same kind of sources as above (zoo and Britannica Kids pages; common early-grades facts).
+
+| Habitat | Added | Never offered as wrong for it |
+|---|---|---|
+| Rainforest | monkey, gorilla, sloth, parrot, orangutan, tiger, toucan | forest for all (a rainforest is a forest); grassland for monkeys (baboons), parrots and tigers; desert for parrots; ponds for tigers (they swim) |
+| Ocean | seal, squid, lobster, tropical fish | polar for seals; ponds and rainforest rivers for tropical fish |
+| Ponds and rivers | goose, otter | farm and grassland for geese; ocean and rainforest for otters |
+| Forest | skunk, badger | grassland and farm for both; desert for skunks |
+| Grassland | leopard | forest, rainforest and desert |
+| Desert | scorpion, jackrabbit | grassland and forests for scorpions; grassland and farm for jackrabbits |
+| Polar (north) | narwhal, arctic hare | ocean for narwhals |
+| Farm | turkey, llama | forest and grassland for turkeys (wild turkeys); grassland for llamas |
+
+Because rainforests have some of the forest's and the pond's animals too, the rainforest is now never offered as wrong for the frog
+(tree frogs), crocodile, bear (sun bears), deer, raccoon (crab-eating raccoons), woodpecker, elephant (forest elephants), rhino, dragonfly,
+kangaroo (tree kangaroos), and, for the river dolphins and freshwater crabs and pufferfish that already kept the pond, the dolphin,
+crab and pufferfish. Level 1 pairs the rainforest only with the desert and the polar lands.
+
+Facts I'd most like a parent to check among the new ones:
+
+1. "A jackrabbit can hop as fast as a car in town." About 40 mph at full speed; "in town" is meant as a slow car.
+2. "A scorpion glows under a special light." True (ultraviolet light); "special light" avoids the word.
+3. "A llama can carry heavy packs up a mountain." Llamas are pack animals in the Andes; on U.S. farms they mostly don't.
+4. "Otters love to play and slide down muddy banks." River otters do; "love" is a child's word for it.
+5. "A tiger lives in the rainforest." Tigers live in many kinds of forest, some snowy (Siberia); forest and grassland are never wrong.
+6. "A leopard lives in the grassland." They live almost everywhere in Africa and Asia; only the polar lands, ocean, ponds and farm are offered as wrong.
+7. The narwhal is a whale, so it is kept out of "fish" questions like the whale and the dolphin.
+
 ## Left out on purpose
 
-- Bats, platypuses, seals, otters, owls in a habitat, foxes other than the fennec and arctic fox, cheetahs (Apple's leopard and cheetah emoji are easy to confuse), ducks and geese in a habitat (farm or pond?), zebra stripes' purpose (scientists still argue), the camel's hump, "eats" questions (plants / animals / both) and "covering" questions (fur / feathers / scales), and eggs: none of them is asked.
+- Bats, platypuses, owls in a habitat, foxes other than the fennec and arctic fox, cheetahs (Apple's leopard and cheetah emoji are easy to confuse; the 🐆 is called a leopard), ducks in a habitat, zebra stripes' purpose (scientists still argue), the camel's hump, "eats" questions (plants / animals / both) and "covering" questions (fur / feathers / scales), and eggs: none of them is asked.
 - Soil for plants, sunlight for animals, food for plants: never offered as right or wrong.
 - Fire, clouds, the sun, seeds, dead leaves and robots in Alive or Not.

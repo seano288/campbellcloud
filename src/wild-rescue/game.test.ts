@@ -54,26 +54,30 @@ describe('a Round', () => {
 });
 
 describe('what Bolts buy', () => {
-  it('has four truck slots, each a free starter and six upgrades getting dearer, all at or under 100', () => {
+  it('has four truck slots, each a free starter and six upgrades getting dearer, and twelve buddies, all at or under 100', () => {
     for (const slot of SLOTS) {
       const prices = PARTS.filter(p => p.slot === slot).map(p => p.price);
-      expect(prices).toHaveLength(7);
+      expect(prices).toHaveLength(slot === 'buddy' ? 13 : 7);
       expect(prices[0]).toBe(0);
       prices.forEach((p, i) => { if (i) expect(p).toBeGreaterThan(prices[i - 1]!); });
     }
     for (const k of ALL_KEYS) expect(item(k).price, k).toBeLessThanOrEqual(NUMBERS_TO);
     expect(STARTERS).toHaveLength(SLOTS.length + 2); // and Rescue Orange and the Barn
   });
-  it('is about twice the brief\'s reward: 24 upgrades, 12 paints, 6 habitats, 14 extras, 11 decorations, 45 animals', () => {
-    expect(PARTS.filter(p => p.price > 0)).toHaveLength(24);
-    expect(PAINTS.filter(p => p.price > 0)).toHaveLength(12);
-    expect(PARK_HABITATS.filter(h => h.price > 0).map(h => h.price)).toEqual([15, 30, 45, 60, 80, 100]);
-    expect(EXTRAS).toHaveLength(14);
-    expect(DECOS).toHaveLength(11);
-    expect(RESCUABLE).toHaveLength(45);
+  it('has more than twice what it first had: 24 upgrades, 12 buddies, 27 paints, 7 habitats, 40 extras, 30 decorations, 67 animals', () => {
+    // first built with 24 upgrades, 12 paints, 6 habitats, 14 extras, 11 decorations and 45 animals, costing 2,145 Bolts; he
+    // maxes reward ladders fast, so on the day it was built it got more things to earn (not bigger payouts)
+    expect(PARTS.filter(p => p.price > 0 && p.slot !== 'buddy')).toHaveLength(24);
+    expect(PARTS.filter(p => p.price > 0 && p.slot === 'buddy')).toHaveLength(12);
+    expect(PAINTS.filter(p => p.price > 0)).toHaveLength(27);
+    expect(PARK_HABITATS.filter(h => h.price > 0).map(h => h.price)).toEqual([15, 30, 45, 60, 70, 80, 100]);
+    expect(EXTRAS).toHaveLength(40);
+    for (const h of PARK_HABITATS) expect(EXTRAS.filter(x => x.home === h.id), h.id).toHaveLength(5);
+    expect(DECOS).toHaveLength(30);
+    expect(RESCUABLE).toHaveLength(67);
     const total = ALL_KEYS.reduce((s, k) => s + item(k).price, 0);
-    expect(total).toBeGreaterThan(1800);
-    expect(total).toBeLessThan(2400);
+    expect(total).toBeGreaterThan(3800);
+    expect(total).toBeLessThan(4600);
   });
   it('buys a part and fits it, and says no without enough Bolts or twice', () => {
     const buy = proposePurchase(freshRescue(), 'tires:mud', 20);
@@ -107,7 +111,7 @@ describe('Rescue calls', () => {
   it('only ever calls for an animal whose habitat he owns and his truck can reach', () => {
     // buy things in a muddled order; after each, the call is always one he can do and can bring home
     let s = freshRescue();
-    const order: ItemKey[] = ['habitat:desert', 'tires:snow', 'carrier:big', 'habitat:polar', 'habitat:grassland', 'carrier:tank', 'habitat:ocean', 'tires:mud', 'habitat:forest', 'carrier:boat', 'habitat:pond', 'carrier:giant', 'tires:sand'];
+    const order: ItemKey[] = ['habitat:desert', 'tires:snow', 'carrier:big', 'habitat:polar', 'habitat:grassland', 'carrier:tank', 'habitat:ocean', 'tires:mud', 'habitat:forest', 'carrier:boat', 'habitat:pond', 'carrier:giant', 'tires:sand', 'habitat:rainforest'];
     for (const k of order) {
       s = owning([k], s);
       for (let i = 0; i < 60; i++) {
@@ -142,7 +146,7 @@ describe('Rescue calls', () => {
     expect(truckFor(owning(['habitat:forest', 'tires:mud']), 'chipmunk').tires).toBe('mud');
   });
   it('calls a release once every animal he can reach is home, and it pays the same', () => {
-    const s = { ...freshRescue(), park: ['sheep', 'chicken', 'pig', 'goat'] as RescueId[] };
+    const s = { ...freshRescue(), park: ['sheep', 'chicken', 'pig', 'goat', 'turkey'] as RescueId[] };
     const call = nextCall(s);
     expect(call.kind).toBe('release');
     expect(s.park).toContain(call.animal);
