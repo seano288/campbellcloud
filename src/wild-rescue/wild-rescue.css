@@ -5,10 +5,14 @@
 :root{--ranger:#3f7a32;--ranger-2:#2f5a22;--khaki:#e9dcb0;--khaki-2:#c9b27a;--truck:#ff7a1a;--ink-wr:#1d1d1f;--floor:max(56px,calc(env(safe-area-inset-bottom) + 40px))}
 html,body{background:var(--ranger-2)}
 .wr-start{background:radial-gradient(circle at 50% 18%,#7cbf5a,#2f5a22 72%)}
-.wr-start h1{color:#fff;text-shadow:3px 3px 0 var(--truck),6px 6px 0 #000}
+.wr-start h1{color:#fff;text-shadow:3px 3px 0 var(--ranger-2),6px 6px 0 #000}
+/* the truck stands on a grassy hill */
+.wr-start .start-art{position:relative;padding:0 calc(30px*var(--u)) calc(26px*var(--u))}
+.wr-start .start-art::after{content:'';position:absolute;left:0;right:0;bottom:0;height:calc(70px*var(--u));min-height:44px;border:4px solid #000;border-radius:50% 50% 0 0/100% 100% 0 0;border-bottom:0;background:linear-gradient(#8cc152,#6a9a3a);z-index:0}
+.wr-start .start-art .truck-view{position:relative;z-index:1}
 .wr-start .truck-view{width:calc(320px*var(--u));height:calc(210px*var(--u));min-width:200px;min-height:130px}
 .home-screen:has(.wr-home),.round-screen:has(.wr),.garage-screen,.park-screen{background:radial-gradient(circle at 80% 0%,#6fae4f,#3f7a32 45%,#2f5a22)}
-.home-screen:has(.wr-home) .home-head h1{color:var(--yellow);text-shadow:2px 2px 0 var(--truck),4px 4px 0 #000}
+.home-screen:has(.wr-home) .home-head h1{color:var(--yellow);text-shadow:2px 2px 0 var(--ranger-2),4px 4px 0 #000}
 
 /* pictures */
 .truck-view{display:block}
@@ -21,17 +25,21 @@ svg.pic{width:1em;height:1em;overflow:visible}
 
 /* ---------- Home ---------- */
 .home.wr-home{grid-template-areas:"p p" "g k2" "k k";grid-template-rows:minmax(0,1fr) minmax(0,.8fr) auto;grid-template-columns:1.2fr 1fr}
-.wr-home .t-play{grid-area:p;flex-direction:column;background:radial-gradient(circle at 50% 40%,#f6ecc6,#e9dcb0 60%,#c9b27a);gap:4px}
-.wr-home .t-garage{grid-area:g;flex-direction:column;gap:2px;background:linear-gradient(#cdeaa8,#8cc152 70%,#6a9a3a);position:relative}
-.wr-home .t-park{grid-area:k2;flex-direction:column;gap:2px;background:radial-gradient(circle at 50% 30%,#a6e07a,#4f8a3a);position:relative;color:#fff}
+/* Play: a view over the wild, and the ▶ is the big pad of a paw print */
+.wr-home .t-play{grid-area:p;background:#a9d68a;padding:0;container-type:size}
+.home-scene-art{position:absolute;inset:0;width:100%;height:100%;display:block}
+.emo-svg{font-family:"Apple Color Emoji","Segoe UI Emoji","Noto Color Emoji",sans-serif}
+.wr-home .t-play .spot{position:relative;--spot:min(max(132px,calc(260px*var(--u))),94cqh);width:var(--spot);height:var(--spot);filter:drop-shadow(0 5px 0 #0004)}
+.paw-toes{position:absolute;inset:0;width:100%;height:100%;display:block}
+.wr-home .t-garage{grid-area:g;flex-direction:column;justify-content:flex-end;gap:2px;background:#4f8a3a;position:relative;padding:10px 10px 8px}
+.wr-home .t-park{grid-area:k2;flex-direction:column;justify-content:flex-end;gap:2px;background:#8cc152;position:relative;color:#fff;padding:10px 10px 8px}
 @media (orientation:landscape){.home.wr-home{grid-template-areas:"p g" "p k2" "k k";grid-template-rows:minmax(0,1fr) minmax(0,1fr) auto;grid-template-columns:1.2fr 1fr}}
-.wr-home .t-play .e{display:grid;place-items:center;width:calc(150px*var(--u));height:calc(150px*var(--u));min-width:76px;min-height:76px;border-radius:50%;border:4px solid #000;background:var(--go);color:#fff;font-size:calc(72px*var(--u));box-shadow:inset 0 -6px 0 #0003,0 7px 0 #000;padding-left:.12em}
+.wr-home .t-play .e{position:absolute;left:50%;top:61.5%;transform:translate(-50%,-50%);display:grid;place-items:center;width:57.7%;height:57.7%;border-radius:50%;border:4px solid #000;background:var(--go);color:#fff;font-size:calc(72px*var(--u));box-shadow:inset 0 -6px 0 #0003,0 7px 0 #000;padding-left:.12em}
 .wr-home .t-play:active .e{box-shadow:inset 0 -6px 0 #0003,0 2px 0 #000}
-.play-paws{position:absolute;left:8%;top:8%;font-size:calc(46px*var(--u));opacity:.35;transform:rotate(-20deg)}
-.play-animals{font-size:max(30px,calc(54px*var(--u)));letter-spacing:.08em}
-.wr-home .t-garage .truck-view{flex:1;min-height:0;width:92%}
+.wr-home .t-garage .truck-view{position:relative;flex:1;min-height:0;width:88%;max-height:calc(190px*var(--u))}
+.wr-home .t-garage .nm,.wr-home .t-park .nm{position:relative}
 .wr-home .nm{font-size:max(15px,calc(24px*var(--u)));text-shadow:2px 2px 0 #000;color:#fff;white-space:nowrap}
-.park-peek{flex:1;min-height:0;display:flex;align-items:center;justify-content:center;gap:4px;font-size:max(28px,calc(52px*var(--u)))}
+.park-peek{position:relative;flex:1;min-height:0;width:100%;display:flex;align-items:flex-end;justify-content:center;gap:4px;padding-bottom:calc(14px*var(--u));font-size:max(30px,calc(58px*var(--u)));filter:drop-shadow(0 3px 0 #0003)}
 .park-peek .held{animation:bob 1s ease-in-out infinite}
 .call-badge{position:absolute;right:8px;top:8px;background:#000;color:var(--yellow);border-radius:999px;padding:3px 12px;font:900 max(16px,calc(22px*var(--u))) Nunito,sans-serif;border:2px solid var(--yellow)}
 .wr-home .t-kinds{grid-area:k;background:#fbf4dc;display:grid;grid-template-columns:repeat(2,1fr);grid-auto-rows:minmax(max(48px,calc(54px*var(--u))),auto);column-gap:calc(10px*var(--u));padding:calc(6px*var(--u)) calc(12px*var(--u)) calc(10px*var(--u));cursor:default}
@@ -44,7 +52,7 @@ svg.pic{width:1em;height:1em;overflow:visible}
 .wr-home .kind .lvl{gap:0;width:100%;max-width:max(70px,calc(120px*var(--u)));height:max(8px,calc(10px*var(--u)));border-radius:99px;overflow:hidden;background:#0002}
 .wr-home .kind .lvl i{flex:1;width:auto;height:100%;border:0;border-radius:0;background:none}
 .wr-home .kind .lvl i+i{border-left:2px solid #fbf4dc}
-.wr-home .kind .lvl i.on{background:var(--truck)}
+.wr-home .kind .lvl i.on{background:#ffb000}
 .wr-home .kind.locked{filter:grayscale(.9) brightness(.85);opacity:.7}
 .wr-home .kind.fresh{animation:pulse 1s infinite}
 .wr-home .kind .badge{position:absolute;right:-2px;top:2px;font-size:calc(18px*var(--u))}
@@ -53,11 +61,10 @@ svg.pic{width:1em;height:1em;overflow:visible}
   .wr-home .t-kinds{grid-template-columns:1fr;grid-auto-rows:minmax(44px,auto)}
   .wr-home .kinds-head{position:absolute;width:1px;height:1px;overflow:hidden;clip-path:inset(50%)}
   .wr-home .t-play{flex-direction:row}
-  .wr-home .t-play .e{width:min(62px,18vh);height:min(62px,18vh);min-width:0;min-height:0;font-size:30px}
-  .play-animals{font-size:26px}
-  .wr-home .t-garage,.wr-home .t-park{flex-direction:row;gap:8px}
+  .wr-home .t-play .e{font-size:28px}
+  .wr-home .t-garage,.wr-home .t-park{flex-direction:row;justify-content:center;gap:8px}
   .wr-home .t-garage .truck-view{width:90px;flex:none;height:100%}
-  .park-peek{flex:none;font-size:26px}
+  .park-peek{flex:none;width:auto;font-size:26px;padding-bottom:0;align-self:center}
 }
 @media (max-width:430px) and (orientation:portrait){.wr-home .t-kinds{grid-template-columns:1fr}}
 

@@ -95,7 +95,7 @@ A better tire does the job of the ones before (Snow Tracks drive in the forest).
 
 ## Look
 
-Ranger green and khaki with a bright orange truck, in the family look: Bungee titles, Nunito for reading, 4px black outlines, solid drop shadows that press in. Habitats, the sky, the seasons and the needs scenes are small SVG scenes drawn in code (`art/Pics.tsx`); the six part diagrams are drawn with each part a separate tap target (`art/Diagram.tsx`). Icon: the orange truck with its light bar on and a paw print on the door, a fennec fox looking out of the crate, on a ranger-green sunburst.
+Ranger green and khaki with a bright orange truck, in the family look: Bungee titles, Nunito for reading, 4px black outlines, solid drop shadows that press in. Habitats, the sky, the seasons and the needs scenes are small SVG scenes drawn in code (`art/Pics.tsx`); the six part diagrams are drawn with each part a separate tap target (`art/Diagram.tsx`). Icon: the orange truck, big and tipped up as it climbs a grassy hill, its light bar flashing red and blue sparks, a fennec fox riding in the crate, on a ranger-green sunburst that spins out from the siren. Home (redrawn 2026-11-14, as Treasure Fleet's was): Play is a view over the wild (an acacia and a giraffe, a pond with a frog, pines and a deer) with the green ▶ as the big pad of a paw print; the Garage tile is the ranger station's open roll-up door with his truck parked in front; the Park tile is a meadow behind a wooden fence with his animals standing in it (`art/HomeArt.tsx`). Level bars are amber and titles have no orange shadow, since orange means "being read aloud". On Start the truck stands on a grassy hill.
 
 ## Voice
 

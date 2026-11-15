@@ -1,10 +1,11 @@
-// Home: one Play tile, the biggest thing on the screen (a ranger's field guide with ▶; every Round mixes the kinds he has opened), the
-// Garage tile with his truck on it (and his rescue calls), the Park tile with his animals and how many are home, and a board with his
-// Level in each kind. Tapping a kind says its name, and a locked one says what opens it.
+// Home: one Play tile, the biggest thing on the screen (a view over the wild, with ▶ as the big pad of a paw print; every Round mixes
+// the kinds he has opened), the Garage tile with his truck parked at the ranger station (and his rescue calls), the Park tile with his
+// animals standing in the meadow and how many are home, and a board with his Level in each kind. Tapping a kind says its name, and a locked one says what opens it.
 import { useEffect } from 'preact/hooks';
 import type { ComponentChildren } from 'preact';
 import { sBad } from '../audio/sfx';
 import { LevelDots } from '../ui/bits';
+import { GarageScene, ParkScene, PawToes, PlayScene } from './art/HomeArt';
 import { AnimalPic, TruckView } from './art/Pics';
 import { player } from './game';
 import { LOCKED_HINTS, MODE_IDS, MODE_NAMES, type ModeId } from './learning';
@@ -32,15 +33,16 @@ export function Home({ status }: { status: ComponentChildren }) {
       <header class="home-head"><h1>Wild Rescue</h1>{status}</header>
       <div class="home wr-home">
         <button class="tile t-play" aria-label="Play" onClick={() => { if (voice.active) startRound(); }}>
-          <span class="play-paws" aria-hidden="true">🐾</span>
-          <span class="play-animals" aria-hidden="true">🦁🐧🐸🐪</span>
-          <span class="e">▶</span>
+          <PlayScene />
+          <span class="spot"><PawToes /><span class="e">▶</span></span>
         </button>
         <button class="tile t-garage" aria-label="Garage" onClick={() => { if (voice.active) screen.value = 'garage'; }}>
+          <GarageScene />
           <TruckView truck={rescue.truck} label={null} /><span class="nm">Garage</span>
           {rescue.calls > 0 && <span class="call-badge" aria-hidden="true">📻{rescue.calls}</span>}
         </button>
         <button class="tile t-park" aria-label="Park" onClick={() => { if (voice.active) screen.value = 'park'; }}>
+          <ParkScene />
           <span class="park-peek" aria-hidden="true">
             {rescue.park.slice(-4).map(id => <AnimalPic key={id} id={id} />)}
             {rescue.holding && <AnimalPic id={rescue.holding} class="held" />}
