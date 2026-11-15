@@ -288,3 +288,36 @@ _Avoid_: Trophy (Trophies are earned by playing well; Treasures by sailing)
 
 **Barrel**: what floats by at sea, three a Voyage, one Bolt each.
 
+## Wild Rescue
+
+Wild Rescue reuses Math Bots', Rover Code's and Treasure Fleet's terms where they mean the same thing (Mixed Round, Mastery, Stretch, Bolt, Goal, Part, Rung, Paint). It has no Tune-Up and no Meetings. These are its own:
+
+**Game Modes (Wild Rescue)**: the five kinds of question, about first-grade science: Where It Lives (an animal's habitat), Animal Parts (what a body part is for), Alive or Not (living things and what they need), Babies (young animals and their parents) and Sky and Seasons (day and night, the weather, the seasons, the sun across the day). Where It Lives and Animal Parts are open from the start; Alive or Not and Sky and Seasons open at Where It Lives Level 2, Babies at Animal Parts Level 2.
+
+**Facts table**: the hand-checked data every question is made from (`src/wild-rescue/facts/`): the animals, the body parts, living things and needs, the babies, and the sky and seasons. A question can only offer what the table says is plainly right or plainly wrong.
+_Avoid_: question bank
+
+**Habitat**: one of seven places an animal lives: ocean, pond and river, forest, grassland, desert, polar, farm. Only an animal with one clear habitat is asked about or lives in the Park. Also the Park's plots for them (the farm's is the Barn, the ocean's the Ocean Pool, the polar one Polar Ice).
+_Avoid_: biome, home (to him, "its home" is fine in speech)
+
+**Did You Know**: the one short true line each animal carries, said when it comes home to the Park, when he taps it there, and in a fuller lesson.
+
+**Rescue call**: what a finished Round earns (he starts with one): the radio names an animal in trouble ("A sea turtle is caught in a fishing net!"). It's used only when the animal is in the crate.
+_Avoid_: voyage, launch, ticket
+
+**Rescue**: answering a call: the drive (from the side, hold to drive, tap to jump), the Job, and the ride home with the animal in the crate.
+
+**Job**: the hands-on part at the end of a Rescue, one of three: pull the net off, lift it out with the winch, or lead it to the crate with treats. It can't be failed.
+
+**Release**: a call once every animal his truck can reach is already home: the same drive and Job, and then the animal goes back to the wild. It pays the same and the Park keeps what it has.
+
+**Truck**: his rescue truck, Wild Rescue's Body, built from four slots (Tires, Winch, Lights, Carrier) and a Paint. Some parts open rescues: Mud Tires the forest, Sand Tires the desert, Snow Tracks the polar lands, the Boat Trailer the ponds, the Water Tank the ocean, the Big Crate large animals and the Giant Trailer the biggest.
+
+**Garage**: where he builds the truck (Wild Rescue reuses the word for its own truck).
+
+**Park**: the map of habitat plots he buys with Bolts, where his rescued animals live, with Extras inside the habitats and Decorations on the path. He carries each new animal to its habitat there.
+
+**Extra**: one of two things for looks inside each habitat (Hay Bales, Lily Pads, Northern Lights...).
+
+**Decoration**: a thing for the Park's path (Flower Beds, Fountain, Park Train...).
+

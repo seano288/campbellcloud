@@ -1,0 +1,360 @@
+/* Wild Rescue: Time Flies' styles (imported before this file, as the other vehicle games do) in ranger green and khaki with a bright
+   orange truck, keeping the family look: Bungee titles, Nunito reading, 4px black outlines and chunky drop shadows that press in.
+   Colour signals stay the family's: green is Go and right, yellow is look here, orange is being read aloud. Every rule is scoped to a
+   Wild Rescue class, so nothing leaks between kinds or games. */
+:root{--ranger:#3f7a32;--ranger-2:#2f5a22;--khaki:#e9dcb0;--khaki-2:#c9b27a;--truck:#ff7a1a;--ink-wr:#1d1d1f;--floor:max(56px,calc(env(safe-area-inset-bottom) + 40px))}
+html,body{background:var(--ranger-2)}
+.wr-start{background:radial-gradient(circle at 50% 18%,#7cbf5a,#2f5a22 72%)}
+.wr-start h1{color:#fff;text-shadow:3px 3px 0 var(--truck),6px 6px 0 #000}
+.wr-start .truck-view{width:calc(320px*var(--u));height:calc(210px*var(--u));min-width:200px;min-height:130px}
+.home-screen:has(.wr-home),.round-screen:has(.wr),.garage-screen,.park-screen{background:radial-gradient(circle at 80% 0%,#6fae4f,#3f7a32 45%,#2f5a22)}
+.home-screen:has(.wr-home) .home-head h1{color:var(--yellow);text-shadow:2px 2px 0 var(--truck),4px 4px 0 #000}
+
+/* pictures */
+.truck-view{display:block}
+.truck-view svg{display:block;width:100%;height:100%;overflow:visible}
+.pic{display:inline-block;line-height:1;flex:none}
+.pic.emo{font-family:"Apple Color Emoji","Segoe UI Emoji","Noto Color Emoji",system-ui,sans-serif}
+svg.pic{width:1em;height:1em;overflow:visible}
+.habitat-art{display:block;width:100%;height:100%}
+.scene{display:block;width:100%;height:100%;overflow:hidden;border-radius:14px}
+
+/* ---------- Home ---------- */
+.home.wr-home{grid-template-areas:"p p" "g k2" "k k";grid-template-rows:minmax(0,1fr) minmax(0,.8fr) auto;grid-template-columns:1.2fr 1fr}
+.wr-home .t-play{grid-area:p;flex-direction:column;background:radial-gradient(circle at 50% 40%,#f6ecc6,#e9dcb0 60%,#c9b27a);gap:4px}
+.wr-home .t-garage{grid-area:g;flex-direction:column;gap:2px;background:linear-gradient(#cdeaa8,#8cc152 70%,#6a9a3a);position:relative}
+.wr-home .t-park{grid-area:k2;flex-direction:column;gap:2px;background:radial-gradient(circle at 50% 30%,#a6e07a,#4f8a3a);position:relative;color:#fff}
+@media (orientation:landscape){.home.wr-home{grid-template-areas:"p g" "p k2" "k k";grid-template-rows:minmax(0,1fr) minmax(0,1fr) auto;grid-template-columns:1.2fr 1fr}}
+.wr-home .t-play .e{display:grid;place-items:center;width:calc(150px*var(--u));height:calc(150px*var(--u));min-width:76px;min-height:76px;border-radius:50%;border:4px solid #000;background:var(--go);color:#fff;font-size:calc(72px*var(--u));box-shadow:inset 0 -6px 0 #0003,0 7px 0 #000;padding-left:.12em}
+.wr-home .t-play:active .e{box-shadow:inset 0 -6px 0 #0003,0 2px 0 #000}
+.play-paws{position:absolute;left:8%;top:8%;font-size:calc(46px*var(--u));opacity:.35;transform:rotate(-20deg)}
+.play-animals{font-size:max(30px,calc(54px*var(--u)));letter-spacing:.08em}
+.wr-home .t-garage .truck-view{flex:1;min-height:0;width:92%}
+.wr-home .nm{font-size:max(15px,calc(24px*var(--u)));text-shadow:2px 2px 0 #000;color:#fff;white-space:nowrap}
+.park-peek{flex:1;min-height:0;display:flex;align-items:center;justify-content:center;gap:4px;font-size:max(28px,calc(52px*var(--u)))}
+.park-peek .held{animation:bob 1s ease-in-out infinite}
+.call-badge{position:absolute;right:8px;top:8px;background:#000;color:var(--yellow);border-radius:999px;padding:3px 12px;font:900 max(16px,calc(22px*var(--u))) Nunito,sans-serif;border:2px solid var(--yellow)}
+.wr-home .t-kinds{grid-area:k;background:#fbf4dc;display:grid;grid-template-columns:repeat(2,1fr);grid-auto-rows:minmax(max(48px,calc(54px*var(--u))),auto);column-gap:calc(10px*var(--u));padding:calc(6px*var(--u)) calc(12px*var(--u)) calc(10px*var(--u));cursor:default}
+.wr-home .t-kinds:active{transform:none;box-shadow:0 7px 0 #000}
+.wr-home .kinds-head{grid-column:1/-1;margin:0;font:400 max(14px,calc(16px*var(--u))) Bungee,sans-serif;text-align:center;color:#0009}
+.wr-home .kind{position:relative;display:flex;align-items:center;gap:8px;border-top:2px solid #0002;padding:2px;min-height:44px;text-align:left;color:#000}
+.wr-home .kind .ki{font-size:max(20px,calc(26px*var(--u)));line-height:1}
+.wr-home .kind .kb{flex:1;min-width:0;display:flex;flex-direction:column;gap:3px}
+.wr-home .kind .kn{font:900 max(14px,calc(18px*var(--u))) Nunito,sans-serif;line-height:1.1}
+.wr-home .kind .lvl{gap:0;width:100%;max-width:max(70px,calc(120px*var(--u)));height:max(8px,calc(10px*var(--u)));border-radius:99px;overflow:hidden;background:#0002}
+.wr-home .kind .lvl i{flex:1;width:auto;height:100%;border:0;border-radius:0;background:none}
+.wr-home .kind .lvl i+i{border-left:2px solid #fbf4dc}
+.wr-home .kind .lvl i.on{background:var(--truck)}
+.wr-home .kind.locked{filter:grayscale(.9) brightness(.85);opacity:.7}
+.wr-home .kind.fresh{animation:pulse 1s infinite}
+.wr-home .kind .badge{position:absolute;right:-2px;top:2px;font-size:calc(18px*var(--u))}
+@media (orientation:landscape) and (max-height:520px){
+  .home.wr-home{grid-template-areas:"p k" "g k" "k2 k";grid-template-rows:minmax(0,1.3fr) minmax(0,1fr) minmax(0,1fr);grid-template-columns:1fr 1.25fr}
+  .wr-home .t-kinds{grid-template-columns:1fr;grid-auto-rows:minmax(44px,auto)}
+  .wr-home .kinds-head{position:absolute;width:1px;height:1px;overflow:hidden;clip-path:inset(50%)}
+  .wr-home .t-play{flex-direction:row}
+  .wr-home .t-play .e{width:min(62px,18vh);height:min(62px,18vh);min-width:0;min-height:0;font-size:30px}
+  .play-animals{font-size:26px}
+  .wr-home .t-garage,.wr-home .t-park{flex-direction:row;gap:8px}
+  .wr-home .t-garage .truck-view{width:90px;flex:none;height:100%}
+  .park-peek{flex:none;font-size:26px}
+}
+@media (max-width:430px) and (orientation:portrait){.wr-home .t-kinds{grid-template-columns:1fr}}
+
+/* ---------- a question: the ask bar, then the picture and the choices beside it when there's width ---------- */
+.round-screen .card:has(.wr){position:relative;background:#fbf7e8}
+.game.wr{justify-content:flex-start;gap:calc(8px*var(--u));padding:calc(10px*var(--u));overflow:hidden}
+.game.wr .ask{flex:none;width:100%}
+.game.wr .ask h2{flex:1;min-width:0;font:900 max(19px,calc(28px*var(--u)))/1.15 Nunito,sans-serif;text-align:left;text-wrap:balance}
+.game.wr .help-btn{flex:none;font-size:max(20px,calc(24px*var(--u)));padding:4px 12px;min-height:var(--tap);min-width:var(--tap)}
+.wr-body{flex:1;min-height:0;width:100%;display:flex;flex-direction:column;gap:calc(10px*var(--u));align-items:stretch}
+.wr-stage{position:relative;flex:1 1 0;min-height:0;min-width:0;display:flex;align-items:center;justify-content:center}
+.wr-choices{flex:none;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:calc(10px*var(--u))}
+.wr-body.no-stage .wr-choices{flex:1;min-height:0}
+@media (orientation:landscape){.wr-body{flex-direction:row}.wr-choices{flex:1 1 0;min-width:0;max-width:56%}.wr-choices .choices-grid{width:100%}.wr-body.no-stage .wr-choices{max-width:none}.wr-body.no-stage .choices-grid{width:min(100%,820px)}}
+@media (orientation:landscape) and (max-height:520px){.choice-card .choice-main{min-height:56px;padding:4px}.choice-pic{font-size:44px}.choice-pic .habitat-art,.choice-pic .scene{height:min(18vh,90px)}.choice-text{font-size:16px}.game.wr .ask h2{font-size:17px}.game.wr{padding:6px 8px;gap:6px}}
+
+/* the picture he's asked about */
+.portrait{position:relative;width:100%;height:100%;display:grid;place-items:center}
+.portrait .big{font-size:min(36vmin,calc(200px*var(--u)));filter:drop-shadow(0 6px 0 #0002)}
+.portrait svg.big{width:min(36vmin,calc(200px*var(--u)));height:min(36vmin,calc(200px*var(--u)))}
+.portrait>.pic.emo:not(.big){font-size:min(30vmin,calc(170px*var(--u)))}
+.portrait .popped,.home-scene .popped{position:absolute;right:6%;bottom:6%;font-size:min(20vmin,calc(120px*var(--u)));animation:popin .5s cubic-bezier(.2,1.6,.4,1)}
+.home-scene .popped{right:8%}
+svg.popped{width:min(20vmin,calc(120px*var(--u)));height:min(20vmin,calc(120px*var(--u)))}
+.job-pop{position:absolute;right:10%;top:8%;font-size:min(16vmin,calc(96px*var(--u)));animation:popin .5s cubic-bezier(.2,1.6,.4,1),bob 1.2s .5s ease-in-out infinite}
+.portrait.lesson .big{filter:drop-shadow(0 0 18px #ffd23f)}
+@keyframes popin{from{transform:scale(0)}to{transform:scale(1)}}
+@keyframes bob{50%{transform:translateY(-8%)}}
+.home-scene{position:relative;width:100%;height:100%;max-width:calc(560px*var(--u) + 80px);border-radius:18px;border:4px solid #000;overflow:hidden;box-shadow:0 5px 0 #000}
+.home-scene .habitat-art{position:absolute;inset:0}
+.home-scene .resident{position:absolute;left:10%;bottom:8%;font-size:min(18vmin,calc(110px*var(--u)))}
+svg.resident{width:min(18vmin,calc(110px*var(--u)));height:min(18vmin,calc(110px*var(--u)))}
+.home-scene .hopper{position:absolute;left:50%;bottom:10%;font-size:min(22vmin,calc(130px*var(--u)));transform:translateX(-50%);animation:hopin .9s cubic-bezier(.3,1.3,.5,1)}
+svg.hopper{width:min(22vmin,calc(130px*var(--u)));height:min(22vmin,calc(130px*var(--u)))}
+@keyframes hopin{0%{transform:translate(-50%,-120%) scale(.4)}60%{transform:translate(-50%,10%) scale(1.05)}100%{transform:translate(-50%,0) scale(1)}}
+
+/* the cards */
+.choices-grid{display:grid;grid-template-columns:repeat(var(--cols,2),minmax(0,1fr));gap:calc(10px*var(--u));width:min(100%,640px)}
+.choices-grid.n3{--cols:3}.choices-grid.n4{--cols:2}
+.choices-grid.sentences,.choices-grid.needs{--cols:1}
+.choices-grid.needs{--cols:2}
+.choices-grid.n3:not(.home):has(.worded){--cols:1}
+.choices-grid.n3:not(.home):has(.worded) .choice-main{min-height:max(56px,calc(76px*var(--u)))}
+.choice-card{position:relative;display:flex;align-items:stretch;border:4px solid #000;border-radius:18px;background:#fff;box-shadow:0 5px 0 #000;min-width:0;transition:opacity .2s,transform .2s}
+.choice-card .choice-main{flex:1;min-width:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;padding:calc(8px*var(--u));min-height:max(64px,calc(100px*var(--u)));border-radius:14px}
+.choice-card .choice-main:active{transform:translateY(3px)}
+.choice-pic{display:grid;place-items:center;font-size:max(46px,calc(84px*var(--u)));line-height:1;width:100%}
+.choice-pic .habitat-art,.choice-pic .scene{width:100%;height:max(54px,calc(120px*var(--u)));border-radius:10px;border:3px solid #0003}
+.choice-pic svg.pic{width:max(54px,calc(96px*var(--u)));height:max(54px,calc(96px*var(--u)))}
+.choice-text{font:900 max(17px,calc(24px*var(--u)))/1.15 Nunito,sans-serif;color:#000}
+.choice-card.worded .choice-main{flex-direction:row;justify-content:flex-start;text-align:left;gap:10px}
+.choice-card.worded .choice-pic{width:auto;font-size:max(30px,calc(44px*var(--u)))}
+.choice-card.worded .choice-pic .habitat-art{width:max(64px,calc(110px*var(--u)));height:max(44px,calc(70px*var(--u)))}
+.home .choice-card.worded .choice-main{flex-direction:column;text-align:center;justify-content:center}
+.choices-grid.home .choice-card .choice-main{flex-direction:column;text-align:center;justify-content:center}
+.choices-grid.home .choice-pic .habitat-art{width:100%}
+.choice-say{flex:none;width:max(44px,calc(52px*var(--u)));border-left:3px solid #0002;font-size:max(18px,calc(22px*var(--u)));border-radius:0 14px 14px 0;background:#fff6d0}
+.choice-card.speaking{border-color:var(--orange);box-shadow:0 5px 0 #000,0 0 0 5px var(--orange);transform:scale(1.03)}
+.choice-card.wrong{opacity:.45;box-shadow:none}
+.choice-card.right{background:#c9f0d8;border-color:var(--go)}
+.choice-card.hint{animation:hint 1s infinite}
+.choice-card.picked{background:#fff3b0;border-color:#c99a00}
+.choice-card.picked::after{content:'✓';position:absolute;right:6px;top:2px;font:900 22px Nunito,sans-serif;color:var(--go)}
+.choices-grid.needs.solved .choice-card.picked{background:#c9f0d8;border-color:var(--go)}
+.card.thinking .choice-card.hint,.card.thinking .choice-card.speaking{opacity:1;filter:none}
+.done-btn{font-size:calc(30px*var(--u));padding:calc(10px*var(--u)) calc(40px*var(--u));min-height:max(56px,calc(72px*var(--u)))}
+.choices-grid.pictures .choice-pic .scene{height:max(70px,calc(130px*var(--u)))}
+.choices-grid.living .choice-pic{font-size:max(54px,calc(96px*var(--u)))}
+.choices-grid.living.n4{--cols:2}
+
+/* Animal Parts, Level 1: the diagram is the answer */
+.diagram{display:block;width:100%;height:100%;max-width:calc(620px*var(--u) + 60px);overflow:visible}
+.diagram .part-hit{fill:transparent;cursor:pointer;outline:none}
+.diagram .part-hit:focus-visible rect{stroke:var(--orange);stroke-width:5}
+.diagram .part-halo{fill:#ffd23f88;stroke:#ffd23f;stroke-width:6;animation:halo 1s infinite}
+.diagram .part.wrong{opacity:.5}
+.diagram .part.right .part-halo{fill:#3ddc8488;stroke:#178046}
+.diagram .part.lit .flap{animation:flap .5s ease-in-out infinite;transform-box:fill-box;transform-origin:bottom center}
+.diagram .part.lit .wave{animation:wave .6s ease-in-out infinite;transform-box:fill-box;transform-origin:center}
+.diagram .part.lit .turn{animation:turn .8s ease-in-out infinite;transform-box:fill-box;transform-origin:bottom center}
+.diagram .part.lit .hop{animation:hop .6s ease-in-out infinite;transform-box:fill-box;transform-origin:center}
+.diagram .part.lit .swish{animation:turn .5s ease-in-out infinite;transform-box:fill-box;transform-origin:top right}
+@keyframes halo{50%{stroke-width:14px}}
+@keyframes flap{50%{transform:scaleY(-.6)}}
+@keyframes wave{50%{transform:skewY(10deg)}}
+@keyframes turn{50%{transform:rotate(-12deg)}}
+@keyframes hop{50%{transform:translateY(-8px)}}
+
+/* Babies */
+.grow-stage{position:relative;width:100%;height:100%;display:flex;align-items:center;justify-content:center;gap:6%;padding-top:30px}
+.baby-pic{font-size:min(24vmin,calc(140px*var(--u)))}
+svg.baby-pic{width:min(26vmin,calc(150px*var(--u)));height:min(26vmin,calc(150px*var(--u)))}
+.baby-pic.small{font-size:min(14vmin,calc(80px*var(--u)))}
+.baby-pic.middle{font-size:min(19vmin,calc(110px*var(--u)))}
+.baby-pic.grown{font-size:min(28vmin,calc(160px*var(--u)))}
+svg.baby-pic.grown{width:min(28vmin,calc(160px*var(--u)));height:min(28vmin,calc(160px*var(--u)))}
+.grow-step{animation:popin .45s cubic-bezier(.2,1.6,.4,1)}
+.grow-dots{position:absolute;left:50%;top:4%;transform:translateX(-50%);display:flex;gap:8px}
+.grow-dots i{width:14px;height:14px;border-radius:50%;border:3px solid #000;background:#fff}
+.grow-dots i.on{background:var(--go)}
+
+/* the sky, the seasons and the needs scenes */
+.scene-box{width:100%;height:100%;max-width:calc(560px*var(--u) + 80px);display:grid;place-items:center}
+.scene-box .scene{border:4px solid #000;box-shadow:0 5px 0 #000;aspect-ratio:8/5;width:auto;height:auto;max-width:100%;max-height:100%}
+
+/* ---------- the end of a Round ---------- */
+.wr-reward{background:radial-gradient(circle at 50% 30%,#6fae4f,#2f5a22 70%)}
+.earned-call{font:900 calc(30px*var(--u)) Nunito,sans-serif;color:var(--yellow);background:#000;border-radius:999px;padding:6px 20px}
+.wr-reward .btns{align-items:center}
+.big-btn.my-truck{padding:calc(4px*var(--u));width:max(96px,calc(130px*var(--u)));height:max(84px,calc(110px*var(--u)));flex:none;background:#cdeaa8}
+.big-btn.my-truck .truck-view{width:100%;height:100%}
+.rescue-btn{gap:10px;min-height:max(84px,calc(110px*var(--u)));padding:calc(10px*var(--u)) calc(24px*var(--u));font-size:calc(34px*var(--u));background:radial-gradient(circle at 40% 30%,#ff9a4a,var(--truck) 60%,#c95400);color:#fff}
+.rescue-word{font:400 max(20px,calc(32px*var(--u))) Bungee,sans-serif;white-space:nowrap;text-shadow:2px 2px 0 #000}
+.rescue-count{font-size:.68em;background:#0006;border-radius:12px;padding:2px 10px;white-space:nowrap}
+.rescue-btn.short{background:#5d6b78}
+.wr-reward .btns .again.second{font-size:calc(28px*var(--u));padding:calc(18px*var(--u)) calc(24px*var(--u))}
+.armed{background:var(--red)!important}
+
+/* ---------- the Garage and the Park: header, tabs, tray, buy bar ---------- */
+.garage-screen,.park-screen{padding:calc(8px*var(--u)) 12px 12px;gap:calc(8px*var(--u))}
+.work-head{display:flex;align-items:center;gap:10px;flex:none;min-width:0}
+.work-head h1{margin:0 auto 0 0;font:400 calc(32px*var(--u)) Bungee,sans-serif;color:var(--yellow);min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;text-shadow:2px 2px 0 #000}
+@media (max-width:430px){.work-head h1{font-size:16px}.work-head .goalchip .track{display:none}.work-head{gap:6px}}
+.work-head .goalchip .gi{width:calc(56px*var(--u));height:calc(40px*var(--u));min-width:40px;min-height:30px}
+.work-head .goalchip .gi .truck-view,.work-head .goalchip .gi .habitat-art{width:100%;height:100%;border-radius:6px}
+.work-head .goalchip .gi .pic{font-size:24px}
+.goalchip.ready{box-shadow:0 0 0 4px var(--yellow)}
+.park-count{background:#000c;color:#fff;border-radius:999px;padding:4px 12px;font:900 max(15px,calc(20px*var(--u))) Nunito,sans-serif;white-space:nowrap}
+.wr-tabs{display:grid;grid-template-columns:repeat(var(--tabs,5),1fr);gap:6px}
+.park-side .wr-tabs{--tabs:3}
+.wr-tab{min-height:max(var(--tap),calc(58px*var(--u)));border-radius:14px;background:var(--ranger-2);border:3px solid #fff3;font-size:calc(28px*var(--u));padding:0}
+.wr-tab.on{background:var(--yellow);border-color:#000;box-shadow:0 4px 0 #000}
+.wr-tray{display:grid;grid-template-columns:repeat(auto-fill,minmax(max(100px,calc(124px*var(--u))),1fr));grid-auto-rows:max-content;gap:calc(8px*var(--u));overflow-y:auto;overscroll-behavior:contain;touch-action:pan-y;padding-bottom:calc(84px*var(--u));min-height:0}
+.wr-tile{position:relative;display:flex;flex-direction:column;align-items:center;gap:2px;padding:6px 4px;border-radius:14px;background:var(--ranger-2);border:3px solid #fff3;color:#fff;font:800 max(14px,calc(15px*var(--u)))/1.1 Nunito,sans-serif;min-height:44px}
+.wr-tile .part-pic{width:calc(110px*var(--u));height:calc(76px*var(--u));min-width:80px;min-height:54px;display:block}
+.wr-tile .habitat-art.part-pic{border-radius:8px;border:2px solid #0006}
+.wr-tile .item-pic{font-size:calc(52px*var(--u));min-height:54px;display:grid;place-items:center}
+.wr-tile .mt-name{min-height:2.2em;display:grid;place-items:center;text-align:center}
+.wr-tile .mt-tag{display:inline-flex;align-items:center;gap:2px;min-height:1.3em;font-size:max(15px,1.1em);color:#ffd97a}
+.wr-tile .opens{margin-left:4px;font-size:.9em}
+.wr-tile.locked{background:#1f3d18}
+.wr-tile.can{border-color:var(--yellow)}
+.wr-tile.waiting{opacity:.6}
+.wr-tile.on{border-color:var(--green);background:#143526;color:#c4f7dc}.wr-tile.on .mt-tag{color:#8ff0bf}
+.wr-tile.trying{border-color:#fff;outline:3px solid var(--yellow);outline-offset:1px}
+.swatch-pic{display:block;width:calc(80px*var(--u));height:calc(56px*var(--u));min-width:64px;min-height:44px;border-radius:10px;border:3px solid #000}
+.swatch-pic.stripes{background-image:repeating-linear-gradient(45deg,transparent 0 8px,var(--trim) 8px 14px)!important}
+.swatch-pic.spots{background-image:radial-gradient(circle at 30% 30%,var(--trim) 0 5px,transparent 6px),radial-gradient(circle at 70% 70%,var(--trim) 0 6px,transparent 7px)!important;background-size:24px 24px!important}
+.swatch-pic.camo{background-image:radial-gradient(ellipse at 20% 30%,var(--trim) 0 7px,transparent 8px),radial-gradient(ellipse at 70% 60%,#c9b27a 0 6px,transparent 7px)!important;background-size:26px 22px!important}
+.parts-side,.park-side{position:relative;display:grid;grid-template-columns:minmax(0,1fr);grid-template-rows:auto minmax(0,1fr);gap:calc(8px*var(--u));min-height:0;min-width:0}
+.buybar{position:absolute;left:0;right:0;bottom:0;display:flex;align-items:center;gap:10px;padding:8px;background:#000;border:3px solid var(--yellow);border-radius:16px;box-shadow:0 -4px 18px #0009;z-index:3}
+.buybar .x{flex:none;width:var(--tap);height:var(--tap);border-radius:50%;background:var(--ranger-2);color:#fff;font-size:20px}
+.buy-name{flex:1;min-width:0;color:#fff;font:900 max(16px,calc(22px*var(--u))) Nunito,sans-serif}
+.buybar .buy{font-size:calc(30px*var(--u));padding:calc(8px*var(--u)) calc(22px*var(--u));flex:none;min-height:var(--tap)}
+.big-btn.short{background:#5d6b78}
+.wiggle{animation:shake .4s}
+
+/* the Garage */
+.garage-body{flex:1;min-height:0;display:grid;grid-template-columns:minmax(0,1.1fr) minmax(0,1fr);gap:calc(12px*var(--u))}
+@media (orientation:portrait){.garage-body{grid-template-columns:minmax(0,1fr);grid-template-rows:minmax(0,1fr) minmax(0,1.1fr)}}
+.bay{display:grid;grid-template-rows:minmax(0,1fr) auto;gap:calc(8px*var(--u));min-height:0;min-width:0}
+.bay-truck{position:relative;min-height:0;border-radius:18px;border:4px solid #000;overflow:hidden;background:linear-gradient(#cfe8f6,#eef6fb 62%,#9a9a8a 62%,#7a7a6a);display:grid;place-items:center;padding:4%}
+.bay-truck .truck-view{position:absolute;inset:6%}
+.bay-truck .truck-view.trying{filter:drop-shadow(0 0 12px #ffd23f)}
+.bay-go{display:flex;align-items:center;gap:10px;min-width:0}
+.bay-go .rescue-btn{flex:1;min-width:0;min-height:max(64px,calc(88px*var(--u)))}
+.bay-go .icon-btn,.park-actions .icon-btn{flex:none;width:max(60px,calc(76px*var(--u)));height:max(60px,calc(76px*var(--u)));font-size:calc(34px*var(--u));color:#fff}
+
+/* the Park */
+.park-body{flex:1;min-height:0;display:grid;grid-template-columns:minmax(0,1.5fr) minmax(0,1fr);gap:calc(12px*var(--u))}
+@media (orientation:portrait){.park-body{grid-template-columns:minmax(0,1fr);grid-template-rows:minmax(0,1.55fr) minmax(0,1fr)}}
+.park-map{position:relative;min-height:0;display:flex;flex-direction:column;gap:6px;padding:8px;border-radius:20px;border:4px solid #000;background:#d9c58a;box-shadow:0 5px 0 #000}
+.plots{flex:1;min-height:0;display:grid;grid-template-columns:repeat(4,minmax(0,1fr));grid-template-rows:repeat(2,minmax(0,1fr));gap:8px}
+@media (orientation:portrait){.plots{grid-template-columns:repeat(2,minmax(0,1fr));grid-template-rows:repeat(4,minmax(0,1fr))}}
+.plot{position:relative;min-height:0;min-width:0;border-radius:14px;border:3px solid #000;overflow:hidden}
+.plot .habitat-art{position:absolute;inset:0}
+.plot-base{position:absolute;inset:0;width:100%;height:100%;border-radius:0;z-index:0}
+.plot-name{position:absolute;left:6px;top:4px;z-index:1;font:400 max(11px,calc(14px*var(--u))) Bungee,sans-serif;color:#fff;text-shadow:1px 1px 0 #000,0 0 4px #000;pointer-events:none}
+.plot.for-sale .habitat-art{filter:grayscale(.85) brightness(.85)}
+.for-sale-sign{position:absolute;left:50%;top:55%;transform:translate(-50%,-50%);z-index:1;display:inline-flex;align-items:center;gap:3px;background:#fff;border:3px solid #000;border-radius:10px;padding:2px 8px;font:900 max(14px,calc(18px*var(--u))) Nunito,sans-serif;pointer-events:none;white-space:nowrap}
+.plot.trying{outline:4px solid var(--yellow);outline-offset:2px}
+.plot.home-hint{animation:homeglow 1.6s ease-in-out infinite}
+@keyframes homeglow{50%{box-shadow:0 0 0 5px #ffd23fcc,0 0 26px 8px #ffd23f99}}
+.holding .plot.owned{cursor:copy}
+.extra{position:absolute;z-index:1;font-size:max(18px,calc(28px*var(--u)));pointer-events:none}
+.extra.x0{right:6%;top:8%}.extra.x1{left:8%;bottom:8%}
+.extra.ghost,.deco.ghost{opacity:.5;animation:pulse 1s infinite}
+.plot{container-type:size}
+.resident{position:absolute;z-index:2;width:max(44px,min(42cqh,76px));height:max(44px,min(42cqh,76px));display:grid;place-items:center;font-size:max(30px,min(36cqh,62px));animation:wander 6s ease-in-out infinite alternate}
+.resident svg.pic{width:90%;height:90%}
+@keyframes wander{to{transform:translateX(14px)}}
+.resident.hop{animation:hop .5s ease-in-out 2}
+.resident.arrived{animation:popin .6s cubic-bezier(.2,1.6,.4,1)}
+.resident .snack,.resident .heart{position:absolute;top:-22px;font-size:22px;animation:rise 1.2s ease-out forwards;pointer-events:none}
+@keyframes rise{from{transform:translateY(0);opacity:1}to{transform:translateY(-26px);opacity:0}}
+.pole-split{position:absolute;inset:0;z-index:0;pointer-events:none;display:grid;grid-template-columns:1fr 1fr;background:linear-gradient(90deg,transparent 47%,#3d9be0 47%,#3d9be0 53%,transparent 53%)}
+.pole-split span{align-self:end;justify-self:center;font:900 10px Nunito,sans-serif;color:#1f64a8;margin-bottom:2px}
+.park-path{flex:none;display:flex;align-items:center;gap:6px;min-height:40px;padding:2px 10px;border-radius:12px;background:#b89a5a;border:3px solid #000;font-size:max(22px,calc(30px*var(--u)));overflow:hidden;white-space:nowrap}
+.park-actions{display:flex;align-items:center;gap:8px}
+.park-actions .rescue-btn{flex:1;min-width:0;min-height:max(60px,calc(72px*var(--u)));font-size:calc(28px*var(--u))}
+.feed-btn{flex:none;width:max(60px,calc(76px*var(--u)));height:max(60px,calc(76px*var(--u)));padding:0;font-size:calc(34px*var(--u));background:#fff}
+.feed-btn.on{background:var(--yellow);box-shadow:0 6px 0 #000,0 0 0 5px var(--orange)}
+.park-side:has(.park-actions){grid-template-rows:auto auto minmax(0,1fr)}
+.hands{align-self:center;justify-self:center;display:flex;flex-direction:column;align-items:center;gap:8px;padding:14px 22px;border:4px solid #000;border-radius:22px;background:var(--khaki);box-shadow:0 6px 0 #000;grid-row:1/-1}
+.hands-pic{font-size:max(64px,calc(110px*var(--u)));animation:bob 1.2s ease-in-out infinite}
+.hands-pic svg.pic{width:max(64px,calc(110px*var(--u)));height:max(64px,calc(110px*var(--u)))}
+.hands-text{font:900 max(18px,calc(24px*var(--u))) Nunito,sans-serif;text-align:center}
+.hands-icon{font-size:max(30px,calc(44px*var(--u)))}
+.hands.shook .hands-pic{animation:nohead .5s ease-in-out,bob 1.2s .5s ease-in-out infinite}
+@keyframes nohead{20%{transform:rotate(-14deg)}40%{transform:rotate(14deg)}60%{transform:rotate(-10deg)}80%{transform:rotate(8deg)}}
+@media (orientation:portrait) and (max-width:560px){
+  .park-body{grid-template-rows:minmax(0,1.9fr) minmax(0,1fr)}
+  .resident{width:44px;height:44px;font-size:26px}
+}
+@media (orientation:landscape) and (max-height:520px){
+  .garage-screen,.park-screen{padding:4px 10px 8px}
+  .work-head .icon-btn{width:44px;height:44px}
+  .park-body{grid-template-columns:minmax(0,1.7fr) minmax(0,1fr)}
+  .park-path{min-height:30px;font-size:20px}
+  .plot-name{font-size:9px}
+  .park-actions .rescue-btn{min-height:52px;padding:4px 10px}.park-actions .rescue-word{font-size:16px}
+  .feed-btn,.park-actions .icon-btn,.bay-go .icon-btn{width:52px;height:52px;font-size:26px}
+  .wr-tab{min-height:44px;font-size:22px}
+  .wr-tile{padding:3px 4px}.wr-tile .part-pic,.wr-tile .item-pic{min-height:0;height:44px;width:64px;min-width:0;font-size:30px}.wr-tile .mt-name{min-height:0}
+  .hands{padding:6px 12px;gap:2px}.hands-pic{font-size:52px}
+  .bay-go .rescue-btn{min-height:56px}
+}
+
+/* ---------- the Rescue: the canvas fills the screen; controls stay off the bottom edge and the sides ---------- */
+.rescue-screen{position:fixed;inset:0;overflow:hidden;touch-action:none;overscroll-behavior:none;-webkit-user-select:none;user-select:none;-webkit-touch-callout:none;background:var(--ranger-2);color:#fff}
+.rs-canvas{position:absolute;inset:0;width:100%;height:100%;display:block;touch-action:none}
+.rs-hud{position:absolute;left:0;right:0;top:0;display:flex;align-items:center;gap:10px;padding:max(8px,env(safe-area-inset-top)) max(12px,env(safe-area-inset-right)) 0 max(12px,env(safe-area-inset-left));pointer-events:none;z-index:4}
+.rs-hud>*{pointer-events:auto}
+.rs-to{display:flex;align-items:center;gap:6px;margin-right:auto;font:400 max(16px,calc(24px*var(--u))) Bungee,sans-serif;text-shadow:2px 2px 0 #000;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.rs-to .pic{font-size:max(28px,calc(40px*var(--u)))}
+.rs-to svg.pic{width:max(28px,calc(40px*var(--u)));height:max(28px,calc(40px*var(--u)))}
+.rs-count{display:flex;align-items:center;gap:6px;background:#000c;border:3px solid var(--yellow);border-radius:999px;padding:3px 14px 3px 8px;font:900 max(18px,calc(24px*var(--u))) Nunito,sans-serif;color:var(--yellow);white-space:nowrap}
+.rs-progress{position:absolute;left:max(80px,calc(env(safe-area-inset-left) + 80px));right:max(80px,calc(env(safe-area-inset-right) + 80px));top:calc(max(8px,env(safe-area-inset-top)) + max(54px,calc(64px*var(--u))));height:14px;border-radius:7px;background:#0008;border:3px solid #000}
+.rs-progress i{position:absolute;inset:0;background:var(--truck);border-radius:4px;transform-origin:left;transform:scaleX(0)}
+.rs-progress span{position:absolute;right:-14px;top:-16px;font-size:22px}
+.rs-ctl{position:absolute;bottom:var(--floor);pointer-events:none;z-index:3}
+.rs-ctl>*{pointer-events:auto}
+.rs-ctl.right{right:max(28px,calc(env(safe-area-inset-right) + 28px))}
+.rescue-screen .ctl{width:max(96px,calc(128px*var(--u)));height:max(96px,calc(128px*var(--u)));border-radius:50%;border:4px solid #000;box-shadow:0 6px 0 #000;font-size:calc(56px*var(--u));padding:0;touch-action:none;color:#fff;background:var(--go)}
+.rescue-screen .ctl:active{transform:translateY(4px);box-shadow:0 2px 0 #000}
+.rescue-screen .ctl.teach{animation:pulse 1s infinite}
+.drive-hint{position:absolute;left:50%;bottom:calc(var(--floor) + 30px);transform:translateX(-50%);background:#000a;border-radius:999px;padding:6px 16px;font:900 max(16px,calc(22px*var(--u))) Nunito,sans-serif;pointer-events:none;white-space:nowrap}
+.rs-call,.rs-result{position:fixed;inset:0;z-index:5;display:grid;place-items:center;background:radial-gradient(circle at 50% 30%,#6fae4f,#2f5a22 75%);padding:14px;text-align:center;overflow-y:auto}
+.rs-result{background:#000a}
+.call-card,.result-card{display:flex;flex-direction:column;align-items:center;gap:calc(12px*var(--u));max-width:min(640px,100%);padding:calc(20px*var(--u)) calc(28px*var(--u));border:4px solid #000;border-radius:24px;background:var(--khaki);color:#000;box-shadow:0 8px 0 #000,0 18px 40px #000a}
+.result-card{background:radial-gradient(circle at 50% 0%,#6fae4f,#2f5a22 70%);color:#fff}
+.result-card h2{margin:0;font:400 calc(40px*var(--u)) Bungee,sans-serif;color:var(--yellow);text-shadow:3px 3px 0 #000}
+.radio{font-size:calc(60px*var(--u));animation:crackle .25s steps(2) 6}
+.radio .waves{font:900 calc(36px*var(--u)) Nunito,sans-serif;color:var(--truck);margin-left:4px;animation:pulse-text .6s ease-in-out infinite}
+@keyframes crackle{50%{transform:rotate(-6deg) translateX(-3px)}}
+@keyframes pulse-text{50%{opacity:.3}}
+.call-line{margin:0;font:900 max(20px,calc(30px*var(--u)))/1.2 Nunito,sans-serif;text-wrap:balance}
+.call-pic,.wild-off{position:relative;width:min(80vw,calc(420px*var(--u)));aspect-ratio:8/5;border-radius:16px;border:4px solid #000;overflow:hidden}
+.call-pic .habitat-art,.wild-off .habitat-art{position:absolute;inset:0}
+.call-animal,.runs-off{position:absolute;left:50%;bottom:10%;transform:translateX(-50%);font-size:min(22vmin,calc(120px*var(--u)))}
+svg.call-animal,svg.runs-off{width:min(22vmin,calc(120px*var(--u)));height:min(22vmin,calc(120px*var(--u)))}
+.runs-off{animation:runoff 2.2s ease-in forwards}
+@keyframes runoff{60%{transform:translateX(-50%)}100%{transform:translateX(160%)}}
+.go-btn{font-size:calc(40px*var(--u));padding:calc(12px*var(--u)) calc(44px*var(--u));min-height:64px}
+.result-bolts{display:flex;align-items:center;gap:8px;font:900 calc(34px*var(--u)) Nunito,sans-serif}
+.result-card .btns{display:flex;gap:16px;align-items:center;flex-wrap:wrap;justify-content:center}
+.result-card .big-btn{min-height:64px;min-width:64px}
+/* the job, close up */
+.job-area{position:absolute;left:max(16px,env(safe-area-inset-left));right:max(16px,env(safe-area-inset-right));top:calc(max(8px,env(safe-area-inset-top)) + 70px);bottom:var(--floor);z-index:2;display:grid;place-items:center;pointer-events:none}
+.job-stage{position:relative;width:min(100%,calc(560px*var(--u) + 80px));height:min(100%,calc(420px*var(--u) + 60px));border-radius:24px;border:4px solid #000;background:#fbf4dcee;box-shadow:0 8px 0 #000;pointer-events:auto;overflow:hidden;display:grid;place-items:center}
+.job-animal{font-size:min(30vmin,calc(170px*var(--u)))}
+svg.job-animal{width:min(30vmin,calc(170px*var(--u)));height:min(30vmin,calc(170px*var(--u)))}
+.net{position:absolute;inset:12% 18%;padding:0;transition:transform .15s,opacity .15s;touch-action:none;cursor:grab}
+.net svg{width:100%;height:100%;display:block}
+.job-tip{position:absolute;right:8%;bottom:6%;font:900 max(18px,calc(24px*var(--u))) Nunito,sans-serif;background:#000a;color:#fff;border-radius:999px;padding:4px 14px;animation:bob 1s infinite}
+.hole{position:absolute;left:18%;right:18%;bottom:6%;height:34%;border-radius:50%;background:radial-gradient(#2a1a0e,#5a3a18);border:4px solid #000}
+.rope{position:absolute;top:0;left:50%;width:6px;background:#8a6a3a;border:1px solid #000}
+.lifted{position:absolute;left:0;right:0;bottom:16%;display:flex;justify-content:center;transition:transform .3s cubic-bezier(.3,1.4,.5,1)}
+.winch-btn{position:absolute;right:4%;bottom:4%;width:max(96px,calc(120px*var(--u)));height:max(96px,calc(120px*var(--u)));border-radius:50%;padding:0;flex-direction:column;gap:0;font-size:calc(22px*var(--u))}
+.winch-btn .e{font-size:calc(46px*var(--u))}
+.lead-row .leader{position:absolute;bottom:14%;transform:translateX(-50%);transition:left .9s ease-in-out}
+.lead-row .leader .job-animal{font-size:min(20vmin,calc(110px*var(--u)))}
+.lead-row svg.job-animal{width:min(20vmin,calc(110px*var(--u)));height:min(20vmin,calc(110px*var(--u)))}
+.treat{position:absolute;bottom:16%;width:max(64px,calc(80px*var(--u)));height:max(64px,calc(80px*var(--u)));transform:translateX(-50%);border-radius:50%;background:#fff;border:4px solid #000;box-shadow:0 5px 0 #000;font-size:calc(40px*var(--u))}
+.treat.eaten{visibility:hidden}
+.crate{position:absolute;right:4%;bottom:12%;font-size:min(16vmin,calc(90px*var(--u)))}
+.into-crate{position:absolute;z-index:3;font-size:min(30vmin,calc(170px*var(--u)));animation:popin .5s cubic-bezier(.2,1.6,.4,1)}
+.job-area.loaded .job-animal{animation:intocrate .6s ease-in forwards}
+.job-area.release.loaded .job-animal{animation:runoff 1.6s ease-in forwards}
+@keyframes intocrate{to{transform:scale(.2) translateY(40%);opacity:0}}
+@media (orientation:landscape) and (max-height:520px){
+  .call-card,.result-card{gap:4px;padding:8px 18px}
+  .call-pic,.wild-off{width:min(46vw,260px)}
+  .result-card h2{font-size:24px}
+  .radio{font-size:32px}
+  .job-area{top:56px}
+}
+@media (prefers-reduced-motion:reduce){
+  .resident,.hands-pic,.park-peek .held,.job-tip{animation:none!important}
+}
