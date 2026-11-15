@@ -191,7 +191,7 @@ function NeedsView({ current, q, waiting }: { current: Current; q: Extract<Alive
     sClink();
     setPicked(p => (p.includes(k as NeedId) ? p.filter(x => x !== k) : [...p, k as NeedId]));
   }
-  const done = () => { if (picked.length) submit(needsAnswer(picked)); else sNope(); };
+  const done = () => { if (picked.length && !wrong.includes(needsAnswer(picked))) submit(needsAnswer(picked)); else if (can) sNope(); };
   return (
     <Shell current={current} kind="alive needs" text={ask.q} speech={speech} ready={can}
       stage={<div class="portrait">{emoji(ask.icon, q.subject === 'plant' ? 'A plant' : 'An animal')}</div>}

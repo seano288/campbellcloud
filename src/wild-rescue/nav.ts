@@ -20,8 +20,9 @@ export const PLACE_KEY = 'wild-rescue-place';
 export const place = createPlace(PLACE_KEY, ['home', 'garage', 'park', 'round'], ['mix']); // every Round is a mix
 screen.subscribe(s => place.screen(s === 'rescue' ? 'garage' : s));
 
-/** Answer the next call. */
+/** Answer the next call. An animal still in his hands is set down in the Park first. */
 export function goRescue() {
+  if (player.state.peek().rescue.holding) { screen.value = 'park'; return; }
   rescueCall.value = nextCall(player.state.peek().rescue);
   rescueId.value++;
   screen.value = 'rescue';

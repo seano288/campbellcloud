@@ -163,6 +163,12 @@ describe('a Rescue and the Park', () => {
     expect(s.state.rescue.holding).toBe('sheep');
     expect(settleRescue(s, { kind: 'rescue', animal: 'sheep' }, 1)).toBeNull(); // no call left: nothing happens
   });
+  it('never drops an animal already in his hands when another is rescued: it goes to its home', () => {
+    const s = store({ ...rescueSave.fresh(), rescue: { ...rescueSave.fresh().rescue, calls: 1, holding: 'sheep' } });
+    settleRescue(s, { kind: 'rescue', animal: 'chicken' }, 1);
+    expect(s.state.rescue.park).toEqual(['sheep']);
+    expect(s.state.rescue.holding).toBe('chicken');
+  });
   it('takes the animal only into its own habitat; a wrong one leaves it in his hands', () => {
     const st = store({ ...rescueSave.fresh(), rescue: { ...owning(['habitat:grassland']), holding: 'sheep' } });
     for (const h of HABITAT_IDS) if (h !== 'farm') { expect(setDown(st, h)).toBe(false); expect(st.state.rescue.holding).toBe('sheep'); }

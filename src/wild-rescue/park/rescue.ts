@@ -166,8 +166,10 @@ export const payFor = (call: Call, bolts: number): RescuePay => ({ bolts: Math.m
 
 /** It's in the crate: the call is used and the animal rides home in his hands (or, for a release, goes back to the wild). */
 export function finishRescue(s: RescueState, pay: RescuePay): RescueState {
-  const fresh = !pay.release && !s.park.includes(pay.animal);
-  return { ...s, calls: Math.max(0, s.calls - 1), trips: s.trips + 1, holding: fresh ? pay.animal : s.holding, released: s.released + (pay.release ? 1 : 0) };
+  const fresh = !pay.release && !s.park.includes(pay.animal) && s.holding !== pay.animal;
+  // one in his hands already is never dropped: it goes home to its habitat
+  const park = fresh && s.holding && !s.park.includes(s.holding) ? [...s.park, s.holding] : s.park;
+  return { ...s, park, calls: Math.max(0, s.calls - 1), trips: s.trips + 1, holding: fresh ? pay.animal : s.holding, released: s.released + (pay.release ? 1 : 0) };
 }
 /** He set the animal down in a habitat: only its own habitat takes it. */
 export function placeAnimal(s: RescueState, h: HabitatId): RescueState | null {

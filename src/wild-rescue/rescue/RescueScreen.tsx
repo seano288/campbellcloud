@@ -135,7 +135,7 @@ export function RescueScreen() {
     void (async () => {
       sPop(); confetti(40, voice.signal);
       await voice.say(...(release ? ['This one is going back to the wild.', 'Back to the wild!'] as const : ['Into the crate!', 'You did it!'] as const));
-      if (paid) await voice.say(earnedLine(RESCUE_CURRENCY, paid.bolts));
+      if (paid && paid.bolts > 0) await voice.say(earnedLine(RESCUE_CURRENCY, paid.bolts));
       if (!voice.active) return;
       if (release) { setPhase('end'); return; }
       sHonk();
@@ -233,14 +233,14 @@ function JobArea({ job, who, snack, release, loaded, onDrag, onNet, onWinch, onT
           <div class="hole" aria-hidden="true" />
           <div class="rope" aria-hidden="true" style={{ height: `${70 - job.height * 50}%` }} />
           <div class="lifted" style={{ transform: `translateY(${(1 - job.height) * 48}%)` }}>{pic}</div>
-          {!loaded && <button class="big-btn go winch-btn pulse" aria-label="Winch" onClick={onWinch}><span class="e">🪝</span>{job.taps}/{job.need}</button>}
+          {!loaded && <button class="big-btn go winch-btn pulse" aria-label="Winch" onPointerDown={e => { e.preventDefault(); onWinch(); }}><span class="e">🪝</span>{job.taps}/{job.need}</button>}
         </div>
       )}
       {job.kind === 'lead' && (
         <div class="job-stage lead-row">
           <div class="leader" style={{ left: `${8 + (job.eaten / TREATS) * 70}%` }}>{pic}</div>
           {Array.from({ length: TREATS }, (_, i) => (
-            <button key={i} class={`treat ${i < job.eaten ? 'eaten' : i === job.eaten ? 'next pulse' : ''}`} style={{ left: `${30 + i * 20}%` }} aria-label={`Treat ${i + 1}`} onClick={() => onTreat(i)}>{snack}</button>
+            <button key={i} class={`treat ${i < job.eaten ? 'eaten' : i === job.eaten ? 'next pulse' : ''}`} style={{ left: `${30 + i * 20}%` }} aria-label={`Treat ${i + 1}`} onPointerDown={e => { e.preventDefault(); onTreat(i); }}>{snack}</button>
           ))}
           {!release && <div class="crate" aria-hidden="true">📦</div>}
         </div>

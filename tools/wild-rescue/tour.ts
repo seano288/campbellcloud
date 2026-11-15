@@ -191,9 +191,10 @@ await page.waitForSelector('.rescue-screen.job', { timeout: 120000 }).catch(() =
 await page.waitForTimeout(1500);
 await shot('rescue-job');
 for (let i = 0; i < 12 && (await page.locator('.rescue-screen.job').count()); i++) {
-  if (await page.locator('.net').count()) await page.locator('.net').click();
-  else if (await page.getByRole('button', { name: 'Winch' }).count()) await tap('Winch');
-  else if (await page.locator('.treat.next').count()) await page.locator('.treat.next').click();
+  // by touch, as on the iPad: the Rescue screen stops touchstart, so a control that waits for click never hears it
+  if (await page.locator('.net').count()) await page.locator('.net').tap();
+  else if (await page.getByRole('button', { name: 'Winch' }).count()) await page.getByRole('button', { name: 'Winch' }).tap();
+  else if (await page.locator('.treat.next').count()) await page.locator('.treat.next').tap();
   await page.waitForTimeout(1100);
 }
 await shot('rescue-loaded');

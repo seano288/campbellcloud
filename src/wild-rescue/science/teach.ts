@@ -117,8 +117,8 @@ async function teach(q: Question, answer: string, full: boolean, l: Lesson, v: V
       const said = v.say(ask.lesson);
       for (let i = 0; i < right.length && v.active; i++) { l.show.value = { kind: 'needs', lit: right.slice(0, i + 1) }; sCount(i); await beat(v, 650); }
       await said;
+        l.show.value = null; // the lit needs were only shown, not picked: after a fuller lesson they glow instead
       if (full && v.active) { l.glow.value = q.answer; sChime(); for (const n of right) { if (!v.active) return; l.lit.value = n; await v.say(NEEDS[n].said); } l.lit.value = null; }
-      else l.show.value = null;
     } else {
       const s = SCENES[q.scene]!;
       l.show.value = { kind: 'fixed' };
