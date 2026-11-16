@@ -98,6 +98,8 @@ async function ready(ms = 40000) {
   return false;
 }
 const tap = (label: string) => page.getByRole('button', { name: label, exact: true }).first().click();
+/** Marks the voice log (window.__said, dev only) where the tour moved to another screen. */
+const mark = (name: string) => page.evaluate(n => ((window as unknown as { __said?: object[] }).__said ??= []).push({ mark: n, at: performance.now() }), name);
 const tile = (t: string) => page.locator(`.rack .ltile[data-tile="${t}"]:not(.used):not(.wrong)`).first();
 const placed = () => page.locator('.ww-work .frame .cell:not(.empty)').count();
 
@@ -188,6 +190,7 @@ await shot('round-done-awake');
 // ---------- the Yard: buy something ----------
 const saved = () => page.evaluate(() => JSON.parse(localStorage.getItem('word-wreckers-save') ?? '{}'));
 await tap('Yard');
+await mark('yard');
 await page.waitForTimeout(1200);
 await shot('yard');
 const balance = (await saved()).balance ?? 0;
@@ -247,6 +250,7 @@ if ((after.balance ?? 0) !== (before.balance ?? 0) + 3) problems.push(`the Job p
 
 // ---------- the Town, by touch ----------
 await tapEl(page.getByRole('button', { name: 'Town', exact: true }));
+await mark('town');
 await page.waitForTimeout(1500);
 await shot('town');
 const t0 = (await page.evaluate(() => (window as unknown as { __town?(): { x: number } }).__town?.()))?.x ?? 0;
@@ -258,6 +262,47 @@ const tb = (await page.locator('.town-canvas').boundingBox())!;
 await tapAt(tb.x + tb.width * .5, tb.y + tb.height * .6);
 await page.waitForTimeout(900);
 await shot('town-drive');
+
+// ---------- leaving the Town for the Yard by touch: the lifted finger must not tap whatever is under it there ----------
+const machineBefore = (await saved()).yard?.machine;
+await tapEl(page.getByRole('button', { name: 'Yard', exact: true }));
+await mark('yard-again');
+await page.waitForTimeout(900);
+if (!(await page.locator('.yard-screen').count())) problems.push('the Yard button in the Town did not go to the Yard');
+if ((await saved()).yard?.machine !== machineBefore || (await page.locator('.buybar').count())) problems.push('the tap that left the Town also tapped something in the Yard');
+
+// ---------- what was said: every kind of line, in order, never two at once, and nothing from a screen he has left ----------
+type Said = { phrase?: string; mark?: string; at: number; ms?: number; end?: number };
+const said = await page.evaluate(() => (window as unknown as { __said?: Said[] }).__said ?? []) as Said[];
+const lines = said.filter(x => x.phrase), phrases = lines.map(x => x.phrase!);
+// a lesson ran after every miss: the short one ("Listen.") or the fuller one, depending on how he has been doing
+const LESSON_LINES = ['Listen.', 'Watch me build it.', 'Here is the mistake.', 'A letter is missing here.', 'This one is extra.', 'These letters make one sound.', 'Each sound gets a box.'];
+if (missedKinds.size && !phrases.some(x => LESSON_LINES.includes(x))) problems.push('a miss was never taught aloud');
+for (const want of ["Let's go!", 'You earned a Job!', 'Tap Job!', 'The Yard!', 'You got', 'A new Job!', 'Knock it down!', 'The lot is clear!', 'What will you build?', 'Move the crane, then let go to drop!', 'You built', 'You earned 3 Bolts!', 'Your Town!', 'Honk honk!']) {
+  if (!phrases.includes(want)) problems.push(`never said "${want}"`);
+}
+if (!phrases.some(x => x.startsWith('Slowly: '))) problems.push('never said a word slowly');
+if (!phrases.some(x => /^You earned \d+ Bolts?!$/.test(x) && x !== 'You earned 3 Bolts!')) problems.push('never said what the Round earned');
+// a question's line chains in order: "Build the word", then the word; the word, then "Which sound is missing?" (or the line again,
+// when 🔊 was tapped before it finished)
+for (const [i, x] of phrases.entries()) {
+  if (x === 'Build the word' && phrases[i + 1] !== x && !/^[a-z]+$/.test(phrases[i + 1] ?? '')) problems.push(`"Build the word" was followed by "${phrases[i + 1]}"`);
+  if (x === 'Which sound is missing?' && i > 0 && !/^[a-z]+$/.test(phrases[i - 1]!) && phrases[i - 1] !== 'Which sound is missing?') problems.push(`"Which sound is missing?" came after "${phrases[i - 1]}"`);
+}
+// never two clips at once: each one ends (or is stopped) before the next starts
+for (let i = 1; i < lines.length; i++) {
+  const a = lines[i - 1]!, b = lines[i]!;
+  if (a.end !== undefined && a.end > b.at + 20) problems.push(`"${a.phrase}" and "${b.phrase}" played at once (${Math.round(a.end - b.at)} ms)`);
+}
+// nothing from the end of the Round once he's in the Yard, and nothing from the Job once he's in the Town
+const markedAt = (m: string) => said.find(x => x.mark === m)?.at ?? Infinity;
+for (const x of lines) {
+  if (x.at > markedAt('yard') + 300 && x.at < markedAt('town') && ['Tap Job!', 'You earned a Job!', 'You kept trying!'].includes(x.phrase!)) problems.push(`"${x.phrase}" from the end of the Round played in the Yard`);
+  if (x.at > markedAt('town') + 300 && ['Off to your Town!', 'You built', 'Nice drop!', 'One more!'].includes(x.phrase!)) problems.push(`"${x.phrase}" from the Job played in the Town`);
+}
+const clipped = lines.filter(x => x.end !== undefined && x.ms! > 0 && x.end - x.at < x.ms! - 40 && !lines.some(y => y.at >= x.at && y.at <= x.end! + 20 && y !== x));
+// (a line cut short with nothing after it is fine when he left the screen; it's only counted)
+console.log(`voice: ${lines.length} clips, ${new Set(phrases).size} different lines, ${clipped.length} cut short with nothing after them${clipped.length ? ` (${clipped.slice(0, 6).map(x => x.phrase).join(', ')})` : ''}`);
 
 const clips = await page.evaluate(() => (window as unknown as { __clips: number }).__clips);
 console.log(`${viewName} ${process.env.TOUR_SAVE ?? 'fresh'}${save ? ` L${LEVEL}` : ''}: ${asked} questions (${[...seen].join(', ')}), missed and retried in ${[...missedKinds].join(', ') || 'none'}, Job with ${action}, ${clips} voice clips played`);

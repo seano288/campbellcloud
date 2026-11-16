@@ -41,7 +41,8 @@ describe('the word list', () => {
     const pics = Object.values(PICTURES);
     expect(new Set(pics).size).toBe(pics.length);
     for (const w of Object.keys(PICTURES)) expect(WORDS as readonly string[]).toContain(w);
-    for (const w of ['hen', 'bag', 'pot', 'mop']) expect(PICTURES, w).not.toHaveProperty(w); // a hen is just as likely "chicken"
+    // a hen is just as likely "chicken"; these pictures say another word on the list (🐏 sheep, 🚙 car, 🚐 bus, 🧢 hat) or another word
+    for (const w of ['hen', 'bag', 'pot', 'mop', 'ram', 'jeep', 'van', 'cap', 'pan', 'teeth', 'home', 'gift', 'cube', 'bug']) expect(PICTURES, w).not.toHaveProperty(w);
   });
   it('records every word alone, and slowly, with Aria', () => {
     for (const w of WORDS) { expect(PHRASES as readonly string[]).toContain(w); expect(PHRASES as readonly string[]).toContain(slowly(w)); }
@@ -65,6 +66,16 @@ describe('wrong spellings', () => {
   });
   it.runIf(dictionary)('are not in the system dictionary either', () => {
     for (const w of WORDS) for (const t of allWrongSpellings(w)) expect(dictionary!.has(t), `${w}: ${t}`).toBe(false);
+  });
+  it.runIf(dictionary)('are not a plural or past tense the dictionary leaves out (firs, for first)', () => {
+    for (const w of WORDS) for (const t of allWrongSpellings(w)) for (const end of ['s', 'es', 'ed', 'ing']) {
+      const base = t.slice(0, -end.length);
+      if (t.endsWith(end) && base.length >= 3) expect(dictionary!.has(base), `${w}: ${t} is ${base} + ${end}`).toBe(false);
+    }
+  });
+  it('are never a short word, abbreviation or name a child might know (stat, url, I\'ve)', () => {
+    const all = new Set(WORDS.flatMap(w => allWrongSpellings(w)));
+    for (const t of ['firs', 'stat', 'url', 'dox', 'ive', 'lib', 'et', 'eg', 'hor']) expect(all.has(t), t).toBe(false);
   });
   it('that sound right only swap a sound for another spelling of that sound (kat, rane, byke)', () => {
     const EXTRA: Record<string, string[]> = { i_e: ['y_e'], u_e: ['oo', 'ew'], ch: ['tch'], x: ['ks', 'cks'], ee: ['e_e'], ea: ['e_e'] };

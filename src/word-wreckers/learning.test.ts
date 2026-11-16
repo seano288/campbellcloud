@@ -7,6 +7,7 @@ import {
 } from './learning';
 import { isRight, mixedSession, type Problem } from './mix';
 import { rightAnswer } from './spelling/problems';
+import { pickLesson } from './spelling/teach';
 
 const fact = (outcome: Outcome, misses = outcome === 'clean' ? 0 : 1): SolvedProblem => ({ index: 1, outcome, misses, helped: false, replay: false });
 const solve = (s: LearningState, asked: Asked, outcome: Outcome = 'clean') => recordSolved(s, asked, fact(outcome));
@@ -132,5 +133,14 @@ describe('a Round', () => {
   });
   it('lets Chunks sit out until there are two-letter sounds to ask about, instead of failing', () => {
     for (let seed = 1; seed <= 50; seed++) for (const p of asked(open(freshLearning(), ['chunk'], 2, ['cvc']), seed)) expect(p.mode).not.toBe('chunk');
+  });
+});
+
+describe('the lessons', () => {
+  it('only says "These letters make one sound." with the box that has two letters for one sound lit', () => {
+    expect(pickLesson('cap')).toEqual({ box: null, line: 'Each sound gets a box.' });
+    expect(pickLesson('snail')).toEqual({ box: 2, line: 'These letters make one sound.' });
+    expect(pickLesson('cake')).toEqual({ box: 1, line: 'These letters make one sound.' });
+    expect(pickLesson('duck')).toEqual({ box: 2, line: 'These letters make one sound.' });
   });
 });

@@ -30,10 +30,18 @@ export function keepRange(samples: ArrayLike<number>, rate: number, end: keyof t
 }
 
 const SENTENCE_ENDS = new Set(wreckersVoice.phrases.filter(p => /[.?!]$/.test(p)).map(p => wreckersVoice.clips[p]));
+// The browser tours read what was said, when, and for how long (tools/word-wreckers/tour.ts), to check lines chain without overlapping.
+const said = import.meta.env.DEV ? { names: new WeakMap<AudioBuffer, string>(), byFile: new Map(wreckersVoice.phrases.map(p => [wreckersVoice.clips[p], p])) } : null;
 const trimmedAudio: PlaybackControls<AudioBuffer> = {
   play(buffer) {
     const playing = recordedAudio.play(buffer), timer = setTimeout(playing.stop, (buffer.duration + STALLED_S) * 1000);
     void playing.done.then(() => clearTimeout(timer));
+    if (said) {
+      const log = ((window as unknown as { __said?: { phrase?: string; at: number; ms: number; end?: number }[] }).__said ??= []);
+      const entry: (typeof log)[number] = { phrase: said.names.get(buffer), at: performance.now(), ms: buffer.duration * 1000 };
+      log.push(entry);
+      void playing.done.then(() => { entry.end = performance.now(); });
+    }
     return playing;
   },
   async load(file) {
@@ -42,6 +50,7 @@ const trimmedAudio: PlaybackControls<AudioBuffer> = {
     const samples = whole.getChannelData(0), [start, end] = keepRange(samples, whole.sampleRate, SENTENCE_ENDS.has(file) ? 'sentence' : 'piece');
     const out = audio().createBuffer(1, Math.max(1, end - start), whole.sampleRate);
     out.copyToChannel(samples.subarray(start, end), 0);
+    said?.names.set(out, said.byFile.get(file) ?? file);
     return out;
   },
 };

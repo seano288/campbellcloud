@@ -29,5 +29,8 @@ const FROM_DICTIONARY = [
   'top', 'tost', 'track', 'tran', 'tri', 'trin', 'tripe', 'tu', 'tuck', 'tue', 'ud', 'ug', 'ump', 'un', 'up', 'urn', 'us', 'ut',
   'ute', 'vane', 'we', 'wed', 'wig', 'wim', 'win', 'yan', 'yar', 'yarm',
 ];
-const NOT_IN_IT = ['birb', 'bruh', 'dat', 'dis', 'dem', 'skank', 'fux', 'lite', 'nite', 'kool', 'tho', 'bro', 'bae', 'emo', 'dude', 'yup', 'nope', 'duh', 'meh', 'nah', 'yay', 'ok', 'app', 'vape', 'meme', 'blog'];
+const NOT_IN_IT = ['birb', 'bruh', 'dat', 'dis', 'dem', 'skank', 'fux', 'lite', 'nite', 'kool', 'tho', 'bro', 'bae', 'emo', 'dude', 'yup', 'nope', 'duh', 'meh', 'nah', 'yay', 'ok', 'app', 'vape', 'meme', 'blog',
+  // plurals the dictionary leaves out (firs for first, bocks for box), short words, abbreviations and names a wrong spelling could
+  // be (stat, url, dox, I've, lib, E.T., e.g., WIP, Tet, Kidd, Lon, Des), and one that reads as rude (hor)
+  'firs', 'bocks', 'gras', 'toas', 'stat', 'url', 'dox', 'ive', 'lib', 'bi', 'et', 'eg', 'wip', 'tet', 'kidd', 'lon', 'des', 'hor'];
 export const REAL_WORDS: ReadonlySet<string> = new Set<string>([...FROM_DICTIONARY, ...NOT_IN_IT]);

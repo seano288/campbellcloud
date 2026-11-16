@@ -17,7 +17,7 @@ import { BuildingView, lookOf, MachineView } from '../art/Pics';
 import { ballOf } from '../art/machines';
 import { WRECKERS_CURRENCY } from '../branding';
 import { player, settleJob } from '../game';
-import { goJob, justBuilt, screen } from '../nav';
+import { eatNextClick, goJob, justBuilt, screen } from '../nav';
 import { MATERIAL_LINES, type Phrase } from '../phrases';
 import { startRound } from '../round';
 import { useVoiceScope, type VoiceScope } from '../voice';
@@ -296,11 +296,11 @@ export function JobScreen() {
             <div class="built"><BuildingView id={choice.b} gold={choice.kind === 'gold'} label={building(choice.b).name} /></div>
             {paid && <div class="result-bolts"><CurrencyIcon kind={WRECKERS_CURRENCY} size={40} />+{JOB_BOLTS}</div>}
             <div class="btns">
-              <button class="big-btn go town-btn pulse" aria-label="Town" onPointerDown={e => { e.preventDefault(); if (voice.active) screen.value = 'town'; }}><span class="e">🏙️</span>Town</button>
-              <button class="big-btn garage my-machine" aria-label="Yard" onPointerDown={e => { e.preventDefault(); if (voice.active) screen.value = 'yard'; }}><MachineView id={after.machine} label={null} /></button>
+              <button class="big-btn go town-btn pulse" aria-label="Town" onPointerDown={e => { e.preventDefault(); if (voice.active) { eatNextClick(); screen.value = 'town'; } }}><span class="e">🏙️</span>Town</button>
+              <button class="big-btn garage my-machine" aria-label="Yard" onPointerDown={e => { e.preventDefault(); if (voice.active) { eatNextClick(); screen.value = 'yard'; } }}><MachineView id={after.machine} label={null} /></button>
               {after.jobs > 0
-                ? <button class="big-btn go" aria-label="Another Job" onPointerDown={e => { e.preventDefault(); if (voice.active) goJob(); }}><span class="e">🏗️</span></button>
-                : <button class="big-btn go" aria-label="Play" onPointerDown={e => { e.preventDefault(); if (voice.active) startRound(); }}><span class="e">▶</span></button>}
+                ? <button class="big-btn go" aria-label="Another Job" onPointerDown={e => { e.preventDefault(); if (voice.active) { eatNextClick(); goJob(); } }}><span class="e">🏗️</span></button>
+                : <button class="big-btn go" aria-label="Play" onPointerDown={e => { e.preventDefault(); if (voice.active) { eatNextClick(); startRound(); } }}><span class="e">▶</span></button>}
             </div>
           </div>
         </div>

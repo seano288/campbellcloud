@@ -13,7 +13,7 @@ import { lookOf, MachineView } from '../art/Pics';
 import { WRECKERS_CURRENCY } from '../branding';
 import { player, updateYard } from '../game';
 import { drawBolt, drawMachine, drawSvg } from '../job/draw';
-import { goJob, justBuilt, screen } from '../nav';
+import { eatNextClick, goJob, justBuilt, screen } from '../nav';
 import { NUMBERS_TO, type Phrase } from '../phrases';
 import { useVoiceScope, type VoiceScope } from '../voice';
 import { building, DECOS, keyOf, LOTS_PER_STREET, MACHINES, STREETS, type MachineId } from '../yard/shop';
@@ -197,8 +197,8 @@ export function TownScreen() {
       </header>
       <div class="town-side">
         {next && <button class="town-swap" aria-label="Switch machine" onPointerDown={e => { e.preventDefault(); nextMachine(); }}><MachineView id={next} label={null} /><span aria-hidden="true">🔄</span></button>}
-        <button class="town-swap yard-go" aria-label="Yard" onPointerDown={e => { e.preventDefault(); if (voice.active) screen.value = 'yard'; }}><span aria-hidden="true">🚜</span></button>
-        {yard.jobs > 0 && <button class="town-swap job-go" aria-label="Job" onPointerDown={e => { e.preventDefault(); if (voice.active) goJob(); }}><span aria-hidden="true">🏗️</span><b>{yard.jobs}</b></button>}
+        <button class="town-swap yard-go" aria-label="Yard" onPointerDown={e => { e.preventDefault(); if (voice.active) { eatNextClick(); screen.value = 'yard'; } }}><span aria-hidden="true">🚜</span></button>
+        {yard.jobs > 0 && <button class="town-swap job-go" aria-label="Job" onPointerDown={e => { e.preventDefault(); if (voice.active) { eatNextClick(); goJob(); } }}><span aria-hidden="true">🏗️</span><b>{yard.jobs}</b></button>}
       </div>
       <div class="job-ctl left"><button class="ctl back" aria-label="Drive back" {...hold(-1)}>◀</button></div>
       <div class="job-ctl right town-right">

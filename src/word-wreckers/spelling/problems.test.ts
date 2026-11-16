@@ -117,6 +117,8 @@ describe('every question', () => {
         else {
           expect(check(q, `+${m.at}`), tag).toBe('more');
           expect(q.choices.filter(c => check(q, `+${m.at}=${c}`) === true), tag).toEqual([m.letter]);
+          // and no other letter offered says the same sound there (k for the missing c of cub)
+          for (const c of q.choices) if (c !== m.letter) expect(sameSound(m.letter), `${tag}: ${c}`).not.toContain(c);
         }
       }
     }
