@@ -6,9 +6,13 @@
 //   npm run dev:sentence-express   (in another shell)
 //   npx tsx tools/sentence-express/tour.ts <url> <outDir>
 // TOUR_VIEW=portrait|landscape|phone|side picks the screen (iPad 9 sizes by default: 810×1080 upright). TOUR_SAVE=fresh|levels: a
-// brand-new player, or one with every kind open at Level 2 (TOUR_LEVEL=1|2|3 picks another), some Bolts, scenery and track.
+// brand-new player, or one with every kind open at Level 2 (TOUR_LEVEL=1|2|3 picks another), some Bolts, scenery and track: on a
+// levels save he also owns one of each new kind of thing (an engine with a trick, cars that do things and light up, a track colour,
+// times of day and weathers, and working scenery already on his table), so the Shed's groups and Sky tab, the trick button, the
+// working pieces, the night and the weather, and Watch it go are all played.
 import { mkdirSync, writeFileSync } from 'node:fs';
 import { chromium, webkit, type CDPSession } from 'playwright';
+import { starterLayout } from '../../src/sentence-express/layout/track';
 import { piecesOf } from '../../src/sentence-express/reading/problems';
 import { sentence } from '../../src/sentence-express/sentences/index';
 import { CLIPS } from '../../src/sentence-express/voice.gen';
@@ -19,6 +23,10 @@ const VIEWS = { portrait: { width: 810, height: 1080 }, landscape: { width: 1080
 const viewName = (process.env.TOUR_VIEW ?? 'portrait') as keyof typeof VIEWS, VIEW = VIEWS[viewName];
 const MODES = ['order', 'marks', 'mean', 'ask', 'fix'];
 const LEVEL = Number(process.env.TOUR_LEVEL ?? 2);
+// the working pieces and where they go on the starter loop (12×8: track round the edge one in, Toy Town at (5,1), the Farm at (6,6))
+const STARTER = starterLayout(12, 8);
+// (clear of column 3, where the tour lays a spur of track)
+const WORKS: [string, number][] = [['gates', 19], ['drawbridge', 21], ['wash', 37], ['arch', 58], ['smoky', 41], ['launchpad', 43], ['spinmill', 45], ['wheel', 54], ['blinker', 56], ['splash', 66], ['fireworks', 68]];
 const levels = {
   version: 1, balance: 40,
   learning: {
@@ -26,8 +34,16 @@ const levels = {
     modes: Object.fromEntries(MODES.map(m => [m, { level: LEVEL, window: Array(Number(process.env.TOUR_STREAK ?? 2)).fill('clean'), opened: true, starred: false, introPending: false, fresh: false }])),
     pushed: Object.fromEntries(MODES.map(m => [m, 40])),
   },
-  // some things bought already, and a station or two open, so the Delivery goes somewhere new
-  trains: { owned: ['engine:tank', 'car:wagon', 'paint:red', 'car:coal', 'scenery:trees', 'scenery:tunnel', 'track:box1'], engine: 'tank', cars: ['wagon', 'coal'], paint: 'red', open: 2, delivered: ['farm'], deliveries: 1, trips: 1, goal: null },
+  // some things bought already, and a station or two open, so the Delivery goes somewhere new; one of each new kind of thing, with
+  // the working pieces on his table: on the track (gates, a drawbridge, a car wash, a rainbow arch) and beside it
+  trains: {
+    owned: ['engine:tank', 'car:wagon', 'paint:red', 'car:coal', 'scenery:trees', 'scenery:tunnel', 'track:box1', `engine:${LEVEL === 3 ? 'bullet' : 'dragon'}`, 'car:circus', 'car:tipper', 'car:coach',
+      'track:wood', 'track:glowrails', 'sky:day', 'sky:sunset', 'sky:night', 'sky:snow', 'sky:storm', 'sky:fireworks',
+      ...WORKS.map(([id]) => `scenery:${id}`), 'scenery:lamp', 'scenery:house'],
+    engine: LEVEL === 3 ? 'bullet' : 'dragon', cars: ['wagon', 'coal', 'circus', 'tipper', 'coach'], paint: 'red', open: 2, delivered: ['farm'], deliveries: 1, trips: 1, goal: null,
+    rails: 'glowrails', time: LEVEL === 3 ? 'sunset' : 'night', weather: LEVEL === 3 ? 'storm' : 'snow',
+    layout: { ...STARTER, scenery: [...WORKS.map(([id, cell]) => ({ id, cell })), { id: 'lamp', cell: 53 }, { id: 'house', cell: 30 }] },
+  },
 };
 const save = process.env.TOUR_SAVE === 'levels' ? levels : null;
 
@@ -247,6 +263,32 @@ if (balance >= 2 && !(await saved()).trains?.owned?.includes(boxKey)) problems.p
 await page.getByRole('tab', { name: 'Cars' }).tap();
 await page.waitForTimeout(300);
 await shot('shed-bought');
+// the groups in a long tab, and the Sky tab
+await page.getByRole('tab', { name: 'Trick Cars' }).tap();
+await page.waitForTimeout(400);
+if (!(await page.getByRole('button', { name: 'Circus Car', exact: true }).count())) problems.push('the Trick Cars group does not show the Circus Car');
+await page.getByRole('tab', { name: 'Scenery' }).tap();
+await page.waitForTimeout(300);
+await page.getByRole('tab', { name: 'Working Toys' }).tap();
+await page.waitForTimeout(400);
+await shot('shed-working-toys');
+await page.getByRole('tab', { name: 'Sky' }).tap();
+await page.waitForTimeout(400);
+if (save) {
+  // a weather he owns goes off and on again with a tap
+  const before = (await saved()).trains?.weather;
+  await page.getByRole('button', { name: 'Snow', exact: true }).tap();
+  await page.waitForTimeout(500);
+  const after = (await saved()).trains?.weather;
+  if (before === 'snow' ? after !== null : after !== 'snow') problems.push(`tapping Snow in the Sky tab did not switch the weather (${before} → ${after})`);
+  if (before === 'snow') { await page.getByRole('button', { name: 'Snow', exact: true }).tap(); await page.waitForTimeout(400); }
+} else {
+  await page.getByRole('button', { name: 'Night Sky', exact: true }).tap();
+  await page.waitForTimeout(500);
+}
+await shot('shed-sky');
+await page.getByRole('tab', { name: 'Engines' }).tap();
+await page.waitForTimeout(300);
 
 // ---------- the Layout: lay track with a finger ----------
 await page.getByRole('button', { name: 'Layout', exact: true }).tap();
@@ -308,8 +350,13 @@ await drag([{ x: thr.x + thr.width / 2, y: thr.y + thr.height - 30 }, { x: thr.x
 await page.getByRole('button', { name: 'Whistle' }).tap();
 await page.waitForTimeout(1200);
 await page.getByRole('button', { name: 'Bell' }).tap();
-type D = { phase: string; leg: string; hint: number | null; t: number } | null;
-const dl = () => page.evaluate(() => { const d = (window as unknown as { __delivery?(): D }).__delivery?.(); return d && { phase: d.phase, leg: d.leg, hint: d.hint, t: d.t }; });
+type D = { phase: string; leg: string; hint: number | null; t: number; parts: number; boost: number } | null;
+const dl = () => page.evaluate(() => { const d = (window as unknown as { __delivery?(): D }).__delivery?.(); return d && { phase: d.phase, leg: d.leg, hint: d.hint, t: d.t, parts: d.parts, boost: d.boost }; });
+// the trick: his engine's (and his cars' with it)
+await page.getByRole('button', { name: 'Trick' }).tap();
+await page.waitForTimeout(250);
+{ const d = await dl(); if (!d || (d.parts === 0 && d.boost === 0)) problems.push(`the trick button did nothing (${JSON.stringify(d)})`); else console.log(`trick: ${d.parts} particles, boost ${d.boost.toFixed(1)}s`); }
+await shot('delivery-trick');
 let shotDrive = false, lastLeg = '', points = 0;
 for (let i = 0; i < 400; i++) {
   const d = await dl();
@@ -377,6 +424,50 @@ const leftRound = await now();
 await page.locator('.roundbar').getByRole('button', { name: 'Tap again to go home' }).tap();
 await quietAfter('a Round', leftRound);
 if (!(await page.locator('.home-screen').count())) problems.push('🏠 twice did not go Home');
+
+// ---------- Watch it go: the train runs by itself; the trick, the sky, the working pieces ----------
+await page.getByRole('button', { name: 'Layout', exact: true }).first().tap();
+await page.waitForTimeout(800);
+await shot('layout-works');
+await page.getByRole('button', { name: 'Watch it go' }).tap();
+await page.waitForTimeout(2500);
+type S = { t: number; speed: number; boost: number; parts: number; sky: number; state: [number, number][]; raise: number[] } | null;
+const show = () => page.evaluate(() => { const d = (window as unknown as { __show?(): S }).__show?.(); return d && { t: d.t, speed: d.speed, boost: d.boost, parts: d.parts, sky: d.sky, state: d.state, raise: d.raise }; });
+const showXY = (cell: number) => page.evaluate(c => (window as unknown as { __show(): { xy(c: number): { x: number; y: number } } }).__show().xy(c), cell);
+const s0 = await show();
+if (!s0 || s0.speed <= 0) problems.push(`the train did not run by itself (${JSON.stringify(s0)})`);
+await shot('show');
+await page.getByRole('button', { name: 'Trick' }).tap();
+await page.waitForTimeout(300);
+{ const d = await show(); if (!d || (d.parts === 0 && d.boost === 0)) problems.push('the trick did nothing in Watch it go'); }
+await shot('show-trick');
+if (save) {
+  if (!((await show())?.sky)) problems.push('no weather on the table');
+  // the working pieces: the volcano erupts, the drawbridge lifts (unless the train is near it), the gates come down by themselves
+  await touchAt(await showXY(41));
+  await page.waitForTimeout(400);
+  if (!((await show())?.parts)) problems.push('tapping the volcano did nothing');
+  for (let k = 0; k < 20 && !(await show())!.raise.includes(21); k++) { await touchAt(await showXY(21)); await page.waitForTimeout(700); }
+  await page.waitForTimeout(800);
+  await shot('show-works');
+  let gates = 0;
+  for (let k = 0; k < 40 && gates < .9; k++) { gates = Math.max(gates, ...(await show())!.state.filter(([c]) => c === 19).map(([, v]) => v)); await page.waitForTimeout(250); }
+  if (gates < .9) problems.push('the crossing gates never came down for the train');
+  // the time of day and the weather switch from the top of the screen
+  const time0 = (await saved()).trains?.time, weather0 = (await saved()).trains?.weather;
+  await page.getByRole('button', { name: 'Time of day' }).tap();
+  await page.waitForTimeout(500);
+  await page.getByRole('button', { name: 'Weather' }).tap();
+  await page.waitForTimeout(1500);
+  const s3 = (await saved()).trains;
+  if (s3?.time === time0 || s3?.weather === weather0) problems.push(`the sky buttons did not switch (${time0}/${weather0} → ${s3?.time}/${s3?.weather})`);
+  await shot('show-sky');
+}
+await page.getByRole('button', { name: 'Layout', exact: true }).tap();
+const leftShow = await now();
+await page.waitForTimeout(300);
+if (!(await page.locator('.layout-screen').count())) problems.push('leaving Watch it go did not land on the Layout');
+await quietAfter('Watch it go', leftShow, ['Your Layout!', 'Drag your finger to lay track!']);
 
 // ---------- the voice, as heard ----------
 const log = (await heard()).sort((a, b) => a.t0 - b.t0);

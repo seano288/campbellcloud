@@ -1,5 +1,6 @@
 // Sentence Express: tap to start (which unlocks sound on the iPad), then Home, Rounds, and the reward: the Shed (his engines and
-// cars), his Layout (the table he lays track on and decorates) and the Delivery (he drives his train on it).
+// cars), his Layout (the table he lays track on and decorates), the Delivery (he drives his train on it) and Watch it go (his train
+// runs round his Layout by itself).
 import { unlockAudio } from '../audio/context';
 import { CurrencyPile } from '../ui/currency';
 import { HoldForProgress } from '../ui/MoveProgress';
@@ -7,6 +8,7 @@ import { BuildLabel } from '../ui/BuildLabel';
 import { TrainView } from './art/TrainView';
 import { EXPRESS_CURRENCY } from './branding';
 import { DeliveryScreen } from './delivery/DeliveryScreen';
+import { ShowScreen } from './delivery/ShowScreen';
 import { player, SAVE_KEY } from './game';
 import { Home } from './Home';
 import { LayoutScreen } from './layout/LayoutScreen';
@@ -26,6 +28,7 @@ export function App() {
       {screen.value === 'shed' && <Shed />}
       {screen.value === 'layout' && <LayoutScreen />}
       {screen.value === 'delivery' && <DeliveryScreen key={deliveryId.value} />}
+      {screen.value === 'show' && <ShowScreen />}
       <Toast />
     </VoiceContext.Provider>
   );

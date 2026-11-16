@@ -6,13 +6,12 @@
 // The table and track are drawn once into a cached layer and redrawn only when they change; each frame draws that, the train and
 // what moves, so it holds 60 fps on an iPad 9.
 import { drawTop, engineOf, carOf, roundRect, type Paint } from '../art/train';
-import { DRAWN, sceneryArt } from '../art/scenery';
 import { carAt, pointOn, SPACING, type Run } from '../delivery/run';
-import { station, type StationId } from '../shed/catalogue';
+import { station, TRACK, type StationId } from '../shed/catalogue';
 import { bits, hasPoints, isEnd, isStraight, opposite, pointsParts, TRACK_SCENERY, xyOf, type Dir, type Layout } from './track';
 
-const O = '#1d1d1f', WOOD = '#d8b47a', WOOD_EDGE = '#b8925a', TRACK = '#c99a5e', GROOVE = '#7a5230';
-const EMO = '"Apple Color Emoji","Segoe UI Emoji","Noto Color Emoji",sans-serif';
+const O = '#1d1d1f', WOOD = '#d8b47a', WOOD_EDGE = '#b8925a';
+export const EMO = '"Apple Color Emoji","Segoe UI Emoji","Noto Color Emoji",sans-serif';
 
 /** Where the table sits on the canvas: the size of a square in pixels, the corner, and whether it's turned on its side. */
 export interface View { cell: number; ox: number; oy: number; rot: boolean; w: number; h: number; dpr: number }
@@ -31,13 +30,13 @@ export function fromScreen(v: View, l: Pick<Layout, 'h'>, sx: number, sy: number
   return v.rot ? { x: (sy - v.oy) / v.cell, y: l.h - (sx - v.ox) / v.cell } : { x: (sx - v.ox) / v.cell, y: (sy - v.oy) / v.cell };
 }
 /** Sets the canvas to draw in squares. */
-function gridSpace(c: CanvasRenderingContext2D, v: View, l: Pick<Layout, 'h'>) {
+export function gridSpace(c: CanvasRenderingContext2D, v: View, l: Pick<Layout, 'h'>) {
   const k = v.cell * v.dpr;
   if (v.rot) c.setTransform(0, k, -k, 0, (v.ox + l.h * v.cell) * v.dpr, v.oy * v.dpr);
   else c.setTransform(k, 0, 0, k, v.ox * v.dpr, v.oy * v.dpr);
 }
 /** Draws something upright at a point on the table: `f` draws at the origin, in CSS pixels. */
-function upright(c: CanvasRenderingContext2D, v: View, l: Pick<Layout, 'h'>, x: number, y: number, f: () => void) {
+export function upright(c: CanvasRenderingContext2D, v: View, l: Pick<Layout, 'h'>, x: number, y: number, f: () => void) {
   const p = toScreen(v, l, x, y);
   c.save();
   c.setTransform(v.dpr, 0, 0, v.dpr, p.x * v.dpr, p.y * v.dpr);
@@ -50,7 +49,7 @@ let imagesLoaded = 0;
 /** How many drawn pieces' pictures have loaded: the table's cached layer is drawn again when this changes, or a piece drawn before
  *  its picture had loaded (a water tower, on opening the Layout) would stay missing until the next change to the table. */
 export const loadedImages = () => imagesLoaded;
-function image(svg: string): HTMLImageElement | null {
+export function image(svg: string): HTMLImageElement | null {
   let img = images.get(svg);
   if (!img) {
     img = new Image();
@@ -90,8 +89,14 @@ function waysOf(m: number, set: number): { a: Dir; b: Dir; on: boolean }[] {
   return [];
 }
 
-function drawSquareTrack(c: CanvasRenderingContext2D, l: Layout, cell: number) {
+/** How his track looks: its strip and grooves, by the Track tab's track colour he has on. */
+export interface Rails { strip: string; groove: string; look?: 'candy' | 'rainbow' | 'glow' }
+export const railsOf = (id: string): Rails => { const r = TRACK.find(x => x.id === id); return r && 'rails' in r ? r.rails : { strip: '#c99a5e', groove: '#7a5230' }; };
+const RAINBOW = ['#e63946', '#ff9a1f', '#ffd23f', '#2bb673', '#2f7fd8', '#7a4fd8'];
+
+function drawSquareTrack(c: CanvasRenderingContext2D, l: Layout, cell: number, rails: Rails) {
   const m = l.cells[cell]!, { x, y } = xyOf(l, cell), set = l.points[cell] ?? 0;
+  const TRACK = rails.look === 'rainbow' ? RAINBOW[(x + y) % RAINBOW.length]! : rails.strip, GROOVE = rails.groove;
   if (isEnd(m)) {
     // a loose end: the track runs in to a little turnaround loop
     const d = bits(m)[0]!, [mx, my] = MID[d], cx = x + .5 + (mx - .5) * .2, cy = y + .5 + (my - .5) * .2;
@@ -104,10 +109,12 @@ function drawSquareTrack(c: CanvasRenderingContext2D, l: Layout, cell: number) {
     c.lineCap = 'butt';
     if (pass === 0) {
       c.lineWidth = .64; c.strokeStyle = O; c.beginPath(); trackPath(c, x, y, w.a, w.b, 0); c.stroke();
-      c.lineWidth = .52; c.strokeStyle = w.on ? TRACK : '#b8925a'; c.beginPath(); trackPath(c, x, y, w.a, w.b, 0); c.stroke();
+      c.lineWidth = .52; c.strokeStyle = TRACK; c.globalAlpha = w.on ? 1 : .6; c.beginPath(); trackPath(c, x, y, w.a, w.b, 0); c.stroke(); c.globalAlpha = 1;
+      if (rails.look === 'candy') { c.setLineDash([.12, .14]); c.strokeStyle = '#e63946'; c.beginPath(); trackPath(c, x, y, w.a, w.b, 0); c.stroke(); c.setLineDash([]); }
     } else {
-      c.lineWidth = .05; c.strokeStyle = w.on ? GROOVE : '#9a7a54';
+      c.lineWidth = .05; c.strokeStyle = GROOVE; c.globalAlpha = w.on ? 1 : .55;
       for (const off of [-.12, .12]) { c.beginPath(); trackPath(c, x, y, w.a, w.b, off); c.stroke(); }
+      c.globalAlpha = 1;
     }
   }
   if (hasPoints(m)) {
@@ -118,15 +125,17 @@ function drawSquareTrack(c: CanvasRenderingContext2D, l: Layout, cell: number) {
   }
 }
 
-/** The table and everything on it that doesn't move. */
-export function drawTable(c: CanvasRenderingContext2D, v: View, l: Layout, opts: { grid?: boolean; target?: number | null } = {}) {
+/** The table and everything on it that doesn't move: the track, what lies under it (a bridge's water, a crossing's road) and the
+ *  stations. Scenery is drawn each frame by fx.ts, as some of it moves. */
+export function drawTable(c: CanvasRenderingContext2D, v: View, l: Layout, opts: { grid?: boolean; target?: number | null; rails?: string; snow?: boolean } = {}) {
+  const rails = railsOf(opts.rails ?? 'wood');
   c.setTransform(1, 0, 0, 1, 0, 0);
   c.clearRect(0, 0, v.w * v.dpr, v.h * v.dpr);
   gridSpace(c, v, l);
   // the table: pale wood with a darker edge, faint squares to lay on
   c.fillStyle = WOOD_EDGE; roundRect(c, -.18, -.18, l.w + .36, l.h + .36, .5); c.fill();
   c.lineWidth = .08; c.strokeStyle = O; c.stroke();
-  c.fillStyle = WOOD; roundRect(c, 0, 0, l.w, l.h, .3); c.fill();
+  c.fillStyle = opts.snow ? '#eef4f8' : WOOD; roundRect(c, 0, 0, l.w, l.h, .3); c.fill();
   c.strokeStyle = '#c9a46a'; c.lineWidth = .03;
   for (let i = 1; i < l.h; i += 2) { c.beginPath(); c.moveTo(0, i + .3); c.bezierCurveTo(l.w * .3, i + .1, l.w * .6, i + .5, l.w, i + .25); c.stroke(); }
   if (opts.grid) {
@@ -134,17 +143,17 @@ export function drawTable(c: CanvasRenderingContext2D, v: View, l: Layout, opts:
     for (let x = 1; x < l.w; x++) { c.beginPath(); c.moveTo(x, 0); c.lineTo(x, l.h); c.stroke(); }
     for (let y = 1; y < l.h; y++) { c.beginPath(); c.moveTo(0, y); c.lineTo(l.w, y); c.stroke(); }
   }
-  // under the track: the bridge's water, the crossing's road
+  // under the track: the bridge's water, the crossing's road (and the drawbridge's, the gates', the car wash's floor)
   for (const s of l.scenery) {
-    if (!TRACK_SCENERY.has(s.id) || s.id === 'tunnel') continue;
+    if (!TRACK_SCENERY.has(s.id) || s.id === 'tunnel' || s.id === 'arch') continue;
     const { x, y } = xyOf(l, s.cell), across = (l.cells[s.cell]! & 2) !== 0;
-    c.fillStyle = s.id === 'bridge' ? '#3d9be0' : '#5d6470';
+    c.fillStyle = s.id === 'bridge' || s.id === 'drawbridge' ? '#3d9be0' : s.id === 'wash' ? '#8fb8d8' : '#5d6470';
     if (across) c.fillRect(x + .05, y - .02, .9, 1.04); else c.fillRect(x - .02, y + .05, 1.04, .9);
-    if (s.id === 'crossing') { c.fillStyle = '#fff'; for (let k = 0; k < 4; k++) if (across) c.fillRect(x + .44, y + .05 + k * .26, .12, .14); else c.fillRect(x + .05 + k * .26, y + .44, .14, .12); }
+    if (s.id === 'crossing' || s.id === 'gates') { c.fillStyle = '#fff'; for (let k = 0; k < 4; k++) if (across) c.fillRect(x + .44, y + .05 + k * .26, .12, .14); else c.fillRect(x + .05 + k * .26, y + .44, .14, .12); }
   }
-  for (let cell = 0; cell < l.cells.length; cell++) if (l.cells[cell]) drawSquareTrack(c, l, cell);
+  for (let cell = 0; cell < l.cells.length; cell++) if (l.cells[cell]) drawSquareTrack(c, l, cell, rails);
   // a bridge's rails over the water
-  for (const s of l.scenery) if (s.id === 'bridge') {
+  for (const s of l.scenery) if (s.id === 'bridge' || s.id === 'drawbridge') {
     const { x, y } = xyOf(l, s.cell), across = (l.cells[s.cell]! & 2) !== 0;
     c.strokeStyle = O; c.lineWidth = .08;
     c.beginPath();
@@ -154,15 +163,6 @@ export function drawTable(c: CanvasRenderingContext2D, v: View, l: Layout, opts:
   }
   // stations: a platform beside the track and the station's sign, upright
   for (const s of l.stations) drawStation(c, v, l, s.id as StationId, s.cell, opts.target === s.cell);
-  // scenery on empty squares, upright
-  for (const s of l.scenery) {
-    if (TRACK_SCENERY.has(s.id)) continue;
-    const { x, y } = xyOf(l, s.cell), a = sceneryArt(s.id), size = v.cell * .92;
-    upright(c, v, l, x + .5, y + .5, () => {
-      if ('emoji' in a) { c.font = `${size}px ${EMO}`; c.textAlign = 'center'; c.textBaseline = 'middle'; c.fillText(a.emoji, 0, size * .06); }
-      else { const img = image(a.svg); if (img) c.drawImage(img, -size / 2, -size / 2, size, size); }
-    });
-  }
 }
 
 function drawStation(c: CanvasRenderingContext2D, v: View, l: Layout, id: StationId, cell: number, target: boolean) {
@@ -181,23 +181,10 @@ function drawStation(c: CanvasRenderingContext2D, v: View, l: Layout, id: Statio
   });
 }
 
-/** Tunnels go over the train, so they're drawn after it. */
-export function drawOver(c: CanvasRenderingContext2D, v: View, l: Layout) {
-  gridSpace(c, v, l);
-  for (const s of l.scenery) if (s.id === 'tunnel') {
-    const { x, y } = xyOf(l, s.cell), across = (l.cells[s.cell]! & 2) !== 0;
-    c.fillStyle = '#6fae4f'; c.strokeStyle = O; c.lineWidth = .06;
-    if (across) roundRect(c, x + .12, y - .1, .76, 1.2, .3); else roundRect(c, x - .1, y + .12, 1.2, .76, .3);
-    c.fill(); c.stroke();
-    c.fillStyle = '#1d1d1f';
-    if (across) { c.fillRect(x + .08, y + .2, .1, .6); c.fillRect(x + .82, y + .2, .1, .6); } else { c.fillRect(x + .2, y + .08, .6, .1); c.fillRect(x + .2, y + .82, .6, .1); }
-  }
-  void DRAWN;
-}
-
 /** The train: the engine and its cars, from above, each a fixed distance behind along the track. The cargo rides on the first car. */
-export function drawTrain(c: CanvasRenderingContext2D, v: View, run: Pick<Run, 'layout' | 'segs' | 'head' | 'lean'>, t: { engine: string; cars: readonly string[] }, p: Paint, cargo: string | null) {
+export function drawTrain(c: CanvasRenderingContext2D, v: View, run: Pick<Run, 'layout' | 'segs' | 'head' | 'lean'>, t: { engine: string; cars: readonly string[] }, p: Paint, cargo: string | null, alpha = 1) {
   gridSpace(c, v, run.layout);
+  c.globalAlpha = alpha;
   const pieces = [{ engine: engineOf(t.engine) }, ...t.cars.map(id => ({ car: carOf(id) }))];
   for (let k = pieces.length - 1; k >= 0; k--) {
     const at = carAt(run, k * SPACING), lean = k === 0 ? run.lean : run.lean * .6;
@@ -210,6 +197,7 @@ export function drawTrain(c: CanvasRenderingContext2D, v: View, run: Pick<Run, '
     drawTop(c, pieces[k] as never, p, .82, k === 1 ? cargo ?? undefined : undefined);
     c.restore();
   }
+  c.globalAlpha = 1;
   if (pieces.length === 1 && cargo) {
     const at = carAt(run, 0);
     upright(c, v, run.layout, at.x, at.y, () => { c.font = `${v.cell * .45}px ${EMO}`; c.textAlign = 'center'; c.fillText(cargo, 0, -v.cell * .3); });

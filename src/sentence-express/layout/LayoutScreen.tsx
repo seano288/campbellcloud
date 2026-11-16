@@ -10,11 +10,12 @@ import { sceneryArt } from '../art/scenery';
 import { player, saveLayout, updateTrains } from '../game';
 import { goDeliver, screen } from '../nav';
 import type { Phrase } from '../phrases';
-import { station, TRACK, type ItemName, type StationId } from '../shed/catalogue';
+import { GROUPS, SCENERY, station, TRACK, type ItemName, type SceneryGroup, type StationId } from '../shed/catalogue';
 import { canPlace, isOwned, ITEMS, keyOf, liftScenery, placeScenery, sceneryLeft, selectGoal, supplyOf } from '../shed/trainset';
 import { useVoice } from '../voice';
 import { useTable } from './canvas';
-import { drawSpots, drawStroke, drawOver, fromScreen, toScreen } from './draw';
+import { drawSpots, drawStroke, fromScreen, toScreen } from './draw';
+import { createWorld, drawScene } from './fx';
 import { cellAt, erase, fillIn, hasPoints, isStraight, lay, switchPoints, TRACK_SCENERY, xyOf, type Layout } from './track';
 
 type Tool = 'track' | 'erase' | 'scenery';
@@ -23,17 +24,19 @@ type Held = { kind: 'scenery'; id: string } | { kind: 'station'; id: StationId }
 export function LayoutScreen() {
   const voice = useVoice(), t = player.state.value.trains, supply = supplyOf(t);
   const [tool, setTool] = useState<Tool>('track'), [held, setHeld] = useState<Held>(null);
-  const canvas = useRef<HTMLCanvasElement>(null), stroke = useRef<number[]>([]), down = useRef(false);
+  const canvas = useRef<HTMLCanvasElement>(null), stroke = useRef<number[]>([]), down = useRef(false), world = useRef(createWorld()).current;
   const layout = () => player.state.peek().trains.layout;
+  const [group, setGroup] = useState<SceneryGroup | null>(null);
 
   useEffect(() => { void voice.say('Your Layout!', 'Drag your finger to lay track!'); }, []);
 
-  const view = useTable(canvas, layout, ({ c, v }) => {
+  const view = useTable(canvas, layout, ({ c, v, dt }) => {
     const l = layout();
+    // his scenery (the working pieces turning), always in the daytime here, where he builds
+    drawScene(c, v, world, dt, { layout: l, rails: player.state.peek().trains.rails });
     if (stroke.current.length) drawStroke(c, v, l, stroke.current, tool === 'erase');
     if (held) drawSpots(c, v, l, cell => (held.kind === 'station' ? isStraight(l.cells[cell]!) && !l.stations.some(s => s.cell === cell) : canPlace(l, held.id, cell)));
-    drawOver(c, v, l);
-  }, { grid: true, key: () => `${tool}` });
+  }, { grid: true, key: () => `${tool}`, rails: () => player.state.peek().trains.rails });
 
   // the browser tour finds squares on the screen from here (tools/sentence-express/tour.ts)
   if (import.meta.env.DEV) (window as unknown as { __layout(): unknown }).__layout = () => {
@@ -118,7 +121,9 @@ export function LayoutScreen() {
     if (x === 'scenery') say('Scenery!', 'Tap a piece, then tap the table.');
     else say(x === 'track' ? 'Track!' : 'Rub out!');
   }
-  const left = sceneryLeft(t);
+  const allLeft = sceneryLeft(t), groups = (Object.keys(GROUPS.scenery) as SceneryGroup[]).filter(g => allLeft.some(id => trayGroup(id) === g));
+  const shownGroup = group && groups.includes(group) ? group : groups[0] ?? null;
+  const left = groups.length > 1 ? allLeft.filter(id => trayGroup(id) === shownGroup) : allLeft;
   return (
     <div class="screen layout-screen">
       <header class="work-head">
@@ -137,6 +142,11 @@ export function LayoutScreen() {
             <button role="radio" aria-checked={tool === 'erase'} aria-label="Rub out" class={`tool ${tool === 'erase' ? 'on' : ''}`} onClick={() => pickTool('erase')}>🧽</button>
             <button role="radio" aria-checked={tool === 'scenery'} aria-label="Scenery" class={`tool ${tool === 'scenery' ? 'on' : ''}`} onClick={() => pickTool('scenery')}>🌳</button>
           </div>
+          {tool === 'scenery' && groups.length > 1 && (
+            <div class="tray-groups" role="tablist" aria-label="Kinds of scenery">
+              {groups.map(g => <button key={g} role="tab" aria-selected={g === shownGroup} aria-label={GROUPS.scenery[g].name} class={`group-chip ${g === shownGroup ? 'on' : ''}`} onClick={() => { if (!voice.active) return; setGroup(g); sClink(); void voice.say(GROUPS.scenery[g].name); }}>{GROUPS.scenery[g].icon}</button>)}
+            </div>
+          )}
           {tool === 'scenery' && (
             <div class="scenery-tray" role="group" aria-label="Your scenery">
               {held?.kind === 'station' && <span class="held-station" aria-label={`Moving ${station(held.id).name}`}>{station(held.id).icon}</span>}
@@ -151,16 +161,21 @@ export function LayoutScreen() {
               {!left.length && !held && <span class="tray-empty">🛒 → 🌳</span>}
             </div>
           )}
-          {t.deliveries > 0 && (
-            <button class="big-btn go deliver-btn pulse" aria-label="Deliver" onClick={() => { if (voice.active) goDeliver(); }}>
-              <span class="deliver-icon" aria-hidden="true">🚂</span><span class="deliver-word">Deliver!</span><span class="deliver-count">{t.deliveries}</span>
-            </button>
-          )}
+          <div class="layout-go">
+            <button class="big-btn show-btn" aria-label="Watch it go" onClick={() => { if (voice.active) screen.value = 'show'; }}><span aria-hidden="true">▶</span><span class="pic emo" aria-hidden="true">🚂</span></button>
+            {t.deliveries > 0 && (
+              <button class="big-btn go deliver-btn pulse" aria-label="Deliver" onClick={() => { if (voice.active) goDeliver(); }}>
+                <span class="deliver-icon" aria-hidden="true">🚂</span><span class="deliver-word">Deliver!</span><span class="deliver-count">{t.deliveries}</span>
+              </button>
+            )}
+          </div>
         </div>
       </div>
     </div>
   );
 }
 
+/** Which group of the tray a piece is in: its own, or Fun for a station's gift. */
+const trayGroup = (id: string): SceneryGroup => SCENERY.find(s => s.id === id)?.group ?? 'fun';
 /** A scenery piece's or a gift's name. */
 const sceneryName = (id: string) => ITEMS.find(i => i.id === id && (i.tab === 'scenery' || i.tab === 'gift'))!.name as ItemName;

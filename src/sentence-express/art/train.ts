@@ -29,6 +29,8 @@ function pattern(p: Paint, clip: string, x: number, y: number, w: number, h: num
       case 'checks': return Array.from({ length: Math.ceil(w / 12) * Math.ceil(h / 12) }, (_, i) => { const cx = i % Math.ceil(w / 12), cy = Math.floor(i / Math.ceil(w / 12)); return (cx + cy) % 2 ? `<rect x="${x + cx * 12}" y="${y + cy * 12}" width="12" height="12" fill="${t}"/>` : ''; }).join('');
       case 'stars': return Array.from({ length: Math.ceil(w / 22) * 2 }, (_, i) => `<circle cx="${x + 8 + (i % Math.ceil(w / 22)) * 22}" cy="${y + 12 + Math.floor(i / Math.ceil(w / 22)) * 24}" r="3" fill="${t}"/>`).join('');
       case 'flames': return Array.from({ length: Math.ceil(w / 26) }, (_, i) => `<path d="M${x + i * 26} ${y + h} q 6 -28 13 -14 q 4 -20 13 0 z" fill="${t}"/>`).join('');
+      case 'hearts': return Array.from({ length: Math.ceil(w / 22) * 3 }, (_, i) => { const cols = Math.ceil(w / 22), hx = x + 11 + (i % cols) * 22 + (Math.floor(i / cols) % 2) * 11, hy = y + 8 + Math.floor(i / cols) * 18; return `<path d="M${hx} ${hy + 7} l-6 -6 a3.4 3.4 0 0 1 6 -4 a3.4 3.4 0 0 1 6 4 z" fill="${t}"/>`; }).join('');
+      case 'zigzag': return Array.from({ length: Math.ceil(h / 16) + 1 }, (_, j) => `<path d="M${x - 8} ${y + 6 + j * 16} ${Array.from({ length: Math.ceil(w / 12) + 2 }, (_, i) => `L${x - 8 + i * 12 + 6} ${y + (i % 2 ? 0 : 8) + j * 16}`).join(' ')}" fill="none" stroke="${t}" stroke-width="4"/>`).join('');
       case 'rainbow': return ['#e63946', '#ff9a1f', '#ffd23f', '#2bb673', '#2f7fd8', '#7a4fd8'].map((c, i) => `<rect x="${x}" y="${y + (i * h) / 6}" width="${w}" height="${h / 6 + .5}" fill="${c}"/>`).join('');
     }
   })();
@@ -65,7 +67,9 @@ export const pieceWidth = (role: 'engine' | 'car' | 'caboose', text: string) =>
 // ---------- engines ----------
 
 /** An engine, facing left, `w` wide. `word`: a word on its side (in a question). */
-export function engineSvg(e: Pick<EngineRow, 'kind'> & Partial<EngineRow>, p: Paint, w = 170, word?: string, dim = false): string {
+export function engineSvg(e: Pick<EngineRow, 'kind'> & Partial<EngineRow>, paint: Paint, w = 170, word?: string, dim = false): string {
+  // an engine with a colour of its own (a red fire engine, a white ghost) keeps it; the rest wear his paint
+  const p: Paint = e.color && word === undefined ? { body: e.color, trim: paint.trim } : paint;
   const trim = e.trim ?? p.trim, big = !!e.big;
   const parts: string[] = [coupler(w - 10, w + 2)];
   const cab = Math.min(70, w * .36), cabX = w - cab - 6;
@@ -107,18 +111,41 @@ export function engineSvg(e: Pick<EngineRow, 'kind'> & Partial<EngineRow>, p: Pa
     parts.push(chassis(10, w - 16));
     parts.push(wheel(40), wheel(64), wheel(w - 52), wheel(w - 28));
   }
+  if (e.extra && word === undefined) parts.push(extraSvg(e.extra, w, cabX, cab, trim));
   if (word !== undefined) parts.push(plate(e.kind === 'tank' || e.kind === 'steam' ? (cabX + 8) / 2 + 4 : e.kind === 'bullet' ? w * .62 : (cabX + 8) / 2, 56, word, 34, dim));
   return parts.join('');
 }
 
+/** Something extra on an engine: a ladder on the fire engine, a siren, an ice cream cone, eyes, a crown... */
+function extraSvg(x: NonNullable<EngineRow['extra']>, w: number, cabX: number, cab: number, trim: string): string {
+  const roof = cabX + cab / 2, s = `stroke="${O}" stroke-width="3" stroke-linejoin="round"`;
+  switch (x) {
+    case 'ladder': return `<g ${s}><rect x="16" y="24" width="${cabX - 14}" height="10" rx="2" fill="#c9d1d9"/>${Array.from({ length: Math.floor((cabX - 20) / 14) }, (_, i) => `<path d="M${24 + i * 14} 24 V34"/>`).join('')}</g>`;
+    case 'siren': return `<g ${s}><path d="M${roof - 14} 12 Q${roof - 14} 0 ${roof} 0 V12 Z" fill="#e63946"/><path d="M${roof} 0 Q${roof + 14} 0 ${roof + 14} 12 H${roof} Z" fill="#2f7fd8"/></g>`;
+    case 'cone': return `<g ${s}><path d="M${w * .38} 12 L${w * .45} 40 L${w * .52} 12 Z" fill="#e8b860"/><circle cx="${w * .45}" cy="6" r="11" fill="#ff9ec7"/><circle cx="${w * .45}" cy="-6" r="4" fill="#e63946"/></g>`;
+    case 'eyes': return `<g ${s}><circle cx="24" cy="44" r="9" fill="#fff"/><circle cx="44" cy="44" r="9" fill="#fff"/><circle cx="22" cy="45" r="4" fill="${O}" stroke="none"/><circle cx="42" cy="45" r="4" fill="${O}" stroke="none"/></g>`;
+    case 'disco': return `<g ${s}><path d="M${w * .45} 14 V2" /><circle cx="${w * .45}" cy="-8" r="12" fill="#c9d1d9"/><path d="M${w * .45 - 12} -8 H${w * .45 + 12} M${w * .45} -20 V4 M${w * .45 - 9} -15 H${w * .45 + 9} M${w * .45 - 9} -1 H${w * .45 + 9}" stroke-width="1.5"/></g>`;
+    case 'flag': return `<g ${s}><path d="M${roof} 10 V-30"/><path d="M${roof} -30 H${roof - 30} V-10 H${roof} Z" fill="#1d1d1f"/><circle cx="${roof - 15}" cy="-22" r="5" fill="#fff" stroke="none"/><path d="M${roof - 22} -14 L${roof - 8} -14" stroke="#fff"/></g>`;
+    case 'spikes': return `<g ${s}>${Array.from({ length: 4 }, (_, i) => `<path d="M${20 + i * ((cabX - 30) / 4)} 30 l8 -16 l8 16 Z" fill="${trim}"/>`).join('')}</g>`;
+    case 'crown': return `<g ${s}><path d="M${roof - 16} 12 V-4 L${roof - 8} 4 L${roof} -8 L${roof + 8} 4 L${roof + 16} -4 V12 Z" fill="#f2c43a"/><circle cx="${roof}" cy="4" r="3" fill="#e63946"/></g>`;
+    case 'horns': return `<g ${s}><path d="M20 30 Q8 14 16 2 Q22 18 30 28 Z" fill="#f4f6f8"/><path d="M40 30 Q34 14 44 4 Q46 20 50 30 Z" fill="#f4f6f8"/><circle cx="26" cy="44" r="6" fill="#ffd23f"/><circle cx="25" cy="44" r="2.5" fill="${O}" stroke="none"/></g>`;
+    case 'horn': return `<g ${s}><path d="M14 34 L4 0 L26 30 Z" fill="#f2c43a"/><path d="M8 14 L18 18 M11 24 L21 26" stroke-width="2"/></g>`;
+    case 'fins': return `<g ${s}><path d="M${w - 30} 16 L${w + 4} -4 L${w - 6} 22 Z" fill="${trim}"/><path d="M${w - 30} 72 L${w + 8} 82 L${w - 8} 62 Z" fill="${trim}"/></g>`;
+    case 'bubble': return `<g ${s} fill="#d8f2ff" opacity=".9"><circle cx="30" cy="-14" r="8"/><circle cx="44" cy="-28" r="6"/><circle cx="22" cy="-32" r="5"/></g>`;
+  }
+}
+
 // ---------- cars ----------
 
+/** The colour of a load of little round things. */
+export const LOAD_COLORS: Record<string, string> = { coal: '#2a2d33', rocks: '#9aa3ad', sand: '#e8c872', snow: '#f4f8ff', gems: '#7fdcff' };
+const GEM_COLORS = ['#e63946', '#7fdcff', '#2bb673', '#ffd23f', '#c3a8f0'];
 /** A load riding on a car: coal, rocks, blocks, a crane, or an emoji. */
 function load(l: string | undefined, x: number, w: number, top: number): string {
   if (!l) return '';
-  if (l === 'coal' || l === 'rocks') {
-    const c = l === 'coal' ? '#2a2d33' : '#9aa3ad';
-    return Array.from({ length: Math.floor(w / 18) }, (_, i) => `<circle cx="${x + 12 + i * 18}" cy="${top}" r="11" fill="${c}" stroke="${O}" stroke-width="3"/>`).join('');
+  if (l === 'coal' || l === 'rocks' || l === 'sand' || l === 'snow' || l === 'gems') {
+    const c = LOAD_COLORS[l];
+    return Array.from({ length: Math.floor(w / 18) }, (_, i) => `<circle cx="${x + 12 + i * 18}" cy="${top}" r="11" fill="${l === 'gems' ? GEM_COLORS[i % GEM_COLORS.length] : c}" stroke="${O}" stroke-width="3"/>`).join('');
   }
   if (l === 'blocks') return ['#e63946', '#2f7fd8', '#ffd23f'].map((c, i) => `<rect x="${x + 10 + i * ((w - 20) / 3)}" y="${top - 26}" width="${(w - 20) / 3 - 4}" height="${(w - 20) / 3 - 4}" fill="${c}" stroke="${O}" stroke-width="3"/>`).join('');
   if (l === 'crane') return `<path d="M${x + w * .3} ${top + 4} L${x + w * .3} ${top - 34} L${x + w * .9} ${top - 22}" fill="none" stroke="#ffd23f" stroke-width="8"/><path d="M${x + w * .3} ${top + 4} L${x + w * .3} ${top - 34} L${x + w * .9} ${top - 22}" fill="none" stroke="${O}" stroke-width="2"/><path d="M${x + w * .85} ${top - 22} v 16" stroke="${O}" stroke-width="3"/>`;
@@ -138,6 +165,12 @@ export function carSvg(c: Pick<CarRow, 'shape'> & Partial<CarRow>, p: Paint, w =
     case 'coach': parts.push(`<rect x="2" y="10" width="${w - 4}" height="12" rx="6" fill="${own.trim}" stroke="${O}" stroke-width="3"/>`, body(own, 6, 18, w - 12, 60, 8));
       for (let i = 0; i < Math.max(2, Math.floor((w - 20) / 34)); i++) parts.push(`<rect x="${14 + i * 34}" y="26" width="24" height="20" rx="4" fill="#bfe3ff" stroke="${O}" stroke-width="3"/>`);
       if (c.load) parts.push(load(c.load, w - 46, 40, 66).replace('font-size="40"', 'font-size="22"')); break;
+    case 'tipper': parts.push(load(c.load, 14, w - 28, 30), `<path d="M8 26 L${w - 8} 18 L${w - 20} 70 L20 72 Z" fill="${own.body}" stroke="${O}" stroke-width="${SW}" stroke-linejoin="round"/>`, `<circle cx="${w / 2}" cy="74" r="6" fill="#3a3f47" stroke="${O}" stroke-width="3"/>`); break;
+    case 'double': parts.push(body(own, 6, 4, w - 12, 74, 10));
+      for (const y of [12, 44]) for (let i = 0; i < Math.max(2, Math.floor((w - 20) / 34)); i++) parts.push(`<rect x="${14 + i * 34}" y="${y}" width="24" height="18" rx="4" fill="#bfe3ff" stroke="${O}" stroke-width="3"/>`);
+      parts.push(`<rect x="6" y="36" width="${w - 12}" height="5" fill="${own.trim}"/>`); break;
+    case 'dome': parts.push(`<path d="M18 30 Q${w / 2} -8 ${w - 18} 30 Z" fill="#bfe3ff" stroke="${O}" stroke-width="3"/><path d="M${w / 2} 11 V30 M${w * .3} 18 L${w * .34} 30 M${w * .7} 18 L${w * .66} 30" stroke="${O}" stroke-width="2"/>`, body(own, 6, 28, w - 12, 50, 8));
+      for (let i = 0; i < Math.max(2, Math.floor((w - 20) / 34)); i++) parts.push(`<rect x="${14 + i * 34}" y="36" width="24" height="18" rx="4" fill="#bfe3ff" stroke="${O}" stroke-width="3"/>`); break;
     case 'caboose': parts.push(`<rect x="${w * .3}" y="2" width="${w * .4}" height="18" rx="4" fill="${own.body}" stroke="${O}" stroke-width="3"/><rect x="${w * .36}" y="6" width="${w * .28}" height="9" rx="2" fill="#bfe3ff" stroke="${O}" stroke-width="2"/>`, body(own, 6, 18, w - 12, 60, 8), `<rect x="0" y="12" width="${w}" height="9" rx="4" fill="${own.trim}" stroke="${O}" stroke-width="3"/>`); break;
   }
   parts.push(chassis(6, w - 12), wheel(26), wheel(w - 26));
@@ -178,7 +211,7 @@ export function drawTop(c: CanvasRenderingContext2D, what: { engine: EngineRow }
   c.strokeStyle = O;
   if ('engine' in what) {
     const e = what.engine;
-    c.fillStyle = p.body;
+    c.fillStyle = e.color ?? p.body;
     if (e.kind === 'bullet') { c.beginPath(); c.moveTo(-len / 2, -w / 2); c.lineTo(len * .1, -w / 2); c.quadraticCurveTo(len / 2, -w / 2, len / 2, 0); c.quadraticCurveTo(len / 2, w / 2, len * .1, w / 2); c.lineTo(-len / 2, w / 2); c.closePath(); }
     else round(-len / 2, -w / 2, len, w, r);
     c.fill(); c.stroke();
@@ -187,16 +220,24 @@ export function drawTop(c: CanvasRenderingContext2D, what: { engine: EngineRow }
     round(-len / 2 + len * .06, -w / 2 + w * .12, len * .32, w * .76, r * .6); c.fill(); c.stroke();
     if (e.kind === 'tank' || e.kind === 'steam') { c.fillStyle = O; c.beginPath(); c.arc(len * .3, 0, w * .2, 0, Math.PI * 2); c.fill(); }
     else { c.fillStyle = '#bfe3ff'; round(len * .22, -w * .32, len * .16, w * .64, 3); c.fill(); c.stroke(); }
+    if (e.badge) emojiAt(c, e.badge, w * .7, -len * .02);
   } else {
     const car = what.car, own = car.color ?? p.body;
     c.fillStyle = car.shape === 'flat' ? '#7a5a3a' : own;
     round(-len / 2, -w / 2, len, w, car.shape === 'tank' ? w / 2 : r * .6); c.fill(); c.stroke();
-    if (car.shape === 'open' || car.shape === 'hopper') { c.fillStyle = car.load === 'coal' ? '#2a2d33' : car.load === 'rocks' ? '#9aa3ad' : '#00000033'; round(-len * .4, -w * .32, len * .8, w * .64, 4); c.fill(); }
+    if (car.shape === 'open' || car.shape === 'hopper' || car.shape === 'tipper') { c.fillStyle = (car.load && LOAD_COLORS[car.load]) ?? '#00000033'; round(-len * .4, -w * .32, len * .8, w * .64, 4); c.fill(); }
     if (car.shape === 'caboose') { c.fillStyle = p.trim; round(-len * .15, -w * .3, len * .3, w * .6, 3); c.fill(); c.stroke(); }
+    if (car.shape === 'dome') { c.fillStyle = '#bfe3ff'; round(-len * .3, -w * .3, len * .6, w * .6, w * .3); c.fill(); c.stroke(); }
+    if (car.shape === 'double') { c.fillStyle = car.color ?? p.trim; round(-len * .42, -w * .36, len * .84, w * .72, r * .5); c.fill(); c.stroke(); }
     const show = cargo ?? (car.load && car.load.length <= 2 ? car.load : car.load && /\p{Extended_Pictographic}/u.test(car.load) ? car.load : undefined);
-    // emoji at a sensible font size: drawn a hundred times bigger and scaled down, as tiny font sizes don't draw everywhere
-    if (show) { c.save(); c.rotate(Math.PI / 2); c.scale(.01, .01); c.font = `${w * 80}px "Apple Color Emoji","Segoe UI Emoji","Noto Color Emoji",sans-serif`; c.textAlign = 'center'; c.textBaseline = 'middle'; c.fillText(show, 0, 0); c.restore(); }
+    if (show) emojiAt(c, show, w * .8, 0);
   }
+}
+
+/** An emoji at a sensible font size on a piece seen from above, turned to read across the train: drawn a hundred times bigger and
+ *  scaled down, as tiny font sizes don't draw everywhere. */
+function emojiAt(c: CanvasRenderingContext2D, e: string, size: number, x: number) {
+  c.save(); c.translate(x, 0); c.rotate(Math.PI / 2); c.scale(.01, .01); c.font = `${size * 100}px "Apple Color Emoji","Segoe UI Emoji","Noto Color Emoji",sans-serif`; c.textAlign = 'center'; c.textBaseline = 'middle'; c.fillText(e, 0, 0); c.restore();
 }
 
 /** A rounded rectangle path (by hand: older iPad Safari has no roundRect). */
