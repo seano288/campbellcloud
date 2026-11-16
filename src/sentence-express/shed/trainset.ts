@@ -78,7 +78,7 @@ const STATION_IDS = STATIONS.map(s => s.id as string);
 
 /** A Layout from a save: its squares must join up both ways, or it starts again from the starter loop on his table. */
 function readLayout(raw: unknown, table: { w: number; h: number }, owned: readonly string[]): Layout {
-  const fresh = starterLayout(table.w, table.h);
+  const fresh = grow(starterLayout(START_TABLE.w, START_TABLE.h), table.w, table.h);
   if (!isRecord(raw)) return fresh;
   const w = raw.w, h = raw.h, cells = raw.cells;
   if (typeof w !== 'number' || typeof h !== 'number' || !Array.isArray(cells) || cells.length !== w * h || w > 30 || h > 30) return fresh;
@@ -112,6 +112,10 @@ export function readTrainSet(raw: unknown): TrainSet {
   };
   return placeOpen(t);
 }
+
+/** His Layout after a change he made on the table. Track drawn through a station (or rubbed out under it) takes it off its
+ *  straight; it goes back on the table rather than vanishing until the next Delivery. */
+export const withLayout = (t: TrainSet, layout: Layout): TrainSet => placeOpen({ ...t, layout });
 
 /** Every open station is on the table. */
 export function placeOpen(t: TrainSet): TrainSet {
@@ -214,8 +218,9 @@ export function planDelivery(t: TrainSet): Plan {
   };
   const plan = tryLayout(t.layout);
   if (plan) return plan;
-  // the starter loop back on his table, his scenery kept where it doesn't sit on the loop
-  const start = starterLayout(t.layout.w, t.layout.h);
+  // the starter loop back on his table (the first table's loop, in the middle, so it never takes more track than he has), his
+  // scenery kept where it doesn't sit on the loop
+  const start = grow(starterLayout(START_TABLE.w, START_TABLE.h), t.layout.w, t.layout.h);
   const merged = tidy({ ...start, scenery: t.layout.scenery.filter(s => !start.cells[s.cell] || TRACK_SCENERY.has(s.id)) });
   return { ...tryLayout(merged)!, fixed: true };
 }

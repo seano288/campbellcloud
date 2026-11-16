@@ -5,7 +5,7 @@ import { bits, cellAt, count, erase, fillIn, isEnd, lay, opposite, starterLayout
 import { CARS, ENGINES, LINE, MAX_CARS, PAINTS, SCENERY, START_SQUARES, TRACK } from './catalogue';
 import {
   canPlace, capacityOf, finishDelivery, freshTrainSet, goalOf, ITEMS, planDelivery, placeScenery, proposePurchase, readTrainSet, SHOP, SHOP_TOTAL,
-  supplyOf, tableOf, use, type ItemKey, type TrainSet,
+  readTrainSet as read, supplyOf, tableOf, use, withLayout, type ItemKey, type TrainSet,
 } from './trainset';
 
 /** Joins always go both ways and a square joins at most four sides. */
@@ -138,6 +138,31 @@ describe('the track', () => {
   });
 });
 
+describe('his Layout keeps what he has', () => {
+  it('track drawn through a station, or rubbed out under it, leaves the station on the table', () => {
+    const t = freshTrainSet(), l = t.layout, town = l.stations.find(s => s.id === 'town')!.cell, { x } = { x: town % l.w };
+    // a stroke down across Toy Town's straight makes it a crossing, which is no place for a station
+    const across = lay(l, [cellAt(l, x, 0), cellAt(l, x, 1), cellAt(l, x, 2), cellAt(l, x, 3)], supplyOf(t)).layout;
+    expect(across.stations.some(s => s.id === 'town'), 'the track change alone takes it off').toBe(false);
+    const kept = withLayout(t, across);
+    expect(kept.layout.stations.map(s => s.id).sort()).toEqual(['farm', 'town']);
+    const rubbed = withLayout(t, erase(l, [town], supplyOf(t)).layout);
+    expect(rubbed.layout.stations.map(s => s.id).sort()).toEqual(['farm', 'town']);
+  });
+  it('the starter loop put back on a big table never takes more track than he has', () => {
+    // the Giant Table and no Track Boxes: his own track rubbed out, so the Delivery puts the loop back
+    let t = use({ ...freshTrainSet(), owned: [...freshTrainSet().owned, 'track:table3'] }, 'track:table3');
+    expect(tableOf(t)).toEqual({ w: 18, h: 11 });
+    t = { ...t, layout: erase(t.layout, t.layout.cells.map((_, c) => c), 0).layout };
+    const plan = planDelivery(t);
+    expect(plan.fixed).toBe(true);
+    expect(trackSquares(plan.layout)).toBeLessThanOrEqual(capacityOf(t));
+    // and a Layout in a save that doesn't join up comes back the same way
+    const back = read({ ...JSON.parse(JSON.stringify(t)), layout: { w: 18, h: 11, cells: [2] } });
+    expect(trackSquares(back.layout)).toBeLessThanOrEqual(capacityOf(back));
+  });
+});
+
 describe('a Delivery', () => {
   /** A child driving: the throttle full on (or half), tapping points when they light up, sometimes not. */
   function drive(t: TrainSet, rng: Rng, tapsPoints: boolean) {
@@ -182,6 +207,27 @@ describe('a Delivery', () => {
     }
     expect(worst).toBeLessThan(200);
   }, 60000);
+  it('also finishes when he has moved stations, put scenery in the way, grown his table and coupled a long train', () => {
+    for (let seed = 0; seed < 30; seed++) {
+      const rng = seeded(seed + 500), base = freshTrainSet();
+      let t: TrainSet = { ...base, owned: [...base.owned, ...TRACK.map(r => `track:${r.id}` as ItemKey), ...CARS.map(c => `car:${c.id}` as ItemKey)] };
+      const table = (['table1', 'table2', 'table3', null] as const)[int(rng, 0, 3)];
+      if (table) t = use(t, `track:${table}`);
+      t = { ...t, cars: CARS.slice(0, int(rng, 0, MAX_CARS)).map(c => c.id), open: int(rng, 1, 8) };
+      let l = scribble(t, rng, int(rng, 0, 12)).layout;
+      for (let k = 0; k < 4; k++) {
+        const c = cellAt(l, int(rng, 0, l.w - 1), int(rng, 0, l.h - 1));
+        if (rng() < .5) l = placeScenery(l, SCENERY[int(rng, 0, SCENERY.length - 1)]!.id, c);
+        else if (l.cells[c] === 5 || l.cells[c] === 10) { const s = l.stations[int(rng, 0, l.stations.length - 1)]!; if (!l.stations.some(x => x.cell === c)) l = { ...l, stations: l.stations.map(x => (x === s ? { ...x, cell: c } : x)) }; }
+      }
+      t = { ...t, layout: l };
+      for (let trip = 0; trip < 2; trip++) {
+        const { run, plan } = drive(t, rng, rng() < .7);
+        expect(run.leg, `seed ${seed} trip ${trip}`).toBe('done');
+        t = finishDelivery({ ...t, deliveries: 1 }, { layout: run.layout, pickup: plan.pickup }).state;
+      }
+    }
+  }, 120000);
   it('opens all eight stations, one a Delivery, each giving its gift once', () => {
     let t = freshTrainSet();
     const gifts: string[] = [];

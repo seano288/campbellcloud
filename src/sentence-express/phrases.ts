@@ -57,9 +57,9 @@ const cap = (s: string) => s.charAt(0).toUpperCase() + s.slice(1);
 export const openLine = (s: (typeof LINE)[number]) => `${cap(s.name)} is open!` as OpenLine;
 
 type EarnedPhrase = EarnedLine<typeof BOLT>;
-type StarLine = `You are a ${ModeName} star!`;
+type StarLine = `You are a ${Exclude<ModeName, 'Engine and Caboose'>} star!` | 'You are an Engine and Caboose star!';
 type ModePhrase = ModeName | StarLine | `You opened ${ModeName}!`;
-export const starLine = (name: ModeName) => `You are a ${name} star!` as StarLine;
+export const starLine = (name: ModeName) => `You are ${/^[AEIOU]/.test(name) ? 'an' : 'a'} ${name} star!` as StarLine;
 const modePhrases = (): ModePhrase[] => MODE_IDS.flatMap(m => [MODE_NAMES[m], starLine(MODE_NAMES[m]), `You opened ${MODE_NAMES[m]}!`] as const);
 export const numberPhrases = () => Array.from({ length: NUMBERS_TO + 1 }, (_, n) => `${n}` as `${number}`);
 /** A word said alone (its clip): lowercase, except "I" and names. Worked out from the sentences' own text. */

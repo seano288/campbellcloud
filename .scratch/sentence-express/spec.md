@@ -83,7 +83,9 @@ Wooden-toy colours: bright red, blue and green on a pale wood table under a blue
 
 ## Voice
 
-Aria at -8%, recorded with `tools/make_voice.py --collection sentence-express`: **706 clips, 9.8 MB** in `public/sentence-express-voice/`: 159 sentences, 124 single words, 56 question lines, the numbers to 100, item names and the game's own lines. Not listened to (no audio here). A rough pitch check of the question clips: yes/no questions mostly end higher than they start (11 of 28 clearly rising), wh-questions fall as they should, but these yes/no questions measured flat and most need a listen: "Can you see the big dog?", "Is the cat on the bed?", "Did the dog dig a hole?", "Is the dog in the box?", "Can Sam ride the bus?", "Will you help Max?", "Can the bird fly up?", "Do you want a cake?". Single words most likely to slip: "a" (may be said "ay" not "uh", as in Sight Squad), "the", "us", "I".
+Aria at -8%, recorded with `tools/make_voice.py --collection sentence-express`: **706 clips, 9.8 MB** in `public/sentence-express-voice/`: 159 sentences, 124 single words, 56 question lines, the numbers to 100, item names and the game's own lines. `voice.test.ts` checks every line the game builds at run time has its clip and nothing on disk is left over; `tools/sentence-express/clips.ts` decodes every clip in a browser with the game's own trim (all decode, none silent or clipped, the trim never cuts speech).
+
+Checked without ears on 2026-11-16 (Whisper small.en transcriptions, pitch and formant measurements; still not listened to by a person). Every sentence and line was heard as written except these, which need a listen: "duck" (its vowel sits between "dock" and "dack"); "The pig ate." (heard as "The paygate": run together?); "The fox naps." (heard as "fox snaps"); "Where is the dog?", "Where is the frog?" and "Where is the bird?" (the "is" comes out reduced, "Where's"). Seven yes/no questions end flat or a little lower instead of rising: "Will you help Max?", "Can you see the big dog?", "Did the dog dig a hole?", "Is the dog in the box?", "Do you want a cake?", "Is the cat on the bed?", "Can Sam ride the bus?" (the other twelve rise; changing their punctuation doesn't change what the voice does). "a" alone is said "ay" (the same clip as Sight Squad's, and as the letter A); "the" alone is "thuh"; "cat" is said right (Whisper hears "Kate" for any lone "cat", so it can't judge it).
 
 ## Save
 
@@ -100,8 +102,8 @@ Aria at -8%, recorded with `tools/make_voice.py --collection sentence-express`: 
 
 ## Not done
 
-- Not run on a real iPad 9 or iPhone, or in Safari/WebKit. Checked in Chromium (touch events) at 810×1080, 1080×810, 390×844 and 844×390 (`tools/sentence-express/tour.ts`) on a new save and on saves with every kind open at Level 2 and at Level 3, and offline on the production build (`tools/sentence-express/offline.ts`).
+- Not run on a real iPad 9 or iPhone, or in Safari/WebKit. Checked in Chromium (touch events) at 810×1080, 1080×810, 390×844 and 844×390 (`tools/sentence-express/tour.ts`) on a new save and on saves with every kind open at Level 2 and at Level 3, and offline on the production build (`tools/sentence-express/offline.ts`). The tour also logs every clip it plays, checks no two play at once and that leaving a Round, the Layout or a Delivery stops its voice (and the Delivery itself); `tools/sentence-express/reload.ts` reloads mid-Round, mid-lesson and mid-Delivery, and checks the sound starts on the first tap and wakes again after it's parked.
 - The voice clips were recorded but not listened to; see Voice.
 - No Trophies; no per-word strength tracking (Sight Squad's); the train doesn't run by itself on the Layout for show (only in a Delivery); scenery doesn't animate.
 - The order checker's grammar only knows the sentence shapes the game uses; a new sentence with a new shape needs the grammar (and its trap tests) taught first.
-- On a phone held sideways the table's squares are about 32px: laying track works, but it's tight.
+- On a phone held sideways the table's squares are about 38px (the Layout's header moves to a column at the left to give the table the whole height); a bought bigger table makes them smaller still (about 28px on the Giant Table). Below the 44pt guideline: laying track works, but it's tight. An iPad is 70px.

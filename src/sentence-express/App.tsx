@@ -41,7 +41,8 @@ function Start() {
         if (!voice.active) return;
         unlockAudio(); // sound needs this tap on iPad Safari
         comeBack(); // back where he was before the page reloaded
-        void screenVoice.value.say("Let's go!");
+        // back in a Round, its question is said at once, and would cut this off
+        if (screen.peek() !== 'round') void screenVoice.value.say("Let's go!");
       }}><span class="e">▶</span></button>
       <BuildLabel />
     </div>

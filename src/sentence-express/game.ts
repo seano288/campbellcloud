@@ -8,7 +8,7 @@ import { boltsFor } from '../round/rules';
 import { browserStorage, createStore, type SaveAdapter } from '../save/storage';
 import type { Layout } from './layout/track';
 import { freshLearning, readLearning, recordSolved, startPractice, type Asked, type LearningChange, type LearningState } from './learning';
-import { earnDelivery, finishDelivery, freshTrainSet, proposePurchase, readTrainSet, type DeliveryPay, type Plan, type TrainSet } from './shed/trainset';
+import { earnDelivery, finishDelivery, freshTrainSet, proposePurchase, readTrainSet, withLayout, type DeliveryPay, type Plan, type TrainSet } from './shed/trainset';
 
 export const SAVE_KEY = 'sentence-express-save';
 /** Saved progress is versioned like the other games: a version this build doesn't know reads as a blank save. */
@@ -58,7 +58,7 @@ export const buy = createRewardPurchases(player, { proposePurchase }, {
 });
 export const updateTrains = (change: (t: TrainSet) => TrainSet | null) =>
   player.commit(state => { const trains = change(state.trains); return trains ? { ...state, trains } : null; });
-export const saveLayout = (layout: Layout) => updateTrains(t => (t.layout === layout ? null : { ...t, layout }));
+export const saveLayout = (layout: Layout) => updateTrains(t => (t.layout === layout ? null : withLayout(t, layout)));
 
 /** The cargo reached Toy Town: pay the Bolts, use the Delivery, give the gift and open the next station. */
 export function settleDelivery(store: Pick<typeof player, 'commit'>, plan: Pick<Plan, 'layout' | 'pickup'>): DeliveryPay | null {
