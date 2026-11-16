@@ -2,7 +2,9 @@
 // Horns, Streets, Decorations, Traffic, Treasures) and taps a tile: one he owns goes on (a machine becomes the one he drives, a horn
 // honks), one he doesn't is shown on his machine to try (a horn plays), with Buy beside it, so he sees it before he spends. Upgrades are
 // for the machine he's driving. Treasures aren't bought: the shelf shows the ones he has found in the rubble. The Goal chip shows what
-// he's saving for. The tabs wrap to a second row on a phone; the tray scrolls.
+// he's saving for. The tabs wrap to a second row on a phone; under them a strip names the tab and counts what he has of it, and the
+// tray scrolls (its bottom edge fades, so a row cut in half reads as more below). A tile he can buy now has a yellow frame and price, one he
+// owns has a ✓, and the one he's using is green.
 import { useEffect, useMemo, useState } from 'preact/hooks';
 import { sChime, sClink, sFanfare, sNope } from '../../audio/sfx';
 import { confetti } from '../../celebrate/effects';
@@ -163,11 +165,17 @@ export function YardScreen() {
           <div class="ww-tabs" role="tablist">
             {TABS.map(t => <button key={t} role="tab" aria-selected={t === tab} aria-label={TAB_NAMES[t]} class={`ww-tab ${t === tab ? 'on' : ''}`} onClick={() => pickTab(t)}><span aria-hidden="true">{TAB_ICONS[t]}</span></button>)}
           </div>
+          <div class="tray-head" aria-hidden="true">
+            <span class="th-icon">{TAB_ICONS[tab]}</span><span class="th-name">{TAB_NAMES[tab]}</span>
+            {tab === 'up' && <span class="th-for"><MachineView id={yard.machine} label={null} /></span>}
+            <span class="th-count">{tab === 'treasure' ? yard.treasures.length : keys.filter(k => isOwned(yard, k)).length}<small>/{tab === 'treasure' ? TREASURES.length : keys.length}</small></span>
+          </div>
           <div class="ww-tray">
             {keys.map(k => {
               const info = item(k), owned = isOwned(yard, k), on = owned && isOn(k), can = !owned && balance >= info.price && !needsFirst(yard, k), boost = boostOf(k);
               return (
                 <button key={k} class={`ww-tile ${on ? 'on' : ''} ${owned ? 'owned' : 'locked'} ${can ? 'can' : ''} ${trial === k ? 'trying' : ''}`} aria-label={info.name} aria-pressed={on} onClick={() => tap(k)}>
+                  {owned && !on && <span class="own-mark" aria-hidden="true">✓</span>}
                   <ItemPic k={k} />
                   <span class="mt-name">{info.name}</span>
                   <span class="mt-tag">{owned ? (on ? '✓' : '') : <>{info.price}<CurrencyIcon kind={WRECKERS_CURRENCY} size={18} /></>}{boost && <span class="opens" aria-hidden="true">{BOOSTS[boost].icon}</span>}{opensOf(k) && <span class="opens" aria-hidden="true">🗝️</span>}</span>
@@ -179,8 +187,8 @@ export function YardScreen() {
               const has = yard.treasures.includes(t.id);
               return (
                 <button key={t.id} class={`ww-tile treasure ${has ? 'owned on' : 'locked'}`} aria-label={has ? t.name : 'Not found yet'} onClick={() => tapTreasure(t.id)}>
-                  <span class="pic emo item-pic" aria-hidden="true">{has ? t.icon : '❓'}</span>
-                  <span class="mt-name">{has ? t.name : '?'}</span>
+                  {has ? <span class="pic emo item-pic" aria-hidden="true">{t.icon}</span> : <span class="item-pic unknown" aria-hidden="true">?</span>}
+                  <span class="mt-name">{has ? t.name : ''}</span>
                 </button>
               );
             })}

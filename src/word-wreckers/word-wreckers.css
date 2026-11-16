@@ -7,12 +7,12 @@
   --hazard:repeating-linear-gradient(-45deg,var(--hivis) 0 18px,#1d1d1f 18px 36px)}
 html,body{background:var(--asphalt)}
 .ww-start{background:radial-gradient(circle at 50% 18%,#4a4e55,#1d1f22 72%)}
-.ww-start h1{color:var(--hivis);text-shadow:3px 3px 0 #000,6px 6px 0 #c95400}
+.ww-start h1{color:var(--hivis);text-shadow:3px 3px 0 #8a5c00,6px 6px 0 #000}
 .ww-start .start-art{position:relative;padding:0 calc(30px*var(--u)) calc(22px*var(--u))}
 .ww-start .start-art::after{content:'';position:absolute;left:0;right:0;bottom:0;height:calc(26px*var(--u));min-height:16px;border:4px solid #000;border-radius:8px;background:var(--hazard)}
-.ww-start .machine-view{position:relative;z-index:1;width:calc(320px*var(--u));height:calc(220px*var(--u));min-width:200px;min-height:136px}
+.ww-start .machine-view{position:relative;z-index:1;width:min(86vw,calc(440px*var(--u)));height:min(36vh,calc(300px*var(--u)));min-width:200px;min-height:136px}
 .home-screen:has(.ww-home),.round-screen:has(.ww),.yard-screen{background:var(--asphalt) repeating-linear-gradient(45deg,#2d2f33 0 22px,#32353a 22px 44px)}
-.home-screen:has(.ww-home) .home-head h1{color:var(--hivis);text-shadow:2px 2px 0 #000,4px 4px 0 #c95400}
+.home-screen:has(.ww-home) .home-head h1{color:var(--hivis);text-shadow:2px 2px 0 #8a5c00,4px 4px 0 #000}
 
 /* pictures */
 .machine-view,.building-view{display:block}
@@ -22,15 +22,23 @@ html,body{background:var(--asphalt)}
 .pic.emo{font-family:"Apple Color Emoji","Segoe UI Emoji","Noto Color Emoji",system-ui,sans-serif}
 .home-scene-art{position:absolute;inset:0;width:100%;height:100%;display:block}
 
-/* ---------- Home ---------- */
-.home.ww-home{grid-template-areas:"p p" "y t" "k k";grid-template-rows:minmax(0,1fr) minmax(0,.8fr) auto;grid-template-columns:1fr 1fr}
-.ww-home .t-play{grid-area:p;background:#a9d68a;padding:0;container-type:size}
-.ww-home .t-play .spot{position:relative;display:grid;place-items:center;--spot:min(max(120px,calc(220px*var(--u))),80cqh);width:var(--spot);height:var(--spot);border-radius:50%;filter:drop-shadow(0 5px 0 #0004)}
-.ww-home .t-play .e{display:grid;place-items:center;width:100%;height:100%;border-radius:50%;border:4px solid #000;background:var(--go,var(--green));color:#fff;font-size:calc(72px*var(--u));box-shadow:inset 0 -6px 0 #0003,0 7px 0 #000;padding-left:.12em}
-.ww-home .t-play:active .e{box-shadow:inset 0 -6px 0 #0003,0 2px 0 #000}
+/* ---------- Home ----------
+   The Play tile is a building site: the crane's lattice boom runs in along the top and the green ▶ is the wrecking ball hanging from
+   it on its cable, swinging at a wall of letter tiles drawn at the tile's bottom right. The ball sits at 38% across, so the wall always
+   shows beside it. My Levels is a site board: a hazard-striped top, each kind with its icon, its name and a chunky amber Level bar. */
+.home.ww-home{grid-template-areas:"p p" "y t" "k k";grid-template-rows:minmax(0,1.3fr) minmax(0,.8fr) auto;grid-template-columns:1fr 1fr}
+.ww-home .t-play{grid-area:p;background:#a9d68a;padding:0;container-type:size;--ball-x:38%}
+.ww-home .t-play .boom{position:absolute;z-index:2;top:-4px;left:-8px;width:calc(var(--ball-x) + 28px);height:max(24px,calc(32px*var(--u)));border:4px solid #000;border-left:0;border-radius:0 10px 10px 0;
+  background:var(--hivis) repeating-linear-gradient(-60deg,transparent 0 12px,#1d1d1f 12px 16px,transparent 16px 24px);box-shadow:0 4px 0 #0005}
+.ww-home .t-play .boom::after{content:'';position:absolute;right:6px;top:50%;width:max(26px,calc(34px*var(--u)));aspect-ratio:1;transform:translateY(-35%);border-radius:50%;border:4px solid #000;background:radial-gradient(circle,#1d1d1f 0 18%,#c9d1d9 20%)}
+.ww-home .t-play .spot{position:absolute;z-index:1;left:var(--ball-x);top:56%;transform:translate(-50%,-50%);display:grid;place-items:center;--spot:min(max(96px,calc(220px*var(--u))),64cqh,46cqw);width:var(--spot);height:var(--spot);border-radius:50%;filter:drop-shadow(0 5px 0 #0004)}
+/* the cable up to the boom, and the shackle on top of the ball */
+.ww-home .t-play .spot::before{content:'';position:absolute;left:50%;bottom:calc(100% + 8px);width:8px;height:100cqh;transform:translateX(-50%);border:3px solid #000;border-block:0;background:repeating-linear-gradient(#8a929b 0 9px,#1d1d1f 9px 12px)}
+.ww-home .t-play .spot::after{content:'';position:absolute;left:50%;top:-14px;width:30px;height:22px;transform:translateX(-50%);border:5px solid #000;border-bottom:0;border-radius:16px 16px 0 0;background:transparent;box-shadow:inset 0 0 0 3px #8a929b}
+.ww-home .t-play .e{position:relative;display:grid;place-items:center;width:100%;height:100%;border-radius:50%;border:4px solid #000;background:radial-gradient(circle at 34% 30%,#2fa463,var(--go,var(--green)) 58%);color:#fff;font-size:calc(var(--spot) * .36);box-shadow:inset 0 -7px 0 #0003,0 7px 0 #000;padding-left:.12em}
+.ww-home .t-play:active .e{box-shadow:inset 0 -7px 0 #0003,0 2px 0 #000}
 .ww-home .t-yard{grid-area:y;flex-direction:column;justify-content:flex-end;gap:2px;background:var(--hivis);position:relative;padding:10px 10px 8px;background-image:linear-gradient(transparent 78%,#0002 78%)}
 .ww-home .t-town{grid-area:t;flex-direction:column;justify-content:flex-end;gap:2px;background:linear-gradient(#9fd8f5 0 72%,#9fd06a 72%);position:relative;padding:10px 10px 8px}
-@media (orientation:landscape){.home.ww-home{grid-template-areas:"p y" "p t" "k k";grid-template-rows:minmax(0,1fr) minmax(0,1fr) auto;grid-template-columns:1.2fr 1fr}}
 .ww-home .t-yard .machine-view{position:relative;flex:1;min-height:0;width:90%;max-height:calc(190px*var(--u))}
 .ww-home .nm{position:relative;font-size:max(15px,calc(24px*var(--u)));text-shadow:2px 2px 0 #000;color:#fff;white-space:nowrap}
 .town-peek{position:relative;flex:1;min-height:0;width:100%;display:flex;align-items:flex-end;justify-content:center;gap:2px}
@@ -38,40 +46,49 @@ html,body{background:var(--asphalt)}
 .town-peek .building-view svg{object-fit:contain}
 .town-peek .empty-lot{font-size:max(34px,calc(60px*var(--u)));align-self:center}
 .job-badge{position:absolute;right:8px;top:8px;background:#000;color:var(--hivis);border-radius:999px;padding:3px 12px;font:900 max(16px,calc(22px*var(--u))) Nunito,sans-serif;border:2px solid var(--hivis)}
-.ww-home .t-kinds{grid-area:k;background:#fff6dc;display:grid;grid-template-columns:repeat(2,1fr);grid-auto-rows:minmax(max(48px,calc(54px*var(--u))),auto);column-gap:calc(10px*var(--u));padding:calc(6px*var(--u)) calc(12px*var(--u)) calc(10px*var(--u));cursor:default}
+.ww-home .t-kinds{grid-area:k;display:grid;grid-template-columns:repeat(2,1fr);grid-auto-rows:minmax(max(50px,calc(62px*var(--u))),auto);column-gap:calc(18px*var(--u));padding:calc(4px*var(--u)) calc(16px*var(--u)) calc(10px*var(--u));cursor:default;
+  border-top:max(12px,calc(16px*var(--u))) solid transparent;background-image:linear-gradient(#fff6dc,#fff6dc),var(--hazard);background-origin:border-box;background-clip:padding-box,border-box}
 .ww-home .t-kinds:active{transform:none;box-shadow:0 7px 0 #000}
-.ww-home .kinds-head{grid-column:1/-1;margin:0;font:400 max(14px,calc(16px*var(--u))) Bungee,sans-serif;text-align:center;color:#0009}
-.ww-home .kind{position:relative;display:flex;align-items:center;gap:8px;border-top:2px solid #0002;padding:2px;min-height:44px;text-align:left;color:#000}
-.ww-home .kind .ki{font-size:max(20px,calc(26px*var(--u)));line-height:1}
-.ww-home .kind .kb{flex:1;min-width:0;display:flex;flex-direction:column;gap:3px}
-.ww-home .kind .kn{font:900 max(14px,calc(18px*var(--u))) Nunito,sans-serif;line-height:1.1}
-.ww-home .kind .lvl{gap:0;width:100%;max-width:max(70px,calc(120px*var(--u)));height:max(8px,calc(10px*var(--u)));border-radius:99px;overflow:hidden;background:#0002}
+.ww-home .kinds-head{grid-column:1/-1;margin:0;padding-top:calc(6px*var(--u));font:400 max(14px,calc(18px*var(--u))) Bungee,sans-serif;text-align:center;color:#1d1d1f}
+.ww-home .kind{position:relative;display:flex;align-items:center;gap:calc(10px*var(--u));border-top:2px solid #0002;padding:4px 2px;min-height:44px;text-align:left;color:#000}
+.ww-home .kind .ki{flex:none;display:grid;place-items:center;width:max(36px,calc(48px*var(--u)));aspect-ratio:1;border-radius:50%;background:#fff;border:3px solid #000;font-size:max(18px,calc(26px*var(--u)));line-height:1}
+.ww-home .kind .kb{flex:1;min-width:0;display:flex;flex-direction:column;gap:4px}
+.ww-home .kind .kn{font:900 max(15px,calc(21px*var(--u))) Nunito,sans-serif;line-height:1.1}
+.ww-home .kind .lvl{gap:0;width:100%;max-width:max(96px,calc(170px*var(--u)));height:max(12px,calc(16px*var(--u)));border-radius:99px;overflow:hidden;background:#0000000f;border:2.5px solid #000}
 .ww-home .kind .lvl i{flex:1;width:auto;height:100%;border:0;border-radius:0;background:none}
-.ww-home .kind .lvl i+i{border-left:2px solid #fff6dc}
-.ww-home .kind .lvl i.on{background:#ffb000}
-.ww-home .kind.locked{filter:grayscale(.9) brightness(.85);opacity:.7}
+.ww-home .kind .lvl i+i{box-shadow:inset 2.5px 0 0 #000}
+.ww-home .kind .lvl i.on{background:linear-gradient(#ffd36b,#ffb000 60%)}
+.ww-home .kind.locked{filter:grayscale(.9);opacity:.6}
 .ww-home .kind.fresh{animation:pulse 1s infinite}
-.ww-home .kind .badge{position:absolute;right:-2px;top:2px;font-size:calc(18px*var(--u))}
+.ww-home .kind .badge{position:absolute;right:-2px;top:2px;font-size:max(16px,calc(20px*var(--u)))}
+@media (orientation:landscape){
+  .home.ww-home{grid-template-areas:"p y" "p t" "k k";grid-template-rows:minmax(0,1fr) minmax(0,1fr) auto;grid-template-columns:1.25fr 1fr}
+  .ww-home .t-kinds{grid-template-columns:repeat(3,1fr)}
+}
 @media (orientation:landscape) and (max-height:520px){
   .home.ww-home{grid-template-areas:"p k" "y k" "t k";grid-template-rows:minmax(0,1.3fr) minmax(0,1fr) minmax(0,1fr);grid-template-columns:1fr 1.25fr}
-  .ww-home .t-kinds{grid-template-columns:1fr;grid-auto-rows:minmax(44px,auto)}
+  .ww-home .t-kinds{grid-template-columns:1fr;grid-auto-rows:minmax(44px,auto);border-top-width:10px;padding-block:2px 6px}
   .ww-home .kinds-head{position:absolute;width:1px;height:1px;overflow:hidden;clip-path:inset(50%)}
-  .ww-home .t-play .e{font-size:28px}
+  .ww-home .kind{padding-block:2px}.ww-home .kind .ki{width:34px;font-size:18px;border-width:2.5px}
+  .ww-home .t-play .boom{height:20px}.ww-home .t-play .boom::after{width:22px}
+  .ww-home .t-play .spot{--spot:min(96px,70cqh,44cqw);top:58%}.ww-home .t-play .spot::after{width:22px;height:16px;top:-11px;border-width:4px}
   .ww-home .t-yard,.ww-home .t-town{flex-direction:row;justify-content:center;gap:8px}
   .ww-home .t-yard .machine-view{width:100px;flex:none;height:100%}
   .town-peek{flex:none;width:96px;height:100%}
 }
-@media (max-width:430px) and (orientation:portrait){.ww-home .t-kinds{grid-template-columns:1fr}}
+@media (max-width:430px) and (orientation:portrait){.ww-home .t-kinds{grid-template-columns:1fr;grid-auto-rows:minmax(44px,auto)}.ww-home .kind{padding-block:1px}.ww-home .kind .ki{width:32px;font-size:17px;border-width:2.5px}.ww-home .kind .kb{flex-direction:row;align-items:center;gap:10px}.ww-home .kind .kn{flex:1;min-width:0}.ww-home .kind .lvl{max-width:96px}}
+@media (prefers-reduced-motion:reduce){.ww-home .kind.fresh{animation:none;box-shadow:0 0 0 5px var(--yellow)}}
 
 /* ---------- a question: the ask bar, then the picture beside the boxes and tiles when there's width ---------- */
-.round-screen .card:has(.ww){position:relative;background:#fff8e6}
+/* the card wears the site's hazard tape along its top, as a Job's cards do */
+.round-screen .card:has(.ww){position:relative;border-top:max(10px,calc(14px*var(--u))) solid transparent;background-image:linear-gradient(#fff8e6,#fff8e6),var(--hazard);background-origin:border-box;background-clip:padding-box,border-box}
 .game.ww{display:flex;flex-direction:column;justify-content:flex-start;gap:calc(8px*var(--u));padding:calc(10px*var(--u));overflow:hidden;height:100%;min-height:0}
 .game.ww .ask{flex:none;width:100%}
 .game.ww .ask h2{flex:1;min-width:0;font:900 max(19px,calc(28px*var(--u)))/1.15 Nunito,sans-serif;text-align:left;text-wrap:balance}
 .game.ww .help-btn{flex:none;font-size:max(20px,calc(24px*var(--u)));padding:4px 12px;min-height:var(--tap);min-width:var(--tap)}
 .ww-body{flex:1;min-height:0;width:100%;display:flex;flex-direction:column;gap:calc(10px*var(--u));align-items:stretch}
 .ww-stage{flex:0 1 auto;min-height:0;display:flex;align-items:center;justify-content:center}
-.ww-work{flex:1 1 auto;min-height:0;display:flex;flex-direction:column;align-items:center;justify-content:space-evenly;gap:calc(10px*var(--u))}
+.ww-work{flex:1 1 auto;min-height:0;display:flex;flex-direction:column;align-items:center;justify-content:space-evenly;gap:calc(10px*var(--u));container-type:inline-size}
 @media (orientation:landscape){.ww-body{flex-direction:row}.ww-stage{flex:0 0 auto;width:min(28%,calc(220px*var(--u)))}.ww-work{flex:1 1 0;min-width:0}}
 .hear{position:relative;display:grid;place-items:center;border:4px solid #000;border-radius:24px;background:#fff;box-shadow:0 5px 0 #000;width:min(100%,calc(200px*var(--u)));aspect-ratio:1;max-height:min(30vh,calc(200px*var(--u)));min-width:88px;min-height:88px}
 .hear:active{transform:translateY(3px);box-shadow:0 2px 0 #000}
@@ -80,9 +97,9 @@ html,body{background:var(--asphalt)}
 @media (orientation:portrait){.hear{max-height:min(22vh,calc(170px*var(--u)));width:auto;height:min(22vh,calc(170px*var(--u)))}}
 
 /* the sound boxes: a box per sound, the letters in cells; a magic e sits in its own box, linked to its vowel's by a matching purple */
-.frame{--cell:min(calc(62px*var(--u)),12.5vw);display:flex;align-items:flex-end;justify-content:center;gap:calc(8px*var(--u));flex-wrap:nowrap;max-width:100%}
-.frame.small{--cell:min(calc(40px*var(--u)),8vw)}
-.sbox{position:relative;display:flex;gap:2px;padding:calc(5px*var(--u));border:4px solid #000;border-radius:14px;background:#fff;box-shadow:0 4px 0 #000;transition:background .15s,box-shadow .15s}
+.frame{--cell:min(calc(94px*var(--u)),12.5vw,11vh,calc((100cqw - var(--b,4) * (22px + 18px*var(--u))) / var(--n,4) - 2px));display:flex;align-items:flex-end;justify-content:center;gap:calc(8px*var(--u));flex-wrap:nowrap;max-width:100%}
+.frame.small{--cell:min(calc(46px*var(--u)),8vw)}
+.sbox{position:relative;display:flex;gap:2px;padding:calc(6px*var(--u));border:4px solid #000;border-radius:16px;background:#fff;box-shadow:0 4px 0 #000;transition:background .15s,box-shadow .15s}
 button.sbox{min-height:var(--tap);min-width:var(--tap);justify-content:center}
 .sbox.magic{border-color:#7a4fd8;box-shadow:0 4px 0 #4f2fa0}
 .sbox.ebox{margin-left:calc(4px*var(--u))}
@@ -101,8 +118,8 @@ button.sbox{min-height:var(--tap);min-width:var(--tap);justify-content:center}
 .right-word{display:flex;flex-direction:column;align-items:center;gap:4px;padding:6px 10px;border-radius:16px;background:#d6f5e0;border:3px solid #178046}
 
 /* the tiles: big, lowercase, Andika; a wrong one wobbles sideways and stays; a used one leaves a gap */
-.rack{display:flex;flex-wrap:wrap;justify-content:center;gap:calc(12px*var(--u));max-width:min(100%,760px);--cell:min(calc(64px*var(--u)),13vw)}
-.ltile{position:relative;display:grid;place-items:center;min-width:max(var(--tap),calc(var(--cell)*1.15));height:max(var(--tap),calc(var(--cell)*1.3));padding:0 calc(8px*var(--u));border:4px solid #000;border-radius:14px;background:#fff6dc;box-shadow:0 5px 0 #000;transition:opacity .2s,transform .15s}
+.rack{display:flex;flex-wrap:wrap;justify-content:center;gap:calc(14px*var(--u));max-width:min(100%,820px);--cell:min(calc(84px*var(--u)),13vw,9.5vh)}
+.ltile{position:relative;display:grid;place-items:center;min-width:max(var(--tap),calc(var(--cell)*1.15));height:max(var(--tap),calc(var(--cell)*1.3));padding:0 calc(8px*var(--u));border:4px solid #000;border-radius:16px;background:#fff6dc linear-gradient(transparent 80%,#0000000d 80%);box-shadow:0 5px 0 #000;transition:opacity .2s,transform .15s}
 .ltile:active{transform:translateY(3px);box-shadow:0 2px 0 #000}
 .ltile.wide{padding:0 calc(12px*var(--u))}
 .ltile.used{visibility:hidden}
@@ -114,7 +131,7 @@ button.sbox{min-height:var(--tap);min-width:var(--tap);justify-content:center}
 
 /* Fix It, Level 3: the letters on one row, and under each gap between them (and at both ends) a ⌃ for "a letter is missing here".
    The gap columns are narrow; the ⌃ buttons overflow them evenly into the row below the letters, which is empty. */
-.fixgrid{--cell:min(calc(56px*var(--u)),11vw);--lw:max(44px,calc(var(--cell)*1.15));--gw:2px;display:grid;grid-template-columns:repeat(var(--cols),var(--gw));column-gap:calc(var(--lw) / 2);grid-template-rows:auto 48px;row-gap:8px;padding:0 21px;justify-content:center}
+.fixgrid{--cell:min(calc(76px*var(--u)),11vw,9vh);--lw:max(44px,calc(var(--cell)*1.15));--gw:2px;display:grid;grid-template-columns:repeat(var(--cols),var(--gw));column-gap:calc(var(--lw) / 2);grid-template-rows:auto 48px;row-gap:8px;padding:0 21px;justify-content:center}
 .fixgrid .ltile{grid-row:1;width:var(--lw);min-width:0;margin-inline:calc((var(--gw) - var(--lw)) / 2)}
 .gapbtn{grid-row:2;width:44px;height:46px;margin-inline:calc((var(--gw) - 44px) / 2);border-radius:12px;border:3px solid #0004;background:#fff;font:900 24px Nunito,sans-serif;color:#7a4fd8;padding:0}
 .gapbtn.open{background:#fff3b0;border-color:#000}
@@ -122,10 +139,10 @@ button.sbox{min-height:var(--tap);min-width:var(--tap);justify-content:center}
 .ltile.fixl.marked{background:#ffe08a;animation:hint 1s infinite}
 
 /* Which Looks Right: written spellings as big cards */
-.spellings{display:grid;grid-template-columns:repeat(var(--cols,2),minmax(0,1fr));gap:calc(12px*var(--u));width:min(100%,640px);--cell:min(calc(54px*var(--u)),10vw)}
+.spellings{display:grid;grid-template-columns:repeat(var(--cols,2),minmax(0,1fr));gap:calc(16px*var(--u));width:min(100%,760px);--cell:min(calc(72px*var(--u)),10vw,8vh)}
 .spellings.n3{--cols:3}
 .pick.phrase .spellings{--cols:1;--cell:min(calc(40px*var(--u)),7vw)}
-.spelling{min-height:max(64px,calc(96px*var(--u)));border:4px solid #000;border-radius:18px;background:#fff;box-shadow:0 5px 0 #000;padding:6px 10px;transition:opacity .2s}
+.spelling{min-height:max(64px,calc(120px*var(--u)));border:4px solid #000;border-radius:18px;background:#fff;box-shadow:0 5px 0 #000;padding:6px 10px;transition:opacity .2s}
 .spelling:active{transform:translateY(3px);box-shadow:0 2px 0 #000}
 .spelling.wrong{opacity:.4;box-shadow:none}
 .spelling.right{background:#c9f0d8;border-color:var(--green)}
@@ -141,27 +158,28 @@ button.sbox{min-height:var(--tap);min-width:var(--tap);justify-content:center}
 @keyframes popin{from{transform:scale(0)}to{transform:scale(1)}}
 @media (orientation:landscape) and (max-height:520px){
   .game.ww{padding:6px 8px;gap:4px}.game.ww .ask h2{font-size:17px}
-  .frame{--cell:min(36px,7vw);gap:5px}.sbox{padding:3px;border-width:3px}.cell .ch,.ltile .ch,.spelling .ch{font-size:calc(var(--cell)*.8)}
-  .rack{--cell:34px;gap:6px}.ltile{height:48px;min-width:48px}
+  .frame{--cell:min(48px,7vw,calc((100cqw - var(--b,4) * 16px) / var(--n,4) - 2px));gap:6px}.sbox{padding:3px;border-width:3px}.cell .ch,.ltile .ch,.spelling .ch{font-size:calc(var(--cell)*.8)}
+  .rack{--cell:44px;gap:8px}.ltile{height:56px;min-width:52px}
   .hear{max-height:min(40vh,140px)}.hear-art{font-size:60px}
   .ww-work{gap:6px}.right-word{padding:2px 6px}
   .spelling{min-height:56px}.spellings{--cell:30px}
   .meet-word{padding:4px 8px;gap:2px}.meet-pic{font-size:30px}.meet-go{min-height:52px;font-size:22px}
   .fixgrid{--cell:36px;row-gap:2px}
 }
-@media (max-width:430px) and (orientation:portrait){.frame{gap:5px}.sbox{padding:3px}.rack{gap:8px}}
+@media (max-width:430px) and (orientation:portrait){.frame{gap:5px}.sbox{padding:3px}.rack{gap:8px}.ww-reward .btns{gap:12px}.ww-reward .big-btn.my-machine{width:96px;height:84px}.ww-reward .job-btn{font-size:21px;min-height:84px;padding-inline:15px}.ww-reward .btns .again.second{font-size:20px;padding:14px 14px}}
 
 /* ---------- the end of a Round ---------- */
 .ww-reward{background:radial-gradient(circle at 50% 30%,#4a4e55,#1d1f22 70%)}
+.ww-reward h2{font-size:max(28px,calc(56px*var(--u)));color:var(--hivis);text-shadow:2px 2px 0 #8a5c00,4px 4px 0 #000}
 .earned-job{font:900 calc(30px*var(--u)) Nunito,sans-serif;color:var(--hivis);background:#000;border-radius:999px;padding:6px 20px}
 .ww-reward .btns{align-items:center}
-.big-btn.my-machine{padding:calc(4px*var(--u));width:max(96px,calc(130px*var(--u)));height:max(84px,calc(110px*var(--u)));flex:none;background:var(--hivis)}
+.big-btn.my-machine{padding:calc(4px*var(--u));width:max(96px,calc(170px*var(--u)));height:max(84px,calc(136px*var(--u)));flex:none;background:var(--hivis)}
 .big-btn.my-machine .machine-view{width:100%;height:100%}
-.job-btn{gap:10px;min-height:max(84px,calc(110px*var(--u)));padding:calc(10px*var(--u)) calc(24px*var(--u));font-size:calc(34px*var(--u));background:radial-gradient(circle at 40% 30%,#ffd64a,var(--hivis) 60%,var(--hivis-2));color:#000}
+.job-btn{gap:10px;min-height:max(84px,calc(136px*var(--u)));padding:calc(10px*var(--u)) calc(30px*var(--u));font-size:calc(40px*var(--u));background:radial-gradient(circle at 40% 30%,#ffd64a,var(--hivis) 60%,var(--hivis-2));color:#000}
 .job-word{font:400 max(20px,calc(32px*var(--u))) Bungee,sans-serif;white-space:nowrap;color:#fff;text-shadow:2px 2px 0 #000}
 .job-count{font-size:.68em;background:#0006;color:#fff;border-radius:12px;padding:2px 10px;white-space:nowrap}
 .job-btn.short{background:#5d6b78}
-.ww-reward .btns .again.second{font-size:calc(28px*var(--u));padding:calc(18px*var(--u)) calc(24px*var(--u))}
+.ww-reward .btns .again.second{font-size:calc(34px*var(--u));padding:calc(24px*var(--u)) calc(30px*var(--u))}
 .armed{background:var(--red)!important}
 
 /* ---------- the Yard: header, bay, tabs, tray, buy bar ---------- */
@@ -174,8 +192,8 @@ button.sbox{min-height:var(--tap);min-width:var(--tap);justify-content:center}
 .work-head .goalchip .gi .swatch-pic{width:100%;height:100%;min-width:0;min-height:0;border-width:2px}
 .work-head .goalchip .gi .pic,.work-head .goalchip .gi .street-pic{font-size:24px;min-height:0}
 .goalchip.ready{box-shadow:0 0 0 4px var(--yellow)}
-.yard-body{flex:1;min-height:0;display:grid;grid-template-columns:minmax(0,1.1fr) minmax(0,1fr);gap:calc(12px*var(--u))}
-@media (orientation:portrait){.yard-body{grid-template-columns:minmax(0,1fr);grid-template-rows:minmax(0,1fr) minmax(0,1.15fr)}}
+.yard-body{flex:1;min-height:0;display:grid;grid-template-columns:minmax(0,.85fr) minmax(0,1.15fr);gap:calc(12px*var(--u))}
+@media (orientation:portrait){.yard-body{grid-template-columns:minmax(0,1fr);grid-template-rows:minmax(0,.72fr) minmax(0,1.28fr)}}
 .bay{display:grid;grid-template-rows:minmax(0,1fr) auto;gap:calc(8px*var(--u));min-height:0;min-width:0}
 .bay-machine{position:relative;min-height:0;border-radius:18px;border:4px solid #000;overflow:hidden;background:linear-gradient(#cfe8f6,#eef6fb 66%,#8a7a5a 66%,#6a5a3a);display:grid;place-items:center}
 .bay-machine::after{content:'';position:absolute;left:0;right:0;bottom:0;height:12px;background:var(--hazard);border-top:3px solid #000}
@@ -184,11 +202,19 @@ button.sbox{min-height:var(--tap);min-width:var(--tap);justify-content:center}
 .bay-go{display:flex;align-items:center;gap:10px;min-width:0}
 .bay-go .job-btn{flex:1;min-width:0;min-height:max(64px,calc(88px*var(--u)))}
 .bay-go .icon-btn{flex:none;width:max(60px,calc(76px*var(--u)));height:max(60px,calc(76px*var(--u)));font-size:calc(34px*var(--u));color:#fff}
-.parts-side{position:relative;display:grid;grid-template-columns:minmax(0,1fr);grid-template-rows:auto minmax(0,1fr);gap:calc(8px*var(--u));min-height:0;min-width:0}
+.parts-side{position:relative;display:grid;grid-template-columns:minmax(0,1fr);grid-template-rows:auto auto minmax(0,1fr);gap:calc(8px*var(--u));min-height:0;min-width:0}
 .ww-tabs{display:grid;grid-template-columns:repeat(auto-fit,minmax(50px,1fr));gap:5px}
 .ww-tab{min-height:max(var(--tap),calc(58px*var(--u)));border-radius:14px;background:var(--asphalt-2);border:3px solid #fff3;font-size:calc(28px*var(--u));padding:0}
 .ww-tab.on{background:var(--hivis);border-color:#000;box-shadow:0 4px 0 #000}
-.ww-tray{display:grid;grid-template-columns:repeat(auto-fill,minmax(max(100px,calc(124px*var(--u))),1fr));grid-auto-rows:max-content;gap:calc(8px*var(--u));overflow-y:auto;overscroll-behavior:contain;touch-action:pan-y;padding-bottom:calc(84px*var(--u));min-height:0}
+/* the strip under the tabs: which tab this is, and how many of it he has */
+.tray-head{display:flex;align-items:center;gap:8px;min-height:max(36px,calc(44px*var(--u)));padding:0 6px 0 4px;border-radius:12px;background:#0000004d;color:#fff}
+.tray-head .th-icon{font-size:max(20px,calc(26px*var(--u)));line-height:1}
+.tray-head .th-name{flex:1;min-width:0;font:400 max(15px,calc(20px*var(--u))) Bungee,sans-serif;color:var(--hivis);text-shadow:2px 2px 0 #000;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.tray-head .th-for .machine-view{width:max(48px,calc(60px*var(--u)));height:max(32px,calc(40px*var(--u)))}
+.tray-head .th-count{flex:none;font:900 max(16px,calc(20px*var(--u))) Nunito,sans-serif;background:#000;border:2px solid #fff3;border-radius:999px;padding:1px 12px}
+.tray-head .th-count small{font-size:.75em;color:#fffa}
+.ww-tray{display:grid;grid-template-columns:repeat(auto-fill,minmax(max(100px,calc(124px*var(--u))),1fr));grid-auto-rows:max-content;gap:calc(8px*var(--u));overflow-y:auto;overscroll-behavior:contain;touch-action:pan-y;padding:2px 0 calc(84px*var(--u));min-height:0;
+  -webkit-mask-image:linear-gradient(#000 calc(100% - 36px),transparent);mask-image:linear-gradient(#000 calc(100% - 36px),transparent)}
 .ww-tile{position:relative;display:flex;flex-direction:column;align-items:center;gap:2px;padding:6px 4px;border-radius:14px;background:var(--asphalt-2);border:3px solid #fff3;color:#fff;font:800 max(14px,calc(15px*var(--u)))/1.1 Nunito,sans-serif;min-height:44px}
 .ww-tile .part-pic{width:calc(110px*var(--u));height:calc(76px*var(--u));min-width:80px;min-height:54px;display:block}
 .ww-tile .item-pic{font-size:calc(52px*var(--u));min-height:54px;display:grid;place-items:center}
@@ -196,12 +222,18 @@ button.sbox{min-height:var(--tap);min-width:var(--tap);justify-content:center}
 .ww-tile .mt-name{min-height:2.2em;display:grid;place-items:center;text-align:center}
 .ww-tile .mt-tag{display:inline-flex;align-items:center;gap:2px;min-height:1.3em;font-size:max(15px,1.1em);color:#ffd97a}
 .ww-tile .opens{margin-left:4px;font-size:.9em}
-.ww-tile.locked{background:#26282c}
-.ww-tile.can{border-color:var(--hivis)}
+.ww-tile.locked{background:#232528;border-color:#ffffff1f}
+.ww-tile.locked .mt-tag{color:#b9b2a0}
+.ww-tile.locked:not(.can) :is(.part-pic,.item-pic,.swatch-pic,.street-pic){opacity:.78}
+.ww-tile.can{border-color:var(--hivis);background:#3a3d42;box-shadow:0 4px 0 #000}
+.ww-tile.can .mt-tag{color:var(--hivis);background:#000;border-radius:999px;padding:0 8px}
+.ww-tile.owned{background:#4a4e55;border-color:#ffffff59}
+.own-mark{position:absolute;right:5px;top:5px;display:grid;place-items:center;width:22px;height:22px;border-radius:50%;background:#178046;border:2px solid #000;color:#fff;font:900 13px/1 Nunito,sans-serif}
 .ww-tile.on{border-color:var(--green);background:#143526;color:#c4f7dc}.ww-tile.on .mt-tag{color:#8ff0bf}
 .ww-tile.trying{border-color:#fff;outline:3px solid var(--yellow);outline-offset:1px}
 .tray-note{grid-column:1/-1;text-align:center;font-size:30px}
-.ww-tile.treasure.locked .item-pic{opacity:.45}
+.ww-tile .item-pic.unknown{width:calc(64px*var(--u));min-width:54px;border:3px dashed #ffffff40;border-radius:12px;font:400 max(26px,calc(34px*var(--u))) Bungee,sans-serif;color:#ffffff4d}
+.ww-tile.treasure.locked{background:#26282c;border-color:transparent}
 .swatch-pic{display:block;width:calc(80px*var(--u));height:calc(56px*var(--u));min-width:64px;min-height:44px;border-radius:10px;border:3px solid #000}
 .swatch-pic.stripes{background-image:repeating-linear-gradient(45deg,transparent 0 8px,var(--trim) 8px 14px)!important}
 .swatch-pic.dots{background-image:radial-gradient(circle,var(--trim) 0 4px,transparent 5px)!important;background-size:14px 14px!important}
@@ -224,9 +256,10 @@ button.sbox{min-height:var(--tap);min-width:var(--tap);justify-content:center}
 @media (orientation:landscape) and (max-height:520px){
   .yard-screen{padding:4px 10px 8px}
   .work-head .icon-btn{width:44px;height:44px}
-  .ww-tab{min-height:44px;font-size:22px}
+  .ww-tabs{grid-template-columns:repeat(auto-fit,minmax(44px,1fr));gap:4px}.ww-tab{min-height:44px;font-size:22px}
   .ww-tile{padding:3px 4px}.ww-tile .part-pic,.ww-tile .item-pic,.ww-tile .swatch-pic,.street-pic{min-height:0;height:44px;width:64px;min-width:0;font-size:30px}.ww-tile .mt-name{min-height:0}
   .bay-go .job-btn{min-height:56px}.bay-go .icon-btn{width:52px;height:52px;font-size:26px}
+  .tray-head{min-height:28px}.tray-head .th-icon{font-size:18px}.tray-head .th-name{font-size:14px}.tray-head .th-count{font-size:14px;padding:0 8px}.tray-head .th-for{display:none}
 }
 
 /* ---------- a Job and the Town: the canvas fills the screen; controls stay off the bottom edge and the sides ---------- */
@@ -248,7 +281,9 @@ button.sbox{min-height:var(--tap);min-width:var(--tap);justify-content:center}
 .town-screen .ctl.honk{background:var(--hivis);width:max(76px,calc(96px*var(--u)));height:max(76px,calc(96px*var(--u)))}
 .job-screen .ctl:active,.town-screen .ctl:active{transform:translateY(4px);box-shadow:0 2px 0 #000}
 .job-screen .ctl.teach{animation:pulse 1s infinite}
-.job-hint{position:absolute;left:50%;bottom:calc(var(--floor) + max(100px,calc(126px*var(--u))));transform:translateX(-50%);background:#000a;border-radius:999px;padding:6px 16px;font:900 max(16px,calc(22px*var(--u))) Nunito,sans-serif;pointer-events:none;white-space:nowrap}
+/* the hint sits in the sky under the progress bar, clear of the machine; while building, the hook is up there, so it goes down by the controls */
+.job-hint{position:absolute;left:50%;top:calc(max(8px,env(safe-area-inset-top)) + max(54px,calc(64px*var(--u))) + 28px);transform:translateX(-50%);background:#000a;border-radius:999px;padding:6px 16px;font:900 max(16px,calc(22px*var(--u))) Nunito,sans-serif;pointer-events:none;white-space:nowrap}
+.job-screen.build .job-hint{top:auto;bottom:calc(var(--floor) + max(100px,calc(126px*var(--u))))}
 .job-card-wrap{position:fixed;inset:0;z-index:5;display:grid;place-items:center;background:#0008;padding:14px;text-align:center;overflow-y:auto}
 .job-card{display:flex;flex-direction:column;align-items:center;gap:calc(12px*var(--u));max-width:min(760px,100%);padding:calc(18px*var(--u)) calc(24px*var(--u));border:4px solid #000;border-radius:24px;background:#fff6dc;color:#000;box-shadow:0 8px 0 #000,0 18px 40px #000a;border-top:18px solid transparent;background-image:linear-gradient(#fff6dc,#fff6dc),var(--hazard);background-origin:border-box;background-clip:padding-box,border-box}
 .job-card h2{margin:0;font:400 calc(36px*var(--u)) Bungee,sans-serif;color:#000}
@@ -299,7 +334,7 @@ button.sbox{min-height:var(--tap);min-width:var(--tap);justify-content:center}
   .treasure-card .chest-btn{width:130px;height:100px;font-size:64px}.treasure-card .chest-pic{display:block;width:80%;height:80%}.treasure-card .chest-pic svg{width:100%;height:100%;display:block}
 .treasure-card .found-treasure{font-size:90px}
   .job-card.done .built .building-view{height:30vh}
-  .job-hint{bottom:calc(var(--floor) + 4px)}
+  .job-screen.build .job-hint{bottom:calc(var(--floor) + 4px)}
   .town-side{flex-direction:row;top:auto;bottom:var(--floor);right:50%;transform:translateX(50%)}
 }
 @media (max-width:430px) and (orientation:portrait){

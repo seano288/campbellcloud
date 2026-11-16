@@ -1,6 +1,7 @@
-// Home: one Play tile, the biggest thing on the screen (a building site with ▶ on the swinging wrecking ball; every Round mixes the
-// kinds he has opened), the Yard tile with his machine parked (and his Jobs), the Town tile with his buildings standing in a row and
-// how many there are, and a board with his Level in each kind. Tapping a kind says its name, and a locked one says what opens it.
+// Home: one Play tile, the biggest thing on the screen (a building site, the crane's boom across the top and ▶ on the wrecking ball
+// hanging from it, swinging at a wall of letter tiles; every Round mixes the kinds he has opened), the Yard tile with his machine
+// parked (and his Jobs), the Town tile with his buildings standing in a row and how many there are, and a site board with his Level
+// in each kind. Tapping a kind says its name, and a locked one says what opens it.
 import { useEffect } from 'preact/hooks';
 import type { ComponentChildren } from 'preact';
 import { sBad } from '../audio/sfx';
@@ -34,6 +35,7 @@ export function Home({ status }: { status: ComponentChildren }) {
       <div class="home ww-home">
         <button class="tile t-play" aria-label="Play" onClick={() => { if (voice.active) startRound(); }}>
           <PlayScene />
+          <span class="boom" aria-hidden="true" />
           <span class="spot"><span class="e">▶</span></span>
         </button>
         <button class="tile t-yard" aria-label="Yard" onClick={() => { if (voice.active) screen.value = 'yard'; }}>
