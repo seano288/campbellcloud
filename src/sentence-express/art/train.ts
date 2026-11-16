@@ -190,7 +190,7 @@ export function markCabooseSvg(p: Paint, w: number, mark: string | null, dim = f
 export const pieceSvg = (inner: string, w: number, extra = '') =>
   `<svg xmlns="http://www.w3.org/2000/svg" viewBox="-14 -4 ${w + 28} ${PIECE_H + 8}" ${extra}>${inner}</svg>`;
 
-/** His whole train, side on, as one row: the engine then each car. */
+/** His whole train, side on, as one row: the engine then each car, standing on a plank of his wooden toy track. */
 export function trainSvg(t: { engine: string; cars: readonly string[]; paint: string }, opts: { gap?: number; max?: number } = {}): { svg: string; w: number } {
   const p = paintOf(t.paint), gap = opts.gap ?? 4, e = engineOf(t.engine), ew = e.kind === 'bullet' ? 200 : e.big ? 190 : 160;
   let x = 0;
@@ -198,7 +198,7 @@ export function trainSvg(t: { engine: string; cars: readonly string[]; paint: st
   x += ew + gap;
   for (const id of t.cars.slice(0, opts.max ?? 99)) { parts.push(`<g transform="translate(${x} 0)">${carSvg(carOf(id), p, 128)}</g>`); x += 128 + gap; }
   const w = x - gap;
-  return { svg: `<svg xmlns="http://www.w3.org/2000/svg" viewBox="-16 -6 ${w + 32} ${PIECE_H + 12}"><path d="M-16 98 H${w + 16}" stroke="${O}" stroke-width="5"/>${parts.join('')}</svg>`, w };
+  return { svg: `<svg xmlns="http://www.w3.org/2000/svg" viewBox="-16 -6 ${w + 32} ${PIECE_H + 12}"><rect x="-14" y="95" width="${w + 28}" height="9" rx="2" fill="#d9b47a" stroke="${O}" stroke-width="3"/><path d="M-12 98.5 H${w + 12}" stroke="#a5773f" stroke-width="2.5"/>${parts.join('')}</svg>`, w };
 }
 
 // ---------- top view, for the Layout and the Delivery ----------
