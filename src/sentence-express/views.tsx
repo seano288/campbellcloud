@@ -74,6 +74,10 @@ function PieceButton({ role, text, onTap, label, class: c, empty, dim, drag, idx
 
 /** The roles of a train's pieces in order: the engine, the cars, the caboose. */
 const roleAt = (i: number, n: number): Role => (i === 0 ? 'engine' : i === n - 1 ? 'caboose' : 'car');
+/** How wide the widest of these trains is, in piece units (each piece's width plus its share of the coupling), so the CSS can make
+ *  the pieces as big as the card allows with each train on one row. (Build the Train adds room for the gaps between the yard's cars,
+ *  so the yard fits on a row too.) */
+const fitOf = (...rows: readonly (readonly string[])[]) => Math.max(...rows.map(r => r.reduce((sum, p, i) => sum + pieceWidth(roleAt(i, r.length), p) + 10, 0)));
 const pieceLabel = (role: Role, text: string) => (role === 'caboose' ? (text ? `Caboose ${text === '.' ? 'period' : text === '?' ? 'question mark' : 'exclamation mark'}` : 'Empty caboose') : role === 'engine' ? `Engine ${text}` : `Car ${text}`);
 
 /** A sentence's train as it reads, not tappable (or each word tappable to hear it). */
@@ -96,10 +100,10 @@ function useAsked(current: { signal: AbortSignal }, speech: readonly Item[]) {
   return ready;
 }
 
-function Shell({ current, kind, text, speech, children, ready, onSay }: { current: Current; kind: string; text: string; speech: readonly Item[]; children: ComponentChildren; ready: boolean; onSay?(): void }) {
+function Shell({ current, kind, text, speech, children, ready, onSay, fit }: { current: Current; kind: string; text: string; speech: readonly Item[]; children: ComponentChildren; ready: boolean; onSay?(): void; fit: number }) {
   const voice = useVoice();
   return (
-    <div class={cls('game', 'se', kind)} data-ready={ready ? 'yes' : 'no'}>
+    <div class={cls('game', 'se', kind)} data-ready={ready ? 'yes' : 'no'} style={{ '--fit': `${Math.round(fit)}` } as JSX.CSSProperties}>
       <div class="ask">
         <button class="say-btn" aria-label="Say it again" onClick={() => (onSay ? onSay() : void voice.say(...speech))}>🔊</button>
         <h2>{text}</h2>
@@ -163,7 +167,7 @@ function OrderView({ current, q, waiting }: { current: Current; q: OrderQ; waiti
     lesson.firstWrong.value = null;
   }
   return (
-    <Shell current={current} kind="order" text="Build the train!" speech={speech} ready={can}>
+    <Shell current={current} kind="order" text="Build the train!" speech={speech} ready={can} fit={fitOf(right) + right.length * 32}>
       {show?.kind === 'couple' && (
         <div class="se-train demo" aria-label="The right train">
           {right.slice(0, show.n).map((p, i) => <PieceButton key={i} role={roleAt(i, right.length)} text={p} label={p} class="show demo-piece" />)}
@@ -199,7 +203,7 @@ function MarksView({ current, q, waiting }: { current: Current; q: MarksQ; waiti
   const tap = (c: string) => { if (wrong.includes(c)) return; const v = submit(c); if (v === 'incorrect') setWrong(w => [...w, c]); if (v === 'correct') whistle(); };
   const role: Role = q.form === 'engine' ? 'engine' : q.form === 'caboose' ? 'caboose' : 'car';
   return (
-    <Shell current={current} kind="marks" text={prompt} speech={speech} ready={can}>
+    <Shell current={current} kind="marks" text={prompt} speech={speech} ready={can} fit={fitOf(pieces)}>
       <div class={cls('se-train', right && 'chug')} role="group" aria-label="The train">
         {pieces.map((p, i) => {
           const r = roleAt(i, n), slot = i === q.slot;
@@ -247,7 +251,7 @@ function MeanView({ current, q, waiting }: { current: Current; q: MeanQ; waiting
   const hear = (what: Phrase) => current.actions.help(async () => { await voice.say(what); });
   const tap = (k: string) => { if (wrong.includes(k)) return; const v = submit(k); if (v === 'incorrect') setWrong(w => [...w, k]); if (v === 'correct') whistle(); };
   return (
-    <Shell current={current} kind="mean" text="Read it. Then tap its picture!" speech={speech} ready={can} onSay={() => hear(s.text)}>
+    <Shell current={current} kind="mean" text="Read it. Then tap its picture!" speech={speech} ready={can} onSay={() => hear(s.text)} fit={fitOf(piecesOf(s))}>
       <SentenceTrain s={s} lit={words?.idx} onWord={i => hear(wordPhrase(s.words[i]!))} />
       <Pictures choices={q.choices} onTap={tap} wrong={wrong} right={right} glow={lesson.glow.value ?? (words ? q.answer : null)} lit={words?.lit ?? 'all'} />
     </Shell>
@@ -263,7 +267,7 @@ function AskView({ current, q, waiting }: { current: Current; q: AskQ; waiting: 
   const show = lesson.show.value, words = show?.kind === 'words' ? show : null;
   const tap = (k: string) => { if (wrong.includes(k)) return; const v = submit(k); if (v === 'incorrect') setWrong(w => [...w, k]); if (v === 'correct') whistle(); };
   return (
-    <Shell current={current} kind="ask" text={q.q} speech={speech} ready={can}>
+    <Shell current={current} kind="ask" text={q.q} speech={speech} ready={can} fit={fitOf(...both.map(piecesOf))}>
       <div class="se-sentences">
         {both.map(x => <SentenceTrain key={x.id} s={x} lit={words && words.s === x.id ? words.idx : undefined} onWord={i => void voice.say(wordPhrase(x.words[i]!))} />)}
       </div>
@@ -305,7 +309,7 @@ function FixView({ current, q, waiting }: { current: Current; q: FixQ; waiting: 
   }
   const cars = after?.cars ?? q.cars, caboose = after?.caboose ?? q.caboose;
   return (
-    <Shell current={current} kind="fix" text="Find the mistake!" speech={speech} ready={can}>
+    <Shell current={current} kind="fix" text="Find the mistake!" speech={speech} ready={can} fit={fitOf([...q.cars, q.caboose])}>
       <div class={cls('se-train', right && 'chug')} role="group" aria-label="The train">
         {cars.map((c, i) => (
           <PieceButton key={`${i}${c}`} role={i === 0 ? 'engine' : 'car'} text={c} label={pieceLabel(i === 0 ? 'engine' : 'car', c)} idx={i} onTap={() => tapCar(i)}

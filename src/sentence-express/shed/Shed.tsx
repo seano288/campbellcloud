@@ -1,8 +1,10 @@
 // The Shed: his train, the big Deliver! button with his Deliveries, and the tray. He picks a tab (Engines, Cars, Paint, Track,
 // Scenery, Sky) and taps a tile: one he owns goes on (a car is coupled or uncoupled, a weather on or off), one he doesn't goes on the
-// train to try, with Buy beside it, so he sees it before he spends. A long tab is split into groups, picked with a row of chips. The
-// Goal chip shows what he's saving for: the cheapest thing he hasn't got. Tapping an engine says its trick; a car that does
-// something says what it does.
+// train to try, with Buy beside it, so he sees it before he spends. Things he owns are wooden cards, what's on his train is green, and
+// the shop's things are blue (gold-edged when he can afford them). A long tab is split into groups, picked with a row of chips (the
+// open one shows its name). The Goal chip shows what he's saving for: the cheapest thing he hasn't got. Tapping an engine says its
+// trick; a car that does something says what it does. The bay shows his train under the sky he has on: the sun, the sunset or the
+// moon and stars.
 import { useEffect, useMemo, useState } from 'preact/hooks';
 import { sChime, sClink, sFanfare, sNope } from '../../audio/sfx';
 import { confetti } from '../../celebrate/effects';
@@ -12,6 +14,7 @@ import { sceneryArt, skyArt, trackArt } from '../art/scenery';
 import { carSvg, engineOf, engineSvg, carOf, paintOf, pieceSvg } from '../art/train';
 import { TrainView } from '../art/TrainView';
 import { EXPRESS_CURRENCY } from '../branding';
+import { TRACK_SCENERY } from '../layout/track';
 import { buy, player, updateTrains } from '../game';
 import { goDeliver, screen } from '../nav';
 import { NUMBERS_TO, type Phrase } from '../phrases';
@@ -60,6 +63,22 @@ function TilePic({ k, t }: { k: ItemKey; t: TrainSet }) {
   if (svg) return <span class="item-svg" aria-hidden="true" dangerouslySetInnerHTML={{ __html: svg }} />;
   const a = sceneryArt(id);
   return <span class="pic emo item-pic" aria-hidden="true">{'emoji' in a ? a.emoji : ''}</span>;
+}
+
+/** The back of the table in a tall bay: a few of the things on his Layout (not the ones that sit on track), and a piece of scenery
+ *  he is trying, in the middle and lit, so he sees it before he buys it. */
+function BayProps({ t, trial }: { t: TrainSet; trial: ItemKey | null }) {
+  const trying = trial && tabOf(trial) === 'scenery' && !TRACK_SCENERY.has(idOf(trial)) ? idOf(trial) : null;
+  const ids = useMemo(() => {
+    const own = [...new Set(t.layout.scenery.map(x => x.id))].filter(id => !TRACK_SCENERY.has(id) && id !== trying).slice(0, 6);
+    return trying ? [...own.slice(0, 3), trying, ...own.slice(3)] : own;
+  }, [t.layout.scenery, trying]);
+  if (!ids.length) return null;
+  return (
+    <span class="bay-props" aria-hidden="true">
+      {ids.map(id => { const a = sceneryArt(id); return <span key={id} class={`bay-prop ${id === trying ? 'trying' : ''}`}>{'svg' in a ? <span class="item-svg" dangerouslySetInnerHTML={{ __html: a.svg }} /> : <span class="pic emo">{a.emoji}</span>}</span>; })}
+    </span>
+  );
 }
 
 /** The goal chip in a header: what he's saving for and how close he is. Tapping it goes to it. */
@@ -154,6 +173,7 @@ export function Shed() {
       <div class="shed-body">
         <section class="bay">
           <div class={`bay-train sky-${trial && tabOf(trial) === 'sky' && SKY.find(s => s.id === idOf(trial))!.kind === 'time' ? idOf(trial) : t.time}`}>
+            <BayProps t={t} trial={trial} />
             <TrainView train={shown} class={trial ? 'trying' : ''} />
             {(trial && tabOf(trial) === 'sky' && SKY.find(s => s.id === idOf(trial))!.kind === 'weather' ? SKY.find(s => s.id === idOf(trial)) : sky) && (
               <span class="bay-weather" aria-hidden="true">{Array.from({ length: 5 }, (_, i) => <span key={i} class="pic emo" style={{ left: `${8 + i * 20}%`, animationDelay: `${i * .4}s` }}>{(trial && tabOf(trial) === 'sky' && SKY.find(s => s.id === idOf(trial))!.kind === 'weather' ? SKY.find(s => s.id === idOf(trial))! : sky!).icon}</span>)}</span>
@@ -169,11 +189,11 @@ export function Shed() {
         </section>
         <section class="parts-side">
           <div class="se-tabs" role="tablist">
-            {TABS.map(x => <button key={x} role="tab" aria-selected={x === tab} aria-label={TAB_NAMES[x]} class={`se-tab ${x === tab ? 'on' : ''}`} onClick={() => pickTab(x)}><span aria-hidden="true">{TAB_ICONS[x]}</span></button>)}
+            {TABS.map(x => <button key={x} role="tab" aria-selected={x === tab} aria-label={TAB_NAMES[x]} class={`se-tab ${x === tab ? 'on' : ''}`} onClick={() => pickTab(x)}><span class="tab-icon" aria-hidden="true">{TAB_ICONS[x]}</span><span class="tab-name" aria-hidden="true">{TAB_NAMES[x]}</span></button>)}
           </div>
           {groups.length > 1 && (
             <div class="se-groups" role="tablist" aria-label="Groups">
-              {groups.map(g => <button key={g} role="tab" aria-selected={g === shownGroup} aria-label={groupInfo(tab, g).name} class={`group-chip ${g === shownGroup ? 'on' : ''}`} onClick={() => pickGroup(g)}><span aria-hidden="true">{groupInfo(tab, g).icon}</span></button>)}
+              {groups.map(g => <button key={g} role="tab" aria-selected={g === shownGroup} aria-label={groupInfo(tab, g).name} class={`group-chip ${g === shownGroup ? 'on' : ''}`} onClick={() => pickGroup(g)}><span aria-hidden="true">{groupInfo(tab, g).icon}</span>{g === shownGroup && <span class="chip-name" aria-hidden="true">{groupInfo(tab, g).name}</span>}</button>)}
             </div>
           )}
           <div class="se-tray">
