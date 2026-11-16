@@ -6,6 +6,8 @@
 // Points: a square that joins three sides has a straight way through and a branch; tapping it switches which way the train goes.
 // Stations sit on straight track; scenery on an empty square (a tunnel, a bridge or a level crossing on a straight).
 
+import { SCENERY } from '../shed/catalogue';
+
 export const N = 1, E = 2, S = 4, W = 8;
 export type Dir = 1 | 2 | 4 | 8;
 export const DIRS: readonly Dir[] = [N, E, S, W];
@@ -157,8 +159,8 @@ function routeFrom(l: Layout, end: number, avoid: ReadonlySet<number>): number[]
 }
 const hasThing = (l: Layout, c: number) => l.scenery.some(s => s.cell === c && !TRACK_SCENERY.has(s.id));
 
-/** Scenery that sits on track. */
-export const TRACK_SCENERY = new Set(['tunnel', 'bridge', 'crossing']);
+/** Scenery that sits on track: the tunnel, the bridge, the level crossing, and the working pieces that go on track. */
+export const TRACK_SCENERY: ReadonlySet<string> = new Set(SCENERY.filter(s => 'on' in s).map(s => s.id));
 
 /** After track changes: points keep their setting only where there still are points; a station or a track piece off a straight goes. */
 export function tidy(l: Layout): Layout {

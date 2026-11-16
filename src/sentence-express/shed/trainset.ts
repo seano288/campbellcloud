@@ -6,7 +6,7 @@ import { isAmount } from '../../currency/amount';
 import type { PurchaseProposal } from '../../rewards/purchase';
 import { cellAt, deliverable, grow, isStraight, joined, placeStation, starterLayout, tidy, trackSquares, TRACK_SCENERY, xyOf, bits, step, opposite, type Layout, type Placed } from '../layout/track';
 import { payFor } from '../delivery/run';
-import { CARS, ENGINES, GIFTS, LINE, MAX_CARS, PAINTS, SCENERY, START_SQUARES, START_TABLE, STATIONS, TRACK, type StationId, type Tab } from './catalogue';
+import { CARS, ENGINES, GIFTS, GROUPS, LINE, MAX_CARS, PAINTS, SCENERY, SKY, START_SQUARES, START_TABLE, STATIONS, TRACK, type SkyId, type StationId, type Tab } from './catalogue';
 
 export type ItemKey = `${Tab | 'gift'}:${string}`;
 export interface Item { readonly key: ItemKey; readonly tab: Tab | 'gift'; readonly id: string; readonly name: string; readonly price: number }
@@ -17,6 +17,7 @@ export const ITEMS: readonly Item[] = [
   ...PAINTS.map(p => ({ key: `paint:${p.id}` as ItemKey, tab: 'paint' as const, id: p.id as string, name: p.name as string, price: p.price as number })),
   ...TRACK.map(t => ({ key: `track:${t.id}` as ItemKey, tab: 'track' as const, id: t.id as string, name: t.name as string, price: t.price as number })),
   ...SCENERY.map(s => ({ key: `scenery:${s.id}` as ItemKey, tab: 'scenery' as const, id: s.id as string, name: s.name as string, price: s.price as number })),
+  ...SKY.map(s => ({ key: `sky:${s.id}` as ItemKey, tab: 'sky' as const, id: s.id as string, name: s.name as string, price: s.price as number })),
   ...GIFTS.map(g => ({ key: `gift:${g.id}` as ItemKey, tab: 'gift' as const, id: g.id as string, name: g.name as string, price: 0 })),
 ];
 export const SHOP = ITEMS.filter(i => i.tab !== 'gift');
@@ -30,6 +31,18 @@ export const keysIn = (tab: Tab) => SHOP.filter(i => i.tab === tab).map(i => i.k
 export const priceOf = (k: ItemKey) => item(k).price;
 /** Everything he can buy, added up. */
 export const SHOP_TOTAL = SHOP.reduce((n, i) => n + i.price, 0);
+
+/** Which group of its tab's tray a thing is in (null on a tab that isn't split up). */
+export function groupOf(k: ItemKey): string | null {
+  const tab = tabOf(k), id = idOf(k);
+  if (tab === 'car') { const c = CARS.find(x => x.id === id)!; return 'does' in c ? 'tricks' : 'glow' in c ? 'people' : 'goods'; }
+  if (tab === 'paint') return 'pattern' in PAINTS.find(x => x.id === id)! ? 'patterns' : 'colors';
+  if (tab === 'track') { const r = TRACK.find(x => x.id === id)!; return 'rails' in r ? 'rails' : 'table' in r ? 'tables' : 'boxes'; }
+  if (tab === 'scenery') return SCENERY.find(x => x.id === id)!.group;
+  return null;
+}
+/** The groups a tab is split into, in order (empty for a tab that isn't). */
+export const groupsIn = (tab: Tab): string[] => (tab in GROUPS ? Object.keys(GROUPS[tab as keyof typeof GROUPS]) : []);
 
 export interface TrainSet {
   owned: ItemKey[];
@@ -46,11 +59,15 @@ export interface TrainSet {
   deliveries: number;
   trips: number;
   goal: ItemKey | null;
+  /** The colour of his track (a Track tab row with rails), the time of day and the weather when his train runs (Sky tab rows). */
+  rails: string;
+  time: SkyId;
+  weather: SkyId | null;
 }
 
 export const freshTrainSet = (): TrainSet => ({
   owned: [...STARTERS], engine: 'tank', cars: ['wagon'], paint: 'red', layout: starterLayout(START_TABLE.w, START_TABLE.h),
-  open: 1, delivered: [], deliveries: 1, trips: 0, goal: null,
+  open: 1, delivered: [], deliveries: 1, trips: 0, goal: null, rails: 'wood', time: 'day', weather: null,
 });
 export const isOwned = (t: Pick<TrainSet, 'owned'>, k: ItemKey) => t.owned.includes(k);
 
@@ -109,6 +126,10 @@ export function readTrainSet(raw: unknown): TrainSet {
     delivered: (Array.isArray(raw.delivered) ? raw.delivered : []).filter((s): s is StationId => typeof s === 'string' && STATION_IDS.includes(s) && s !== 'town'),
     deliveries: isAmount(raw.deliveries) ? raw.deliveries : 0, trips: isAmount(raw.trips) ? raw.trips : 0,
     goal: isItemKey(raw.goal) && !owned.includes(raw.goal) ? raw.goal : null,
+    // added after the first saves: a save from before them reads as wood track on a sunny day
+    rails: ownsId('track', raw.rails) && TRACK.some(r => r.id === raw.rails && 'rails' in r) ? raw.rails as string : 'wood',
+    time: ownsId('sky', raw.time) && SKY.some(r => r.id === raw.time && r.kind === 'time') ? raw.time as SkyId : 'day',
+    weather: ownsId('sky', raw.weather) && SKY.some(r => r.id === raw.weather && r.kind === 'weather') ? raw.weather as SkyId : null,
   };
   return placeOpen(t);
 }
@@ -138,16 +159,33 @@ export function selectGoal(t: TrainSet, k: ItemKey): TrainSet {
 }
 export const allOwned = (t: Pick<TrainSet, 'owned'>) => SHOP.every(i => isOwned(t, i.key));
 
-/** Puts what he just got to use: an engine goes on, a car is coupled if there's room, a paint goes on, a bigger table grows. */
+/** Puts what he just got to use: an engine goes on, a car is coupled if there's room, a paint goes on, a bigger table grows, a
+ *  track colour goes on his track, a time of day goes on (and a weather goes on, or off again when it's on). */
 export function use(t: TrainSet, k: ItemKey): TrainSet {
   const tab = tabOf(k), id = idOf(k);
   if (!isOwned(t, k)) return t;
   if (tab === 'engine') return { ...t, engine: id };
   if (tab === 'paint') return { ...t, paint: id };
   if (tab === 'car') return t.cars.includes(id) ? { ...t, cars: t.cars.filter(c => c !== id) } : t.cars.length < MAX_CARS ? { ...t, cars: [...t.cars, id] } : t;
-  if (tab === 'track') { const table = tableOf(t); return { ...t, layout: grow(t.layout, table.w, table.h) }; }
+  if (tab === 'track') {
+    if (TRACK.some(r => r.id === id && 'rails' in r)) return { ...t, rails: id };
+    const table = tableOf(t); return { ...t, layout: grow(t.layout, table.w, table.h) };
+  }
+  if (tab === 'sky') {
+    const row = SKY.find(r => r.id === id)!;
+    return row.kind === 'time' ? { ...t, time: row.id } : { ...t, weather: t.weather === row.id ? null : row.id };
+  }
   return t;
 }
+/** Whether a thing is on now: his engine, a coupled car, his paint, his track colour, the time and weather. */
+export function isOn(t: Pick<TrainSet, 'engine' | 'cars' | 'paint' | 'rails' | 'time' | 'weather'>, k: ItemKey): boolean {
+  const id = idOf(k), tab = tabOf(k);
+  return tab === 'engine' ? t.engine === id : tab === 'paint' ? t.paint === id : tab === 'car' ? t.cars.includes(id)
+    : tab === 'track' ? t.rails === id : tab === 'sky' ? t.time === id || t.weather === id : false;
+}
+/** The times of day and the weathers he owns, in the Sky tab's order. */
+export const timesOwned = (t: Pick<TrainSet, 'owned'>) => SKY.filter(r => r.kind === 'time' && isOwned(t, keyOf('sky', r.id))).map(r => r.id as SkyId);
+export const weathersOwned = (t: Pick<TrainSet, 'owned'>) => SKY.filter(r => r.kind === 'weather' && isOwned(t, keyOf('sky', r.id))).map(r => r.id as SkyId);
 
 export type PurchaseFailure = 'invalid-item' | 'invalid-balance' | 'insufficient-funds' | 'already-owned';
 export function proposePurchase(t: TrainSet, k: ItemKey, balance: number): PurchaseProposal<TrainSet, PurchaseFailure> {
@@ -202,17 +240,22 @@ export interface Plan { layout: Layout; pickup: StationId; pickupCell: number; t
 export function planDelivery(t: TrainSet): Plan {
   const pickup = pickupFor(t);
   const tryLayout = (l0: Layout): Plan | null => {
-    let l = l0;
+    // Toy Town and the pickup first, so with sixteen stations on a little table those two always find a straight
+    let l = placeStation(placeStation(l0, 'town'), pickup);
     for (const id of openStations(t)) l = placeStation(l, id);
     const town = l.stations.find(s => s.id === 'town')?.cell, at = l.stations.find(s => s.id === pickup)?.cell;
     if (town === undefined) return null;
     if (at !== undefined && deliverable(l, town, at) !== null) return { layout: l, pickup, pickupCell: at, townCell: town, fixed: false };
-    // move the pickup to a square that works, the farthest from Toy Town first
-    const taken = new Set([...l.stations.map(s => s.cell), ...l.scenery.map(s => s.cell)]);
+    // move the pickup to a square that works, the farthest from Toy Town first; an empty straight before one with another station on
+    // it (that station swaps places with the pickup, or comes off the table until there's room for it again)
+    const onTrack = new Set(l.scenery.map(s => s.cell)), stationAt = (c: number) => l.stations.find(s => s.cell === c);
     const tp = xyOf(l, town), far = (c: number) => { const p = xyOf(l, c); return Math.abs(p.x - tp.x) + Math.abs(p.y - tp.y); };
-    const spots = [...joined(l, town)].filter(c => isStraight(l.cells[c]!) && !taken.has(c)).sort((a, b) => far(b) - far(a));
+    const spots = [...joined(l, town)].filter(c => isStraight(l.cells[c]!) && !onTrack.has(c) && c !== town && stationAt(c)?.id !== pickup)
+      .sort((a, b) => Number(!!stationAt(a)) - Number(!!stationAt(b)) || far(b) - far(a));
     for (const c of spots) if (deliverable(l, town, c) !== null) {
-      return { layout: { ...l, stations: [...l.stations.filter(s => s.id !== pickup), { id: pickup, cell: c }] }, pickup, pickupCell: c, townCell: town, fixed: false };
+      const other = stationAt(c);
+      const stations = l.stations.filter(s => s.id !== pickup).flatMap(s => (s !== other ? [s] : at !== undefined ? [{ ...s, cell: at }] : []));
+      return { layout: { ...l, stations: [...stations, { id: pickup, cell: c }] }, pickup, pickupCell: c, townCell: town, fixed: false };
     }
     return null;
   };
@@ -222,7 +265,19 @@ export function planDelivery(t: TrainSet): Plan {
   // scenery kept where it doesn't sit on the loop
   const start = grow(starterLayout(START_TABLE.w, START_TABLE.h), t.layout.w, t.layout.h);
   const merged = tidy({ ...start, scenery: t.layout.scenery.filter(s => !start.cells[s.cell] || TRACK_SCENERY.has(s.id)) });
-  return { ...tryLayout(merged)!, fixed: true };
+  // (and if his pieces on the track leave no room, without them)
+  return { ...(tryLayout(merged) ?? tryLayout(start)!), fixed: true };
+}
+
+/** Where his train starts when it runs by itself (Watch it go): Toy Town, or the first straight track there is. If there's no
+ *  straight track at all, the Delivery's plan puts his track right (`fixed`). */
+export function planShow(t: TrainSet): { layout: Layout; start: number; fixed: boolean } {
+  const l = t.layout, town = l.stations.find(s => s.id === 'town')?.cell;
+  if (town !== undefined && isStraight(l.cells[town]!)) return { layout: l, start: town, fixed: false };
+  const any = l.cells.findIndex(isStraight);
+  if (any >= 0) return { layout: l, start: any, fixed: false };
+  const plan = planDelivery(t);
+  return { layout: plan.layout, start: plan.townCell, fixed: plan.fixed };
 }
 
 export interface DeliveryPay { bolts: number; pickup: StationId; gift: string | null; opened: StationId | null }

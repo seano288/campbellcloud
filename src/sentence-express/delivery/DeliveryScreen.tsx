@@ -14,37 +14,62 @@ import { earnedLine } from '../../currency/kind';
 import { IconButton } from '../../ui/bits';
 import { CurrencyIcon } from '../../ui/currency';
 import { sceneryArt } from '../art/scenery';
-import { paintOf } from '../art/train';
+import { engineOf, paintOf } from '../art/train';
 import { TrainView } from '../art/TrainView';
 import { EXPRESS_CURRENCY } from '../branding';
 import { player, settleDelivery, updateTrains } from '../game';
 import { useTable } from '../layout/canvas';
-import { drawOver, drawRing, drawTrain, fromScreen, toScreen } from '../layout/draw';
+import { drawRing, fromScreen, toScreen } from '../layout/draw';
+import { carsDo, createWorld, doTrick, drawScene, tapWorld, trickOf, type World } from '../layout/fx';
 import { cellAt, hasPoints, xyOf } from '../layout/track';
 import { goDeliver, screen } from '../nav';
 import { goLine, openLine, type Phrase } from '../phrases';
 import { startRound } from '../round';
-import { ENGINES, LINE, station, type ItemName } from '../shed/catalogue';
+import { LINE, station, TRICKS, type ItemName } from '../shed/catalogue';
 import { ITEMS, planDelivery, type DeliveryPay } from '../shed/trainset';
 import { useVoiceScope, type VoiceScope } from '../voice';
-import { createRun, stepRun, tapPoints, type Run } from './run';
+import { boostRun, createRun, stepRun, tapPoints, type Run } from './run';
 
 type Phase = 'card' | 'drive' | 'done';
 
-const sWhistle = () => { tone(784, .5, 'square', 0, .05); tone(988, .5, 'square', 0, .045); tone(784, .3, 'square', .55, .05); tone(988, .3, 'square', .55, .045); };
-const sBell = () => { tone(1568, .5, 'triangle', 0, .12); tone(1568, .4, 'triangle', .28, .1); };
-const sSqueal = () => tone(2200, .35, 'sawtooth', 0, .025, 2600);
-const sChuff = (v: number) => noise({ dur: .08, vol: .05 + v * .05, type: 'bandpass', f: 600 });
-const sPoints = () => { tone(300, .06, 'square', 0, .06); tone(220, .08, 'square', .05, .06); };
+export const sWhistle = () => { tone(784, .5, 'square', 0, .05); tone(988, .5, 'square', 0, .045); tone(784, .3, 'square', .55, .05); tone(988, .3, 'square', .55, .045); };
+export const sBell = () => { tone(1568, .5, 'triangle', 0, .12); tone(1568, .4, 'triangle', .28, .1); };
+export const sSqueal = () => tone(2200, .35, 'sawtooth', 0, .025, 2600);
+export const sChuff = (v: number) => noise({ dur: .08, vol: .05 + v * .05, type: 'bandpass', f: 600 });
+export const sPoints = () => { tone(300, .06, 'square', 0, .06); tone(220, .08, 'square', .05, .06); };
 
 /** Lines that don't matter are dropped while he's mid-sentence, so the voice never queues up behind the action. */
-function chatter(voice: VoiceScope) {
+export function chatter(voice: VoiceScope) {
   let talking = false;
   return (...line: Phrase[]) => { if (talking) return; talking = true; void voice.say(...line).then(() => { talking = false; }); };
 }
 
+/** The trick button: his engine's trick (a boost, a puff of smoke, sparks...), and his cars' with it. Never more than one a second,
+ *  however fast he taps. */
+export function TrickButton({ world, run, train, say }: { world: World; run: () => Run | null; train: { engine: string; cars: readonly string[] }; say(...line: Phrase[]): void }) {
+  const trick = trickOf(train.engine), last = useRef(-9);
+  return (
+    <button class="ctl trick" aria-label="Trick" onPointerDown={e => {
+      e.preventDefault();
+      if (world.t - last.current < 1) return;
+      last.current = world.t;
+      doTrick(world, train);
+      const r = run();
+      if (trick === 'boost' && r) boostRun(r);
+      say(TRICKS[trick].word);
+    }}>{TRICKS[trick].icon}</button>
+  );
+}
+
+/** Shakes the table for a roar or a volcano. */
+export function shakeCanvas(el: HTMLCanvasElement | null, w: World) {
+  if (!el) return;
+  const want = w.shake > 0 ? `translate(${(Math.random() - .5) * 10}px,${(Math.random() - .5) * 8}px)` : '';
+  if (el.style.transform !== want) el.style.transform = want;
+}
+
 /** The throttle: a tall slider he drags up to go faster and down to slow. It stays where he leaves it, as a real one does. */
-function Throttle({ value, onChange }: { value: number; onChange(v: number): void }) {
+export function Throttle({ value, onChange }: { value: number; onChange(v: number): void }) {
   const ref = useRef<HTMLDivElement>(null), dragging = useRef(false);
   const set = (e: PointerEvent) => {
     const r = ref.current!.getBoundingClientRect(), k = 1 - (e.clientY - r.top - 34) / Math.max(1, r.height - 68);
@@ -66,11 +91,11 @@ export function DeliveryScreen() {
   const voice = useVoiceScope(), say = useRef(chatter(voice)).current, start = player.state.peek().trains;
   const plan = useMemo(() => planDelivery(start), []);
   const pickup = LINE.find(s => s.id === plan.pickup)!, cargo = pickup.cargo!;
-  const top = 2.4 + ENGINES.findIndex(e => e.id === start.engine) * .08;
+  const top = engineOf(start.engine).top;
   const run = useRef<Run | null>(createRun(plan.layout, plan.pickupCell, plan.townCell, start.cars.length, top));
   const [phase, setPhase] = useState<Phase>('card'), [armed, setArmed] = useState(false), [throttle, setThrottle] = useState(0);
   const [leg, setLeg] = useState<Run['leg']>('pickup'), [pay, setPay] = useState<DeliveryPay | null>(null);
-  const canvas = useRef<HTMLCanvasElement>(null), hinted = useRef(false), chuff = useRef(0);
+  const canvas = useRef<HTMLCanvasElement>(null), hinted = useRef(false), chuff = useRef(0), world = useRef(createWorld()).current;
   const paint = paintOf(start.paint);
 
   useEffect(() => {
@@ -80,7 +105,7 @@ export function DeliveryScreen() {
   // the browser tour reads how far the Delivery has got and where the points are (tools/sentence-express/tour.ts)
   if (import.meta.env.DEV) (window as unknown as { __delivery(): unknown }).__delivery = () => {
     const r = run.current;
-    return r && { phase, leg: r.leg, hint: r.hint, speed: r.speed, t: r.t, points: r.layout.cells.map((m, c) => (hasPoints(m) ? c : -1)).filter(c => c >= 0), w: r.layout.w, h: r.layout.h, xy: (cell: number) => screenOf(cell) };
+    return r && { phase, leg: r.leg, hint: r.hint, speed: r.speed, t: r.t, boost: r.boost, parts: world.parts.length, points: r.layout.cells.map((m, c) => (hasPoints(m) ? c : -1)).filter(c => c >= 0), w: r.layout.w, h: r.layout.h, xy: (cell: number) => screenOf(cell) };
   };
   /** Where a square's middle is on the screen, for the tour's taps. */
   function screenOf(cell: number) {
@@ -117,7 +142,7 @@ export function DeliveryScreen() {
         if (e === 'squeal') { sSqueal(); say('Whee!'); }
         if (e === 'points') sPoints();
         // "Loading!" matters (it says why the train stopped), so it's said even over a line in progress, not dropped like chatter
-        if (e === 'arrive') { sChime(); setThrottle(0); setLeg(r.leg); if (r.leg === 'loading') void voice.say('Loading!'); }
+        if (e === 'arrive') { sChime(); setThrottle(0); setLeg(r.leg); if (r.leg === 'loading') void voice.say('Loading!'); else carsDo(world, start.cars); }
         if (e === 'loaded') { sPop(); setLeg(r.leg); void voice.say('Now take it to Toy Town!'); hinted.current = false; }
         if (e === 'helped') { sClink(); void voice.say('I switched the points for you!'); }
         if (e === 'delivered') finish();
@@ -125,11 +150,15 @@ export function DeliveryScreen() {
       if (r.hint !== null && !hinted.current) { hinted.current = true; say('Tap the points to switch them!'); }
     }
     const goal = r.leg === 'pickup' || r.leg === 'loading' ? r.pickup : r.town;
-    if (phase !== 'done') drawRing(c, v, r.layout, goal, t, '#ff7a00');
-    if (r.hint !== null) drawRing(c, v, r.layout, r.hint, t * 1.6);
-    drawTrain(c, v, r, start, paint, r.leg === 'dropoff' || r.leg === 'unloading' ? cargo.icon : null);
-    drawOver(c, v, r.layout);
-  }, { key: () => `${run.current?.layout.points.join('')}` });
+    drawScene(c, v, world, dt, {
+      layout: r.layout, run: r, train: start, paint, cargo: r.leg === 'dropoff' || r.leg === 'unloading' ? cargo.icon : null, time: start.time, weather: start.weather, rails: start.rails,
+      under: () => {
+        if (phase !== 'done') drawRing(c, v, r.layout, goal, t, '#ff7a00');
+        if (r.hint !== null) drawRing(c, v, r.layout, r.hint, t * 1.6);
+      },
+    });
+    shakeCanvas(canvas.current, world);
+  }, { key: () => `${run.current?.layout.points.join('')}`, rails: () => start.rails, snow: () => start.weather === 'snow' });
 
   function finish() {
     const r = run.current!;
@@ -162,7 +191,9 @@ export function DeliveryScreen() {
       const { x, y } = xyOf(r.layout, c), d = Math.hypot(x + .5 - p.x, y + .5 - p.y);
       if (d < bestD) { best = c; bestD = d; }
     }
-    if (best >= 0 && tapPoints(r, best)) { sPoints(); if (r.hint === best) r.hint = null; }
+    if (best >= 0 && tapPoints(r, best)) { sPoints(); if (r.hint === best) r.hint = null; return; }
+    // no points there: a piece of scenery hops, a working one goes off
+    tapWorld(world, r.layout, p.x, p.y);
     void cellAt;
   }
   const leave = () => {
@@ -177,7 +208,7 @@ export function DeliveryScreen() {
 
   if (!run.current) return <div class="delivery-screen"><p>…</p></div>;
   return (
-    <div class={`delivery-screen ${phase}`} data-phase={phase} data-leg={leg}>
+    <div class={`delivery-screen ${phase} sky-${start.time}`} data-phase={phase} data-leg={leg}>
       <canvas ref={canvas} class="dl-canvas" aria-label="Your train on your table" onPointerUp={tapTable} />
       <header class="dl-hud">
         <IconButton label={armed ? 'Tap again to leave' : 'Leave'} class={armed ? 'armed' : ''} onClick={leave}>🏠</IconButton>
@@ -188,6 +219,7 @@ export function DeliveryScreen() {
           <div class="dl-ctl left">
             <button class="ctl whistle" aria-label="Whistle" onPointerDown={e => { e.preventDefault(); sWhistle(); say('Toot toot!'); }}>📯</button>
             <button class="ctl bell" aria-label="Bell" onPointerDown={e => { e.preventDefault(); sBell(); say('Ding ding!'); }}>🔔</button>
+            <TrickButton world={world} run={() => run.current} train={start} say={say} />
           </div>
           <div class="dl-ctl right"><Throttle value={throttle} onChange={v => { if (v > 0 && throttle === 0) sChuff(.5); setThrottle(v); }} /></div>
         </>

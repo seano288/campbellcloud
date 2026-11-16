@@ -9,7 +9,7 @@ import { EXTRA_WORDS } from './reading/problems';
 import { ALL_WORDS, SENTENCES, wordKey } from './sentences/index';
 import type { Name } from './sentences/words';
 import type { AskQ, SentenceText } from './sentences/list';
-import { LINE, STATIONS, TAB_NAMES, type ItemName } from './shed/catalogue';
+import { GROUPS, LINE, STATIONS, TAB_NAMES, TRICKS, type GroupName, type ItemName } from './shed/catalogue';
 import { ITEMS } from './shed/trainset';
 
 export const NUMBERS_TO = 100;
@@ -40,6 +40,7 @@ const SHED = [
   'The Shed!', 'It costs', 'Bolts.', 'You need', 'more Bolts.', 'Play a Round to earn Bolts!', 'You got', 'You built everything!',
   'You have 1 Delivery!', 'Deliveries!', 'Tap Deliver!', 'Play a Round to earn a Delivery!', 'You earned a Delivery!',
   'Coupled!', 'Uncoupled!', 'Your engine can pull 6 cars.', 'More track to lay!', 'A bigger table!', 'Put it on your table!',
+  'Look at your track!', 'See it when your train runs!', 'It lights up at night!', 'It moves when your train runs!', 'Clear sky!',
 ] as const;
 const LAYOUT = [
   'Your Layout!', 'Drag your finger to lay track!', 'You need more track!', 'Tap a piece, then tap the table.', 'Drag to rub out track.',
@@ -48,7 +49,12 @@ const LAYOUT = [
 const DELIVERY = [
   'All aboard!', 'Slide to go!', 'Tap the points to switch them!', 'Now take it to Toy Town!', 'Delivered!', 'Toot toot!', 'Ding ding!',
   'I switched the points for you!', 'Whee!', "Let's fix your track!", 'Loading!', 'A gift for your table!', 'Tap again to leave.',
+  'Watch your train go!', 'Tap things on your table!',
 ] as const;
+/** What each trick is called, said when he taps the trick button and after an engine's or a car's name in the Shed. */
+type TrickWord = (typeof TRICKS)[keyof typeof TRICKS]['word'];
+const TRICK_WORDS = Object.values(TRICKS).map(t => t.word) as TrickWord[];
+const GROUP_NAMES = Object.values(GROUPS).flatMap(g => Object.values(g).map(x => x.name)) as GroupName[];
 type LineStation = Extract<(typeof STATIONS)[number], { cargo: { name: string } }>;
 type GoLine = LineStation extends infer S ? S extends { name: infer N extends string; cargo: { name: infer C extends string } } ? `Go to ${N} to pick up ${C}!` : never : never;
 type OpenLine = LineStation extends infer S ? S extends { name: infer N extends string } ? `${Capitalize<N>} is open!` : never : never;
@@ -71,7 +77,7 @@ export const wordPhrase = (w: string) => wordKey(w) as WordPhrase;
 export type Phrase = (typeof GAME)[number] | (typeof CHEERS)[number] | EarnedPhrase | ModePhrase | (typeof LOCKED_HINTS)[keyof typeof LOCKED_HINTS] | `${number}`
   | SentenceText | AskQ | WordPhrase
   | (typeof ASKING)[number] | (typeof TEACHING)[number] | (typeof SHED)[number] | (typeof LAYOUT)[number] | (typeof DELIVERY)[number]
-  | GoLine | OpenLine | (typeof TAB_NAMES)[keyof typeof TAB_NAMES] | ItemName;
+  | GoLine | OpenLine | (typeof TAB_NAMES)[keyof typeof TAB_NAMES] | ItemName | TrickWord | GroupName;
 
 const uniq = <T,>(xs: readonly T[]) => [...new Set(xs)];
 
@@ -82,5 +88,5 @@ export const PHRASES = uniq<Phrase>([
   ...GAME, ...CHEERS, ...Array.from({ length: MOST_EARNED }, (_, i) => earnedLine(BOLT, i + 1)), ...modePhrases(), ...Object.values(LOCKED_HINTS), ...numberPhrases(),
   ...SENTENCES.map(s => s.text), ...SENTENCES.flatMap(s => s.ask.map(([q]) => q as AskQ)), ...WORDS_SAID,
   ...ASKING, ...TEACHING, ...SHED, ...LAYOUT, ...DELIVERY, ...Object.values(TAB_NAMES),
-  ...LINE.map(goLine), ...LINE.map(openLine), ...ITEMS.map(i => i.name as ItemName),
+  ...LINE.map(goLine), ...LINE.map(openLine), ...ITEMS.map(i => i.name as ItemName), ...TRICK_WORDS, ...GROUP_NAMES,
 ]);

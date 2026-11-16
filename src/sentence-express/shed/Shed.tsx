@@ -1,12 +1,14 @@
 // The Shed: his train, the big Deliver! button with his Deliveries, and the tray. He picks a tab (Engines, Cars, Paint, Track,
-// Scenery) and taps a tile: one he owns goes on (a car is coupled or uncoupled), one he doesn't goes on the train to try, with Buy
-// beside it, so he sees it before he spends. The Goal chip shows what he's saving for: the cheapest thing he hasn't got.
+// Scenery, Sky) and taps a tile: one he owns goes on (a car is coupled or uncoupled, a weather on or off), one he doesn't goes on the
+// train to try, with Buy beside it, so he sees it before he spends. A long tab is split into groups, picked with a row of chips. The
+// Goal chip shows what he's saving for: the cheapest thing he hasn't got. Tapping an engine says its trick; a car that does
+// something says what it does.
 import { useEffect, useMemo, useState } from 'preact/hooks';
 import { sChime, sClink, sFanfare, sNope } from '../../audio/sfx';
 import { confetti } from '../../celebrate/effects';
 import { IconButton } from '../../ui/bits';
 import { CurrencyIcon, CurrencyPile } from '../../ui/currency';
-import { sceneryArt, trackArt } from '../art/scenery';
+import { sceneryArt, skyArt, trackArt } from '../art/scenery';
 import { carSvg, engineOf, engineSvg, carOf, paintOf, pieceSvg } from '../art/train';
 import { TrainView } from '../art/TrainView';
 import { EXPRESS_CURRENCY } from '../branding';
@@ -15,10 +17,19 @@ import { goDeliver, screen } from '../nav';
 import { NUMBERS_TO, type Phrase } from '../phrases';
 import { startRound } from '../round';
 import { useVoice } from '../voice';
-import { MAX_CARS, PAINTS, TAB_NAMES, TABS, type ItemName, type Tab } from './catalogue';
-import { allOwned, goalOf, idOf, isOwned, item, keysIn, priceOf, selectGoal, tabOf, use, type ItemKey, type TrainSet } from './trainset';
+import { CARS, ENGINES, GROUPS, MAX_CARS, PAINTS, SCENERY, SKY, TAB_NAMES, TABS, TRICKS, type GroupName, type ItemName, type Tab } from './catalogue';
+import { allOwned, goalOf, groupOf, groupsIn, idOf, isOn, isOwned, item, keysIn, priceOf, selectGoal, tabOf, use, type ItemKey, type TrainSet } from './trainset';
 
-const TAB_ICONS: Record<Tab, string> = { engine: '🚂', car: '🚃', paint: '🎨', track: '🛤️', scenery: '🌳' };
+const TAB_ICONS: Record<Tab, string> = { engine: '🚂', car: '🚃', paint: '🎨', track: '🛤️', scenery: '🌳', sky: '🌙' };
+const groupInfo = (tab: Tab, g: string) => (GROUPS as Record<string, Record<string, { icon: string; name: GroupName }>>)[tab]![g]!;
+/** What a thing does, said after its name: an engine's trick, a car's, a light at night, a piece that moves. */
+function doesLine(k: ItemKey): Phrase[] {
+  const tab = tabOf(k), id = idOf(k);
+  if (tab === 'engine') return [TRICKS[ENGINES.find(e => e.id === id)!.trick].word];
+  if (tab === 'car') { const c = CARS.find(x => x.id === id)!; return 'does' in c ? [TRICKS[c.does].word] : 'glow' in c ? ['It lights up at night!'] : []; }
+  if (tab === 'scenery') { const r = SCENERY.find(x => x.id === id)!; return 'works' in r ? ['It moves when your train runs!'] : []; }
+  return [];
+}
 export const n = (x: number): Phrase => `${Math.min(x, NUMBERS_TO)}` as Phrase;
 const nameOf = (k: ItemKey) => item(k).name as ItemName;
 
@@ -38,6 +49,7 @@ function TilePic({ k, t }: { k: ItemKey; t: TrainSet }) {
     if (tab === 'engine') return pieceSvg(engineSvg(engineOf(id), p, 170), 170);
     if (tab === 'car') return pieceSvg(carSvg(carOf(id), p, 130), 130);
     if (tab === 'track') return trackArt(id);
+    if (tab === 'sky') return skyArt(id);
     if (tab === 'scenery' || tab === 'gift') { const a = sceneryArt(id); return 'svg' in a ? a.svg : null; }
     return null;
   }, [k, t.paint]);
@@ -65,6 +77,7 @@ export function GoalChip({ onGo }: { onGo(k: ItemKey): void }) {
 export function Shed() {
   const voice = useVoice(), state = player.state.value, balance = state.currency.balance, t = state.trains;
   const [tab, setTab] = useState<Tab>('engine'), [trial, setTrial] = useState<ItemKey | null>(null), [blocked, setBlocked] = useState(false), [wiggle, setWiggle] = useState(false);
+  const [group, setGroup] = useState<string | null>(null);
   const shown = useMemo(() => (trial ? tryOn(t, trial) : t), [t, trial]);
 
   useEffect(() => {
@@ -78,12 +91,14 @@ export function Shed() {
     if (t.deliveries <= 0) { nope(); void voice.say('Play a Round to earn a Delivery!'); return; }
     goDeliver();
   }
-  function pickTab(x: Tab) { if (voice.active) { setTab(x); setTrial(null); void voice.say(TAB_NAMES[x]); } }
+  function pickTab(x: Tab) { if (voice.active) { setTab(x); setGroup(null); setTrial(null); void voice.say(TAB_NAMES[x]); } }
+  function pickGroup(g: string) { if (voice.active) { setGroup(g); setTrial(null); sClink(); void voice.say(groupInfo(tab, g).name); } }
   function after(k: ItemKey): Phrase[] {
-    const tab = tabOf(k);
-    if (tab === 'track') return [idOf(k).startsWith('table') ? 'A bigger table!' : 'More track to lay!'];
+    const tab = tabOf(k), g = groupOf(k);
+    if (tab === 'track') return [g === 'rails' ? 'Look at your track!' : g === 'tables' ? 'A bigger table!' : 'More track to lay!'];
     if (tab === 'scenery') return ['Put it on your table!'];
-    return [];
+    if (tab === 'sky') return ['See it when your train runs!'];
+    return doesLine(k);
   }
   function celebrate(k: ItemKey) {
     setBlocked(true); sFanfare(); confetti(36, voice.signal);
@@ -100,13 +115,16 @@ export function Shed() {
       if (tab === 'car') {
         const now = player.state.peek().trains.cars;
         void voice.say(nameOf(k), now.includes(idOf(k)) ? 'Coupled!' : now.length === before && before >= MAX_CARS ? 'Your engine can pull 6 cars.' : 'Uncoupled!');
+      } else if (tab === 'sky') {
+        const on = player.state.peek().trains;
+        void voice.say(...(isOn(on, k) ? [nameOf(k), 'See it when your train runs!'] as const : ['Clear sky!'] as const));
       } else void voice.say(nameOf(k), ...after(k));
       return;
     }
     setTrial(k);
     sChime();
     const price = priceOf(k);
-    void voice.say(nameOf(k), 'It costs', n(price), 'Bolts.', ...(balance < price ? ['You need' as const, n(price - balance), 'more Bolts.' as const] : []));
+    void voice.say(nameOf(k), ...doesLine(k), 'It costs', n(price), 'Bolts.', ...(balance < price ? ['You need' as const, n(price - balance), 'more Bolts.' as const] : []));
   }
   function buyTrial() {
     if (!trial || !voice.active || blocked) return;
@@ -119,13 +137,12 @@ export function Shed() {
     }
     if (buy(k).kind === 'accepted') { setTrial(null); celebrate(k); }
   }
-  function goTo(k: ItemKey) { const x = tabOf(k); if (x !== 'gift') { setTab(x); tap(k); } }
+  function goTo(k: ItemKey) { const x = tabOf(k); if (x !== 'gift') { setTab(x); setGroup(groupOf(k)); tap(k); } }
 
-  const keys = keysIn(tab);
-  const on = (k: ItemKey) => {
-    const id = idOf(k), x = tabOf(k);
-    return x === 'engine' ? t.engine === id : x === 'paint' ? t.paint === id : x === 'car' ? t.cars.includes(id) : false;
-  };
+  const groups = groupsIn(tab), shownGroup = group && groups.includes(group) ? group : groups[0] ?? null;
+  const keys = keysIn(tab).filter(k => !shownGroup || groupOf(k) === shownGroup);
+  const on = (k: ItemKey) => isOn(t, k);
+  const sky = SKY.find(s => s.id === t.weather);
   return (
     <div class="screen shed-screen">
       <header class="work-head">
@@ -136,7 +153,12 @@ export function Shed() {
       </header>
       <div class="shed-body">
         <section class="bay">
-          <div class="bay-train"><TrainView train={shown} class={trial ? 'trying' : ''} /></div>
+          <div class={`bay-train sky-${trial && tabOf(trial) === 'sky' && SKY.find(s => s.id === idOf(trial))!.kind === 'time' ? idOf(trial) : t.time}`}>
+            <TrainView train={shown} class={trial ? 'trying' : ''} />
+            {(trial && tabOf(trial) === 'sky' && SKY.find(s => s.id === idOf(trial))!.kind === 'weather' ? SKY.find(s => s.id === idOf(trial)) : sky) && (
+              <span class="bay-weather" aria-hidden="true">{Array.from({ length: 5 }, (_, i) => <span key={i} class="pic emo" style={{ left: `${8 + i * 20}%`, animationDelay: `${i * .4}s` }}>{(trial && tabOf(trial) === 'sky' && SKY.find(s => s.id === idOf(trial))!.kind === 'weather' ? SKY.find(s => s.id === idOf(trial))! : sky!).icon}</span>)}</span>
+            )}
+          </div>
           <div class="bay-go">
             <button class={`big-btn go deliver-btn ${wiggle ? 'wiggle' : ''} ${t.deliveries > 0 ? (trial ? '' : 'pulse') : 'short'}`} aria-label="Deliver" onClick={deliver}>
               <span class="deliver-icon" aria-hidden="true">🚂</span><span class="deliver-word">Deliver!</span><span class="deliver-count">{t.deliveries}</span>
@@ -149,6 +171,11 @@ export function Shed() {
           <div class="se-tabs" role="tablist">
             {TABS.map(x => <button key={x} role="tab" aria-selected={x === tab} aria-label={TAB_NAMES[x]} class={`se-tab ${x === tab ? 'on' : ''}`} onClick={() => pickTab(x)}><span aria-hidden="true">{TAB_ICONS[x]}</span></button>)}
           </div>
+          {groups.length > 1 && (
+            <div class="se-groups" role="tablist" aria-label="Groups">
+              {groups.map(g => <button key={g} role="tab" aria-selected={g === shownGroup} aria-label={groupInfo(tab, g).name} class={`group-chip ${g === shownGroup ? 'on' : ''}`} onClick={() => pickGroup(g)}><span aria-hidden="true">{groupInfo(tab, g).icon}</span></button>)}
+            </div>
+          )}
           <div class="se-tray">
             {keys.map(k => {
               const info = item(k), owned = isOwned(t, k), isOn = on(k), can = !owned && balance >= info.price;

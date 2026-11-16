@@ -339,7 +339,7 @@ _Avoid_: word tiles, blocks
 
 **Train Set**: Sentence Express's reward: his engines and cars (the Shed), his Layout, and the Deliveries he drives on it.
 
-**Shed**: where he buys and chooses his engine, the cars coupled behind it (up to six), his paint, track and scenery (Sentence Express's Garage).
+**Shed**: where he buys and chooses his engine, the cars coupled behind it (up to six), his paint, track, scenery and sky (Sentence Express's Garage). A long tab is split into **groups** (Freight Cars, Passenger Cars, Trick Cars; Colors, Patterns; Track Boxes, Tables, Track Colors; Nature, Town, Fun, On the Track, Working Toys), picked with a row of emoji chips.
 _Avoid_: garage, depot
 
 **Layout**: his table of squares, where he lays track with a finger, rubs it out and puts scenery; it's saved and is the thing he shows off. Straights, corners, points and crossings are worked out from what he draws; a loose end closes up by itself.
@@ -347,13 +347,25 @@ _Avoid_: map, board
 
 **Track Box**: a box of 12 track squares for his Layout (2 to 5 Bolts). He starts with 40 squares; a bigger table is bought on the same Track tab.
 
+**Track Color**: the colour all his track is drawn in (Wood Track is free; Rainbow Track changes colour every square; Glow Track and Lava Track glow at night). Bought on the Track tab; one is on at a time.
+
+**Trick**: what his engine does when he taps the trick button while he drives (in a Delivery or Watch it go): every engine has one (a puff of smoke, a boost, sparks, a horn, dragon fire, a siren, a rainbow trail...), with its own sound and word. A **trick car** does its own thing at the same time (dumps its load, throws confetti, lets balloons go...) and again when it brings the cargo home.
+_Avoid_: power, ability, special
+
+**Working Toy**: a piece of scenery that moves: crossing gates and a signal that work as the train comes, a drawbridge he taps to let a boat through (it always comes down for the train), a car wash and a rainbow arch the train goes through, windmills and a big wheel that turn, and pieces that go off when tapped while the train runs (a volcano, a launch pad, fireworks...). Any other piece hops when tapped.
+
+**Sky**: the Shed's tab for the time of day (Sunny Day, Sunset, Night Sky) and the weather (snow, rain, a storm, fireworks, northern lights...) on his table while the train runs. At night the stations, lit scenery, the engine's headlight and passenger cars that **light up at night** shine.
+
+**Watch it go**: his train running round his Layout by itself, to show it off: free, any time, from the Layout. He can slide the throttle, use the whistle, bell and trick, switch points, tap his scenery and change the sky. It uses no Delivery and pays nothing.
+_Avoid_: free play, demo
+
 **Points**: a square of track that joins three sides: the train goes straight on or takes the branch, and he taps it to switch.
 _Avoid_: switch, junction (in anything he hears)
 
 **Delivery**: what a finished Round earns (he starts with one): he drives his train on his Layout to pick up a station's cargo and bring it to Toy Town. It's used, and paid, only when the cargo arrives.
 _Avoid_: trip, run, rescue call
 
-**Station**: a stop on his Layout: Toy Town (home) and eight on the line (the Farm, the Quarry, the Port, the City, the Mill, the Mine, the Zoo, the Toy Shop), each with its own cargo. The Farm is open from the start; each finished Delivery opens the next, and a station's first Delivery brings a **gift** piece of scenery.
+**Station**: a stop on his Layout: Toy Town (home) and sixteen on the line (the Farm, the Quarry, the Port, the City, the Mill, the Mine, the Zoo, the Toy Shop, the Bakery, the Beach, the Airport, the Candy Factory, the North Pole, the Dino Park, the Pirate Cove, the Space Center), each with its own cargo. The Farm is open from the start; each finished Delivery opens the next, and a station's first Delivery brings a **gift** piece of scenery.
 ## Word Wreckers
 
 Word Wreckers reuses Math Bots', Rover Code's, Treasure Fleet's and Wild Rescue's terms where they mean the same thing (Mixed Round, Mastery, Stretch, Bolt, Goal, Paint). It has no Tune-Up. These are its own:

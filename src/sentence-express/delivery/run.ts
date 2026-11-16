@@ -43,7 +43,8 @@ export function pointOn(l: Pick<Layout, 'w'>, s: Seg, t: number): { x: number; y
   return { x: cx + kx + Math.cos(a) * .5, y: cy + ky + Math.sin(a) * .5, a: a + Math.sign(d) * Math.PI / 2 };
 }
 
-export type Leg = 'pickup' | 'loading' | 'dropoff' | 'unloading' | 'done';
+/** A Delivery's legs; `free` is the train running round his Layout with nowhere to go (Watch it go). */
+export type Leg = 'pickup' | 'loading' | 'dropoff' | 'unloading' | 'done' | 'free';
 export type RunEvent = 'squeal' | 'arrive' | 'loaded' | 'delivered' | 'points' | 'helped' | 'clack';
 
 export interface Run {
@@ -67,6 +68,8 @@ export interface Run {
   hint: number | null;
   events: RunEvent[];
   t: number;
+  /** Seconds left of a boost (the bullet train's trick): faster, though the station still stops it. */
+  boost: number;
 }
 
 /** The track in the square before `cell` that leads out by side `to`, for laying the train out behind the engine. */
@@ -109,7 +112,16 @@ export function createRun(layout: Layout, pickup: number, town: number, cars: nu
   const to = deliverable(layout, town, pickup);
   if (to === null) return null;
   const { segs, head } = trainAt(layout, town, to, cars);
-  return { layout, segs, head, speed: 0, throttle: 0, top, cars, leg: 'pickup', pickup, town, legT: 0, wait: 0, lean: 0, hint: null, events: [], t: 0 };
+  return { layout, segs, head, speed: 0, throttle: 0, top, cars, leg: 'pickup', pickup, town, legT: 0, wait: 0, lean: 0, hint: null, events: [], t: 0, boost: 0 };
+}
+
+/** The train running round his Layout by itself, from a straight square, with no station to go to. */
+export function createFreeRun(layout: Layout, start: number, cars: number, top = 2.8): Run | null {
+  const m = layout.cells[start]!;
+  if (!isStraight(m)) return null;
+  const to = ([1, 2, 4, 8] as Dir[]).find(d => m & d)!;
+  const { segs, head } = trainAt(layout, start, to, cars);
+  return { layout, segs, head, speed: 0, throttle: 0, top, cars, leg: 'free', pickup: -1, town: -1, legT: 0, wait: 0, lean: 0, hint: null, events: [], t: 0, boost: 0 };
 }
 
 const target = (r: Run) => (r.leg === 'pickup' || r.leg === 'loading' ? r.pickup : r.town);
@@ -148,10 +160,11 @@ export function stepRun(r: Run, dt: number) {
     return;
   }
   r.legT += dt;
-  const want = r.throttle * r.top, goal = target(r);
-  r.speed += (want - r.speed) * Math.min(1, dt * (want > r.speed ? 1.6 : 3));
+  r.boost = Math.max(0, r.boost - dt);
+  const want = r.throttle * r.top * (r.boost > 0 ? BOOST : 1), goal = r.leg === 'free' ? -1 : target(r);
+  r.speed += (want - r.speed) * Math.min(1, dt * (want > r.speed ? (r.boost > 0 ? 3 : 1.6) : 3));
   // the station stops the train by itself: it slows as it comes in, whatever he does
-  const left = aheadTo(r, goal);
+  const left = r.leg === 'free' ? null : aheadTo(r, goal);
   if (left !== null && r.speed > .2) r.speed = Math.min(r.speed, Math.max(.35, left * 2.2));
   let move = r.speed * dt;
   if (left !== null && move >= left) move = left;
@@ -178,6 +191,7 @@ export function stepRun(r: Run, dt: number) {
     r.hint = null;
     return;
   }
+  if (r.leg === 'free') return;
   // points: lit after a while if they're set the wrong way, set by themselves after a longer while
   const need = pointsNeeded(r);
   r.hint = r.legT > HINT_S && need.length ? need[0]!.cell : null;
@@ -199,6 +213,11 @@ export function tapPoints(r: Run, cell: number): boolean {
   r.layout = { ...r.layout, points };
   return true;
 }
+
+/** How much faster a boost goes. */
+export const BOOST = 1.6;
+/** A boost: a few seconds faster. Even full speed boosted, arriving still stops the train at the station. */
+export const boostRun = (r: Run, secs = 3) => { r.boost = secs; };
 
 /** How much a Delivery pays: more for a longer train, at most 6. */
 export const PAY_MAX = 6;

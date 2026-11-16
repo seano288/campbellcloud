@@ -1,6 +1,6 @@
 // Reloads the page where a reload hurts most, as when iPadOS closes the app in the background: in the middle of a Round (once
-// mid-lesson, after a miss), then in the middle of a Delivery. The Round must come back with the answers he gave, still take taps,
-// finish and pay once; the Delivery must not be used up, and he lands on his Layout.
+// mid-lesson, after a miss), in the middle of a Delivery, and while the train runs by itself (Watch it go). The Round must come
+// back with the answers he gave, still take taps, finish and pay once; the Delivery must not be used up, and he lands on his Layout.
 //   npm run dev:sentence-express   (in another shell)
 //   npx tsx tools/sentence-express/reload.ts [url]
 import { chromium } from 'playwright';
@@ -132,6 +132,18 @@ const towerPixel = await page.evaluate(() => {
 // the tower's tank is red; the bare table is pale wood
 if (!(towerPixel[0]! > 150 && towerPixel[1]! < 110)) problems.push(`a water tower on the table isn't drawn after a reload (${towerPixel.join(',')})`);
 
+// Watch it go, reloaded while the train runs: he lands on his Layout, with nothing used up
+const before = await saved();
+await page.getByRole('button', { name: 'Watch it go' }).tap();
+await page.waitForTimeout(2000);
+if (!(await page.locator('.show-screen').count())) problems.push('Watch it go did not open');
+await page.reload();
+await page.waitForTimeout(600);
+await start();
+if (!(await page.locator('.layout-screen').count())) problems.push('a reload during Watch it go did not land on the Layout');
+const w = await saved();
+if (w.trains?.deliveries !== before.trains?.deliveries || w.balance !== before.balance) problems.push('a reload during Watch it go changed his Deliveries or Bolts');
+
 await browser.close();
-console.log(problems.length ? `PROBLEMS:\n${problems.join('\n')}` : 'reloads: a Round (mid-question and mid-lesson), a Delivery and drawn scenery all come back right; the sound starts on the first tap and wakes again');
+console.log(problems.length ? `PROBLEMS:\n${problems.join('\n')}` : 'reloads: a Round (mid-question and mid-lesson), a Delivery, Watch it go and drawn scenery all come back right; the sound starts on the first tap and wakes again');
 process.exitCode = problems.length ? 1 : 0;
