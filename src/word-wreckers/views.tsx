@@ -35,8 +35,10 @@ export function Frame({ boxes, eCell, lit, onTap, label, size }: {
       ? <button key={b.key ?? i} class={c} aria-label={`Box ${i + 1}${b.cells.every(x => x !== null) ? `: ${b.cells.join('')}` : ''}`} onClick={() => onTap(i)}>{inner}</button>
       : <span key={b.key ?? i} class={c}>{inner}</span>;
   };
+  // how many letter cells and boxes there are, so the cells can grow to fill the width without the row ever spilling over
+  const n = boxes.reduce((k, b) => k + b.cells.length, 0) + (eCell !== undefined ? 1 : 0), b = boxes.length + (eCell !== undefined ? 1 : 0);
   return (
-    <div class={cls('frame', size)} role="group" aria-label={label}>
+    <div class={cls('frame', size)} role="group" aria-label={label} style={{ '--n': n, '--b': b }}>
       {boxes.map(box)}
       {eCell !== undefined && (
         <span class={cls('sbox', 'magic', 'ebox', lit === magicAt && 'lit', eCell !== null && 'full')} aria-label="The magic e">

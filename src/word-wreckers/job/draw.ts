@@ -139,7 +139,10 @@ export function drawWreck(c: CanvasRenderingContext2D, w: Wreck, cw: number, ch:
   const cols = Math.max(...w.bricks.map(b => b.col)) + 1;
   // the camera keeps the machine and the whole building in view, closing in as the machine does
   const below = ch > cw * 1.2 ? ch * .2 : 0;
-  const v = fit(c, cw, ch, VIEW_H, Math.min(w.mx - 30, BUILDING_X - 380), BUILDING_X + cols * BW + 50, { y: GROUND_Y, below }), vw = v.vw;
+  // the dynamite's plunger stands at the bottom right: on a screen held sideways (where the ground can't rise above the controls) the
+  // camera leaves room for it to the right of the building, so it never covers the building he's sticking dynamite on
+  const plungerRoom = w.action === 'blast' && !below ? 190 : 0;
+  const v = fit(c, cw, ch, VIEW_H, Math.min(w.mx - 30, BUILDING_X - 380), BUILDING_X + cols * BW + 50 + plungerRoom, { y: GROUND_Y, below }), vw = v.vw;
   sky(c, v.x0, vw, v.top, VIEW_H, MATERIAL[tier].sky);
   skyline(c, v.x0, vw, GROUND_Y);
   groundBand(c, v.x0, vw, GROUND_Y, VIEW_H);
@@ -156,6 +159,7 @@ export function drawWreck(c: CanvasRenderingContext2D, w: Wreck, cw: number, ch:
   }
   if (!haul) {
     const jiggle = w.action === 'hammer' ? Math.sin(w.t * 90) * 3 * w.hammer.shake : 0;
+    if (w.action === 'magnet') drawMagnetBoom(c, w, look); // behind the machine, so its cab sits in front of the boom, as in the Yard
     drawMachine(c, w.machine, look, w.mx + jiggle, GROUND_Y - Math.abs(jiggle) * .5, M_SCALE);
     if (w.action === 'hammer') drawCracks(c, w);
     else if (w.action === 'blast') drawSticks(c, w);
@@ -224,13 +228,16 @@ function drawSticks(c: CanvasRenderingContext2D, w: Wreck) {
   }
 }
 
-/** The magnet crane's boom, reaching over to wherever the magnet is, its cable, and the magnet (the bricks it carries are drawn with
- *  the rest). */
-function drawMagnet(c: CanvasRenderingContext2D, w: Wreck, look: Look) {
-  const m = w.machine as 'magnet' | 'supermag', rig = RIGS[m], mg = w.magnet, mw = mg.w, mh = magnetOf(m, look).h * M_SCALE;
+/** Where the magnet crane's boom runs: from its pivot on the machine to just above the magnet. */
+function magnetRig(w: Wreck, look: Look) {
+  const m = w.machine as 'magnet' | 'supermag', rig = RIGS[m], mg = w.magnet, mh = magnetOf(m, look).h * M_SCALE;
   const base = { x: w.mx + rig.base.x * M_SCALE, y: GROUND_Y - (150 - rig.base.y) * M_SCALE }, top = mg.y - mh - 16;
-  const tip = { x: mg.x - 10, y: Math.min(top - 50, base.y - 60) };
-  // the boom: a lattice from its pivot on the machine to above the magnet
+  return { m, mg, mh, base, top, tip: { x: mg.x - 10, y: Math.min(top - 50, base.y - 60) } };
+}
+
+/** The magnet crane's boom, a lattice reaching over to wherever the magnet is. Drawn before the machine, so the cab is in front. */
+function drawMagnetBoom(c: CanvasRenderingContext2D, w: Wreck, look: Look) {
+  const { m, base, tip } = magnetRig(w, look);
   const dx = tip.x - base.x, dy = tip.y - base.y, len = Math.max(1, Math.hypot(dx, dy)), half = (m === 'supermag' ? 18 : 14) * M_SCALE / 2;
   const nx = (-dy / len) * half, ny = (dx / len) * half, n = Math.max(3, Math.round(len / 24));
   c.lineJoin = 'round'; c.lineCap = 'round';
@@ -240,6 +247,12 @@ function drawMagnet(c: CanvasRenderingContext2D, w: Wreck, look: Look) {
   c.beginPath(); c.moveTo(base.x + nx, base.y + ny); c.lineTo(tip.x + nx, tip.y + ny); c.moveTo(base.x - nx, base.y - ny); c.lineTo(tip.x - nx, tip.y - ny);
   for (let i = 0; i < n; i++) { const t0 = i / n, t1 = (i + 1) / n, sg = i % 2 ? 1 : -1; c.moveTo(base.x + dx * t0 + nx * sg, base.y + dy * t0 + ny * sg); c.lineTo(base.x + dx * t1 - nx * sg, base.y + dy * t1 - ny * sg); }
   c.stroke();
+}
+
+/** The magnet crane's cable from the boom's tip, and the magnet (the bricks it carries are drawn with the rest). */
+function drawMagnet(c: CanvasRenderingContext2D, w: Wreck, look: Look) {
+  const { mg, mh, top, tip } = magnetRig(w, look), mw = mg.w;
+  c.lineJoin = 'round'; c.lineCap = 'round';
   c.strokeStyle = '#1d1d1f'; c.lineWidth = 4; c.beginPath(); c.moveTo(tip.x, tip.y); c.lineTo(mg.x, top); c.stroke();
   c.lineWidth = 3.5; c.strokeStyle = '#1d1d1f'; c.beginPath(); c.moveTo(mg.x - 12, mg.y - mh); c.lineTo(mg.x, top); c.lineTo(mg.x + 12, mg.y - mh); c.stroke();
   c.fillStyle = '#5a5f66'; c.beginPath(); c.roundRect(mg.x - mw / 2, mg.y - mh, mw, mh, 6); c.fill(); c.stroke();

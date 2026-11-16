@@ -217,9 +217,14 @@ is a plain list; no existing row's id or price changed.
 
 Hi-vis yellow, asphalt grey and hazard stripes in the family look: Bungee titles, Nunito for the game's words, Andika for every letter he
 spells, 4px black outlines, solid drop shadows that press in. Machines and buildings are drawn in code (`art/machines.ts`,
-`art/buildings.ts`) as SVG strings shared by the Yard, the Job's canvas (cached as bitmaps) and the Town. Icon: a wrecking ball on its
-chain swinging into a wall of letter tiles, tiles flying, on hi-vis yellow with a hazard band. Home's Play tile is a building site with
-the crane, the letter-tile wall and the fence; the Yard tile is his machine, the Town tile his newest buildings.
+`art/buildings.ts`) as SVG strings shared by the Yard, the Job's canvas (cached as bitmaps) and the Town. Icon: a big wrecking ball on
+its chain from a crane's boom, smashing into a wall of big letter tiles (c a t, u p) with a white bang, two tiles flying, on a hi-vis
+yellow sunburst with a hazard band, like the sibling icons. Home's Play tile is a building site: the crane's lattice boom runs in along
+the top and the green ▶ is the wrecking ball hanging from it, beside the letter-tile wall and the fence; the Yard tile is his machine,
+the Town tile his newest buildings, and My Levels a site board with a hazard-striped top and chunky amber Level bars. Titles have no
+orange in their shadow (orange means "being read aloud"). A question's card wears hazard tape along its top, and its sound boxes and
+tiles grow with the screen (sized by how many letters the word has, so a long word still fits). The Yard names the open tab with how
+many of it he has, marks what he owns with a ✓ and what he can buy now with a yellow frame and price.
 
 ## Voice
 
