@@ -7,7 +7,10 @@ import { BOLT, earnedLine, type EarnedLine } from '../currency/kind';
 import { PATTERN_IDS, WORDS, type PatternId, type Word } from '../dino-dig/words/list';
 import { LOCKED_HINTS, MODE_IDS, MODE_NAMES, type ModeName } from './learning';
 import { PHRASES as PICK_PHRASES, type PickPhrase } from './spelling/problems';
-import { ALL_NAMES, BUILDING_NAMES, MACHINES, type BuildingName, type ItemName, type OpensLine } from './yard/shop';
+import {
+  ALL_NAMES, BUILDING_NAMES, FEATURE_NAMES, FEATURES, MACHINES, OLD_LINES, TREASURE_NAMES, type BuildingName, type FeatureLine, type FeatureName, type ItemName,
+  type OldLine, type OpensLine, type TreasureName,
+} from './yard/shop';
 
 export const NUMBERS_TO = 100;
 /** The most Bolts said in one "You earned" line: a perfect Round pays 6. */
@@ -45,9 +48,15 @@ const MEETING = ['A new sound pattern!', 'Tap Go when you are ready!'] as const;
 const YARD = [
   'The Yard!', 'It costs', 'Bolts.', 'You need', 'more Bolts.', 'Play a Round to earn Bolts!', 'You got', 'You built everything!',
   'You have 1 Job!', 'Jobs!', 'Tap Job!', 'Play a Round to earn a Job!', 'You earned a Job!', 'First get the',
-  'Machines', 'Upgrades', 'Paint', 'Driver', 'Town', 'More power!', 'Bigger hits!', 'Faster!',
+  'Machines', 'Upgrades', 'Paint', 'Driver', 'Horns', 'Streets', 'Decorations', 'Traffic', 'Treasures', 'More power!', 'Bigger hits!', 'Faster!',
+  'It drives around your Town!', 'Find it under an old building!', 'out of', 'treasures found!',
 ] as const;
-export const MATERIAL_LINES = ['An old wooden shed!', 'An old brick building!', 'An old concrete building!', 'An old steel tower!'] as const;
+const JOB_MORE = [
+  'Tap the building to put on dynamite!', 'Press the plunger!', 'Stand back!', 'Tap the building to lift it with the magnet!', 'Clang!',
+  'A treasure chest!', 'Tap the chest to open it!', 'You found', 'Drive the dump truck!', 'Or pave a road!', 'Pave the road!',
+  'Hold the arrow to roll the bumps flat!', 'Hold the arrow to fill the holes!', 'Flat!', 'Filled!', 'Now the lines!', 'The road is ready!',
+  'What goes on the road?',
+] as const;
 const JOB = [
   'A new Job!', 'Pick a machine!', 'Knock it down!', 'Pull the ball back and let go!', 'Hold the arrow to push!', 'Tap the building to dig!',
   'Crash!', 'Boom!', 'Smash!', 'A Bolt!', 'The lot is clear!', 'Haul it away!', 'What will you build?',
@@ -55,6 +64,9 @@ const JOB = [
   'Tap again to leave.', 'Off to your Town!', 'Just for fun!',
 ] as const;
 const TOWN = ['Your Town!', 'Honk honk!', 'Hold the arrows to drive!', 'This street is for sale!', 'Do a Job to build here!'] as const;
+
+/** What the old building is, by material and shape. */
+export const oldLine = (tier: 1 | 2 | 3 | 4, shape: number) => { const lines = OLD_LINES[tier]; return lines[((shape % lines.length) + lines.length) % lines.length]! as OldLine; };
 
 type EarnedPhrase = EarnedLine<typeof BOLT>;
 type StarLine = `You are a ${ModeName} star!`;
@@ -65,13 +77,14 @@ export const numberPhrases = () => Array.from({ length: NUMBERS_TO + 1 }, (_, n)
 
 export type Phrase = (typeof GAME)[number] | (typeof CHEERS)[number] | EarnedPhrase | ModePhrase | (typeof LOCKED_HINTS)[keyof typeof LOCKED_HINTS] | `${number}`
   | Word | Slowly | PickPhrase | (typeof ASKING)[number] | (typeof TEACHING)[number] | (typeof PATTERN_LINES)[PatternId] | (typeof MEETING)[number]
-  | (typeof YARD)[number] | (typeof MATERIAL_LINES)[number] | (typeof JOB)[number] | (typeof TOWN)[number]
-  | ItemName | BuildingName | OpensLine;
+  | (typeof YARD)[number] | OldLine | (typeof JOB)[number] | (typeof JOB_MORE)[number] | (typeof TOWN)[number]
+  | ItemName | BuildingName | OpensLine | FeatureName | FeatureLine | TreasureName;
 
 const uniq = <T,>(xs: readonly T[]) => [...new Set(xs)];
 
 export const PHRASES = uniq<Phrase>([
   ...GAME, ...CHEERS, ...Array.from({ length: MOST_EARNED }, (_, i) => earnedLine(BOLT, i + 1)), ...modePhrases(), ...Object.values(LOCKED_HINTS), ...numberPhrases(),
   ...WORDS, ...WORDS.map(slowly), ...Object.values(PICK_PHRASES), ...ASKING, ...TEACHING, ...PATTERN_IDS.map(p => PATTERN_LINES[p]), ...MEETING,
-  ...YARD, ...MATERIAL_LINES, ...JOB, ...TOWN, ...ALL_NAMES, ...BUILDING_NAMES, ...MACHINES.flatMap(m => ('opens' in m ? [m.opens] : [])),
+  ...YARD, ...Object.values(OLD_LINES).flat(), ...JOB, ...JOB_MORE, ...TOWN, ...ALL_NAMES, ...BUILDING_NAMES, ...MACHINES.flatMap(m => ('opens' in m ? [m.opens] : [])),
+  ...FEATURE_NAMES, ...FEATURES.map(f => f.line), ...TREASURE_NAMES,
 ]);

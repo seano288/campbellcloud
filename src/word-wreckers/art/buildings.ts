@@ -140,6 +140,49 @@ const LOOKS: Record<Look, (p: Paint) => Piece[]> = {
     { w: 180, h: 46, svg: `<path d="M0 46 V16 L30 0 V16 L60 0 V16 L90 0 V16 L120 0 V16 L150 0 V16 L180 0 V46 Z" fill="${p.trim}" ${L()}/>` },
     { w: 180, h: 54, svg: `${[22, 70].map(x => `<rect x="${x}" y="4" width="22" height="50" fill="#8a929b" ${L(3)}/><path d="M${x} 14 h22" stroke="#e63946" stroke-width="6"/>`).join('')}<path d="M33 0 q-8 -10 2 -16" stroke="#c9d1d9" stroke-width="6" fill="none" stroke-linecap="round"/>` },
   ],
+  windmill: p => [
+    { w: 110, h: 70, svg: `<path d="M8 70 L20 0 H90 L102 70 Z" fill="${p.body}" ${L()}/>${door(55, 70, 22, 38, p.trim)}` },
+    { w: 90, h: 50, svg: `<path d="M8 50 L16 0 H74 L82 50 Z" fill="${p.body}" ${L()}/>${windows(30, 12, 30, 26, 1, 1)}` },
+    { w: 160, h: 90, svg: `<path d="M40 90 Q80 30 120 90 Z" fill="${p.roof}" ${L()}/>${[0, 1, 2, 3].map(i => `<g transform="rotate(${45 + i * 90} 80 56)"><rect x="76" y="2" width="8" height="54" fill="#8a5a2a" ${L(2.5)}/><rect x="84" y="6" width="16" height="44" fill="#fff" ${L(2.5)}/></g>`).join('')}<circle cx="80" cy="56" r="7" fill="${O}"/>` },
+  ],
+  igloo: p => [
+    { w: 160, h: 50, svg: `<path d="M4 50 Q4 0 80 0 Q156 0 156 50 Z" fill="${p.body}" ${L()}/>${[30, 70, 110].map(x => `<path d="M${x} 6 V50" stroke="#a9c9e0" stroke-width="3"/>`).join('')}<path d="M14 26 H146" stroke="#a9c9e0" stroke-width="3"/><path d="M110 50 V30 Q126 20 142 30 V50 Z" fill="#2a3a4a" ${L(3)}/>` },
+    { w: 120, h: 44, svg: `<path d="M4 44 Q4 0 60 0 Q116 0 116 44 Z" fill="${p.body}" ${L()}/><path d="M24 22 H96 M60 4 V44" stroke="#a9c9e0" stroke-width="3"/><path d="M52 2 L60 -10 L68 2" fill="#e63946" ${L(2.5)}/>` },
+  ],
+  silo: p => [
+    { w: 120, h: 70, svg: `${box(0, 0, 70, 70, p.body)}${[18, 38, 58].map(y => `<path d="M0 ${y} H70" stroke="#7a2a1a" stroke-width="3"/>`).join('')}<rect x="76" y="20" width="44" height="50" rx="4" fill="#d9483b" ${L()}/>${door(98, 70, 22, 38, '#fff')}` },
+    { w: 70, h: 70, svg: `${box(0, 0, 70, 70, p.body)}${[18, 38, 58].map(y => `<path d="M0 ${y} H70" stroke="#7a2a1a" stroke-width="3"/>`).join('')}` },
+    { w: 76, h: 44, svg: `<path d="M2 44 Q38 -20 74 44 Z" fill="#c9d1d9" ${L()}/><circle cx="38" cy="10" r="5" fill="${O}"/>` },
+  ],
+  funhouse: p => [
+    { w: 180, h: 70, svg: `${box(0, 0, 180, 70, p.body)}${stripes(0, 0, 180, 12, '#e63946', '#fff', 12)}<path d="M64 70 V40 Q90 18 116 40 V70 Z" fill="#e63946" ${L()}/><circle cx="90" cy="46" r="7" fill="#fff" ${L(2.5)}/>${windows(10, 22, 44, 34, 1, 1)}${windows(126, 22, 44, 34, 1, 1)}` },
+    { w: 150, h: 80, svg: `<path d="M8 80 L20 6 H130 L142 80 Z" fill="#7a4fd8" ${L()}/><circle cx="75" cy="40" r="28" fill="#fff" ${L()}/><circle cx="64" cy="34" r="4" fill="${O}"/><circle cx="86" cy="34" r="4" fill="${O}"/><circle cx="75" cy="44" r="7" fill="#e63946" ${L(2.5)}/><path d="M60 54 Q75 66 90 54" fill="none" stroke="${O}" stroke-width="4" stroke-linecap="round"/>` },
+    { w: 100, h: 40, svg: `<path d="M4 40 L50 0 L96 40 Z" fill="${p.roof}" ${L()}/><circle cx="50" cy="2" r="6" fill="#ffd23f" ${L(2.5)}/>` },
+  ],
+  bigtop: p => [
+    { w: 196, h: 60, svg: `${stripes(0, 0, 196, 60, p.body, '#fff', 10)}<path d="M78 60 V24 Q98 8 118 24 V60 Z" fill="#3a1f6a" ${L(3)}/>` },
+    { w: 196, h: 70, svg: `<path d="M0 70 L98 2 L196 70 Z" fill="${p.body}" ${L()}/>${[0, 1, 2, 3, 4].map(i => `<path d="M98 2 L${20 + i * 39} 70" stroke="#fff" stroke-width="10"/>`).join('')}<path d="M0 70 L98 2 L196 70 Z" fill="none" ${L()}/>` },
+    { w: 40, h: 40, svg: `<path d="M20 40 V4" stroke="${O}" stroke-width="4"/><path d="M20 4 L40 10 L20 18 Z" fill="${p.roof === GOLD ? GOLD : '#ffd23f'}" ${L(2.5)}/>` },
+  ],
+  skijump: p => [
+    { w: 190, h: 60, svg: `<path d="M0 60 L60 0 H90 L190 60 Z" fill="#f4f8fc" ${L()}/><path d="M60 0 H90 V60 H60 Z" fill="${p.body}" ${L()}/>` },
+    { w: 150, h: 70, svg: `<path d="M0 70 Q60 70 110 0 H140 V70 Z" fill="${p.body}" ${L()}/><path d="M6 66 Q60 64 112 6" fill="none" stroke="#fff" stroke-width="6"/>${[110, 125].map(x => `<path d="M${x} 70 V30" stroke="${O}" stroke-width="4"/>`).join('')}` },
+    { w: 60, h: 46, svg: `${box(4, 10, 52, 36, p.trim)}<path d="M0 12 L30 0 L60 12 Z" fill="${p.roof}" ${L(3)}/>${windows(10, 16, 40, 22, 2, 1)}` },
+  ],
+  hangar: p => [
+    { w: 196, h: 64, svg: `${box(0, 0, 196, 64, p.body)}<rect x="30" y="8" width="136" height="56" fill="#5a5f66" ${L(3)}/>${[64, 98, 132].map(x => `<path d="M${x} 8 V64" stroke="${O}" stroke-width="3"/>`).join('')}` },
+    { w: 196, h: 70, svg: `<path d="M0 70 Q0 0 98 0 Q196 0 196 70 Z" fill="${p.body}" ${L()}/>${[40, 70, 98, 126, 156].map(x => `<path d="M${x} ${x === 98 ? 2 : x === 70 || x === 126 ? 8 : 22} V70" stroke="#8a929b" stroke-width="3"/>`).join('')}${sign(98, 40, p.sign, 18)}` },
+  ],
+  pyramid: p => [
+    { w: 196, h: 56, svg: `<path d="M0 56 L28 0 H168 L196 56 Z" fill="${p.body}" ${L()}/><path d="M28 0 L48 56 M98 0 V56 M168 0 L148 56 M14 28 H182" stroke="#fff" stroke-width="3" opacity=".8"/>${door(98, 56, 30, 40, p.trim)}` },
+    { w: 140, h: 56, svg: `<path d="M0 56 L28 0 H112 L140 56 Z" fill="${p.body}" ${L()}/><path d="M28 0 L44 56 M70 0 V56 M112 0 L96 56 M14 28 H126" stroke="#fff" stroke-width="3" opacity=".8"/>` },
+    { w: 84, h: 56, svg: `<path d="M0 56 L42 0 L84 56 Z" fill="${p.body}" ${L()}/><path d="M42 0 V56 M21 28 H63" stroke="#fff" stroke-width="3" opacity=".8"/>` },
+  ],
+  wheel: p => [
+    { w: 180, h: 40, svg: `${box(0, 10, 180, 30, '#8a929b')}${stripes(10, 18, 160, 10, '#ffd23f', O, 10)}<path d="M40 10 L90 -2 L140 10" fill="none" stroke="${O}" stroke-width="6"/>` },
+    { w: 180, h: 76, svg: `<path d="M90 76 L40 0 M90 76 L140 0" stroke="${O}" stroke-width="7"/><path d="M90 76 L40 0 M90 76 L140 0" stroke="#c9d1d9" stroke-width="3"/>` },
+    { w: 190, h: 110, svg: `<circle cx="95" cy="55" r="52" fill="none" stroke="${O}" stroke-width="9"/><circle cx="95" cy="55" r="52" fill="none" stroke="${p.body}" stroke-width="5"/>${Array.from({ length: 8 }, (_, i) => { const a = i * Math.PI / 4, x = 95 + Math.cos(a) * 52, y = 55 + Math.sin(a) * 52; return `<path d="M95 55 L${x} ${y}" stroke="${O}" stroke-width="3"/><rect x="${x - 9}" y="${y - 2}" width="18" height="14" rx="3" fill="${['#ffd23f', '#3d9be0', '#2bb673', '#ff7ac0'][i % 4]}" ${L(2.5)}/>`; }).join('')}<circle cx="95" cy="55" r="8" fill="${p.roof}" ${L(3)}/>` },
+  ],
 };
 
 const paintFor = (id: BuildingId, gold: boolean): Paint => {

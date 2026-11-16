@@ -382,19 +382,28 @@ _Avoid_: Elkonin box (fine in the research, not on screen)
 
 **Wrong spelling**: a misspelling the game shows (Fix It) or offers (Which Looks Right). Never a real word, never rude, never read aloud.
 
-**Job**: what a finished Round earns (he starts with one): a demolition and then a build. It's used only when the new building is up.
+**Job**: what a finished Round earns (he starts with one): a demolition and then a build, or a Road Job. It's used only when the new building is up (or the road done).
 _Avoid_: rescue, call, voyage
 
-**Demolition**: the first half of a Job: he knocks an old building down with one of his machines (a wrecking ball he pulls back and lets go, a blade he holds to push, a bucket that bites where he taps). The old building is wood, brick, concrete or steel, never stronger than his strongest machine.
+**Road Job**: the second kind of Job, picked by choosing the Steamroller or the Cement Mixer on the Job's card: he drives along an old road to roll its bumps flat or fill its holes, the line gets painted, and he picks a road feature. Pays the same as any Job.
+
+**Road feature**: what a Road Job puts on the Town's road (Car Wash, Jump Ramp, Speed Bumps, Tunnel, Mud Puddle, Loop the Loop, Bubble Arch, Confetti Gate, Sprinklers, Rainbow Arch, Turbo Pad, Firework Pad), three places a street. It works when he drives through it or taps it. Never bought.
+_Avoid_: decoration (a decoration is bought and only hops)
+
+**Treasure (Word Wreckers)**: one of 30 named finds (Old Coin, Dino Bone, Time Capsule...) in a chest hidden in every other old building. He taps the chest open; it's kept when the Job is done and sits on the **Treasure shelf** (the Yard's 💎 tab). Never bought.
+
+**Demolition**: the first half of a Job: he knocks an old building down with one of his machines, one of six ways: swing (a wrecking ball he pulls back and lets go), push (a blade he holds to drive in), bite (a bucket that bites where he taps), hammer (a jackhammer he taps fast), blast (dynamite he sticks on, then the **plunger**) or magnet (lifts the top off a column he taps). The old building is wood, brick, concrete or steel, never stronger than his strongest machine, and has a name ("An old brick chimney!").
 
 **Build**: the second half of a Job: he picks one of two or three buildings and lowers its pieces with the crane, moving the hook with his finger and letting go; every piece snaps onto the one below.
 
-**Machine**: one of his construction machines (Wrecking Ball Crane, Skid Steer, Bulldozer, Excavator, Dump Truck, Tower Crane, Demolition Robot, Monster Dozer, Mega Wrecker, Giant Excavator). Its **power** (1 wood to 4 steel) is what it can knock down; power **Upgrades** raise it, other upgrades make hits bigger or driving faster. The Tower Crane puts up the tallest buildings.
+**Machine**: one of his 19 construction machines (Wrecking Ball Crane, Mini Digger, Skid Steer, Bulldozer, Jackhammer, Steamroller, Excavator, Cement Mixer, Dump Truck, Dynamite Truck, Magnet Crane, Tower Crane, Rock Breaker, Demolition Robot, Monster Dozer, Super Magnet, Mega Wrecker, Mega Blaster, Giant Excavator). Its **power** (1 wood to 4 steel) is what it can knock down; power **Upgrades** raise it, other upgrades make hits bigger or driving faster, or add looks. The Tower Crane puts up the tallest buildings; the Dump Truck, once his, is driven to haul the rubble; the Steamroller and Cement Mixer do Road Jobs.
 _Avoid_: truck, Body (Word Wreckers has no Body or Slots)
 
-**Yard**: where his machines are parked and bought, with their upgrades, paints, the **Driver** (who sits in every cab), and the Town's streets and decorations.
+**Yard**: where his machines are parked and bought, with their upgrades, paints, the **Driver** (who sits in every cab), his **Horn** (what every machine honks with), the Town's streets, decorations and traffic, and his Treasure shelf.
 _Avoid_: Garage
 
-**Town**: the street of everything he has built, lot by lot; he drives any machine along it and honks. Main Street is free; each bought **Street** adds six **Lots**. With no empty lot, a Job makes one of his buildings **gold** instead.
+**Town**: the street of everything he has built, lot by lot; he drives any machine along it and honks. Main Street is free; each bought **Street** adds six **Lots** and three places for road features. Six streets are **districts** with their own scenery (Farm Lane, Fairground, Beach Road, Airport Way, Snowy Peak, Dino Valley). With no empty lot, a Job makes one of his buildings **gold** instead.
 
-**Decoration (Word Wreckers)**: a thing for the Town's pavement or sky (Trees, Fountain, Fire Truck, Ferris Wheel, Fireworks...).
+**Traffic**: vehicles he buys that drive up and down the Town by themselves (Taxi, Tractor, Race Car, Racing Snail...). Tapping one honks it.
+
+**Decoration (Word Wreckers)**: a thing for the Town's pavement or sky (Trees, Fountain, Fire Truck, Ferris Wheel, Fireworks, Flying Dragon...). Tapping one makes it hop and say its name.
