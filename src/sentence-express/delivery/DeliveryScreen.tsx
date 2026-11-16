@@ -116,7 +116,8 @@ export function DeliveryScreen() {
         if (e === 'clack') { chuff.current++; if (chuff.current % 2 === 0) sChuff(r.speed / r.top); }
         if (e === 'squeal') { sSqueal(); say('Whee!'); }
         if (e === 'points') sPoints();
-        if (e === 'arrive') { sChime(); setThrottle(0); setLeg(r.leg); if (r.leg === 'loading') say('Loading!'); }
+        // "Loading!" matters (it says why the train stopped), so it's said even over a line in progress, not dropped like chatter
+        if (e === 'arrive') { sChime(); setThrottle(0); setLeg(r.leg); if (r.leg === 'loading') void voice.say('Loading!'); }
         if (e === 'loaded') { sPop(); setLeg(r.leg); void voice.say('Now take it to Toy Town!'); hinted.current = false; }
         if (e === 'helped') { sClink(); void voice.say('I switched the points for you!'); }
         if (e === 'delivered') finish();

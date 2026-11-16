@@ -7,10 +7,11 @@
 //   npx tsx tools/sentence-express/tour.ts <url> <outDir>
 // TOUR_VIEW=portrait|landscape|phone|side picks the screen (iPad 9 sizes by default: 810×1080 upright). TOUR_SAVE=fresh|levels: a
 // brand-new player, or one with every kind open at Level 2 (TOUR_LEVEL=1|2|3 picks another), some Bolts, scenery and track.
-import { mkdirSync } from 'node:fs';
+import { mkdirSync, writeFileSync } from 'node:fs';
 import { chromium, webkit, type CDPSession } from 'playwright';
 import { piecesOf } from '../../src/sentence-express/reading/problems';
 import { sentence } from '../../src/sentence-express/sentences/index';
+import { CLIPS } from '../../src/sentence-express/voice.gen';
 
 const [url = 'http://localhost:5194/', out = 'tour-shots'] = process.argv.slice(2);
 mkdirSync(out, { recursive: true });
@@ -21,7 +22,8 @@ const LEVEL = Number(process.env.TOUR_LEVEL ?? 2);
 const levels = {
   version: 1, balance: 40,
   learning: {
-    modes: Object.fromEntries(MODES.map(m => [m, { level: LEVEL, window: ['clean', 'clean'], opened: true, starred: false, introPending: false, fresh: false }])),
+    // TOUR_STREAK=9: one more right answer in a kind is Mastery, so the end of the Round says Level up (or the star at Level 3)
+    modes: Object.fromEntries(MODES.map(m => [m, { level: LEVEL, window: Array(Number(process.env.TOUR_STREAK ?? 2)).fill('clean'), opened: true, starred: false, introPending: false, fresh: false }])),
     pushed: Object.fromEntries(MODES.map(m => [m, 40])),
   },
   // some things bought already, and a station or two open, so the Delivery goes somewhere new
@@ -34,11 +36,52 @@ const problems: string[] = [];
 const context = await browser.newContext({ viewport: VIEW, deviceScaleFactor: 1, hasTouch: true, isMobile: false });
 const page = await context.newPage();
 const cdp: CDPSession | null = process.env.TOUR_BROWSER === 'webkit' ? null : await context.newCDPSession(page);
+// Listens in on the sound: every recorded clip that plays, by its file (followed from the fetch, through decoding and the game's
+// trim, to the buffer that starts), when it starts and stops and whether it was cut off, and every sound effect's first note.
 await page.addInitScript(() => {
-  const w = window as unknown as { __clips: number }, start = AudioBufferSourceNode.prototype.start;
-  w.__clips = 0;
-  AudioBufferSourceNode.prototype.start = function (...a: Parameters<typeof start>) { if ((this.buffer?.duration ?? 0) > .05) w.__clips++; return start.apply(this, a); };
+  type V = { f: string; t0: number; t1: number | null; dur: number; cut: boolean };
+  const w = window as unknown as { __clips: number; __voice: V[]; __fx: { t: number; type: string; f: number }[]; __ctx: AudioContext[] };
+  w.__clips = 0; w.__voice = []; w.__fx = []; w.__ctx = [];
+  const tag = new WeakMap<object, string>();
+  const arrayBuffer = Response.prototype.arrayBuffer;
+  Response.prototype.arrayBuffer = async function (this: Response) { const b = await arrayBuffer.call(this); if (/\/voice\//.test(this.url)) tag.set(b, this.url.split('/').pop()!); return b; };
+  const decode = BaseAudioContext.prototype.decodeAudioData;
+  BaseAudioContext.prototype.decodeAudioData = function (this: BaseAudioContext, b: ArrayBuffer, ...rest: unknown[]) {
+    const f = tag.get(b), p = (decode as (...a: unknown[]) => Promise<AudioBuffer>).call(this, b, ...rest);
+    return f ? p.then(buf => { tag.set(buf, f); return buf; }) : p;
+  } as typeof decode;
+  const channel = AudioBuffer.prototype.getChannelData;
+  AudioBuffer.prototype.getChannelData = function (this: AudioBuffer, c: number) { const d = channel.call(this, c); const f = tag.get(this); if (f) tag.set(d.buffer, f); return d; };
+  const copy = AudioBuffer.prototype.copyToChannel;
+  AudioBuffer.prototype.copyToChannel = function (this: AudioBuffer, src: Float32Array, ...r: [number, number?]) { const f = tag.get(src.buffer); if (f) tag.set(this, f); return copy.call(this, src as Float32Array<ArrayBuffer>, ...r); } as typeof copy;
+  const start = AudioBufferSourceNode.prototype.start;
+  AudioBufferSourceNode.prototype.start = function (this: AudioBufferSourceNode, ...a: Parameters<typeof start>) {
+    if ((this.buffer?.duration ?? 0) > .05) w.__clips++;
+    const f = this.buffer && tag.get(this.buffer);
+    if (f) {
+      const e: V = { f, t0: performance.now(), t1: null, dur: this.buffer!.duration, cut: false };
+      w.__voice.push(e);
+      const stop = this.stop;
+      this.stop = function (this: AudioBufferSourceNode, ...s: Parameters<typeof stop>) { if (e.t1 === null) { e.t1 = performance.now(); e.cut = e.t1 - e.t0 < e.dur * 1000 - 40; } return stop.apply(this, s); };
+      this.addEventListener('ended', () => { if (e.t1 === null) e.t1 = performance.now(); });
+    }
+    return start.apply(this, a);
+  };
+  const osc = BaseAudioContext.prototype.createOscillator;
+  BaseAudioContext.prototype.createOscillator = function (this: BaseAudioContext) {
+    const o = osc.call(this) as OscillatorNode & { __f?: number }, set = o.frequency.setValueAtTime.bind(o.frequency), go = o.start.bind(o);
+    o.frequency.setValueAtTime = (v: number, t: number) => { o.__f ??= Math.round(v); return set(v, t); };
+    o.start = (when?: number) => { w.__fx.push({ t: performance.now() + Math.max(0, (when ?? 0) - this.currentTime) * 1000, type: o.type, f: o.__f ?? 0 }); return go(when); };
+    return o;
+  };
+  const Ctx = window.AudioContext;
+  window.AudioContext = class extends Ctx { constructor(...a: ConstructorParameters<typeof Ctx>) { super(...a); w.__ctx.push(this); } };
 });
+/** The voice so far: each clip as its phrase, with when it started (ms since the tour began) and whether it was cut off. */
+const CLIP_PHRASE = Object.fromEntries(Object.entries(CLIPS).map(([p, f]) => [f, p]));
+type Heard = { f: string; t0: number; t1: number | null; dur: number; cut: boolean };
+const heard = () => page.evaluate(() => (window as unknown as { __voice: Heard[] }).__voice);
+const FX: Record<string, string> = { 'triangle:523': 'right', 'square:160': 'miss', 'triangle:1800': 'clink', 'triangle:1319': 'chime', 'square:220': 'nope', 'square:880': 'whistle (question)', 'square:784': 'whistle', 'triangle:1568': 'bell', 'sawtooth:2200': 'squeal', 'square:300': 'points', 'triangle:460': 'count (lesson)', 'triangle:1047': 'fanfare' };
 page.on('pageerror', e => problems.push(`pageerror: ${e.message} ${(e.stack ?? '').split('\n').slice(1, 4).join(' | ')}`));
 page.on('console', m => { if (m.type() === 'error' && !/favicon|manifest|MIME/.test(m.text())) problems.push(`console: ${m.text()}`); });
 await page.addInitScript(s => {
@@ -167,7 +210,7 @@ for (let r = 0; r < ROUNDS; r++) {
     seen.add(id);
     await shot(`q${++asked}-${id}`);
     // one deliberate miss in every kind he meets, then the same question again: it must still take taps after the lesson
-    const miss = !missedKinds.has(p.mode) && !p.replay;
+    const miss = process.env.TOUR_MISS !== '0' && !missedKinds.has(p.mode) && !p.replay;
     await answer(p, miss);
     if (miss) {
       missedKinds.add(p.mode);
@@ -226,6 +269,17 @@ else {
   if (after.cells.some(m => [1, 2, 4, 8].includes(m))) problems.push('a loose end was left after laying track');
   console.log(`layout: laid ${laid} squares with a drag (${before.supply} → ${after.supply} left), squares ${Math.round(before.cell)}px`);
   await shot('layout-laid');
+  // the rubber rubs out a points square he taps (it used to switch them instead)
+  const pointsAt = after.cells.findIndex(m => [7, 11, 13, 14].includes(m));
+  if (pointsAt >= 0) {
+    await page.getByRole('radio', { name: 'Rub out' }).tap();
+    await page.waitForTimeout(300);
+    await touchAt(await xy(pointsAt));
+    await page.waitForTimeout(500);
+    if ((await lay())!.cells[pointsAt]) problems.push('a tap with the rubber on points did not rub them out');
+    await page.getByRole('radio', { name: 'Lay track' }).tap();
+    await page.waitForTimeout(300);
+  }
   // the scenery tool: a piece from the tray onto an empty square
   await page.getByRole('radio', { name: 'Scenery' }).tap();
   await page.waitForTimeout(600);
@@ -252,6 +306,8 @@ const thr = (await page.locator('.throttle').boundingBox())!;
 // slide the throttle up with a finger
 await drag([{ x: thr.x + thr.width / 2, y: thr.y + thr.height - 30 }, { x: thr.x + thr.width / 2, y: thr.y + thr.height * .45 }, { x: thr.x + thr.width / 2, y: thr.y + 20 }]);
 await page.getByRole('button', { name: 'Whistle' }).tap();
+await page.waitForTimeout(1200);
+await page.getByRole('button', { name: 'Bell' }).tap();
 type D = { phase: string; leg: string; hint: number | null; t: number } | null;
 const dl = () => page.evaluate(() => { const d = (window as unknown as { __delivery?(): D }).__delivery?.(); return d && { phase: d.phase, leg: d.leg, hint: d.hint, t: d.t }; });
 let shotDrive = false, lastLeg = '', points = 0;
@@ -274,8 +330,68 @@ const end = await dl();
 if (end?.phase !== 'done') problems.push(`the Delivery never finished (${JSON.stringify(end)})`);
 await page.waitForTimeout(2500);
 await shot('delivery-done');
+await page.waitForTimeout(7000); // the whole of what a finished Delivery says: the Bolts, a gift, a station opening
 const s2 = await saved();
 if ((s2.trains?.trips ?? 0) !== tripsBefore + 1) problems.push('the Delivery was not counted');
+
+// ---------- leaving: what a screen says, and the Delivery itself, stop when he goes ----------
+/** No clip may still be playing, or start, after he has left (a little slack for the tap that left). */
+async function quietAfter(where: string, left: number, allowed: readonly string[] = []) {
+  await page.waitForTimeout(1500);
+  // the next screen's own greeting is fine; anything else still playing, or starting, after he left is not
+  const late = (await heard()).filter(h => !allowed.includes(CLIP_PHRASE[h.f]!) && (h.t0 >= left + 60 || h.t1 === null || h.t1 > left + 120));
+  if (late.length) problems.push(`still talking after leaving ${where}: ${late.map(h => `"${CLIP_PHRASE[h.f]}"`).join(', ')}`);
+}
+const now = () => page.evaluate(() => performance.now());
+const deliveriesBefore = (await saved()).trains?.deliveries ?? 0;
+if (deliveriesBefore > 0) {
+  await page.getByRole('button', { name: 'Deliver again' }).tap();
+  await page.waitForTimeout(1500);
+  await page.getByRole('button', { name: 'Go', exact: true }).tap();
+  await page.waitForTimeout(400);
+  const t2 = (await page.locator('.throttle').boundingBox())!;
+  await drag([{ x: t2.x + t2.width / 2, y: t2.y + t2.height - 30 }, { x: t2.x + t2.width / 2, y: t2.y + 20 }]);
+  await page.getByRole('button', { name: 'Whistle' }).tap();
+  await page.waitForTimeout(1200);
+  await page.getByRole('button', { name: 'Leave' }).tap();
+  await page.waitForTimeout(250);
+  const left = await now();
+  await page.getByRole('button', { name: 'Tap again to leave' }).tap();
+  const t0 = (await dl())?.t ?? 0;
+  await page.waitForTimeout(600);
+  if (((await dl())?.t ?? 0) !== t0) problems.push('the Delivery kept running after he left it');
+  if (!(await page.locator('.layout-screen').count())) problems.push('leaving a Delivery did not land on the Layout');
+  if (((await saved()).trains?.deliveries ?? 0) !== deliveriesBefore) problems.push('leaving a Delivery halfway used it up');
+  await quietAfter('a Delivery', left, ['Your Layout!', 'Drag your finger to lay track!']);
+}
+// the Layout says hello; Home straight away stops it
+if (!(await page.locator('.layout-screen').count())) { await page.getByRole('button', { name: 'Layout', exact: true }).first().tap(); await page.waitForTimeout(300); }
+await page.locator('.layout-screen').getByRole('button', { name: 'Home' }).tap();
+await quietAfter('the Layout', await now());
+// a Round: the question starts to be said, then 🏠 twice
+await page.getByRole('button', { name: 'Play', exact: true }).tap();
+await page.waitForTimeout(700);
+await page.locator('.roundbar').getByRole('button', { name: 'Home' }).tap();
+await page.waitForTimeout(300);
+const leftRound = await now();
+await page.locator('.roundbar').getByRole('button', { name: 'Tap again to go home' }).tap();
+await quietAfter('a Round', leftRound);
+if (!(await page.locator('.home-screen').count())) problems.push('🏠 twice did not go Home');
+
+// ---------- the voice, as heard ----------
+const log = (await heard()).sort((a, b) => a.t0 - b.t0);
+for (let i = 1; i < log.length; i++) {
+  const a = log[i - 1]!, b = log[i]!;
+  if (a.t1 !== null && b.t0 < a.t1 - 25) problems.push(`two clips at once: "${CLIP_PHRASE[a.f]}" and "${CLIP_PHRASE[b.f]}"`);
+}
+const fx = await page.evaluate(() => (window as unknown as { __fx: { t: number; type: string; f: number }[] }).__fx);
+const fxSeen = [...new Set(fx.map(x => FX[`${x.type}:${x.f}`]).filter(Boolean))];
+const t00 = log[0]?.t0 ?? 0;
+writeFileSync(`${out}/voice-${viewName}.txt`, [
+  ...log.map(h => `${((h.t0 - t00) / 1000).toFixed(2).padStart(7)}s ${(((h.t1 ?? h.t0) - h.t0) / 1000).toFixed(2)}/${h.dur.toFixed(2)}s ${h.cut ? 'CUT ' : '    '}${CLIP_PHRASE[h.f] ?? h.f}`),
+  '', `sound effects: ${fxSeen.join(', ')}`,
+].join('\n'));
+console.log(`voice: ${log.length} clips (${log.filter(h => h.cut).length} cut off by a tap or the next line), sound effects: ${fxSeen.join(', ')}`);
 
 const clips = await page.evaluate(() => (window as unknown as { __clips: number }).__clips);
 console.log(`${viewName} ${process.env.TOUR_SAVE ?? 'fresh'}${save ? ` L${LEVEL}` : ''}: ${asked} questions (${[...seen].join(', ')}), missed and retried in ${[...missedKinds].join(', ')}, ${points} points taps, delivery took ${end?.t.toFixed(1)}s, ${clips} voice clips played`);

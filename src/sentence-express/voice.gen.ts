@@ -22,7 +22,7 @@ export const CLIPS = {
   "You are a Build the Train star!": "831b04482e97.mp3",
   "You opened Build the Train!": "291a78e1a506.mp3",
   "Engine and Caboose": "a03e9e64685d.mp3",
-  "You are a Engine and Caboose star!": "0efb3393428b.mp3",
+  "You are an Engine and Caboose star!": "175b78c5e8b5.mp3",
   "You opened Engine and Caboose!": "181c862ee1cf.mp3",
   "What Happened": "2b6c6df330e2.mp3",
   "You are a What Happened star!": "c7613390ea9c.mp3",

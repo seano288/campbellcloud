@@ -206,6 +206,15 @@ html,body{background:var(--sky-2)}
   .scenery-tray{flex:1 1 100%;order:3;max-height:132px;grid-template-columns:repeat(auto-fill,minmax(56px,1fr))}
   .layout-side .deliver-btn{width:auto;flex:1;flex-direction:row;max-width:260px}
 }
+/* a phone on its side: the header becomes a narrow column at the left, so the table gets the screen's whole height (its squares
+   about 38px instead of 32) */
+@media (orientation:landscape) and (max-height:520px){
+  .layout-screen{flex-direction:row}
+  .layout-screen .work-head{flex-direction:column;justify-content:flex-start;gap:8px;padding:8px 0 var(--floor) max(16px,env(safe-area-inset-left))}
+  .layout-screen .work-head h1{display:none}
+  .layout-screen .supply{flex-direction:column;gap:0;padding:4px 6px;font-size:16px;border-radius:14px;min-width:44px}
+  .layout-screen .layout-body{flex:1;min-width:0;padding-top:8px;padding-left:8px}
+}
 
 /* ---------- the Delivery: the canvas fills the screen; controls stay off the bottom edge and the sides ---------- */
 .delivery-screen{position:fixed;inset:0;overflow:hidden;touch-action:none;overscroll-behavior:none;-webkit-user-select:none;user-select:none;-webkit-touch-callout:none;background:radial-gradient(circle at 50% 30%,#8cc8f2,#2a5a8a 80%);color:#fff}

@@ -73,7 +73,8 @@ export function LayoutScreen() {
     if (tool === 'scenery') { tapScenery(cellOf(e)); return; }
     if (cells.length < 2) {
       const cell = cells[0] ?? -1;
-      if (cell >= 0 && hasPoints(l.cells[cell]!)) { sClink(); saveLayout(switchPoints(l, cell)); return; }
+      // a tap on points switches them with the track tool; with the rubber it rubs them out like any other square
+      if (tool === 'track' && cell >= 0 && hasPoints(l.cells[cell]!)) { sClink(); saveLayout(switchPoints(l, cell)); return; }
       if (tool === 'erase' && cell >= 0 && l.cells[cell]) { commit(erase(l, [cell], supplyOf(t0)).layout); return; }
       say(tool === 'erase' ? 'Drag to rub out track.' : 'Drag your finger to lay track!');
       return;
@@ -113,8 +114,9 @@ export function LayoutScreen() {
   function pickTool(x: Tool) {
     if (!voice.active) return;
     setTool(x); setHeld(null);
-    say(x === 'track' ? 'Track!' : x === 'erase' ? 'Rub out!' : 'Scenery!');
-    if (x === 'scenery') setTimeout(() => say('Tap a piece, then tap the table.'), 0);
+    // one line, chained: a second say() would cut the first off before it was heard
+    if (x === 'scenery') say('Scenery!', 'Tap a piece, then tap the table.');
+    else say(x === 'track' ? 'Track!' : 'Rub out!');
   }
   const left = sceneryLeft(t);
   return (

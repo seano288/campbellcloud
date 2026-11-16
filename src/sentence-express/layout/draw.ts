@@ -46,9 +46,18 @@ function upright(c: CanvasRenderingContext2D, v: View, l: Pick<Layout, 'h'>, x: 
 }
 
 const images = new Map<string, HTMLImageElement>();
+let imagesLoaded = 0;
+/** How many drawn pieces' pictures have loaded: the table's cached layer is drawn again when this changes, or a piece drawn before
+ *  its picture had loaded (a water tower, on opening the Layout) would stay missing until the next change to the table. */
+export const loadedImages = () => imagesLoaded;
 function image(svg: string): HTMLImageElement | null {
   let img = images.get(svg);
-  if (!img) { img = new Image(); img.src = `data:image/svg+xml;charset=utf-8,${encodeURIComponent(svg)}`; images.set(svg, img); }
+  if (!img) {
+    img = new Image();
+    img.onload = () => { imagesLoaded++; };
+    img.src = `data:image/svg+xml;charset=utf-8,${encodeURIComponent(svg)}`;
+    images.set(svg, img);
+  }
   return img.complete && img.naturalWidth ? img : null;
 }
 

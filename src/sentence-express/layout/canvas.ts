@@ -1,7 +1,7 @@
 // A canvas sized to its box, with a cached layer for what doesn't move (the table and track) and a loop for what does.
 import { useEffect, useRef } from 'preact/hooks';
 import type { Layout } from './track';
-import { drawTable, viewFor, type View } from './draw';
+import { drawTable, loadedImages, viewFor, type View } from './draw';
 
 export interface Frame { c: CanvasRenderingContext2D; v: View; dt: number; t: number }
 
@@ -25,7 +25,7 @@ export function useTable(ref: { current: HTMLCanvasElement | null }, layout: () 
       if (!w || !h) return;
       const l = latest.current.layout(), o = latest.current.opts;
       if (canvas.width !== w || canvas.height !== h) { canvas.width = w; canvas.height = h; cache.width = w; cache.height = h; drawn = ''; }
-      const v = viewFor(l, box.width, box.height, dpr), key = `${w}x${h}|${o.key?.() ?? ''}|${o.target?.() ?? ''}`;
+      const v = viewFor(l, box.width, box.height, dpr), key = `${w}x${h}|${o.key?.() ?? ''}|${o.target?.() ?? ''}|${loadedImages()}`;
       view.current = v;
       if (key !== drawn || l !== drawnLayout) { drawTable(cc, v, l, { grid: o.grid, target: o.target?.() ?? null }); drawn = key; drawnLayout = l; }
       c.setTransform(1, 0, 0, 1, 0, 0);
