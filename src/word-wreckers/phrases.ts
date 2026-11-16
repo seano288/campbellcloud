@@ -13,7 +13,7 @@ export const NUMBERS_TO = 100;
 /** The most Bolts said in one "You earned" line: a perfect Round pays 6. */
 export const MOST_EARNED = 10;
 
-const GAME = ["Let's go!", 'Round done!', 'Level up!', 'You kept trying!', 'Tap again to go home.'] as const;
+const GAME = ["Let's go!", 'Level up!', 'You kept trying!', 'Tap again to go home.'] as const;
 export const CHEERS = ['Great job!', 'You got it!', 'Awesome!', 'Way to go!', 'Super speller!', 'Nice building!', 'You know your sounds!'] as const;
 
 // ---------- the questions ----------
@@ -25,8 +25,8 @@ const ASKING = [
   'Now pick the right one!', 'Is a letter missing, or is there one too many?', 'Which one spells', 'Which one says',
 ] as const;
 const TEACHING = [
-  'Listen.', 'Each sound gets a box.', 'Watch me build it.', 'Now you build it!', 'Not quite!', 'Try again!', 'These letters make one sound.',
-  'Here is the mistake.', 'It goes here.', 'This one is extra.', 'A letter is missing here.',
+  'Listen.', 'Each sound gets a box.', 'Watch me build it.', 'Now you build it!', 'Try again!', 'These letters make one sound.',
+  'Here is the mistake.', 'This one is extra.', 'A letter is missing here.',
 ] as const;
 
 /** Meeting a Pattern: a line that says what's new, then its three example words. */
@@ -50,11 +50,11 @@ const YARD = [
 export const MATERIAL_LINES = ['An old wooden shed!', 'An old brick building!', 'An old concrete building!', 'An old steel tower!'] as const;
 const JOB = [
   'A new Job!', 'Pick a machine!', 'Knock it down!', 'Pull the ball back and let go!', 'Hold the arrow to push!', 'Tap the building to dig!',
-  'Crash!', 'Boom!', 'Smash!', 'Keep going!', 'A Bolt!', 'The lot is clear!', 'Haul it away!', 'What will you build?',
+  'Crash!', 'Boom!', 'Smash!', 'A Bolt!', 'The lot is clear!', 'Haul it away!', 'What will you build?',
   'Move the crane, then let go to drop!', 'Nice drop!', 'One more!', 'You built', 'Your Town is full!', 'Make one gold!', 'It is gold now!',
-  'Buy a new street with Bolts!', 'Tap again to leave.', 'Off to your Town!', 'Just for fun!',
+  'Tap again to leave.', 'Off to your Town!', 'Just for fun!',
 ] as const;
-const TOWN = ['Your Town!', 'Honk honk!', 'Hold the arrows to drive!', 'Tap a building!', 'This street is for sale!', 'Do a Job to build here!'] as const;
+const TOWN = ['Your Town!', 'Honk honk!', 'Hold the arrows to drive!', 'This street is for sale!', 'Do a Job to build here!'] as const;
 
 type EarnedPhrase = EarnedLine<typeof BOLT>;
 type StarLine = `You are a ${ModeName} star!`;

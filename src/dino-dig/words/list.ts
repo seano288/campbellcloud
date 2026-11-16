@@ -119,19 +119,20 @@ export const R_VOWELS = ['ar', 'or', 'er', 'ir', 'ur'] as const;
 
 // ---------- pictures ----------
 
-/** Apple emoji, only where the picture is plainly that word to a six-year-old (a hen is just as likely "chicken", so it has none). */
+/** Apple emoji, only where the picture is plainly that word to a six-year-old. None where he'd name it something else: a hen is just as
+ *  likely "chicken", and 🍳 is "egg", 🐏 "sheep", 🚙 "car", 🚐 "bus", 🧢 "hat", 🦷 "tooth", 🏠 "house", 🎁 "present", 🧊 "ice", 🐛 "caterpillar". */
 export const PICTURES: Partial<Record<Word, string>> = {
-  cat: '🐈', bat: '🦇', hat: '🎩', map: '🗺️', van: '🚐', cap: '🧢', can: '🥫', pan: '🍳', rat: '🐀', ram: '🐏',
-  bed: '🛏️', pen: '🖊️', ten: '🔟', net: '🥅', web: '🕸️', leg: '🦵', pig: '🐖', lip: '👄', pin: '📌',
-  dog: '🐕', fox: '🦊', box: '📦', log: '🪵', fog: '🌫️', bug: '🐛', cup: '🥤', bus: '🚌', nut: '🥜', hut: '🛖',
-  ship: '🚢', fish: '🐟', shell: '🐚', chick: '🐤', bath: '🛁', duck: '🦆', sock: '🧦', rock: '🪨', king: '🤴',
+  cat: '🐈', bat: '🦇', hat: '🎩', map: '🗺️', can: '🥫',
+  bed: '🛏️', pen: '🖊️', ten: '🔟', web: '🕸️', leg: '🦵', pig: '🐖', pin: '📌',
+  dog: '🐕', fox: '🦊', box: '📦', log: '🪵', fog: '🌫️', bus: '🚌', nut: '🥜', hut: '🛖',
+  ship: '🚢', fish: '🐟', shell: '🐚', chick: '🐤', bath: '🛁', duck: '🦆', sock: '🧦', rock: '🪨',
   frog: '🐸', flag: '🚩', drum: '🥁', crab: '🦀', clap: '👏', sled: '🛷', nest: '🪺', tent: '⛺', hand: '✋', plant: '🪴',
-  stop: '🛑', skunk: '🦨', brick: '🧱', milk: '🥛', gift: '🎁', truck: '🚚', dress: '👗', brush: '🪥', shrimp: '🦐',
-  cake: '🎂', bike: '🚲', bone: '🦴', cube: '🧊', kite: '🪁', home: '🏠', rope: '🪢', grape: '🍇', snake: '🐍', slide: '🛝',
-  smile: '😃', game: '🎮', globe: '🌍', skate: '⛸️',
+  stop: '🛑', skunk: '🦨', brick: '🧱', milk: '🥛', truck: '🚚', dress: '👗', brush: '🪥', shrimp: '🦐',
+  cake: '🎂', bike: '🚲', bone: '🦴', kite: '🪁', grape: '🍇', snake: '🐍', slide: '🛝',
+  skate: '⛸️',
   tree: '🌳', sheep: '🐑', seal: '🦭', leaf: '🍃', peach: '🍑', snail: '🐌', train: '🚂', paint: '🎨', boat: '⛵', goat: '🐐',
-  soap: '🧼', coat: '🧥', snow: '❄️', jeep: '🚙', teeth: '🦷', chain: '⛓️', brain: '🧠',
-  car: '🚗', star: '⭐', shark: '🦈', jar: '🫙', yarn: '🧶', arm: '💪', scarf: '🧣', horn: '📯', fork: '🍴', corn: '🌽',
+  soap: '🧼', snow: '❄️', chain: '⛓️', brain: '🧠',
+  car: '🚗', star: '⭐', shark: '🦈', jar: '🫙', yarn: '🧶', scarf: '🧣', fork: '🍴', corn: '🌽',
   storm: '⛈️', bird: '🐦', girl: '👧', shirt: '👕', church: '⛪',
 };
 

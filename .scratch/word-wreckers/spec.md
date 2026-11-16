@@ -14,7 +14,8 @@ the crane, and it joins his Town.
 `src/dino-dig/words/list.ts`: **201 phonetically regular words**, plain data with no game code, so Dino Dig can share it. Each word is
 written as its sounds, one per box (`'sh.i.p'`, `'c.a_e.k'`), and tagged with the latest **Pattern** it uses: short-vowel CVC (43),
 digraphs sh ch th wh ck ng and doubled ll ss ff (28), blends (35), magic e (32), vowel teams ee ea ai ay oa ow-as-in-snow (32),
-r-controlled ar or er ir ur (31). 103 words have an Apple emoji where the picture is plainly that word (no hen: it's "chicken" too).
+r-controlled ar or er ir ur (31). 81 words have an Apple emoji where the picture is plainly that word: none where he'd name it
+something else (a hen is "chicken" too; 🐏 is "sheep", 🚙 "car", 🧢 "hat", 🍳 "egg", 🦷 "tooth", 🏠 "house"; 22 taken out in review).
 
 Left out on purpose, with the lists kept in the file: words that sound like another word spelled differently (`HOMOPHONES`: sun/son,
 tail/tale, road/rode, bell/belle, turn/tern...), words said two ways or with a vowel not taught (`NOT_REGULAR`: wind, read, cow, head,
@@ -44,8 +45,11 @@ can ask × several seeds, about 12,000 questions):
 - **A sound with several spellings** only comes up once its Pattern is met (a word is only asked when every Pattern in it is met), and
   **no wrong spelling is ever a real word**: every wrong spelling the game can make was checked against macOS's dictionary (which is
   generous: it has kat, seel and kyte) and the hits are a block list, `spelling/real.ts`; the test re-checks against the dictionary
-  wherever one is installed. Nothing rude can be read in one (`RUDE`). Same-sound spares in Chunks never build a real word either.
-- **Missing Sound's wrong tiles always say a different sound** (never k for c), so the sound he hears picks one tile.
+  wherever one is installed, along with the plurals and past tenses it leaves out (firs, for first), and short words, abbreviations
+  and names it lacks (stat, url, I've) are on the block list too. Nothing rude can be read in one (`RUDE`). Same-sound spares in
+  Chunks never build a real word either.
+- **Missing Sound's wrong tiles always say a different sound** (never k for c), so the sound he hears picks one tile; so do Fix It
+  Level 3's letters for a missing one.
 - **Homophones are left out** of the list (above), so a word he hears has one spelling.
 - **Tiles are lowercase Andika and never rotated or mirrored**: they only slide (a test reads the stylesheet).
 - **Hearing the word again has no penalty**: the browser tour taps 🔊 three times and the picture before answering, and checks the
@@ -147,11 +151,18 @@ the crane, the letter-tile wall and the fence; the Yard tile is his machine, the
 
 ## Voice
 
-Aria at -8% (`tools/make_voice.py --collection word-wreckers`, edge-tts): **882 clips, about 13 MB** in `public/word-wreckers-voice/`.
-Every list word is recorded alone, and again slowly: a phrase "Slowly: cat" is recorded as "cat" at -45% (a small addition at the end
-of `make_voice.py`). Questions are chained ("Build the word", "snail"); prices from number clips. The 109 pick phrases are whole
-clips. Dino Dig can share the word clips later by selecting them with `--index-only`; nothing was shared now because Dino Dig hasn't
-recorded any.
+Aria at -8% (`tools/make_voice.py --collection word-wreckers`, edge-tts): **876 clips, about 11 MB** in `public/word-wreckers-voice/`.
+Every list word is recorded alone, and again slowly: a phrase "Slowly: cat" is recorded as "cat" at -40%. Questions are chained ("Build
+the word", "snail"); prices from number clips. The 109 pick phrases are whole clips. What this game says its own way lives in
+`COLLECTION_SPEECH` in `make_voice.py`, which touches no other game's clips:
+- the slow rate, -40%: every word clip and its slow one were transcribed with Whisper (small.en and large-v3-turbo) at -8%, -25%, -30%,
+  -35%, -40% and -45%; -45% turned nut into "not", pot into "hot", lake into "late" and park into "hark", and -40% was the slowest rate
+  that didn't;
+- "cat" and "grab" (and their slow ones) in Jenny's voice: Aria says a lone "cat" as "Kate" however it's written ("cat!", "Cat.",
+  "kat", "cæt", with any pitch), and a lone "grab" as "crab", another word on the list; Jenny says both plainly at both rates.
+
+Dino Dig can share the word clips later by selecting them with `--index-only`, but only for the same collection settings: its own
+collection name would hash "cat", "grab" and the slow words without these overrides.
 
 ## Save
 
@@ -173,8 +184,11 @@ in progress.
 - Not run on a real iPad 9 or iPhone, or in Safari/WebKit. Checked in Chromium at 810×1080, 1080×810, 390×844 and 844×390
   (`tools/word-wreckers/tour.ts`, played by real touch events through the DevTools protocol), on a new save and on saves with every kind
   open at Level 2 and at Level 3, and offline on the production build (`tools/word-wreckers/offline.ts`).
-- The voice clips were recorded but not listened to: there is no way to play audio here. Their lengths are all alike (1.6 to 1.9 s,
-  slow 2.6 to 3.1 s), which rules out a spelled-out or doubled word, but not a wrong vowel.
+- The voice clips have not been listened to by a person. Every word clip and slow clip was transcribed by speech-to-text (above); all
+  876 decode, none is silent or clipped, and the game's trimming keeps all but 0.15% of any clip's energy. Words most worth a listen on
+  the iPad: cat and grab (Jenny's voice among Aria's); long, kite, doll, mop and moth (the large model, hearing each clip alone, wrote
+  lung, Kate, dull, map and math, though it does the same for doll, kite, mop and moth in other voices); and, slow, lunch, puff, shop,
+  tub, hut, sock, cute and cube (one model or the other heard lunge, path, sharp, tab, hot, suck, hued and hub).
 - Frame rate: 60 fps unthrottled in headless Chromium; under 4× CPU throttling the game's own work per frame stays under about 1 ms but
   headless software compositing drops to about 30 fps. Real GPU speed on the iPad 9 is not measured.
 - No Trophies, no per-word strength (strength is per Pattern), no isolated speech sounds (by design), no sharing of clips with Dino Dig

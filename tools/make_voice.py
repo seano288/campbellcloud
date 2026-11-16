@@ -76,17 +76,45 @@ def speakable(s):
     return re.sub(r'(\d+)¢', lambda m: 'one cent' if m[1] == '1' else f'{m[1]} cents', s)
 
 
-def clip_id(text, voice, rate):
+# Lines one game needs said its own way. They apply only to that collection, so the clips other games already have keep their ids.
+#   slow:      a phrase starting with the prefix is the rest of it said at a slower rate. Word Wreckers says a word slowly while its
+#              sound boxes light: "Slowly: cat" is the word "cat" at that rate.
+#   said_as:   like SAID_AS, for this collection only (slow phrases too).
+#   voice_for: a word this collection's voice can't say alone, said by another voice (slow phrases too).
+COLLECTION_SPEECH = {
+    'word-wreckers': {
+        # the slowest rate that still sounds like the word: at -45% speech-to-text heard nut as "not", pot as "hot", lake as "late"
+        'slow': ('Slowly: ', '-40%'),
+        # Aria says a lone "cat" as "Kate" however it's written ("cat!", "Cat.", "kat", "cæt"), and a lone "grab" as "crab" (also a word
+        # on the list); Jenny says both plainly, fast and slow
+        'said_as': {'cat': 'cat'}, 'voice_for': {'cat': 'en-US-JennyNeural', 'grab': 'en-US-JennyNeural'},
+    },
+}
+
+
+def spoken(text, voice, rate, collection=None):
+    """What the voice reads for a phrase, which voice, and how fast."""
+    own = COLLECTION_SPEECH.get(collection, {})
+    prefix, slow_rate = own.get('slow', (None, None))
+    if prefix and text.startswith(prefix):
+        text, rate = text[len(prefix):], slow_rate
+    said = own.get('said_as', {})
+    return (said[text] if text in said else speakable(text)), own.get('voice_for', {}).get(text, voice), rate
+
+
+def clip_id(text, voice, rate, collection=None):
     # a change of voice, rate or spoken text makes a new clip
-    return hashlib.sha1(f'{voice}|{rate}|{speakable(text)}'.encode()).hexdigest()[:12]
+    said, voice, rate = spoken(text, voice, rate, collection)
+    return hashlib.sha1(f'{voice}|{rate}|{said}'.encode()).hexdigest()[:12]
 
 
-async def record(text, out, voice, rate, sem):
+async def record(text, out, voice, rate, sem, collection=None):
     import edge_tts
+    said, voice, rate = spoken(text, voice, rate, collection)
     async with sem:
         for attempt in range(3):
             try:
-                return await edge_tts.Communicate(speakable(text), voice, rate=rate).save(str(out))
+                return await edge_tts.Communicate(said, voice, rate=rate).save(str(out))
             except Exception:
                 if attempt == 2:
                     raise
@@ -103,7 +131,7 @@ async def main():
     clips, index = args.out.resolve(), args.index.resolve()
     voice, rate = VOICES.get(args.collection, (VOICE, RATE))
     phrases = json.loads(subprocess.run(['npx', 'tsx', 'tools/phrases.ts', '--collection', args.collection], cwd=ROOT, check=True, capture_output=True, text=True).stdout)
-    files = {p: f'{clip_id(p, voice, rate)}.mp3' for p in phrases}
+    files = {p: f'{clip_id(p, voice, rate, args.collection)}.mp3' for p in phrases}
     todo = [p for p, f in files.items() if not (clips / f).is_file()]
     stale = []
     if args.index_only:
@@ -119,7 +147,7 @@ async def main():
         clips.mkdir(parents=True, exist_ok=True)
         owner.write_text(args.collection + '\n')
         sem = asyncio.Semaphore(8)
-        await asyncio.gather(*(record(p, clips / files[p], voice, rate, sem) for p in todo))
+        await asyncio.gather(*(record(p, clips / files[p], voice, rate, sem, args.collection) for p in todo))
         keep = set(files.values())
         stale = [f for f in clips.glob('*.mp3') if f.name not in keep]
         for f in stale:
@@ -128,22 +156,5 @@ async def main():
     header = ''.join(line + '\n' for line in index.read_text().splitlines() if line.startswith('//')) if index.exists() else ''
     index.write_text(header + f'export const CLIPS = {{\n{body}}} as const;\n')
     print(f'{len(phrases)} phrases: recorded {len(todo)}, removed {len(stale)} stale clips, with {voice}')
-
-# Word Wreckers says a word slowly while its sound boxes light: a phrase "Slowly: cat" is the word "cat" recorded at SLOW_RATE.
-SLOW_PREFIX, SLOW_RATE = 'Slowly: ', '-45%'
-_speakable, _clip_id, _record = speakable, clip_id, record
-
-
-def speakable(s):
-    return _speakable(s[len(SLOW_PREFIX):] if s.startswith(SLOW_PREFIX) else s)
-
-
-def clip_id(text, voice, rate):
-    return _clip_id(text, voice, SLOW_RATE if text.startswith(SLOW_PREFIX) else rate)
-
-
-async def record(text, out, voice, rate, sem):
-    return await _record(text, out, voice, SLOW_RATE if text.startswith(SLOW_PREFIX) else rate, sem)
-
 
 asyncio.run(main())

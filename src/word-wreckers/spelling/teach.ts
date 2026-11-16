@@ -27,7 +27,7 @@ export interface Lesson {
   /** Fix It: the mistake, shown ("Here is the mistake."): a box or letter index, or a gap ("+2"). */
   readonly mark: Signal<string | null>;
   /** Only one thing animates at a time: starting a new one stops the last. */
-  readonly task: { start(): VoiceScope; cancel(): void };
+  readonly task: { start(): VoiceScope; cancel(): void; isCurrent(v: VoiceScope): boolean };
 }
 
 const lessons = new WeakMap<AbortSignal, Lesson>();
@@ -38,7 +38,7 @@ export function lessonFor(lifetime: AbortSignal): Lesson {
     const cancel = () => current?.cancel();
     lesson = {
       lit: signal(null), right: signal(false), glow: signal(null), placed: signal([]), used: signal([]), peek: signal(null), mark: signal(null),
-      task: { cancel, start() { cancel(); return (current = createVoiceScope(lifetime)); } },
+      task: { cancel, start() { cancel(); return (current = createVoiceScope(lifetime)); }, isCurrent: v => v === current },
     };
     lessons.set(lifetime, lesson);
   }
@@ -87,6 +87,13 @@ export function boxOfLetter(word: Question['word'], letter: number): number {
   return sounds.findIndex(s => s.endsWith('_e')); // the final magic e belongs to its vowel's box
 }
 
+/** Which Looks Right's fuller lesson: the box with two letters for one sound (ai, ck, a_e) lights while that's said. A word without one
+ *  (cap, against kap or capp) has no such box, so the line is about the boxes instead. */
+export function pickLesson(w: Question['word']): { box: number | null; line: Phrase } {
+  const box = infoOf(w).sounds.findIndex(s => s.length > 1);
+  return box >= 0 ? { box, line: 'These letters make one sound.' } : { box: null, line: 'Each sound gets a box.' };
+}
+
 async function teach(p: Asking, answer: string, full: boolean, l: Lesson, v: VoiceScope) {
   const q = p.q, w = q.word, boxes = infoOf(w).sounds.length;
 
@@ -133,7 +140,12 @@ async function teach(p: Asking, answer: string, full: boolean, l: Lesson, v: Voi
     if (q.phrase) await v.say(q.phrase as Phrase);
     await sweep(v, l, w, boxes);
     if (!v.active) return;
-    if (full) await v.say('These letters make one sound.');
+    if (full) {
+      const { box, line } = pickLesson(w);
+      l.lit.value = box;
+      await v.say(line);
+      l.lit.value = null;
+    }
     l.glow.value = q.phrase ? inPhrase(q.phrase, w, w) : w; sChime();
     return;
   }
@@ -155,7 +167,8 @@ async function teach(p: Asking, answer: string, full: boolean, l: Lesson, v: Voi
 export function explain(p: Asking, answer: string, full: boolean, signal: AbortSignal): Promise<void> {
   const l = lessonFor(signal), v = l.task.start();
   l.glow.value = null;
-  return teach(p, answer, full, l, v).finally(() => { if (!full) l.lit.value = null; l.right.value = l.right.peek() && v.active; });
+  // a lesson cut short by 🔎 leaves the boxes to the one that replaced it
+  return teach(p, answer, full, l, v).finally(() => { if (!l.task.isCurrent(v)) return; if (!full) l.lit.value = null; l.right.value = l.right.peek() && v.active; });
 }
 
 /** 🔎: the fuller lesson, on demand. It counts as help. */

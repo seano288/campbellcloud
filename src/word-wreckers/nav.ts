@@ -23,3 +23,12 @@ export function goJob() {
   jobId.value++;
   screen.value = 'job';
 }
+
+/** For a control that acts on pointerdown and takes him to another screen: when his finger lifts, the browser still sends a click to
+ *  whatever is under it on the new screen (a Yard tile, which would switch his machine), so that one click is swallowed. */
+export function eatNextClick(ms = 800) {
+  const eat = (e: Event) => { e.preventDefault(); e.stopPropagation(); done(); };
+  const done = () => { clearTimeout(timer); removeEventListener('click', eat, true); };
+  const timer = setTimeout(done, ms);
+  addEventListener('click', eat, true);
+}

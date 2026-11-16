@@ -180,7 +180,8 @@ function makeFix(level: Level, stretch: Stretch, w: Word, rng: Rng): FixQ {
   if (level === 3) {
     const ms = l3Mistakes(w), m = pick(rng, ms);
     if (m.kind === 'drop') {
-      const others = shuffle(rng, LETTERS.filter(l => l !== m.letter && spell([...m.text.slice(0, m.at), l, ...m.text.slice(m.at)]) !== w)).slice(0, 2);
+      // never a letter that says the same sound there (k for the c in cub), so the sound he hears picks one letter
+      const others = shuffle(rng, LETTERS.filter(l => !sameSound(m.letter).includes(l) && spell([...m.text.slice(0, m.at), l, ...m.text.slice(m.at)]) !== w)).slice(0, 2);
       return { kind: 'fix', word: w, mistake: m, shown: [...m.text], marked: false, choices: shuffle(rng, [m.letter, ...others]) };
     }
     return { kind: 'fix', word: w, mistake: m, shown: [...m.text], marked: false, choices: [] };
@@ -205,8 +206,15 @@ function makePick(level: Level, w: Word, rng: Rng): PickQ {
 
 // ---------- which words each kind can ask ----------
 
-/** Can this kind ask about this word at this Level? */
+/** Can this kind ask about this word at this Level? Every question looks this up for every word, so the answers are kept. */
+const asks = new Map<string, boolean>();
 export function canAsk(kind: Kind, level: Level, w: Word): boolean {
+  const key = `${kind}${level}${w}`;
+  let can = asks.get(key);
+  if (can === undefined) asks.set(key, (can = askable(kind, level, w)));
+  return can;
+}
+function askable(kind: Kind, level: Level, w: Word): boolean {
   const info = infoOf(w);
   switch (kind) {
     case 'build': return level < 3 || lookalikeSpares(w).length > 0; // L3 needs a letter that looks or sounds like one of its own
