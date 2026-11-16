@@ -23,6 +23,8 @@ Truck Money alone into `dist/` for the existing browser checks.
   Sentence Express uses `sentence-express-save` (and `sentence-express-place`).
 - **Home Screen**: the app already installed from the site root now opens the landing page, which works offline. Each game
   becomes available offline after its first online visit at its new folder.
+- **Word Wreckers** (`/word-wreckers/`) has a tile in **Learning Games** and saves under its own key, `word-wreckers-save` (with
+  `word-wreckers-place` for the screen and the Round in progress).
 
 ## Learning games and games just for fun
 

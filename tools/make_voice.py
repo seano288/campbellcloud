@@ -11,6 +11,7 @@
   .venv/bin/python tools/make_voice.py --collection treasure-fleet --out public/treasure-fleet-voice --index src/treasure-fleet/voice.gen.ts
   .venv/bin/python tools/make_voice.py --collection wild-rescue --out public/wild-rescue-voice --index src/wild-rescue/voice.gen.ts
   .venv/bin/python tools/make_voice.py --collection sentence-express --out public/sentence-express-voice --index src/sentence-express/voice.gen.ts
+  .venv/bin/python tools/make_voice.py --collection word-wreckers --out public/word-wreckers-voice --index src/word-wreckers/voice.gen.ts
 
 Select phrases through tools/phrases.ts and write recordings and a typed index to explicit locations.
 Only missing clips are recorded. Cleanup touches only the selected directory, whose .voice-collection
@@ -35,7 +36,9 @@ VOICES = {'purrdoku': ('en-GB-RyanNeural', '-5%'),
           # choices aloud; Aria keeps short animal and habitat words clear
           'wild-rescue': ('en-US-AriaNeural', '-8%'),
           # Sentence Express says every sentence whole and every word alone, so short vowels must be crisp, as in Sight Squad
-          'sentence-express': ('en-US-AriaNeural', '-8%')}
+          'sentence-express': ('en-US-AriaNeural', '-8%'),
+          # Word Wreckers says every list word alone (spelling by sound), where Ava blurs short vowels
+          'word-wreckers': ('en-US-AriaNeural', '-8%')}
 ROOT = Path(__file__).resolve().parent.parent
 
 
@@ -125,5 +128,22 @@ async def main():
     header = ''.join(line + '\n' for line in index.read_text().splitlines() if line.startswith('//')) if index.exists() else ''
     index.write_text(header + f'export const CLIPS = {{\n{body}}} as const;\n')
     print(f'{len(phrases)} phrases: recorded {len(todo)}, removed {len(stale)} stale clips, with {voice}')
+
+# Word Wreckers says a word slowly while its sound boxes light: a phrase "Slowly: cat" is the word "cat" recorded at SLOW_RATE.
+SLOW_PREFIX, SLOW_RATE = 'Slowly: ', '-45%'
+_speakable, _clip_id, _record = speakable, clip_id, record
+
+
+def speakable(s):
+    return _speakable(s[len(SLOW_PREFIX):] if s.startswith(SLOW_PREFIX) else s)
+
+
+def clip_id(text, voice, rate):
+    return _clip_id(text, voice, SLOW_RATE if text.startswith(SLOW_PREFIX) else rate)
+
+
+async def record(text, out, voice, rate, sem):
+    return await _record(text, out, voice, SLOW_RATE if text.startswith(SLOW_PREFIX) else rate, sem)
+
 
 asyncio.run(main())
