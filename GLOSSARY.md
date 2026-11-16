@@ -323,3 +323,34 @@ _Avoid_: voyage, launch, ticket
 
 **Buddy**: a friend who rides along in the truck's cab window (Puppy to Robot), for looks only.
 
+
+## Sentence Express
+
+Sentence Express reuses Math Bots', Rover Code's and Wild Rescue's terms where they mean the same thing (Mixed Round, Mastery, Stretch, Bolt, Goal, Paint). It has no Tune-Up and no Meetings. These are its own:
+
+**Game Modes (Sentence Express)**: the five kinds of question, about reading sentences: Build the Train (put a heard sentence's word cars in order), Engine and Caboose (the capital at the start, the mark at the end, the capital on "I" and names), What Happened (read a sentence alone and tap its picture), Who, What, Where (a question about a sentence) and Fix the Train (find the one mistake and fix it). Build the Train and Engine and Caboose are open from the start; What Happened opens at Build the Train Level 2, Who, What, Where at What Happened Level 2, Fix the Train at Engine and Caboose Level 2.
+
+**Sentence train**: the picture every kind uses: a sentence is a train. The **engine** carries the first word and its capital; each word after it is a **car** (a word car); the **caboose** carries the end mark (. ? !). In the questions the engine is his own engine in his own paint.
+_Avoid_: word tiles, blocks
+
+**One right order**: the rule for Build the Train and Fix the Train: no other order of a sentence's cars, with the engine first and the caboose last, makes a sentence that is grammatical and sensible. Checked by the order checker (`src/sentence-express/sentences/grammar.ts`) over every sentence.
+
+**Yard**: where a Build the Train question's cars wait, shuffled, before he couples them onto his train.
+
+**Train Set**: Sentence Express's reward: his engines and cars (the Shed), his Layout, and the Deliveries he drives on it.
+
+**Shed**: where he buys and chooses his engine, the cars coupled behind it (up to six), his paint, track and scenery (Sentence Express's Garage).
+_Avoid_: garage, depot
+
+**Layout**: his table of squares, where he lays track with a finger, rubs it out and puts scenery; it's saved and is the thing he shows off. Straights, corners, points and crossings are worked out from what he draws; a loose end closes up by itself.
+_Avoid_: map, board
+
+**Track Box**: a box of 12 track squares for his Layout (2 to 5 Bolts). He starts with 40 squares; a bigger table is bought on the same Track tab.
+
+**Points**: a square of track that joins three sides: the train goes straight on or takes the branch, and he taps it to switch.
+_Avoid_: switch, junction (in anything he hears)
+
+**Delivery**: what a finished Round earns (he starts with one): he drives his train on his Layout to pick up a station's cargo and bring it to Toy Town. It's used, and paid, only when the cargo arrives.
+_Avoid_: trip, run, rescue call
+
+**Station**: a stop on his Layout: Toy Town (home) and eight on the line (the Farm, the Quarry, the Port, the City, the Mill, the Mine, the Zoo, the Toy Shop), each with its own cargo. The Farm is open from the start; each finished Delivery opens the next, and a station's first Delivery brings a **gift** piece of scenery.

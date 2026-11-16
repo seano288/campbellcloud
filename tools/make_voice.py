@@ -10,6 +10,7 @@
   .venv/bin/python tools/make_voice.py --collection rover-code --out public/rover-code-voice --index src/rover-code/voice.gen.ts
   .venv/bin/python tools/make_voice.py --collection treasure-fleet --out public/treasure-fleet-voice --index src/treasure-fleet/voice.gen.ts
   .venv/bin/python tools/make_voice.py --collection wild-rescue --out public/wild-rescue-voice --index src/wild-rescue/voice.gen.ts
+  .venv/bin/python tools/make_voice.py --collection sentence-express --out public/sentence-express-voice --index src/sentence-express/voice.gen.ts
 
 Select phrases through tools/phrases.ts and write recordings and a typed index to explicit locations.
 Only missing clips are recorded. Cleanup touches only the selected directory, whose .voice-collection
@@ -32,7 +33,9 @@ VOICES = {'purrdoku': ('en-GB-RyanNeural', '-5%'),
           'treasure-fleet': ('en-US-AriaNeural', '-8%'),
           # Wild Rescue says the most whole sentences of any game (questions, lessons and a fact for every animal) and reads its answer
           # choices aloud; Aria keeps short animal and habitat words clear
-          'wild-rescue': ('en-US-AriaNeural', '-8%')}
+          'wild-rescue': ('en-US-AriaNeural', '-8%'),
+          # Sentence Express says every sentence whole and every word alone, so short vowels must be crisp, as in Sight Squad
+          'sentence-express': ('en-US-AriaNeural', '-8%')}
 ROOT = Path(__file__).resolve().parent.parent
 
 

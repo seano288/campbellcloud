@@ -20,6 +20,7 @@ Truck Money alone into `dist/` for the existing browser checks.
   folder (`navigateFallbackDenylist`), so the games load from the network until their own workers take over.
 - **Saves carry over**: `localStorage` is per origin, so `mtm2-save` is still there at the new path. Time Flies uses its own
   key, `time-flies-save`, Chop Chop `chop-chop-save`, Sight Squad `sight-squad-save`, Math Bots `math-bots-save`, Rover Code `rover-code-save`, Treasure Fleet `treasure-fleet-save`, Wild Rescue `wild-rescue-save`, and Purrdoku `purrdoku-save`.
+  Sentence Express uses `sentence-express-save` (and `sentence-express-place`).
 - **Home Screen**: the app already installed from the site root now opens the landing page, which works offline. Each game
   becomes available offline after its first online visit at its new folder.
 
@@ -29,3 +30,4 @@ The landing page groups its tiles into sections: **Learning Games** (Monster Tru
 **Just for Fun**. A fun game still gets its own folder, manifest, icons and worker, but it doesn't have to use the learning engine,
 voice clips or `staticBuild()`. Hunch (`/hunch/`, a five-letter word guessing game) is a plain DOM page with its own
 small build (`tools/hunch-build.ts`) and its own save key, `hunch-save`.
+Sentence Express (`/sentence-express/`) is a tile in **Learning Games**, after Wild Rescue.
