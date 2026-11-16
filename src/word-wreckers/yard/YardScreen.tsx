@@ -1,29 +1,35 @@
 // The Yard: his machines, the big Job! button with his Jobs, and the shop tray. He picks a tab (Machines, Upgrades, Paint, Driver,
-// Town) and taps a tile: one he owns goes on (a machine becomes the one he drives), one he doesn't is shown on his machine to try, with
-// Buy beside it, so he sees it before he spends. Upgrades are for the machine he's driving. The Goal chip shows what he's saving for.
+// Horns, Streets, Decorations, Traffic, Treasures) and taps a tile: one he owns goes on (a machine becomes the one he drives, a horn
+// honks), one he doesn't is shown on his machine to try (a horn plays), with Buy beside it, so he sees it before he spends. Upgrades are
+// for the machine he's driving. Treasures aren't bought: the shelf shows the ones he has found in the rubble. The Goal chip shows what
+// he's saving for. The tabs wrap to a second row on a phone; the tray scrolls.
 import { useEffect, useMemo, useState } from 'preact/hooks';
 import { sChime, sClink, sFanfare, sNope } from '../../audio/sfx';
 import { confetti } from '../../celebrate/effects';
 import { IconButton } from '../../ui/bits';
 import { CurrencyIcon, CurrencyPile } from '../../ui/currency';
 import { MachineView, Swatch } from '../art/Pics';
+import { playHorn } from '../horns';
 import { WRECKERS_CURRENCY } from '../branding';
 import { buy, player, updateYard } from '../game';
 import { goJob, screen } from '../nav';
 import { NUMBERS_TO, type Phrase } from '../phrases';
 import { startRound } from '../round';
 import { useVoice } from '../voice';
-import { DECOS, DRIVERS, idOf, item, ITEMS, keyOf, MACHINES, opensOf, STREETS, tabOf, UPGRADES, upKey, type Boost, type ItemKey, type MachineId, type Tab } from './shop';
+import { DECOS, DRIVERS, HORNS, idOf, item, ITEMS, keyOf, MACHINES, opensOf, STREETS, tabOf, TRAFFIC, TREASURES, UPGRADES, upKey, type Boost, type HornId, type ItemKey, type MachineId, type Tab, type TreasureId } from './shop';
 import { allOwned, goalOf, isOwned, needsFirst, ownsMachine, paintFor, priceOf, selectGoal } from './yard';
 
-const TABS = ['machine', 'up', 'paint', 'driver', 'town'] as const;
+const TABS = ['machine', 'up', 'paint', 'driver', 'horn', 'street', 'deco', 'traffic', 'treasure'] as const;
 type YardTab = (typeof TABS)[number];
-const TAB_NAMES = { machine: 'Machines', up: 'Upgrades', paint: 'Paint', driver: 'Driver', town: 'Town' } as const satisfies Record<YardTab, Phrase>;
-const TAB_ICONS: Record<YardTab, string> = { machine: '🚜', up: '🔧', paint: '🎨', driver: '👷', town: '🏙️' };
+const TAB_NAMES = {
+  machine: 'Machines', up: 'Upgrades', paint: 'Paint', driver: 'Driver', horn: 'Horns', street: 'Streets', deco: 'Decorations', traffic: 'Traffic', treasure: 'Treasures',
+} as const satisfies Record<YardTab, Phrase>;
+const TAB_ICONS: Record<YardTab, string> = { machine: '🚜', up: '🔧', paint: '🎨', driver: '👷', horn: '📯', street: '🛣️', deco: '🌳', traffic: '🚕', treasure: '💎' };
+const SCENE_ICONS: Record<string, string> = { farm: '🐄', fair: '🎡', beach: '🏖️', airport: '✈️', snow: '🏔️', dino: '🦕', harbor: '⚓', rocket: '🚀' };
 const BOOSTS: Record<Boost, { icon: string; line: Phrase | null }> = { power: { icon: '💪', line: 'More power!' }, size: { icon: '💥', line: 'Bigger hits!' }, speed: { icon: '⚡', line: 'Faster!' }, look: { icon: '✨', line: null } };
 export const n = (x: number): Phrase => `${Math.min(x, NUMBERS_TO)}` as Phrase;
 
-const tabFor = (k: ItemKey): YardTab => { const t = tabOf(k); return t === 'street' || t === 'deco' ? 'town' : t as YardTab; };
+const tabFor = (k: ItemKey): YardTab => tabOf(k);
 const boostOf = (k: ItemKey) => { const it = item(k); return it.tab === 'up' ? UPGRADES.find(u => u.machine === it.machine && u.id === it.id)!.boost : null; };
 
 /** The goal chip in a header: what he's saving for and how close he is. Tapping it goes to it. */
@@ -45,7 +51,9 @@ function ItemPic({ k, machine }: { k: ItemKey; machine?: MachineId }) {
   if (it.tab === 'up') return <MachineView id={it.machine!} trying={k} label={null} class="part-pic" />;
   if (it.tab === 'paint') return <Swatch paint={it.id} />;
   if (it.tab === 'driver') return <span class="pic emo item-pic" aria-hidden="true">{DRIVERS.find(d => d.id === it.id)!.icon}</span>;
-  if (it.tab === 'street') return <span class="street-pic" aria-hidden="true" style={{ background: STREETS.find(s => s.id === it.id)!.ground }}>🛣️</span>;
+  if (it.tab === 'street') { const st = STREETS.find(s => s.id === it.id)!; return <span class="street-pic" aria-hidden="true" style={{ background: `linear-gradient(${st.sky} 55%, ${st.ground} 55%)` }}>{SCENE_ICONS[st.id] ?? SCENE_ICONS[('scene' in st && st.scene) || ''] ?? '🛣️'}</span>; }
+  if (it.tab === 'traffic') return <span class="pic emo item-pic" aria-hidden="true">{TRAFFIC.find(t => t.id === it.id)!.icon}</span>;
+  if (it.tab === 'horn') return <span class="pic emo item-pic" aria-hidden="true">{HORNS.find(h => h.id === it.id)!.icon}</span>;
   void machine; void yard;
   return <span class="pic emo item-pic" aria-hidden="true">{DECOS.find(d => d.id === it.id)!.icon}</span>;
 }
@@ -66,7 +74,16 @@ export function YardScreen() {
     if (yard.jobs <= 0) { nope(); void voice.say('Play a Round to earn a Job!'); return; }
     goJob();
   }
-  function pickTab(t: YardTab) { if (voice.active) { setTab(t); setTrial(null); void voice.say(TAB_NAMES[t]); } }
+  function pickTab(t: YardTab) {
+    if (!voice.active) return;
+    setTab(t); setTrial(null);
+    void voice.say(TAB_NAMES[t], ...(t === 'treasure' ? [n(yard.treasures.length), 'out of' as const, n(TREASURES.length), 'treasures found!' as const] : []));
+  }
+  function tapTreasure(id: TreasureId) {
+    if (!voice.active || blocked) return;
+    const t = TREASURES.find(x => x.id === id)!;
+    if (yard.treasures.includes(id)) { sChime(); void voice.say(t.name); } else { sNope(); void voice.say('Find it under an old building!'); }
+  }
   function celebrate(k: ItemKey) {
     setBlocked(true); sFanfare(); confetti(36, voice.signal);
     const opens = opensOf(k), boost = boostOf(k);
@@ -75,19 +92,22 @@ export function YardScreen() {
   }
   function tap(k: ItemKey) {
     if (!voice.active || blocked) return;
-    const it = item(k), opens = opensOf(k), boost = boostOf(k), extra: Phrase[] = [...(opens ? [opens] : []), ...(boost && BOOSTS[boost].line ? [BOOSTS[boost].line!] : [])];
+    const it = item(k), opens = opensOf(k), boost = boostOf(k);
+    const extra: Phrase[] = [...(opens ? [opens] : []), ...(boost && BOOSTS[boost].line ? [BOOSTS[boost].line!] : []), ...(it.tab === 'traffic' ? ['It drives around your Town!' as const] : [])];
     if (isOwned(yard, k)) {
       setTrial(null);
       if (it.tab === 'machine') updateYard(y => ({ ...y, machine: it.id as MachineId }));
       if (it.tab === 'paint') updateYard(y => ({ ...y, paints: { ...y.paints, [y.machine]: it.id } }));
       if (it.tab === 'driver') updateYard(y => ({ ...y, driver: it.id as typeof y.driver }));
-      sClink(); void voice.say(it.name, ...extra);
+      if (it.tab === 'horn') { updateYard(y => ({ ...y, horn: it.id as HornId })); playHorn(it.id as HornId); }
+      else sClink();
+      void voice.say(it.name, ...extra);
       return;
     }
     const first = needsFirst(yard, k);
     if (first) { nope(); void voice.say('First get the', MACHINES.find(m => m.id === first)!.name); return; }
     setTrial(k);
-    sChime();
+    if (it.tab === 'horn') playHorn(it.id as HornId); else sChime();
     const price = priceOf(k);
     void voice.say(it.name, ...extra, 'It costs', n(price), 'Bolts.', ...(balance < price ? ['You need' as const, n(price - balance), 'more Bolts.' as const] : []));
   }
@@ -110,13 +130,14 @@ export function YardScreen() {
   }
 
   const keys = useMemo(() => {
-    if (tab === 'up') return UPGRADES.filter(u => u.machine === yard.machine).map(u => upKey(u.machine, u.id));
-    if (tab === 'town') return ITEMS.filter(i => i.tab === 'street' || i.tab === 'deco').map(i => i.key);
-    return ITEMS.filter(i => i.tab === (tab as Tab)).map(i => i.key);
+    if (tab === 'up') return UPGRADES.filter(u => u.machine === yard.machine).sort((a, b) => a.price - b.price).map(u => upKey(u.machine, u.id));
+    if (tab === 'treasure') return [];
+    // cheapest first, so what he can get soon is at the top
+    return ITEMS.filter(i => i.tab === (tab as Tab)).sort((a, b) => a.price - b.price).map(i => i.key);
   }, [tab, yard.machine]);
   const isOn = (k: ItemKey) => {
     const t = tabOf(k), id = idOf(k);
-    return t === 'machine' ? yard.machine === id : t === 'paint' ? paintFor(yard, yard.machine) === id : t === 'driver' ? yard.driver === id : false;
+    return t === 'machine' ? yard.machine === id : t === 'paint' ? paintFor(yard, yard.machine) === id : t === 'driver' ? yard.driver === id : t === 'horn' ? yard.horn === id : false;
   };
 
   return (
@@ -154,6 +175,15 @@ export function YardScreen() {
               );
             })}
             {tab === 'up' && !ownsMachine(yard, yard.machine) && <p class="tray-note">🔒</p>}
+            {tab === 'treasure' && TREASURES.map(t => {
+              const has = yard.treasures.includes(t.id);
+              return (
+                <button key={t.id} class={`ww-tile treasure ${has ? 'owned on' : 'locked'}`} aria-label={has ? t.name : 'Not found yet'} onClick={() => tapTreasure(t.id)}>
+                  <span class="pic emo item-pic" aria-hidden="true">{has ? t.icon : '❓'}</span>
+                  <span class="mt-name">{has ? t.name : '?'}</span>
+                </button>
+              );
+            })}
           </div>
           {trial && (
             <div class="buybar">

@@ -1,8 +1,10 @@
-// The pictures the screens share: a machine as he has it (paint, driver, upgrades), a building (gold or not) and a paint swatch.
+// The pictures the screens share: a machine as he has it (paint, driver, upgrades), a building (gold or not), a road feature and a paint
+// swatch.
 import { player } from '../game';
-import { DRIVERS, ITEMS, paintOf, type BuildingId, type ItemKey, type MachineId } from '../yard/shop';
+import { DRIVERS, ITEMS, paintOf, type BuildingId, type FeatureId, type ItemKey, type MachineId } from '../yard/shop';
 import { paintFor, type YardState } from '../yard/yard';
 import { buildingSvg } from './buildings';
+import { featureSvg } from './features';
 import { machineSvg, type Look } from './machines';
 
 const cls = (...xs: (string | false | null | undefined)[]) => xs.filter(Boolean).join(' ');
@@ -30,4 +32,8 @@ export function BuildingView({ id, gold = false, class: c, label }: { id: Buildi
 export function Swatch({ paint }: { paint: string }) {
   const p = paintOf(paint);
   return <span class={`swatch-pic ${p.pattern ?? ''}`} style={{ background: p.body, '--trim': p.trim }} aria-hidden="true" />;
+}
+
+export function FeatureView({ id, class: c, label }: { id: FeatureId; class?: string; label?: string | null }) {
+  return <span class={cls('feature-view', c)} role={label ? 'img' : undefined} aria-label={label ?? undefined} aria-hidden={label ? undefined : true} dangerouslySetInnerHTML={{ __html: featureSvg(id) }} />;
 }

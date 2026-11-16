@@ -7,10 +7,15 @@ import { credit, readCurrency, type CurrencyState, type EarningsPolicy } from '.
 import { boltsFor } from '../round/rules';
 import { browserStorage, createStore, type SaveAdapter } from '../save/storage';
 import { freshLearning, readLearning, recordSolved, startPractice, type Asked, type LearningChange, type LearningState } from './learning';
-import { earnJob, finishJob, freshYard, JOB_BOLTS, proposePurchase, readYard, type BuildChoice, type YardState } from './yard/yard';
+import type { TreasureId } from './yard/shop';
+import { earnJob, finishJob, freshYard, JOB_BOLTS, proposePurchase, readYard, type JobChoice, type YardState } from './yard/yard';
 
 export const SAVE_KEY = 'word-wreckers-save';
-/** Saved progress is versioned like the other games: a version this build doesn't know reads as a blank save. */
+/**
+ * Saved progress is versioned like the other games: a version this build doesn't know reads as a blank save. Still version 1: the
+ * bigger reward ladder only added rows to the shop (no id changed) and three fields to the Yard (his horn, his road features and his
+ * treasures), which a save from before them reads without (readYard), so every save keeps all it had.
+ */
 export const SAVE_VERSION = 1;
 
 export interface WreckersGame {
@@ -58,10 +63,11 @@ export const buy = createRewardPurchases(player, { proposePurchase }, {
 export const updateYard = (change: (y: YardState) => YardState | null) =>
   player.commit(state => { const yard = change(state.yard); return yard ? { ...state, yard } : null; });
 
-/** The new building is up: the Job is used, the Bolts found in the rubble are paid, and the Town has it. False if there was no Job. */
-export function settleJob(store: Pick<typeof player, 'commit'>, choice: BuildChoice): boolean {
+/** The new building is up (or the road paved): the Job is used, the Bolts found in the rubble are paid, the Town has it, and a treasure
+ *  he found is on his shelf. False if there was no Job. */
+export function settleJob(store: Pick<typeof player, 'commit'>, choice: JobChoice, found: TreasureId | null = null): boolean {
   return store.commit(s => {
-    const yard = finishJob(s.yard, choice);
+    const yard = finishJob(s.yard, choice, found);
     if (!yard) return null;
     const paid = credit(s.currency, JOB_BOLTS);
     return { ...s, yard, currency: paid.kind === 'accepted' ? paid.state : s.currency };

@@ -89,57 +89,129 @@ Never a red X. A wrong tile wobbles sideways and goes back to the rack (or fades
 
 ## The reward: the Yard, the Job and the Town
 
+**Bigger rewards, 2026-11-16.** He maxes reward ladders far faster than specs assume (Rover Code in a day), and the standing instruction
+is "2x-3x the rewards": more things to earn and more to do with them, never bigger payouts. A Round and a Job pay exactly what they did.
+The ladder grew from 109 things (3,359 Bolts) and 36 buildings to **258 things (8,315 Bolts), 72 buildings, 12 road features and 30
+treasures** (145 things to earn became 372, 2.6×), and, as the sibling games taught, most of the growth is **new kinds of thing that
+change how it plays**: three new ways to knock a building down, a second kind of Job, treasure in the rubble, a dump truck he drives,
+districts with their own scenery, road features that work when he drives through them, traffic that drives itself, and horns.
+
 **The loop.** A finished Round earns Bolts and one **Job** (🏗️). A Job is a **demolition** then a **build**; the new building joins his
-**Town**. Bolts buy machines and upgrades, which open stronger old buildings to knock down, and so bigger buildings to put up. He starts
-with one free Job: a wooden shed for the free Wrecking Ball Crane, then a House, Lemonade Stand or Tree House.
+**Town**. Or, with a Steamroller or Cement Mixer, a **Road Job**: pave the road, and a **road feature** joins his Town's road. Bolts buy
+machines and upgrades, which open stronger old buildings to knock down, and so bigger buildings to put up. He starts with one free Job:
+a wooden shed for the free Wrecking Ball Crane, then a House, Lemonade Stand or Tree House.
+
+**The Job's card.** "A new Job! An old brick wall!": the old building is named from its material and its shape (six shapes and six
+names a material, 24 old buildings: shed, barn, fort, garage, tower, boathouse; school, factory, wall, castle, chimney; car park,
+bunker, dam...). It offers the machine he drives (if it is strong enough), then the strongest of each other kind, at most six; under
+a dashed line, "Or pave a road!", his road machines.
 
 **The demolition (`job/wreck.ts`, 2D canvas, side view, no physics library).** The old building is a stack of bricks in columns
 (wood, brick, concrete or steel: always his strongest machine's power), at most 72 bricks. A brick knocked loose tumbles (gravity, a
-bounce, a slide to rest on the rubble) and everything above it in its column falls too. He picks which machine (any strong enough):
+bounce, a slide to rest on the rubble) and everything above it in its column falls too. He picks which machine (any strong enough).
+Six ways, each its own play:
 - **Swing** (Wrecking Ball Crane, Mega Wrecker): drag the ball back and let go; a tap swings it for him. Between swings the crane creeps
   up until the ball hangs just short of the building, so even a small pull reaches.
 - **Push** (Skid Steer, Bulldozer, Monster Dozer): hold ▶ (or anywhere on the picture) to drive in; it rams, bounces back and rams again,
   and pushes the rubble along.
-- **Bite** (Excavator, Demolition Robot, Giant Excavator): tap the building; it drives close enough and bites there (a clumsy tap
-  bites the nearest brick).
-Every hit knocks at least one brick loose; once only about an eighth still stand, the rest crumble. Three Bolts hide in the bricks and
-all come out. Then the dump truck (his own paint once he owns one) hauls the rubble away. Nothing can be failed.
+- **Bite** (Mini Digger, Excavator, Demolition Robot, Giant Excavator): tap the building; it drives close enough and bites there (a
+  clumsy tap bites the nearest brick).
+- **Hammer** (Jackhammer, Rock Breaker), new: it drives up to the building by itself; every tap on the 🔨 (or anywhere on the picture)
+  is one hit on the bottom brick of the front column, which cracks (drawn) and after two to four hits comes out, so the column above
+  falls. Holding the 🔨 hits six times a second. About 20 to 25 taps a building; the machine shakes and dust flies at the bit.
+- **Blast** (Dynamite Truck, Mega Blaster), new: tap the building to stick up to three red sticks on it (each on the brick nearest the
+  tap; a fourth says "Press the plunger!"), then press the big red **plunger** (its handle goes down): "Stand back!", the fuses fizz
+  and they go off together, knocking loose everything round each stick. The plunger with no sticks on puts three on for him. One or
+  two blasts a building. With Confetti Bombs the Mega Blaster's blasts are confetti.
+- **Magnet** (Magnet Crane, Super Magnet), new: tap a column; the crane's boom swings over it, the magnet goes down onto its top
+  ("Clang!"), lifts the top four bricks off (more with Big or Giant Magnet), swings them over and drops them in a pile beside the
+  building. A tap while it's busy is queued. Best for steel; about 15 to 30 lifts a building.
+
+Every hit knocks at least one brick loose; once only about an eighth still stand, the rest crumble (anything on the magnet drops).
+Three Bolts hide in the bricks and all come out.
+
+**Treasure in the rubble**, new. Every other Job (an odd number of Jobs done) hides a **treasure chest** in a brick low in the middle;
+when that brick comes loose the chest pops out ("A treasure chest!"), and it always comes out by the end. When the lot is clear a card
+shows the chest: he taps it open and it's one of 30 treasures (Old Coin, Dino Bone, Treasure Map, Time Capsule, Gold Crown... Toy
+Robot), said aloud: "You found... a Time Capsule". 🚚 goes on once the name has been said. Like the Bolts, it is kept only when the
+Job is done (leave halfway and the same treasure is still to find). They sit on his **Treasure shelf**, the 💎 tab in the Yard: found
+ones with their name, the rest ❓ ("Find it under an old building!"), and "12 out of 30 treasures found!".
+
+**The dump truck**, new. With his own Dump Truck he drives it: hold ▶ (or anywhere) and it drives in, stops at the pile to load by
+itself, and drives off as he holds; if he waits five seconds it drives itself ("Drive the dump truck!"). Without one, a dump truck
+hauls it away by itself as before.
 
 **The build (`job/build.ts`).** He picks one of two or three buildings (each name read as its card lights), then the crane lowers its
 pieces one at a time (2 to 6 pieces): the hook follows his finger; letting go drops the piece, which slides over as it falls and lands
 square on the one below, however sloppy the drop. "You built the Fire Station!", +3 Bolts, and off to the Town.
 
+**A Road Job (`job/road.ts`)**, new: the second kind of Job. Picking the **Steamroller** or the **Cement Mixer** on the Job's card
+("Pave the road!") puts an old cracked road in front of the lot with six gravel bumps (Steamroller: "Hold the arrow to roll the bumps
+flat!") or six holes (Cement Mixer, which pours concrete from its chute: "Hold the arrow to fill the holes!"). He holds ▶ (or anywhere)
+to drive; let go and it rolls on a little, so taps work too; ◀ backs up, and a bump or hole is fixed whichever way he passes it
+("Flat!", "Filled!"). Then a line painter paints the middle line by itself ("Now the lines!"), and he picks one of up to three **road
+features** ("What goes on the road?"). +3 Bolts, as any Job. With every feature built, or no place left on his roads, the road is
+"Just for fun!" and pays the same.
+
+**Road features** (12, free from Road Jobs): Car Wash, Jump Ramp, Speed Bumps, Tunnel, Mud Puddle, Loop the Loop, Bubble Arch, Confetti
+Gate, Sprinklers, Rainbow Arch, Turbo Pad, Firework Pad. Each street has three places on its road (in front of its second, fourth and
+sixth lots) and features fill them in the order he builds them. In the Town, **driving through one works it**: the Car Wash bubbles,
+the Jump Ramp throws his machine into the air, the Speed Bumps bounce it, the Tunnel swallows it, the Loop the Loop takes it right
+round, the Turbo Pad makes it go more than twice as fast for three seconds, the Firework Pad lights the sky, and the rest splash,
+bubble, spray, sparkle or rain confetti; each has its own sound and a line ("Wheee!", "Squeaky clean!", "Round and round!", "Zoom!").
+Tapping one sets it off and says its name. Driving out and back in sets it off again.
+
 **The Town (`town/TownScreen.tsx`)**: his streets from the side, every building on its lot, gold ones twinkling, decorations along the
-pavement and in the sky. He drives any of his machines (hold ◀ ▶), honks (📯), and taps a building to hear its name. The next street
-stands fenced off with its price. With no empty lot left, a Job makes one of his buildings **gold** instead (he picks which), so a Job
-always adds something; with everything gold, a build is "Just for fun!".
+pavement and in the sky, his road features, and his **traffic**. He drives any of his machines (hold ◀ ▶), honks (📯, with his horn),
+and taps a building to hear its name. Tapping a decoration makes it hop and say its name (the Rocket takes off and comes back, the
+Fireworks go off); tapping a car honks it and says its name. The owned streets stand in the shop's order, then the cheapest street he
+hasn't got, fenced off with its price. With no empty lot left, a Job makes one of his buildings **gold** instead (he picks which), so a
+Job always adds something; with everything gold, a build is "Just for fun!".
 
-**The Yard (`yard/YardScreen.tsx`)**: tabs for Machines, Upgrades (for the machine he's driving), Paint, Driver and Town (streets and
-decorations). As in the other games, a thing he hasn't got goes on his machine to try, with Buy beside it; one he can't afford becomes
-his Goal. The Goal is the next street when the Town is full, else the cheapest thing that opens a stronger Job, else the cheapest thing
-left that isn't a paint.
+**Districts**, new: six of the twelve streets have their own scenery behind the lots: **Farm Lane** (green hills, a fence, a cow, a
+sheep, a pig and a hen), the **Fairground** (pink sky, bunting, a turning big wheel), **Beach Road** (the sea with moving waves, a
+sailboat, sand), **Airport Way** (a control tower, a windsock, a plane taking off every few seconds), **Snowy Peak** (snowy
+mountains, falling snow, white ground) and **Dino Valley** (a smoking volcano, palm trees, a dinosaur). The Yard's street tiles show
+each one's sky and ground and its sign (🐄 🎡 🏖️ ✈️ 🏔️ 🦕).
 
-**The catalogue (`yard/shop.ts`), every price at most 100, 109 things, 3,359 Bolts in all.** Every table is a plain list, so the next
-pass can add rows.
+**Traffic**, new (17): vehicles that drive up and down the Town's road on their own once bought, each at its own speed (the Racing
+Snail crawls; the Race Car flies): Bicycle, Skateboard, Scooter, Red Car, Taxi, Blue Car, Motorbike, Camper Van, Pickup Truck, Trolley
+Bus, Delivery Truck, Tractor, Big Rig, Race Car, Fire Engine, Racing Snail, Running T-Rex. Emoji, turned to face the way they drive.
 
-| | What | Bolts |
-|---|---|---|
-| Machines (10) | Wrecking Ball Crane (free, power 1), Skid Steer 10 (1), Bulldozer 15 (2), Excavator 30 (2), Dump Truck 40 (hauls), Tower Crane 60 (opens the tallest buildings), Demolition Robot 70 (3), Monster Dozer 80 (4), Mega Wrecker 90 (4), Giant Excavator 100 (4) | 495 |
-| Upgrades (26) | two to four a machine: power (Big Ball 10, Steel Ball 28, Spiky Ball 55, Big Bucket, Wide Blade, Ripper Teeth, Rock Claw, Power Claw), bigger hits (Long Boom, Long Arm, Shark Teeth, Lightning Ball, Diamond Teeth), speed (Turbo Wheels, Big Tracks, Big Bed, Fast Hook, Rocket Boost, Turbo Engine) and looks (Air Horn, Giant Wheels, Night Lights, Tall Mast, Laser Eyes, Rainbow Chain) | 987 |
-| Paints (24) | Hi-Vis Yellow free; 4 to 24 (Hazard Stripes, Racing Flames, Lightning Bolts, Rainbow...); each machine wears its own | 253 |
-| Drivers (13) | Hard Hat free; Puppy 5 to Unicorn 95, an emoji in every cab | 449 |
-| Streets (6) | Main Street free; Park Lane 20, River Road 35, Hill Street 50, Harbor Way 70, Rocket Row 90; 6 lots each, 36 in all | 265 |
-| Decorations (30) | Trees 4 to Fireworks 100 | 910 |
-| Buildings (36, free from Jobs) | wood: House, Lemonade Stand, Tree House, Barn, Ice Cream Shop, Cabin, Pet Shop, Bakery; brick: Fire Station, Police Station, School, Library, Toy Shop, Pizza Place, Post Office, Diner, Candy Store, Bike Shop; concrete: Hospital, Museum, Train Station, Water Tower, Lighthouse, Castle, Aquarium, Clock Tower, Movie Theater, Bridge; steel (needs the Tower Crane): Skyscraper, Stadium, Rocket Pad, Airport Tower, TV Tower, Robot Factory, Hotel, Space Center | |
+**Horns**, new (12): what every machine honks with, in the Town and when a Job starts. Honk Honk (the old honk, free) says "Honk honk!";
+the rest just play, made in code (`horns.ts`): Little Beep, Clown Horn, Duck Quack, Train Horn, Siren, Ice Cream Tune, Cow Moo, Robot
+Beeps, Trumpet, Dino Roar, Space Laser. Trying one in the Yard plays it.
+
+**The Yard (`yard/YardScreen.tsx`)**: nine tabs: Machines, Upgrades (for the machine he's driving), Paint, Driver, Horns, Streets,
+Decorations, Traffic and Treasures. On a phone the tabs wrap to a second row; the tray scrolls; tiles are cheapest first. As in the
+other games, a thing he hasn't got goes on his machine to try (a horn plays; traffic says "It drives around your Town!"), with Buy
+beside it; one he can't afford becomes his Goal. The Goal is the next street when the Town is full, else the cheapest thing that opens
+a stronger Job, else the cheapest thing left that isn't a paint.
+
+**The catalogue (`yard/shop.ts`), every price at most 100, 258 things, 8,315 Bolts in all** (was 109 things, 3,359 Bolts). Every table
+is a plain list; no existing row's id or price changed.
+
+| | What | Before | Now | Bolts |
+|---|---|---|---|---|
+| Machines | the first ten, and Mini Digger 6 (bite, 1), Jackhammer 18 (hammer, 1), Steamroller 25 (paves), Cement Mixer 38 (paves), Dynamite Truck 45 (blast, 2), Magnet Crane 55 (magnet, 3), Rock Breaker 66 (hammer, 3), Super Magnet 86 (magnet, 4), Mega Blaster 96 (blast, 4) | 10 | 19 | 930 |
+| Upgrades | three or four a machine: one more for each of the first ten (Rocket Tracks, Giant Bucket, Smoke Stack, Turbo Tracks, Checkered Flag, Spotlight, Jet Pack, Spinning Saw, Flame Pipes, Turbo Swing, Gold Bucket) and three or four for each new one (Sharp Bit, Diamond Bit, Turbo Hammer, More TNT, Mega TNT, Fast Fuse, Danger Flag, Big Magnet, Super Coil, Wide Drum, Smiley Face, Candy Swirl, Confetti Bombs...) | 26 | 66 | 2,472 |
+| Paints | 24 more: 14 colours (Mint Green 5 to Sapphire 12) and 10 patterns, four of them new (Cow and Leopard Spots, Zigzag and Bumblebee, Hearts, Ocean Waves; Galaxy, Lava Flames, Gold Checkers, Candy Stripes) | 24 | 48 | 548 |
+| Drivers | 17 more, Bunny 6 to Dragon 90 | 13 | 30 | 1,010 |
+| Streets | the six districts: Farm Lane 40, Fairground 55, Beach Road 65, Airport Way 75, Snowy Peak 85, Dino Valley 100 | 6 | 12 | 685 |
+| Decorations | 24 more, Sunflowers 5 to Rocket 95; nine fly in the sky (Birds, Parachute, Moon, Airplane, Flying Dragon...) | 30 | 54 | 1,724 |
+| Traffic | new tab | 0 | 17 | 530 |
+| Horns | new tab; Honk Honk free | 0 | 12 | 416 |
+| Buildings (free from Jobs) | 9 more of each material: Farmhouse, Chicken Coop, Windmill, Beach Hut, Surf Shop, Flower Shop, Igloo, Hot Dog Stand, Popcorn Stand; Silo, Bowling Alley, Ice Rink, Barber Shop, Music Shop, Bank, Vet, Gym, Donut Shop; Funhouse, Big Top, Planetarium, Zoo, Science Lab, Ski Jump, Greenhouse, Boathouse, City Hall; Hangar, Airport Terminal, Glass Pyramid, Volcano Lab, Dino Dome, Space Hotel, Ice Palace, Mega Mall, Giant Wheel (nine new looks: windmill, igloo, silo, funhouse, big top, ski jump, hangar, pyramid, big wheel) | 36 | 72 | |
+| Road features (free from Road Jobs) | above | 0 | 12 | |
+| Treasures (found in Jobs) | above | 0 | 30 | |
 
 **Economy defaults, for the parent to confirm.**
 - One Job per finished Round; one free Job to start. Jobs don't expire.
-- A Job pays 3 Bolts (found in the rubble), only when the building is up. Leaving halfway (🏠 twice) costs and pays nothing; a reload
-  during a Job lands at the Yard with the Job still there. A Round pays at most 6, so a Round and its Job at most 9.
-- The brief's machine prices (15, 30, 50, 80, 120) became 10 to 100 (the voice only says numbers to 100), with four more machines.
-- The brief's "about 20 buildings before the Town is full" became 6 free lots on Main Street and 36 with every street bought; the
-  free crane reaches steel with three upgrades (93 Bolts), so the Town fills without having to buy every machine.
-- 3,359 Bolts is roughly 370 Round-and-Jobs at full pay. Wild Rescue's is 4,147.
+- A Job pays 3 Bolts (found in the rubble), only when the building is up (or the road done). Leaving halfway (🏠 twice) costs and pays
+  nothing; a reload during a Job lands at the Yard with the Job still there. A Round pays at most 6, so a Round and its Job at most 9.
+  Unchanged by the bigger ladder.
+- 72 lots with all twelve streets, so the 72 buildings fill the Town; 36 places on the roads for 12 features.
+- 8,315 Bolts is roughly 920 Round-and-Jobs at full pay (3,359 was 370). A treasure every other Job means all 30 after 60 Jobs.
 
 ## Look
 
@@ -151,7 +223,8 @@ the crane, the letter-tile wall and the fence; the Yard tile is his machine, the
 
 ## Voice
 
-Aria at -8% (`tools/make_voice.py --collection word-wreckers`, edge-tts): **876 clips, about 11 MB** in `public/word-wreckers-voice/`.
+Aria at -8% (`tools/make_voice.py --collection word-wreckers`, edge-tts): **1,165 clips, about 16 MB** in `public/word-wreckers-voice/`
+(876 and 11 MB before the bigger rewards: 290 new clips, every new name and line; the "Town" tab's clip went with the tab).
 Every list word is recorded alone, and again slowly: a phrase "Slowly: cat" is recorded as "cat" at -40%. Questions are chained ("Build
 the word", "snail"); prices from number clips. The 109 pick phrases are whole clips. What this game says its own way lives in
 `COLLECTION_SPEECH` in `make_voice.py`, which touches no other game's clips:
@@ -167,7 +240,12 @@ collection name would hash "cat", "grab" and the slow words without these overri
 ## Save
 
 `word-wreckers-save`, version 1 (a version it doesn't know reads as a blank save), and `word-wreckers-place` for the screen and the Round
-in progress.
+in progress. The bigger rewards kept version 1: they only added shop rows (no id or price changed) and three Yard fields (`horn`,
+`roads`, `treasures`), which a save without them reads as the free horn, an empty road and no treasures, keeping every owned item,
+every building in his Town, his Bolts and his Jobs (`game.test.ts` decodes a save holding all 109 first-version items and all 36
+buildings and checks each survives, and survives saving again). A version bump would have needed a migration and gained nothing.
+One risk is not covered: if an iPad runs the old cached build once after the update and he buys something there, the old build drops
+the new fields and any new item from the save when it writes.
 
 ## Open questions for the parent
 
@@ -175,21 +253,29 @@ in progress.
 2. Every word clip, and its slow one, needs listening to on the iPad (the words least sure of are in the report).
 3. Is "Which Looks Right" with near-misses like "snale" a good idea for a first grader, or does seeing wrong spellings confuse him?
 4. Should Fix It Level 3 (missing or extra letter) come later than it does?
-5. Is 3,359 Bolts the right size, and should a Job pay Bolts at all?
-6. Should the Town's buildings do something when tapped (lights on, a sound), beyond saying their name?
+5. Is 8,315 Bolts the right size (was 3,359), and should a Job pay Bolts at all?
+6. Should the Town's buildings do something when tapped (lights on, a sound), beyond saying their name? (Decorations, cars and road
+   features now do.)
+8. Are dynamite and a treasure every other Job right for him? Is the magnet too slow on steel (about 15 to 30 lifts)?
+9. Do the traffic emoji face the way they drive on the iPad? They're turned by a guess at Apple's art (Chromium shows Noto's).
 7. Is 8 first-try answers between Patterns the right pace?
 
 ## Not done
 
 - Not run on a real iPad 9 or iPhone, or in Safari/WebKit. Checked in Chromium at 810×1080, 1080×810, 390×844 and 844×390
   (`tools/word-wreckers/tour.ts`, played by real touch events through the DevTools protocol), on a new save and on saves with every kind
-  open at Level 2 and at Level 3, and offline on the production build (`tools/word-wreckers/offline.ts`).
+  open at Level 2 and at Level 3, and offline on the production build (`tools/word-wreckers/offline.ts`). The Level 2 and 3 saves also
+  play a Job with the Jackhammer, the Dynamite Truck (sticks and plunger), the Steamroller, the Magnet Crane and the Cement Mixer, open
+  a treasure chest, drive the dump truck, open every Yard tab and buy a horn, and in the Town drive through road features and tap a car
+  and a decoration, all by touch. The horn sounds and the Town's effects have not been heard or seen on a real iPad.
 - The voice clips have not been listened to by a person. Every word clip and slow clip was transcribed by speech-to-text (above); all
-  876 decode, none is silent or clipped, and the game's trimming keeps all but 0.15% of any clip's energy. Words most worth a listen on
+  first 876 decode, none is silent or clipped, and the game's trimming keeps all but 0.15% of any clip's energy. Words most worth a listen on
   the iPad: cat and grab (Jenny's voice among Aria's); long, kite, doll, mop and moth (the large model, hearing each clip alone, wrote
   lung, Kate, dull, map and math, though it does the same for doll, kite, mop and moth in other voices); and, slow, lunch, puff, shop,
   tub, hut, sock, cute and cube (one model or the other heard lunge, path, sharp, tab, hot, suck, hued and hub).
 - Frame rate: 60 fps unthrottled in headless Chromium; under 4× CPU throttling the game's own work per frame stays under about 1 ms but
-  headless software compositing drops to about 30 fps. Real GPU speed on the iPad 9 is not measured.
+  headless software compositing drops to about 30 fps. A full Town (72 buildings, 12 road features, 17 cars, 54 decorations, at 2×
+  pixels) holds 60 fps unthrottled and a median of 60 fps (p95 30) at 4× throttling. Real GPU speed on the iPad 9 is not measured.
+- The 290 new clips (names, lines, the 24 old-building names) have not been listened to; the game's name for each comes from the shop.
 - No Trophies, no per-word strength (strength is per Pattern), no isolated speech sounds (by design), no sharing of clips with Dino Dig
   yet, no interior or "visit" for a Town building.

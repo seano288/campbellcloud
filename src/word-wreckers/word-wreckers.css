@@ -185,7 +185,7 @@ button.sbox{min-height:var(--tap);min-width:var(--tap);justify-content:center}
 .bay-go .job-btn{flex:1;min-width:0;min-height:max(64px,calc(88px*var(--u)))}
 .bay-go .icon-btn{flex:none;width:max(60px,calc(76px*var(--u)));height:max(60px,calc(76px*var(--u)));font-size:calc(34px*var(--u));color:#fff}
 .parts-side{position:relative;display:grid;grid-template-columns:minmax(0,1fr);grid-template-rows:auto minmax(0,1fr);gap:calc(8px*var(--u));min-height:0;min-width:0}
-.ww-tabs{display:grid;grid-template-columns:repeat(5,1fr);gap:6px}
+.ww-tabs{display:grid;grid-template-columns:repeat(auto-fit,minmax(50px,1fr));gap:5px}
 .ww-tab{min-height:max(var(--tap),calc(58px*var(--u)));border-radius:14px;background:var(--asphalt-2);border:3px solid #fff3;font-size:calc(28px*var(--u));padding:0}
 .ww-tab.on{background:var(--hivis);border-color:#000;box-shadow:0 4px 0 #000}
 .ww-tray{display:grid;grid-template-columns:repeat(auto-fill,minmax(max(100px,calc(124px*var(--u))),1fr));grid-auto-rows:max-content;gap:calc(8px*var(--u));overflow-y:auto;overscroll-behavior:contain;touch-action:pan-y;padding-bottom:calc(84px*var(--u));min-height:0}
@@ -201,6 +201,7 @@ button.sbox{min-height:var(--tap);min-width:var(--tap);justify-content:center}
 .ww-tile.on{border-color:var(--green);background:#143526;color:#c4f7dc}.ww-tile.on .mt-tag{color:#8ff0bf}
 .ww-tile.trying{border-color:#fff;outline:3px solid var(--yellow);outline-offset:1px}
 .tray-note{grid-column:1/-1;text-align:center;font-size:30px}
+.ww-tile.treasure.locked .item-pic{opacity:.45}
 .swatch-pic{display:block;width:calc(80px*var(--u));height:calc(56px*var(--u));min-width:64px;min-height:44px;border-radius:10px;border:3px solid #000}
 .swatch-pic.stripes{background-image:repeating-linear-gradient(45deg,transparent 0 8px,var(--trim) 8px 14px)!important}
 .swatch-pic.dots{background-image:radial-gradient(circle,var(--trim) 0 4px,transparent 5px)!important;background-size:14px 14px!important}
@@ -209,6 +210,10 @@ button.sbox{min-height:var(--tap);min-width:var(--tap);justify-content:center}
 .swatch-pic.stars{background-image:radial-gradient(circle,var(--trim) 0 2.5px,transparent 3.5px),radial-gradient(circle,#fff 0 1px,transparent 2px)!important;background-size:16px 16px,11px 11px!important}
 .swatch-pic.lightning{background-image:linear-gradient(115deg,transparent 0 40%,var(--trim) 40% 52%,transparent 52%)!important;background-size:22px 22px!important}
 .swatch-pic.rainbow{background-image:linear-gradient(#e63946 0 17%,#ff9a1f 0 33%,#ffd23f 0 50%,#2bb673 0 67%,#3d9be0 0 83%,#7a4fd8 0)!important}
+.swatch-pic.spots{background-image:radial-gradient(ellipse at 30% 30%,var(--trim) 0 5px,transparent 6px),radial-gradient(ellipse at 75% 70%,var(--trim) 0 4px,transparent 5px)!important;background-size:22px 20px!important}
+.swatch-pic.zigzag{background-image:linear-gradient(135deg,var(--trim) 25%,transparent 25%),linear-gradient(225deg,var(--trim) 25%,transparent 25%)!important;background-size:16px 16px!important}
+.swatch-pic.hearts{background-image:radial-gradient(circle at 35% 40%,var(--trim) 0 3px,transparent 4px),radial-gradient(circle at 65% 40%,var(--trim) 0 3px,transparent 4px),conic-gradient(from 135deg at 50% 70%,var(--trim) 0 90deg,transparent 0)!important;background-size:18px 18px!important}
+.swatch-pic.waves{background-image:radial-gradient(circle at 50% 100%,transparent 0 6px,var(--trim) 7px 10px,transparent 11px)!important;background-size:20px 12px!important}
 .swatch-pic.camo{background-image:radial-gradient(ellipse at 20% 30%,var(--trim) 0 7px,transparent 8px),radial-gradient(ellipse at 70% 60%,#c9b27a 0 6px,transparent 7px)!important;background-size:26px 22px!important}
 .buybar{position:absolute;left:0;right:0;bottom:0;display:flex;align-items:center;gap:10px;padding:8px;background:#000;border:3px solid var(--yellow);border-radius:16px;box-shadow:0 -4px 18px #0009;z-index:3}
 .buybar .x{flex:none;width:var(--tap);height:var(--tap);border-radius:50%;background:var(--asphalt-2);color:#fff;font-size:20px}
@@ -262,6 +267,25 @@ button.sbox{min-height:var(--tap);min-width:var(--tap);justify-content:center}
 .job-card .btns{display:flex;gap:16px;align-items:center;flex-wrap:wrap;justify-content:center}
 .job-card .big-btn{min-height:64px;min-width:64px}
 .town-btn{font-size:calc(30px*var(--u))}
+.job-screen .ctl.tool{background:var(--hivis);color:#000}
+.job-screen .ctl.plunger{position:relative;background:#e63946;overflow:visible}
+.job-screen .ctl.plunger .handle{position:absolute;left:50%;top:-30px;width:56%;height:16px;transform:translateX(-50%);background:#5a5f66;border:4px solid #000;border-radius:8px}
+.job-screen .ctl.plunger .handle::after{content:'';position:absolute;left:50%;top:12px;width:10px;height:18px;transform:translateX(-50%);background:#5a5f66;border:3px solid #000;border-top:0}
+.job-screen .ctl.plunger:active .handle{top:-12px}
+.pick-machines.pavers{align-items:center;padding-top:calc(6px*var(--u));border-top:4px dashed #0003}
+.or-road{font-size:calc(40px*var(--u))}
+.pick-machine.paver{background:#e8f6fc}
+.build-choice.feature-choice .feature-view{width:max(110px,calc(160px*var(--u)));height:max(84px,calc(124px*var(--u)))}
+.feature-view{display:block}
+.feature-view svg{width:100%;height:100%;display:block}
+.job-card.done .built .feature-view{width:min(60vw,calc(260px*var(--u)));height:min(30vh,calc(200px*var(--u)))}
+.road-done{font-size:calc(90px*var(--u))}
+.treasure-card .chest-btn{display:grid;place-items:center;width:max(140px,calc(200px*var(--u)));height:max(120px,calc(170px*var(--u)));border:4px solid #000;border-radius:24px;background:#ffe9a8;box-shadow:0 6px 0 #000;font-size:calc(100px*var(--u));touch-action:manipulation}
+.treasure-card .chest-pic{display:block;width:80%;height:80%}.treasure-card .chest-pic svg{width:100%;height:100%;display:block}
+.treasure-card .found-treasure{font-size:min(28vh,calc(130px*var(--u)));line-height:1.1;animation:pop-in .5s}
+@keyframes pop-in{0%{transform:scale(.2) rotate(-20deg)}70%{transform:scale(1.15)}100%{transform:none}}
+.treasure-card .big-btn{min-width:max(84px,calc(110px*var(--u)));min-height:64px}
+.result-treasure{font-size:calc(46px*var(--u));background:#000;border-radius:999px;padding:2px 16px}
 .town-side{position:absolute;right:max(12px,env(safe-area-inset-right));top:calc(max(8px,env(safe-area-inset-top)) + max(60px,calc(70px*var(--u))));display:flex;flex-direction:column;gap:10px;z-index:3}
 .town-swap{position:relative;display:grid;place-items:center;width:max(64px,calc(84px*var(--u)));height:max(56px,calc(70px*var(--u)));border:4px solid #000;border-radius:16px;background:var(--hivis);box-shadow:0 5px 0 #000;font-size:calc(32px*var(--u));padding:2px;touch-action:manipulation}
 .town-swap .machine-view{width:100%;height:100%}
@@ -271,9 +295,14 @@ button.sbox{min-height:var(--tap);min-width:var(--tap);justify-content:center}
 @media (orientation:landscape) and (max-height:520px){
   .job-card{gap:4px;padding:6px 14px;border-top-width:10px}
   .job-card h2{font-size:22px}.job-line{font-size:17px}
-  .pick-machine .machine-view{width:90px;height:60px}.build-choice .building-view{width:84px;height:84px}
+  .pick-machine .machine-view{width:90px;height:60px}.build-choice .building-view{width:84px;height:84px}.build-choice.feature-choice .feature-view{width:96px;height:74px}
+  .treasure-card .chest-btn{width:130px;height:100px;font-size:64px}.treasure-card .chest-pic{display:block;width:80%;height:80%}.treasure-card .chest-pic svg{width:100%;height:100%;display:block}
+.treasure-card .found-treasure{font-size:90px}
   .job-card.done .built .building-view{height:30vh}
   .job-hint{bottom:calc(var(--floor) + 4px)}
   .town-side{flex-direction:row;top:auto;bottom:var(--floor);right:50%;transform:translateX(50%)}
+}
+@media (max-width:430px) and (orientation:portrait){
+  .pick-machine{min-width:0;width:calc(50% - 8px);padding:6px}.pick-machine .machine-view{width:100%;height:64px}
 }
 @media (prefers-reduced-motion:reduce){.meet-word,.ltile.hint,.sbox.marked{animation:none!important}}
