@@ -1,0 +1,66 @@
+// Home: one Play tile, the biggest thing on the screen (a building site with ▶ on the swinging wrecking ball; every Round mixes the
+// kinds he has opened), the Yard tile with his machine parked (and his Jobs), the Town tile with his buildings standing in a row and
+// how many there are, and a board with his Level in each kind. Tapping a kind says its name, and a locked one says what opens it.
+import { useEffect } from 'preact/hooks';
+import type { ComponentChildren } from 'preact';
+import { sBad } from '../audio/sfx';
+import { LevelDots } from '../ui/bits';
+import { PlayScene } from './art/HomeArt';
+import { BuildingView, MachineView } from './art/Pics';
+import { player } from './game';
+import { LOCKED_HINTS, MODE_IDS, MODE_NAMES, type ModeId } from './learning';
+import { screen } from './nav';
+import { startRound } from './round';
+import { useVoice } from './voice';
+import { TOWN_TOTAL } from './yard/yard';
+
+export const MODE_ICONS: Record<ModeId, string> = { build: '🧱', gap: '🕳️', chunk: '🧩', fix: '🔧', pick: '👀' };
+
+export function Home({ status }: { status: ComponentChildren }) {
+  const voice = useVoice(), state = player.state.value, modes = state.learning.modes, yard = state.yard;
+  useEffect(() => { // a newly opened kind says so again until he plays a Round
+    const fresh = MODE_IDS.filter(m => modes[m].opened && modes[m].fresh);
+    if (fresh.length) void voice.sayMore(...fresh.map(m => `You opened ${MODE_NAMES[m]}!` as const));
+  }, []);
+  function tap(id: ModeId) {
+    if (!voice.active) return;
+    if (modes[id].opened) { void voice.say(MODE_NAMES[id]); return; }
+    sBad();
+    if (id in LOCKED_HINTS) void voice.say(LOCKED_HINTS[id as keyof typeof LOCKED_HINTS]);
+  }
+  return (
+    <div class="screen home-screen">
+      <header class="home-head"><h1>Word Wreckers</h1>{status}</header>
+      <div class="home ww-home">
+        <button class="tile t-play" aria-label="Play" onClick={() => { if (voice.active) startRound(); }}>
+          <PlayScene />
+          <span class="spot"><span class="e">▶</span></span>
+        </button>
+        <button class="tile t-yard" aria-label="Yard" onClick={() => { if (voice.active) screen.value = 'yard'; }}>
+          <MachineView yard={yard} id={yard.machine} label={null} /><span class="nm">Yard</span>
+          {yard.jobs > 0 && <span class="job-badge" aria-hidden="true">🏗️{yard.jobs}</span>}
+        </button>
+        <button class="tile t-town" aria-label="Town" onClick={() => { if (voice.active) screen.value = 'town'; }}>
+          <span class="town-peek" aria-hidden="true">
+            {yard.town.slice(-4).map(l => <BuildingView key={l.b} id={l.b} gold={l.gold} label={null} />)}
+            {!yard.town.length && <span class="empty-lot">🚧</span>}
+          </span>
+          <span class="nm">Town {yard.town.length}/{TOWN_TOTAL}</span>
+        </button>
+        <div class="tile t-kinds" role="group" aria-label="My Levels">
+          <h2 class="kinds-head">My Levels</h2>
+          {MODE_IDS.map(id => {
+            const m = modes[id];
+            return (
+              <button key={id} class={`kind ${m.opened ? '' : 'locked'} ${m.opened && m.fresh ? 'fresh' : ''}`} aria-label={MODE_NAMES[id]} onClick={() => tap(id)}>
+                <span class="ki">{m.opened ? MODE_ICONS[id] : '🔒'}</span>
+                <span class="kb"><span class="kn">{MODE_NAMES[id]}</span><LevelDots level={m.opened ? m.level : 0} /></span>
+                {m.opened && m.starred && <span class="badge">⭐</span>}
+              </button>
+            );
+          })}
+        </div>
+      </div>
+    </div>
+  );
+}

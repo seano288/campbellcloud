@@ -18,6 +18,7 @@ const collections = {
   'rover-code': async () => (await import('../src/rover-code/phrases')).PHRASES,
   'treasure-fleet': async () => (await import('../src/treasure-fleet/phrases')).PHRASES,
   'wild-rescue': async () => (await import('../src/wild-rescue/phrases')).PHRASES,
+  'word-wreckers': async () => (await import('../src/word-wreckers/phrases')).PHRASES,
 };
 if (!name || !Object.hasOwn(collections, name)) throw new Error(`Select --collection ${Object.keys(collections).join('|')}`);
 const phrases = await collections[name as keyof typeof collections]();

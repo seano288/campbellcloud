@@ -323,3 +323,36 @@ _Avoid_: voyage, launch, ticket
 
 **Buddy**: a friend who rides along in the truck's cab window (Puppy to Robot), for looks only.
 
+
+## Word Wreckers
+
+Word Wreckers reuses Math Bots', Rover Code's, Treasure Fleet's and Wild Rescue's terms where they mean the same thing (Mixed Round, Mastery, Stretch, Bolt, Goal, Paint). It has no Tune-Up. These are its own:
+
+**Game Modes (Word Wreckers)**: the five kinds of spelling question, each about a word he hears and never sees until he has built it: Build It (letter tiles into the sound boxes), Missing Sound (one box empty; pick its tile), Chunks (build it from sound chunks such as sh, ck, ee, a_e), Fix It (a wrong spelling of the word he hears; tap the mistake and fix it) and Which Looks Right (tap the right spelling). Build It and Missing Sound are open from the start; Chunks opens at Build It Level 2, Fix It at Missing Sound Level 2, Which Looks Right at Chunks Level 2.
+
+**Pattern**: one step of the phonics order shared with Dino Dig: short vowels (CVC), digraphs, blends, magic e, vowel teams, r-controlled vowels. Each word on the list (`src/dino-dig/words/list.ts`) belongs to the latest Pattern it uses. A Pattern is met before it is asked, and keeps a strength (0 to 5) so weak ones come back more often. A Level is how hard the question is, not which Pattern it uses.
+_Avoid_: word set (that's Sight Squad's)
+
+**Meeting a Pattern**: the short spoken introduction to a new Pattern, inside a Round: what's new ("Two letters can make one sound."), then three example words in their sound boxes with the new sounds lit. It counts as one of the Round's five.
+
+**Sound box**: one box per sound in a word, holding that sound's letters (sh is one box; a magic e sits in its own little box at the end, linked to its vowel's by colour). Lessons light the boxes one at a time while the word is said slowly.
+_Avoid_: Elkonin box (fine in the research, not on screen)
+
+**Wrong spelling**: a misspelling the game shows (Fix It) or offers (Which Looks Right). Never a real word, never rude, never read aloud.
+
+**Job**: what a finished Round earns (he starts with one): a demolition and then a build. It's used only when the new building is up.
+_Avoid_: rescue, call, voyage
+
+**Demolition**: the first half of a Job: he knocks an old building down with one of his machines (a wrecking ball he pulls back and lets go, a blade he holds to push, a bucket that bites where he taps). The old building is wood, brick, concrete or steel, never stronger than his strongest machine.
+
+**Build**: the second half of a Job: he picks one of two or three buildings and lowers its pieces with the crane, moving the hook with his finger and letting go; every piece snaps onto the one below.
+
+**Machine**: one of his construction machines (Wrecking Ball Crane, Skid Steer, Bulldozer, Excavator, Dump Truck, Tower Crane, Demolition Robot, Monster Dozer, Mega Wrecker, Giant Excavator). Its **power** (1 wood to 4 steel) is what it can knock down; power **Upgrades** raise it, other upgrades make hits bigger or driving faster. The Tower Crane puts up the tallest buildings.
+_Avoid_: truck, Body (Word Wreckers has no Body or Slots)
+
+**Yard**: where his machines are parked and bought, with their upgrades, paints, the **Driver** (who sits in every cab), and the Town's streets and decorations.
+_Avoid_: Garage
+
+**Town**: the street of everything he has built, lot by lot; he drives any machine along it and honks. Main Street is free; each bought **Street** adds six **Lots**. With no empty lot, a Job makes one of his buildings **gold** instead.
+
+**Decoration (Word Wreckers)**: a thing for the Town's pavement or sky (Trees, Fountain, Fire Truck, Ferris Wheel, Fireworks...).

@@ -22,6 +22,8 @@ Truck Money alone into `dist/` for the existing browser checks.
   key, `time-flies-save`, Chop Chop `chop-chop-save`, Sight Squad `sight-squad-save`, Math Bots `math-bots-save`, Rover Code `rover-code-save`, Treasure Fleet `treasure-fleet-save`, Wild Rescue `wild-rescue-save`, and Purrdoku `purrdoku-save`.
 - **Home Screen**: the app already installed from the site root now opens the landing page, which works offline. Each game
   becomes available offline after its first online visit at its new folder.
+- **Word Wreckers** (`/word-wreckers/`) has a tile in **Learning Games** and saves under its own key, `word-wreckers-save` (with
+  `word-wreckers-place` for the screen and the Round in progress).
 
 ## Learning games and games just for fun
 
