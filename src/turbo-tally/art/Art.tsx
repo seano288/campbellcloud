@@ -50,6 +50,19 @@ export function CarView({ car, view = 'side', live = false, boosting = false, cl
     }} />;
 }
 
+/** The drawing trimmed to the car itself (and a little round it), so a picture in a small tile is all car and no empty sky. */
+function cropped(canvas: HTMLCanvasElement, c: CanvasRenderingContext2D) {
+  const { width: w, height: h } = canvas, px = c.getImageData(0, 0, w, h).data;
+  let x0 = w, y0 = h, x1 = -1, y1 = -1;
+  for (let y = 0; y < h; y++) for (let x = 0; x < w; x++) if (px[(y * w + x) * 4 + 3]! > 60) { if (x < x0) x0 = x; if (x > x1) x1 = x; if (y < y0) y0 = y; if (y > y1) y1 = y; }
+  if (x1 < 0) return null;
+  // kept inside the drawing: Safari draws nothing for a source box that pokes outside it
+  const pad = 6, sx = Math.max(0, x0 - pad), sy = Math.max(0, y0 - pad), cw = Math.min(w, x1 + 1 + pad) - sx, ch = Math.min(h, y1 + 1 + pad) - sy, out = document.createElement('canvas');
+  out.width = cw; out.height = ch;
+  out.getContext('2d')?.drawImage(canvas, sx, sy, cw, ch, 0, 0, cw, ch);
+  return out.toDataURL('image/png');
+}
+
 const pics = new Map<string, string>();
 /** A car drawn once to a picture, for the parts tray. */
 export function carPic(car: Look, view: 'side' | 'top' = 'side') {
@@ -57,10 +70,10 @@ export function carPic(car: Look, view: 'side' | 'top' = 'side') {
   let url = pics.get(key);
   if (!url) {
     const canvas = document.createElement('canvas');
-    canvas.width = 200; canvas.height = 120;
+    canvas.width = 300; canvas.height = 180;
     const c = canvas.getContext('2d');
-    if (c) { if (view === 'side') fitSide(c, 200, 120, .98); else fitTop(c, 200, 120, .9); (view === 'side' ? drawCarSide : drawCarTop)(c, car, { t: .3 }); }
-    url = canvas.toDataURL('image/png');
+    if (c) { if (view === 'side') fitSide(c, 300, 180, .98); else fitTop(c, 300, 180, .9); (view === 'side' ? drawCarSide : drawCarTop)(c, car, { t: .3 }); }
+    url = (c && cropped(canvas, c)) ?? canvas.toDataURL('image/png');
     pics.set(key, url);
     if (pics.size > 400) pics.delete(pics.keys().next().value!); // the tray never needs this many at once
   }

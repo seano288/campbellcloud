@@ -1,4 +1,5 @@
-// The Cups: his trophy shelf and the way to every track. His car stands on the podium at the top, with "Watch it go" beside it (his
+// The Cups: his trophy shelf and the way to every track. His car stands on the podium at the top (with his six Cups above it when
+// there's room, dark until won), with "Watch it go" beside it (his
 // car alone driving a lap of the last track he raced). Below, one shelf per Cup: its trophy (gold once he has won the Cup Final, an
 // outline until then) and its four tracks, each a flag once he has beaten its Rival, open to race, or locked until the track before is
 // beaten. Tapping an open track picks it for the next Race.
@@ -31,8 +32,9 @@ export function CupsScreen() {
       <div class="cups-body">
         <section class="podium-side">
           <div class="podium">
+            <div class="podium-cups" aria-hidden="true">{CUPS.map(c => <span key={c.id} class={g.cups.includes(c.id) ? 'won' : ''}>🏆</span>)}</div>
             <CarView car={g.car} live label="Your race car on the podium" />
-            <div class="podium-block"><span>1</span></div>
+            <div class="podium-steps" aria-hidden="true"><i>2</i><i>1</i><i>3</i></div>
           </div>
           <div class="podium-go">
             {g.last && <button class="big-btn watch-btn" aria-label="Watch it go" onClick={() => { if (voice.active) watch(); }}><span aria-hidden="true">👀</span><span class="go-word">Watch</span></button>}

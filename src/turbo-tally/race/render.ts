@@ -174,7 +174,7 @@ export function createStage(canvas: HTMLCanvasElement, def: TrackDef, looks: rea
       }
       // the little map, top right
       c.setTransform(1, 0, 0, 1, 0, 0);
-      const m = 120 * dpr, mx = w - m - 14 * dpr, my = 74 * dpr;
+      const m = Math.min(120, (Math.min(w, h) / dpr) * .26) * dpr, mx = w - m - 24 * dpr, my = 78 * dpr; // in from the side like the controls, smaller on a phone
       c.fillStyle = '#00000088'; c.beginPath(); c.roundRect(mx - 8 * dpr, my - 8 * dpr, m + 16 * dpr, m + 16 * dpr, 14 * dpr); c.fill();
       const ms = m / Math.max(spanX, spanY);
       c.setTransform(ms, 0, 0, ms, mx + (m - spanX * ms) / 2 - track.box.x0 * ms, my + (m - spanY * ms) / 2 - track.box.y0 * ms);

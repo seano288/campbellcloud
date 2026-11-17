@@ -8,7 +8,9 @@
 html,body{background:var(--tarmac)}
 .tt-start,.start.tt-start{background:radial-gradient(circle at 50% 20%,#4a505e,var(--tarmac) 72%)}
 .tt-start h1{color:#fff;text-shadow:3px 3px 0 var(--signal),6px 6px 0 #000}
-.tt-start .start-art .car-view{width:calc(320px*var(--u));height:calc(170px*var(--u));min-width:200px;min-height:110px}
+.tt-start .start-art{position:relative;width:min(92vw,calc(460px*var(--u)),560px);display:grid;place-items:center;padding-bottom:calc(22px*var(--u))}
+.tt-start .start-art::after{content:'';position:absolute;left:0;right:0;bottom:0;height:calc(22px*var(--u));min-height:14px;background:repeating-conic-gradient(#14161b 0 25%,#fff 0 50%) 0 0/calc(22px*var(--u)) calc(22px*var(--u));border:3px solid #000;border-radius:6px}
+.tt-start .start-art .car-view{width:100%;height:calc(210px*var(--u));min-height:120px}
 .home-screen.tt-home-screen,.round-screen{background:radial-gradient(circle at 80% 0%,#4a505e,var(--tarmac) 55%,#1d2026)}
 .tt-home-screen .home-head h1{color:var(--pit);text-shadow:2px 2px 0 var(--signal),4px 4px 0 #000}
 .art{display:block;width:100%;height:100%}
@@ -16,28 +18,38 @@ html,body{background:var(--tarmac)}
 /* ---------- Home: Play, the Garage, the Cups, My Levels ---------- */
 .home.tt-home{grid-template-areas:"p p" "g c" "k k";grid-template-rows:minmax(0,1fr) minmax(0,.7fr) auto;grid-template-columns:1.4fr 1fr}
 @media (orientation:landscape){.home.tt-home{grid-template-areas:"p g" "p c" "k k";grid-template-rows:minmax(0,1fr) minmax(0,.7fr) auto;grid-template-columns:1.15fr 1fr}}
-.tt-home .t-play{grid-area:p;background:var(--pit)}
-.tt-home .t-play .e{display:grid;place-items:center;width:calc(150px*var(--u));height:calc(150px*var(--u));min-width:72px;min-height:72px;border-radius:50%;border:4px solid #000;background:var(--go);color:#fff;font-size:calc(72px*var(--u));box-shadow:0 7px 0 #000}
-.tt-home .t-play:active .e{box-shadow:0 2px 0 #000}
-.tt-home .t-car{grid-area:g;position:relative;flex-direction:column;gap:2px;background:linear-gradient(#5b6170,#2b2f36);color:#fff}
+/* Play is the start line: pit-lane yellow with the chequered line across it and the green Go light on the line */
+.tt-home .t-play{grid-area:p;background:radial-gradient(circle at 50% 50%,#ffe27a,var(--pit) 70%)}
+.tt-home .t-play .start-line{position:absolute;left:0;right:0;top:50%;height:calc(56px*var(--u));transform:translateY(-50%);border-block:4px solid #000;
+  background:repeating-conic-gradient(#14161b 0 25%,#fff 0 50%) 0 0/calc(28px*var(--u)) calc(28px*var(--u))}
+.tt-home .t-play .e{position:relative;display:grid;place-items:center;width:calc(160px*var(--u));height:calc(160px*var(--u));min-width:84px;min-height:84px;border-radius:50%;border:4px solid #000;background:var(--go);color:#fff;font-size:calc(76px*var(--u));padding-left:calc(8px*var(--u));box-shadow:0 0 0 calc(8px*var(--u)) #fff,0 0 0 calc(8px*var(--u) + 4px) #000,0 calc(8px*var(--u) + 7px) 0 calc(8px*var(--u) + 4px) #000}
+.tt-home .t-play:active .e{box-shadow:0 0 0 calc(8px*var(--u)) #fff,0 0 0 calc(8px*var(--u) + 4px) #000}
+/* the Garage: his car on the garage floor */
+.tt-home .t-car{grid-area:g;position:relative;flex-direction:column;gap:2px;background:linear-gradient(#5b6170 0 64%,#3a3f4b 64%);color:#fff}
 .tt-home .t-car .car-view{flex:1;min-height:0;width:100%}
-.tt-home .t-cups{grid-area:c;position:relative;flex-direction:column;gap:0;background:var(--chequer);color:#fff}
-.tt-home .t-cups .cup-icon{font-size:calc(56px*var(--u));filter:drop-shadow(2px 3px 0 #000)}
+/* the Cups: a trophy on the podium, in signal red */
+.tt-home .t-cups{grid-area:c;position:relative;flex-direction:column;justify-content:flex-end;gap:calc(6px*var(--u));padding-bottom:calc(12px*var(--u));background:radial-gradient(circle at 50% 30%,#ff6b74,var(--signal) 60%,#b3202c);color:#fff}
+.mini-podium{flex:1;min-height:0;width:min(86%,calc(240px*var(--u)));display:grid;grid-template-columns:1fr 1.15fr 1fr;align-items:end}
+.mini-podium>i{position:relative;height:38%;background:#fff;border:4px solid #000;border-bottom-width:0}
+.mini-podium>i:nth-child(2){height:58%;background:var(--pit);margin:0 -4px}
+.mini-podium>i:nth-child(3){height:26%}
+.mini-podium .cup-icon{position:absolute;left:50%;bottom:100%;transform:translateX(-50%);font-size:calc(64px*var(--u));line-height:1.05;font-style:normal;filter:drop-shadow(2px 3px 0 #000)}
 .tt-home .t-cups .nm,.tt-home .t-car .nm{font-size:calc(24px*var(--u));color:#fff;background:#000;border-radius:10px;padding:2px 10px}
 .cup-count{position:absolute;right:8px;top:6px;background:#000;color:var(--pit);border-radius:999px;padding:2px 10px;font:900 max(15px,calc(18px*var(--u))) Nunito,sans-serif}
 .race-badge{position:absolute;right:10px;top:8px;background:#000;color:var(--pit);border-radius:999px;padding:3px 12px;font:900 max(16px,calc(22px*var(--u))) Nunito,sans-serif;border:2px solid var(--pit)}
-.tt-home .t-kinds{grid-area:k;background:#ececee;display:grid;grid-template-columns:repeat(3,1fr);grid-auto-rows:minmax(max(48px,calc(54px*var(--u))),auto);column-gap:calc(10px*var(--u));padding:calc(6px*var(--u)) calc(12px*var(--u)) calc(10px*var(--u));cursor:default}
+/* My Levels: a pit board, chalk white with a black header strip; each Level is a start light, lit yellow */
+.tt-home .t-kinds{grid-area:k;background:var(--chalk);display:grid;grid-template-columns:repeat(3,1fr);grid-auto-rows:minmax(max(48px,calc(54px*var(--u))),auto);column-gap:calc(12px*var(--u));padding:0 calc(12px*var(--u)) calc(8px*var(--u));cursor:default}
 .tt-home .t-kinds:active{transform:none;box-shadow:0 7px 0 #000}
-.tt-home .kinds-head{grid-column:1/-1;margin:0;font:400 max(14px,calc(16px*var(--u))) Bungee,sans-serif;text-align:center;letter-spacing:.04em;color:#0009}
-.tt-home .kind{position:relative;display:flex;align-items:center;gap:8px;background:none;border:0;border-top:2px solid #0002;padding:2px;min-height:44px;text-align:left;color:#000;cursor:default}
+.tt-home .kinds-head{grid-column:1/-1;margin:0 calc(-12px*var(--u)) calc(2px*var(--u));padding:calc(5px*var(--u)) 12px;font:400 max(14px,calc(16px*var(--u))) Bungee,sans-serif;text-align:center;letter-spacing:.04em;color:var(--pit);background:#14161b}
+.tt-home .kind{position:relative;display:flex;align-items:center;gap:8px;background:none;border:0;padding:2px;min-height:44px;text-align:left;color:#14161b;cursor:default}
 .tt-home .kind .ki{font-size:max(20px,calc(26px*var(--u)));line-height:1}
-.tt-home .kind .kb{flex:1;min-width:0;display:flex;flex-direction:column;gap:3px}
+.tt-home .kind .kb{flex:1;min-width:0;display:flex;flex-direction:column;gap:4px}
 .tt-home .kind .kn{font:900 max(14px,calc(18px*var(--u))) Nunito,sans-serif;line-height:1.1}
-.tt-home .kind .lvl{gap:0;width:100%;max-width:max(70px,calc(120px*var(--u)));height:max(8px,calc(10px*var(--u)));border-radius:99px;overflow:hidden;background:#0002}
-.tt-home .kind .lvl i{flex:1;width:auto;height:100%;border:0;border-radius:0;background:none}
-.tt-home .kind .lvl i+i{border-left:2px solid #ececee}
-.tt-home .kind .lvl i.on{background:var(--orange)}
-.tt-home .kind.locked{filter:grayscale(.9) brightness(.85);opacity:.7}
+.tt-home .kind .lvl{gap:4px}
+.tt-home .kind .lvl i{width:max(12px,calc(15px*var(--u)));height:max(12px,calc(15px*var(--u)));border:2px solid #0004;background:#e3e6eb}
+.tt-home .kind .lvl i.on{border-color:#000;background:radial-gradient(circle at 35% 35%,#fff3b0,#ffc400 60%);box-shadow:0 0 0 2px #ffc40055}
+.tt-home .kind.locked{opacity:.55}
+.tt-home .kind.locked .ki{filter:grayscale(1)}
 .tt-home .kind.fresh{animation:pulse 1s infinite}
 .tt-home .kind .badge{position:absolute;right:-2px;top:2px;font-size:calc(18px*var(--u))}
 @media (max-width:560px){.tt-home .t-kinds{grid-template-columns:repeat(2,1fr)}}
@@ -64,35 +76,65 @@ html,body{background:var(--tarmac)}
 .choice.hint{animation:hint 1s infinite}
 .quiz-car{display:block;width:100%;height:100%}
 
-/* Podium: the cars in single file on a strip of tarmac, the finish line on the right, the way they race */
-.tt-road{width:100%;display:flex;flex-direction:column;align-items:stretch;gap:6px}
-.tt-road .lane{position:relative;display:flex;align-items:flex-end;justify-content:flex-end;gap:calc(8px*var(--u));padding:calc(34px*var(--u)) 54px calc(12px*var(--u)) 12px;min-height:calc(130px*var(--u));background:repeating-linear-gradient(90deg,#fff 0 30px,transparent 30px 60px) 0 50%/100% 4px no-repeat,var(--tarmac-2);border:4px solid #000;border-radius:18px;box-shadow:0 6px 0 #000}
-.tt-road .finish{position:absolute;right:10px;top:0;bottom:0;width:30px;background:var(--chequer);background-size:15px 15px;border-left:3px solid #000;border-right:3px solid #000}
+/* Podium: the cars in single file on a strip of tarmac between red and white kerbs, the finish line at the front, the way they race.
+   Sideways it runs left to right; on an upright phone it runs up the screen, so ten cars get the tall side instead of a third of it. */
+.tt-road{width:100%;display:flex;flex-direction:column;align-items:stretch;gap:8px}
+.tt-road .lane{position:relative;display:flex;align-items:flex-end;justify-content:flex-end;gap:calc(8px*var(--u));padding:calc(40px*var(--u)) 58px calc(20px*var(--u)) 14px;min-height:calc(150px*var(--u));
+  background:repeating-linear-gradient(90deg,#fff 0 30px,transparent 30px 60px) 0 calc(50% + 10px*var(--u))/100% 4px no-repeat,var(--tarmac-2);border:4px solid #000;border-radius:18px;box-shadow:0 6px 0 #000}
+.tt-road .lane::before,.tt-road .lane::after{content:'';position:absolute;left:0;right:0;height:9px;background:repeating-linear-gradient(90deg,var(--signal) 0 22px,#fff 22px 44px);pointer-events:none}
+.tt-road .lane::before{top:0;border-radius:14px 14px 0 0;border-bottom:2px solid #000}
+.tt-road .lane::after{bottom:0;border-radius:0 0 14px 14px;border-top:2px solid #000}
+.tt-road .finish{position:absolute;right:12px;top:0;bottom:0;width:32px;z-index:1;background:var(--chequer);background-size:16px 16px;border-left:3px solid #000;border-right:3px solid #000}
 .tt-road .finish .flag{position:absolute;top:-30px;left:50%;transform:translateX(-50%);font-size:28px}
 .tt-road.show-finish .finish{box-shadow:0 0 0 5px var(--pit),0 0 24px 8px var(--pit)}
 .tt-road .way{display:flex;justify-content:center}
 .tt-road .way svg{width:max(90px,calc(140px*var(--u)));height:auto}
 .road-car{position:relative;flex:1 1 0;min-width:0;max-width:calc(130px*var(--u) + 30px);display:flex;flex-direction:column;align-items:center;justify-content:flex-end;padding:0;background:none;border:0;aspect-ratio:116/64;color:#fff}
-.tt-road.n10 .road-car,.tt-road.n8 .road-car,.tt-road.n7 .road-car{max-width:calc(80px*var(--u) + 20px)}
+.tt-road.n10 .road-car,.tt-road.n9 .road-car,.tt-road.n8 .road-car,.tt-road.n7 .road-car{max-width:calc(80px*var(--u) + 20px)}
 button.road-car{min-height:48px;border-radius:12px}
 button.road-car:active{transform:translateY(3px)}
 .road-car.wrong{opacity:.35}
 .road-car.right .quiz-car{filter:drop-shadow(0 0 8px var(--green))}
 .road-car.lit .quiz-car,.road-car.hint .quiz-car{filter:drop-shadow(0 0 6px var(--pit)) drop-shadow(0 0 10px var(--pit))}
 .road-car.hint{animation:hint 1s infinite}
-.place-tag{position:absolute;top:calc(-30px*var(--u) - 4px);left:50%;transform:translateX(-50%);background:#000;color:#fff;border:2px solid var(--pit);border-radius:10px;padding:0 6px;font:900 max(14px,calc(18px*var(--u))) Nunito,sans-serif;white-space:nowrap}
+.place-tag{position:absolute;z-index:2;top:calc(-30px*var(--u) - 6px);left:50%;transform:translateX(-50%);background:#000;color:#fff;border:2px solid var(--pit);border-radius:10px;padding:0 6px;font:900 max(14px,calc(18px*var(--u))) Nunito,sans-serif;white-space:nowrap}
 .place-tag.now{background:var(--pit);color:#000}
-.pointer{position:absolute;top:calc(-30px*var(--u) - 6px);left:50%;transform:translateX(-50%);color:var(--signal);font-size:max(18px,calc(26px*var(--u)));text-shadow:0 2px 0 #000}
+.pointer{position:absolute;z-index:2;top:calc(-30px*var(--u) - 8px);left:50%;transform:translateX(-50%);color:var(--signal);font-size:max(18px,calc(26px*var(--u)));text-shadow:0 2px 0 #000}
 .road-car.lit .pointer{display:none}
+@media (orientation:portrait) and (max-width:600px){
+  .k-place .tt-stage{align-items:stretch}
+  .tt-road{flex-direction:row;height:100%}
+  .tt-road .lane{flex:1;min-height:0;flex-direction:column-reverse;align-items:center;justify-content:flex-start;gap:6px;padding:58px 16px 16px 64px;container-type:size;
+    background:repeating-linear-gradient(180deg,#fff 0 30px,transparent 30px 60px) calc(50% + 24px) 0/4px 100% no-repeat,var(--tarmac-2)}
+  .tt-road .lane::before,.tt-road .lane::after{top:0;bottom:0;left:auto;right:auto;width:9px;height:auto;border:0;background:repeating-linear-gradient(180deg,var(--signal) 0 22px,#fff 22px 44px)}
+  .tt-road .lane::before{left:0;border-radius:14px 0 0 14px;border-right:2px solid #000}
+  .tt-road .lane::after{right:0;border-radius:0 14px 14px 0;border-left:2px solid #000}
+  .tt-road .finish{left:0;right:0;top:12px;bottom:auto;width:auto;height:32px;border:0;border-block:3px solid #000}
+  .tt-road .finish .flag{top:50%;left:auto;right:-10px;transform:translateY(-50%)}
+  .road-car,.tt-road[class] .road-car{flex:none;max-width:none;width:auto;aspect-ratio:64/116;height:min(calc((100cqh - (var(--n) - 1) * 6px) / var(--n)),132px)}
+  button.road-car{min-height:0;min-width:44px}
+  .road-car .quiz-car{position:absolute;left:50%;top:50%;width:181.25%;height:55.17%;transform:translate(-50%,-50%) rotate(-90deg)}
+  .place-tag,.pointer{top:50%;left:auto;right:calc(100% + 6px);transform:translateY(-50%)}
+  .pointer{transform:translateY(-50%) rotate(-90deg)}
+  .tt-road .way{flex:none;width:34px;align-items:center;overflow:visible}
+  .tt-road .way svg{flex:none;width:120px;transform:rotate(-90deg)}
+}
+/* the road needs the width more than the answers do: they go under it, sideways too */
+.game.k-place .tt-body{flex-direction:column}
+.game.k-place .tt-controls{flex:none;width:min(100%,460px);max-width:none;align-self:center}
+@media (orientation:landscape) and (max-height:520px){.tt-road .lane{min-height:92px;padding-top:28px;padding-bottom:14px}.tt-road{gap:2px}.tt-road .way svg{width:80px}}
 
 /* Faster Car */
-.duel{display:flex;flex-direction:column;gap:calc(14px*var(--u));width:min(100%,560px)}
-.duel-car{display:flex;align-items:center;gap:calc(14px*var(--u));padding:calc(10px*var(--u)) calc(16px*var(--u));background:var(--tarmac-2);border:4px solid #000;border-radius:20px;box-shadow:0 6px 0 #000;min-height:max(80px,calc(110px*var(--u)))}
+/* two drag-strip lanes, each ending at a chequered line; they share the card's height */
+.duel{display:flex;flex-direction:column;justify-content:center;gap:calc(16px*var(--u));width:min(100%,760px);height:100%;max-height:calc(540px*var(--u) + 60px)}
+.duel-car{position:relative;flex:1 1 0;max-height:calc(220px*var(--u) + 20px);display:flex;align-items:center;gap:calc(14px*var(--u));padding:calc(10px*var(--u)) calc(46px*var(--u) + 14px) calc(10px*var(--u)) calc(16px*var(--u));overflow:hidden;
+  background:repeating-linear-gradient(90deg,#fff9 0 26px,transparent 26px 52px) 0 100%/100% 4px no-repeat,var(--tarmac-2);border:4px solid #000;border-radius:20px;box-shadow:0 6px 0 #000;min-height:max(84px,calc(118px*var(--u)))}
+.duel-car::after{content:'';position:absolute;right:0;top:0;bottom:0;width:calc(32px*var(--u) + 8px);background:var(--chequer);background-size:calc(16px*var(--u) + 4px) calc(16px*var(--u) + 4px);border-left:3px solid #000}
 .duel-car:active{transform:translateY(4px);box-shadow:0 2px 0 #000}
-.duel-car .quiz-car{flex:1;min-width:0;height:max(56px,calc(80px*var(--u)))}
-.duel-car.wrong{opacity:.4}.duel-car.right{background:var(--green)}.duel-car.hint{animation:hint 1s infinite}
+.duel-car .quiz-car{flex:1;min-width:0;height:min(100%,max(60px,calc(118px*var(--u))))}
+.duel-car.wrong{opacity:.4}.duel-car.right{background-color:var(--go)}.duel-car.hint{animation:hint 1s infinite}
 .speed{display:flex;align-items:center;gap:8px;background:#fff;color:#000;border:4px solid #000;border-radius:14px;padding:4px 14px}
-.speed-num{font:900 max(34px,calc(54px*var(--u)))/1 Nunito,sans-serif}
+.speed-num{font:900 max(36px,calc(62px*var(--u)))/1 Nunito,sans-serif}
 .speed.lit{box-shadow:0 0 0 5px var(--pit)}
 .rods{height:max(54px,calc(76px*var(--u)));width:auto}
 .rods .unit{fill:#3a8dde;stroke:#000;stroke-width:2}.rods .unit.one{fill:#ff8a1f}
@@ -102,7 +144,10 @@ button.road-car:active{transform:translateY(3px)}
 .sign-slot.filled{border-style:solid;background:var(--pit)}
 .choices.signs{grid-template-columns:repeat(3,minmax(52px,1fr));width:min(100%,420px);min-width:180px}
 .k-form-sign .tt-controls{flex:none}
-.compare .rods{height:max(44px,calc(64px*var(--u)))}
+.compare .rods{height:max(44px,calc(72px*var(--u)))}
+.compare .speed{padding:calc(6px*var(--u)) calc(18px*var(--u));border-radius:18px;box-shadow:0 5px 0 #000}
+.compare .speed-num{font-size:max(46px,calc(96px*var(--u)))}
+.k-form-sign .sign-slot{min-width:max(76px,calc(124px*var(--u)));height:max(76px,calc(124px*var(--u)));font-size:max(48px,calc(84px*var(--u)))}
 .choices.signs .choice{min-height:max(64px,calc(90px*var(--u)));font-size:max(40px,calc(60px*var(--u)));line-height:1}
 .sign-meet{display:flex;flex-direction:column;gap:12px}
 .sign-row{display:flex;align-items:center;gap:12px;transition:opacity .3s}
@@ -111,10 +156,10 @@ button.road-car:active{transform:translateY(3px)}
 
 /* Tally Board: the pit board */
 .boards{display:flex;gap:calc(14px*var(--u));align-items:center;justify-content:center;flex-wrap:wrap;width:100%}
-.pit-board{position:relative;display:grid;place-items:center;min-width:min(100%,calc(240px*var(--u) + 60px));min-height:calc(140px*var(--u) + 30px);padding:calc(14px*var(--u)) calc(20px*var(--u));background:#1d2026;border:5px solid #000;border-radius:18px;box-shadow:inset 0 0 0 4px #5b6170,0 6px 0 #000}
+.pit-board{position:relative;display:grid;place-items:center;min-width:min(100%,calc(320px*var(--u) + 60px));min-height:calc(170px*var(--u) + 30px);padding:calc(14px*var(--u)) calc(20px*var(--u));background:#1d2026;border:5px solid #000;border-radius:18px;box-shadow:inset 0 0 0 4px #5b6170,0 6px 0 #000}
 .pit-board.right{box-shadow:inset 0 0 0 4px var(--green),0 6px 0 #000}
 .pit-board.model{box-shadow:inset 0 0 0 4px var(--pit),0 6px 0 #000}
-.tally-marks{width:min(100%,calc(300px*var(--u) + 60px));height:auto;max-height:100%}
+.tally-marks{width:min(100%,calc(360px*var(--u) + 60px));height:auto;max-height:100%}
 .tally-marks .mark{stroke:#f4f6fa;stroke-width:7;stroke-linecap:round}
 .tally-marks .mark.on{stroke:var(--pit);stroke-width:9}
 .board-count{position:absolute;right:10px;bottom:6px;font:900 max(22px,calc(30px*var(--u))) Nunito,sans-serif;color:var(--pit)}
@@ -131,35 +176,43 @@ button.road-car:active{transform:translateY(3px)}
 .pad-btn.hint{animation:hint 1s infinite}
 
 /* Race Chart */
-.chart{display:flex;flex-direction:column;align-items:center;width:min(100%,520px);max-height:100%}
-.chart-svg{width:100%;height:auto;min-height:0;flex:1 1 auto;max-height:calc(100% - 64px)}
+.chart{--cars:calc(max(52px,calc(64px*var(--u))) + 6px);display:flex;flex-direction:column;align-items:center;justify-content:center;width:min(100%,640px);height:100%;container-type:size}
+.chart.picture{width:min(100%,560px)}
+/* the graph shrinks to the height it has, and the cars under it keep to the same width, so each car stays under its own bar */
+.chart-svg,.chart-cars{width:min(100%,calc((100cqh - var(--cars)) * var(--ar)))}
+.chart-svg{flex:none;height:auto}
 .chart .grid{stroke:#0002;stroke-width:1.5}.chart .grid.axis{stroke:#000;stroke-width:3}
 .chart .tick{font:900 18px Nunito,sans-serif;text-anchor:end;fill:#000}
 .chart .bar-unit{stroke:#0003;stroke-width:1}
 .chart .bar-unit.on{fill:var(--pit)!important;stroke:#000;stroke-width:2}
 .chart .trophy path{fill:#e8b923;stroke:#000;stroke-width:1.5}
-.chart .trophy.on path{fill:#fff07a;stroke:var(--orange);stroke-width:3}
+.chart .trophy.on path{fill:#fff07a;stroke:#000;stroke-width:3}
+.chart .trophy.on{filter:drop-shadow(0 0 3px var(--pit))}
 .chart .c-red .bar-unit{fill:#e63946}.chart .c-blue .bar-unit{fill:#2f6fd6}.chart .c-green .bar-unit{fill:#2fa84f}
 .chart .c-yellow .bar-unit{fill:#ffd23f}.chart .c-orange .bar-unit{fill:#ff8a1f}.chart .c-purple .bar-unit{fill:#8e5bd8}
-.chart .pair{stroke:#000;stroke-width:3;stroke-dasharray:6 6}
-.chart .top-line{stroke:var(--orange);stroke-width:4;stroke-dasharray:8 6}
-.chart-cars{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;width:100%;padding-left:calc(40 / 320 * 100%)}
+.chart .col,.chart-car{transition:transform .5s cubic-bezier(.2,.8,.2,1)}
+.chart .pair{stroke:#000;stroke-width:3;stroke-dasharray:6 6;animation:pair-in .3s .45s both}
+@keyframes pair-in{from{opacity:0}to{opacity:1}}
+.chart .top-line{stroke:#14161b;stroke-width:4;stroke-dasharray:8 6}
+.chart-cars{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;padding-left:calc(40 / 320 * 100%)}
 .chart.picture .chart-cars{padding-left:calc(10 / 290 * 100%)}
 .chart-car{display:grid;place-items:center;height:max(52px,calc(64px*var(--u)));padding:2px;background:none;border:0}
 button.chart-car{background:#fff;border:4px solid #000;border-radius:14px;box-shadow:0 4px 0 #000}
 button.chart-car:active{transform:translateY(3px)}
-.chart-car.asked{border-bottom:5px solid var(--orange)}
+.chart-car.asked{background:var(--pit);border:3px solid #000;border-radius:12px}
 .chart-car.wrong{opacity:.35}.chart-car.right{background:var(--green)}.chart-car.hint{animation:hint 1s infinite}
 
 /* Line Up */
 .lineup,.between{display:flex;flex-direction:column;align-items:center;gap:calc(14px*var(--u));width:100%}
 .line-cars{display:flex;gap:calc(12px*var(--u));justify-content:center;flex-wrap:wrap}
-.line-car{display:flex;flex-direction:column;align-items:center;gap:4px;width:max(100px,calc(140px*var(--u)));padding:8px;background:var(--tarmac-2);border:4px solid #000;border-radius:18px;box-shadow:0 5px 0 #000}
+.line-car{display:flex;flex-direction:column;align-items:center;gap:4px;width:max(100px,calc(156px*var(--u)));padding:8px;background:var(--tarmac-2);border:4px solid #000;border-radius:18px;box-shadow:0 5px 0 #000}
 .line-car:active{transform:translateY(3px);box-shadow:0 2px 0 #000}
-.line-car .quiz-car{height:max(40px,calc(56px*var(--u)))}
+.line-car .quiz-car{height:max(40px,calc(64px*var(--u)))}
 .line-car.gone{visibility:hidden}
 .line-car.wrong{opacity:.4}.line-car.right{background:var(--green)}.line-car.hint{animation:hint 1s infinite}
 .num-sign{display:grid;place-items:center;min-width:max(60px,calc(84px*var(--u)));padding:2px 10px;background:#fff;color:#000;border:4px solid #000;border-radius:12px;font:900 max(30px,calc(44px*var(--u)))/1.1 Nunito,sans-serif}
+.gap-row .num-sign{min-width:max(72px,calc(120px*var(--u)));font-size:max(36px,calc(68px*var(--u)));border-radius:16px;box-shadow:0 5px 0 #000}
+.gap-row .num-sign.blank{box-shadow:none}
 .num-sign.blank{border-style:dashed}.num-sign.filled{border-style:solid;background:var(--green);color:#fff}
 .gap-row{display:flex;gap:calc(14px*var(--u));align-items:center}
 .tt-slots{display:flex;align-items:center;gap:10px;flex-wrap:wrap;justify-content:center;padding:8px 12px;background:#ececee;border:4px solid #000;border-radius:16px}
@@ -167,11 +220,11 @@ button.chart-car:active{transform:translateY(3px)}
 .tt-slot{display:grid;place-items:center;min-width:max(60px,calc(80px*var(--u)));height:max(54px,calc(70px*var(--u)));border:4px dashed #0006;border-radius:12px;font:900 max(28px,calc(40px*var(--u))) Nunito,sans-serif;background:#fff}
 .tt-slot.full{border:4px solid #000}
 .tt-slot-way{font:900 max(15px,calc(20px*var(--u))) Nunito,sans-serif;color:#0009;white-space:nowrap}
-.number-line{width:min(100%,640px);height:auto;max-height:min(124px,22vh)}
+.number-line{width:min(100%,720px);height:auto;max-height:min(200px,24vh)}
 .nl-stalk{stroke:#0006;stroke-width:2;stroke-dasharray:3 3}
 .nl-axis{stroke:#000;stroke-width:4}.nl-tick{stroke:#000;stroke-width:3}.nl-label{font:900 20px Nunito,sans-serif;text-anchor:middle}
 .nl-num circle{fill:#3a8dde;stroke:#000;stroke-width:3}.nl-num text,.nl-mark text{font:900 24px Nunito,sans-serif;text-anchor:middle}
-.nl-num.on circle{fill:var(--pit)}.nl-num.on text{fill:var(--orange)}
+.nl-num.on circle{fill:var(--pit);stroke-width:4}.nl-num.on text{fill:#000}
 .nl-mark circle{fill:#fff;stroke:#000;stroke-width:3}
 
 /* the first time: tally marks, and the signs */
@@ -184,7 +237,7 @@ button.chart-car:active{transform:translateY(3px)}
 .tt-reward{background:radial-gradient(circle at 50% 30%,#4a505e,#15171c 70%)}
 .earned-race{font:900 calc(30px*var(--u)) Nunito,sans-serif;color:var(--pit);background:#000;border-radius:999px;padding:6px 20px}
 .tt-reward .btns{align-items:center}
-.big-btn.my-car{padding:calc(6px*var(--u));width:max(96px,calc(132px*var(--u)));height:max(80px,calc(100px*var(--u)));flex:none;background:#5b6170}
+.big-btn.my-car,.tt-reward .btns .big-btn.my-car,.race-result .btns .big-btn.my-car{padding:calc(4px*var(--u));width:max(104px,calc(150px*var(--u)));height:max(80px,calc(104px*var(--u)));flex:none;background:linear-gradient(#5b6170 0 66%,#3a3f4b 66%)}
 .big-btn.my-car .car-view,.big-btn.my-car img{width:100%;height:100%;object-fit:contain}
 .race-btn{gap:12px;min-height:max(80px,calc(110px*var(--u)));padding:calc(10px*var(--u)) calc(26px*var(--u));font-size:calc(30px*var(--u))}
 .race-flag{font-size:1.3em}
@@ -227,7 +280,7 @@ button.chart-car:active{transform:translateY(3px)}
 .tt-tab.on{background:var(--pit);border-color:#000;box-shadow:0 4px 0 #000;color:#000}
 .tt-tray{display:grid;grid-template-columns:repeat(auto-fill,minmax(max(104px,calc(130px*var(--u))),1fr));grid-auto-rows:max-content;gap:calc(8px*var(--u));overflow-y:auto;overscroll-behavior:contain;touch-action:pan-y;padding-bottom:calc(84px*var(--u));min-height:0}
 .tt-tile{position:relative;display:flex;flex-direction:column;align-items:center;gap:2px;padding:6px 4px;border-radius:14px;background:#1d2026;border:3px solid #fff3;color:#fff;font:800 max(14px,calc(15px*var(--u)))/1.1 Nunito,sans-serif}
-.tt-tile .part-pic{width:100%;height:calc(70px*var(--u));min-height:52px;object-fit:contain;display:block}
+.tt-tile .part-pic{width:92%;height:calc(66px*var(--u));min-height:50px;object-fit:contain;display:block;margin:2px auto}
 .mt-name{min-height:2.2em;display:grid;place-items:center;text-align:center}
 .mt-tag{display:inline-flex;align-items:center;gap:2px;min-height:1.3em;font-size:max(15px,1.1em);color:#ffd97a}
 .tt-tile.locked{background:#14161b}
@@ -249,9 +302,21 @@ button.chart-car:active{transform:translateY(3px)}
 /* ---------- the Cups: the podium and the trophy shelves ---------- */
 @media (orientation:portrait){.cups-body{grid-template-columns:minmax(0,1fr);grid-template-rows:minmax(0,.75fr) minmax(0,1.25fr)}}
 .podium-side{display:grid;grid-template-rows:minmax(0,1fr) auto;gap:calc(8px*var(--u));min-height:0;min-width:0}
-.podium{position:relative;min-height:max(130px,calc(200px*var(--u)));display:flex;flex-direction:column;align-items:center;justify-content:flex-end;border:4px solid #000;border-radius:18px;background:radial-gradient(circle at 50% 30%,#fff3,transparent 60%),var(--tarmac-2);box-shadow:0 6px 0 #000;overflow:hidden}
-.podium .car-view{flex:1;min-height:0;width:80%}
-.podium-block{width:46%;height:calc(40px*var(--u));min-height:28px;background:var(--pit);border:4px solid #000;border-bottom:0;display:grid;place-items:center;font:400 calc(26px*var(--u)) Bungee,sans-serif;color:#000}
+.podium{position:relative;min-height:max(130px,calc(200px*var(--u)));display:flex;flex-direction:column;align-items:center;justify-content:flex-end;padding-top:calc(18px*var(--u) + 6px);border:4px solid #000;border-radius:18px;background:radial-gradient(circle at 50% 40%,#ffffff2a,transparent 60%),var(--tarmac-2);box-shadow:0 6px 0 #000;overflow:hidden}
+.podium::before{content:'';position:absolute;left:0;right:0;top:0;height:calc(18px*var(--u) + 4px);background:var(--chequer);background-size:calc(18px*var(--u) + 4px) calc(18px*var(--u) + 4px);border-bottom:3px solid #000}
+.podium{container-type:size}
+.podium .car-view{flex:0 1 auto;min-height:0;width:84%;height:auto;aspect-ratio:2/1;margin-bottom:-6%}
+/* on a tall podium, his six Cups stand in a row above the car, dark until won */
+.podium-cups{display:none}
+@container (min-height:380px){
+  .podium-cups{position:absolute;left:0;right:0;top:24%;display:flex;justify-content:center;gap:calc(10px*var(--u));font-size:max(30px,calc(44px*var(--u)))}
+  .podium-cups span{filter:grayscale(1) brightness(.45)}
+  .podium-cups span.won{filter:drop-shadow(0 0 8px #ffd23f)}
+}
+.podium-steps{width:min(92%,calc(420px*var(--u)));display:grid;grid-template-columns:1fr 1.3fr 1fr;align-items:end}
+.podium-steps i{display:grid;place-items:center;height:calc(34px*var(--u));min-height:24px;background:#d9dde3;border:4px solid #000;border-bottom:0;font:400 max(14px,calc(22px*var(--u))) Bungee,sans-serif;font-style:normal;color:#000}
+.podium-steps i:nth-child(2){height:calc(52px*var(--u));min-height:34px;background:var(--pit);margin:0 -4px;font-size:max(18px,calc(30px*var(--u)))}
+.podium-steps i:nth-child(3){height:calc(24px*var(--u));min-height:18px;background:#e3a46b}
 .watch-btn{color:#000;flex-direction:column;gap:0;min-height:max(68px,calc(88px*var(--u)));padding:6px 16px;background:#fff}
 .watch-btn span:first-child{font-size:calc(30px*var(--u))}
 .shelves{display:flex;flex-direction:column;gap:8px;overflow-y:auto;overscroll-behavior:contain;min-height:0;padding-bottom:8px}
@@ -273,7 +338,7 @@ button.chart-car:active{transform:translateY(3px)}
 /* ---------- the Race: the canvas fills the screen; controls stay off the bottom edge and the sides ---------- */
 .race-screen{position:fixed;inset:0;overflow:hidden;touch-action:none;overscroll-behavior:none;-webkit-user-select:none;user-select:none;-webkit-touch-callout:none;background:var(--tarmac);color:#fff}
 .race-canvas{position:absolute;inset:0;width:100%;height:100%;display:block;touch-action:none}
-.race-hud{position:absolute;left:0;right:0;top:0;display:flex;align-items:center;gap:10px;padding:max(8px,env(safe-area-inset-top)) max(12px,env(safe-area-inset-right)) 0 max(12px,env(safe-area-inset-left));pointer-events:none}
+.race-hud{position:absolute;left:0;right:0;top:0;display:flex;align-items:center;gap:10px;padding:max(12px,env(safe-area-inset-top)) max(24px,calc(env(safe-area-inset-right) + 24px)) 0 max(24px,calc(env(safe-area-inset-left) + 24px));pointer-events:none}
 .race-hud>*{pointer-events:auto}
 .hud-chip{display:flex;align-items:center;gap:6px;background:#000c;border:3px solid var(--pit);border-radius:999px;padding:4px 14px;font:900 max(20px,calc(28px*var(--u))) Nunito,sans-serif;color:var(--pit)}
 .hud-chip.place{font:400 max(20px,calc(30px*var(--u))) Bungee,sans-serif;color:#fff;background:var(--signal)}
@@ -285,30 +350,34 @@ button.chart-car:active{transform:translateY(3px)}
 .race-act.boost{position:relative;width:max(104px,calc(140px*var(--u)));height:max(104px,calc(140px*var(--u)));border-radius:50%;background:radial-gradient(circle at 40% 35%,#ff8a5b,var(--signal) 60%,#8a1010);font-size:calc(56px*var(--u))}
 .race-act.boost b{position:absolute;right:-6px;top:-6px;min-width:36px;height:36px;display:grid;place-items:center;border-radius:50%;background:var(--pit);color:#000;border:3px solid #000;font:900 20px Nunito,sans-serif}
 .race-act.boost.teach{animation:pulse 1s infinite}
-.grid-card{display:flex;flex-direction:column;gap:calc(12px*var(--u));padding:max(10px,env(safe-area-inset-top)) max(14px,env(safe-area-inset-right)) max(14px,env(safe-area-inset-bottom)) max(14px,env(safe-area-inset-left));background:var(--chequer),var(--tarmac);background-size:48px 48px;background-blend-mode:soft-light;touch-action:auto}
+.grid-card{display:flex;flex-direction:column;gap:calc(12px*var(--u));padding:max(12px,env(safe-area-inset-top)) max(24px,calc(env(safe-area-inset-right) + 24px)) max(14px,env(safe-area-inset-bottom)) max(24px,calc(env(safe-area-inset-left) + 24px));background:radial-gradient(circle at 50% 30%,#4a505e,var(--tarmac) 70%);touch-action:auto}
+.grid-card::after{content:'';position:absolute;left:0;right:0;bottom:0;height:16px;background:var(--chequer);background-size:16px 16px;border-top:3px solid #000;pointer-events:none}
 .race-head{display:flex;align-items:center;gap:10px}
 .race-head h1{margin:0;flex:1;min-width:0;font:400 calc(34px*var(--u)) Bungee,sans-serif;color:var(--pit);text-shadow:3px 3px 0 #000;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .cup-chip{background:#000;border-radius:999px;padding:4px 12px;font:900 max(15px,calc(18px*var(--u))) Nunito,sans-serif;white-space:nowrap}
 .vs-row{flex:1;min-height:0;display:grid;grid-template-columns:1fr auto 1fr;align-items:center;gap:10px}
-.vs-car{display:flex;flex-direction:column;align-items:center;gap:6px;min-height:0;height:100%;justify-content:center;background:#000a;border:4px solid #000;border-radius:18px;padding:8px}
-.vs-car .car-view{width:100%;height:auto;aspect-ratio:2/1}
+.vs-car{display:flex;flex-direction:column;align-items:center;gap:6px;min-height:0;height:100%;justify-content:center;background:#ffffff0a;border:5px solid var(--chalk);border-left-width:0;border-radius:0 8px 8px 0;padding:8px}
+.vs-car.foe{border-left-width:5px;border-right-width:0;border-radius:8px 0 0 8px}
+.vs-car .car-view{flex:1 1 0;min-height:0;width:100%;height:auto;max-height:calc(260px*var(--u) + 40px)}
 .vs-car strong{font:400 calc(26px*var(--u)) Bungee,sans-serif}
 .vs-car.you strong{color:var(--pit)}.vs-car.foe strong{color:#ff8b7a}
 .vs-mid{font:400 calc(46px*var(--u)) Bungee,sans-serif;color:#fff;text-shadow:3px 3px 0 var(--signal),5px 5px 0 #000}
 @media (orientation:portrait){.vs-row{grid-template-columns:1fr;grid-template-rows:1fr auto 1fr}.vs-mid{text-align:center}}
-.vs-foot{display:flex;align-items:center;justify-content:center;gap:16px;flex-wrap:wrap;padding-bottom:calc(var(--floor) - 40px)}
+.vs-foot{display:flex;align-items:center;justify-content:center;gap:16px;flex-wrap:wrap;padding-bottom:calc(var(--floor) - 30px)}
 .vs-prize{display:flex;align-items:center;gap:8px;background:#000;border:3px solid var(--pit);border-radius:16px;padding:6px 14px;font:900 max(18px,calc(22px*var(--u))) Nunito,sans-serif}
 .vs-prize img{width:calc(90px*var(--u));height:calc(54px*var(--u));min-width:60px;min-height:36px;object-fit:contain}
 .trophy-big{font-size:calc(44px*var(--u))}
 .vs-foot .big-btn.go{min-width:max(120px,calc(160px*var(--u)));min-height:max(80px,calc(96px*var(--u)))}
 .race-result{position:fixed;inset:0;z-index:5;display:grid;place-items:center;background:#000a;padding:14px;text-align:center;overflow-y:auto;touch-action:auto}
-.race-result .result-card{display:flex;flex-direction:column;align-items:center;gap:calc(10px*var(--u));max-width:min(640px,100%);padding:calc(18px*var(--u)) calc(26px*var(--u));border:4px solid #000;border-radius:24px;background:radial-gradient(circle at 50% 0%,#5b6170,#1d2026 70%);box-shadow:0 8px 0 #000,0 18px 40px #000a}
+.race-result .result-card{display:flex;flex-direction:column;align-items:center;gap:calc(10px*var(--u));width:min(560px,100%);max-width:100%;padding:calc(18px*var(--u)) calc(26px*var(--u));border:4px solid #000;border-radius:24px;background:radial-gradient(circle at 50% 0%,#5b6170,#1d2026 70%);box-shadow:0 8px 0 #000,0 18px 40px #000a}
 .race-result h2{margin:0;font:400 calc(46px*var(--u)) Bungee,sans-serif;color:var(--pit);text-shadow:3px 3px 0 #000}
-.board{list-style:none;margin:0;padding:0;display:grid;gap:4px;width:min(100%,420px)}
-.board li{display:grid;grid-template-columns:auto auto 1fr;align-items:center;gap:10px;padding:2px 10px;background:#000a;border-radius:12px;font:900 max(18px,calc(22px*var(--u))) Nunito,sans-serif;text-align:left}
+.board{list-style:none;margin:0;padding:0;display:grid;gap:calc(6px*var(--u));width:100%}
+.board li{display:grid;grid-template-columns:auto auto 1fr;align-items:center;gap:calc(12px*var(--u));padding:4px 12px 4px 6px;background:#000a;border:3px solid #000;border-radius:14px;font:900 max(18px,calc(26px*var(--u))) Nunito,sans-serif;text-align:left}
 .board li.me{background:var(--pit);color:#000}
-.board .pl{font-family:Bungee,sans-serif;font-weight:400;min-width:2.4em}
-.board img{width:calc(70px*var(--u));height:calc(40px*var(--u));min-width:52px;min-height:30px;object-fit:contain}
+.board .pl{display:grid;place-items:center;min-width:2.7em;padding:2px 6px;border:3px solid #000;border-radius:10px;background:#8a909b;color:#000;font-family:Bungee,sans-serif;font-weight:400;font-size:.8em}
+.board li:nth-child(1) .pl{background:#ffd23f}.board li:nth-child(2) .pl{background:#d9dde3}.board li:nth-child(3) .pl{background:#e3a46b}
+.board li.me{border-color:#000;box-shadow:0 0 0 3px var(--pit)}
+.board img{width:calc(110px*var(--u));height:calc(56px*var(--u));min-width:64px;min-height:36px;object-fit:contain}
 .result-bolts{display:flex;align-items:center;gap:8px;font:900 calc(34px*var(--u)) Nunito,sans-serif;color:#fff}
 .won-cup{display:flex;align-items:center;gap:8px;font:400 calc(26px*var(--u)) Bungee,sans-serif;color:var(--pit)}
 .won-cup span{font-size:1.6em}
@@ -322,19 +391,24 @@ button.chart-car:active{transform:translateY(3px)}
 @media (orientation:landscape) and (max-height:520px){
   .race-result .result-card{gap:4px;padding:8px 18px}
   .race-result h2{font-size:26px}
-  .board li{padding:0 8px;font-size:16px}.board img{height:28px;min-height:0}
-  .race-result .btns .big-btn{min-height:56px;padding:4px 16px}
-  .big-btn.my-car{width:84px;height:56px}
+  .race-result{padding:6px}
+  .race-result .result-card{width:min(620px,100%);display:grid;grid-template-columns:1.3fr 1fr;align-items:center;column-gap:14px;row-gap:4px;padding:8px 14px}
+  .race-result h2,.race-result .board{grid-column:1}.race-result .board{grid-row:2/span 4}
+  .race-result .result-bolts,.race-result .won-cup,.race-result .crate,.race-result .btns{grid-column:2;justify-self:center}
+  .result-bolts{font-size:24px}
+  .board{gap:3px}.board li{padding:0 8px 0 3px;gap:8px;font-size:16px;border-width:2px}.board .pl{padding:0 4px;border-width:2px}.board img{width:60px;height:28px;min-height:0;min-width:0}
+  .race-result .btns{gap:8px}.race-result .btns .big-btn{min-height:52px;padding:4px 12px}
+  .big-btn.my-car,.tt-reward .btns .big-btn.my-car,.race-result .btns .big-btn.my-car{width:84px;height:56px}
   .crate{min-height:56px;padding:2px 10px}.crate img{height:44px;min-height:0}
   .count{font-size:70px}
-  .vs-car .car-view{aspect-ratio:auto;flex:1;min-height:0}
   .tt-tile{padding:3px 4px}.tt-tile .part-pic{min-height:0;height:44px}.mt-name{min-height:0}
 }
 
 @media (prefers-reduced-motion:reduce){
   .race-act.boost.teach,.crate,.choice.hint,.road-car.hint,.duel-car.hint,.pick-board.hint,.chart-car.hint,.line-car.hint,.pad-btn.hint{animation:none}
   .race-act.boost.teach,.choice.hint,.road-car.hint,.duel-car.hint,.pick-board.hint,.chart-car.hint,.line-car.hint,.pad-btn.hint{outline:5px solid var(--pit);outline-offset:3px}
-  .stat-bar i{transition:none}
+  .stat-bar i,.chart .col,.chart-car{transition:none}
+  .chart .pair{animation:none}
 }
 
 /* a phone on its side: everything tighter, so the picture and the answers fit side by side; every target stays 44px or more */
@@ -344,12 +418,15 @@ button.chart-car:active{transform:translateY(3px)}
   .game.tt .say-btn,.game.tt .help-btn{width:44px;height:44px;min-height:44px;padding:0}
   .tt-body{gap:8px}
   .choices.nums .choice,.choices.signs .choice{min-height:52px;font-size:28px;padding:4px}
-  .tt-road .lane{min-height:80px;padding-top:26px}
-  .duel{gap:6px}.duel-car{min-height:60px;padding:4px 10px}.duel-car .quiz-car{height:44px}.speed-num{font-size:28px}
-  .pit-board{min-height:90px;padding:6px 10px}
+  .duel{gap:8px}.duel-car{min-height:60px;padding:4px 40px 4px 10px}.duel-car::after{width:28px}.duel-car .quiz-car{height:46px}.speed-num{font-size:30px}
+  .pit-board{min-width:0;min-height:90px;padding:6px 10px}
+  .boards{flex-wrap:nowrap}.boards>.pit-board{flex:1 1 0;max-width:280px}.tally-marks{max-height:min(150px,34vh)}
   .pad-btn{width:56px;height:56px}.pad-btn.add{width:64px;height:64px}
   .line-car{width:92px;padding:4px}.line-car .quiz-car{height:32px}.num-sign{font-size:24px;min-width:52px}
   .tt-slot{height:46px;min-width:52px;font-size:24px}
-  .chart-car{height:46px}
+  .gap-row .num-sign{font-size:28px;min-width:60px}
+  .lineup,.between{gap:6px}.number-line{max-height:min(86px,21vh)}
+  .chart-car{height:46px}.chart{--cars:52px}
+  .compare .speed-num{font-size:40px}.k-form-sign .sign-slot{min-width:64px;height:64px;font-size:44px}
   .stat{min-height:44px}
 }

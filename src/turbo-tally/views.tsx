@@ -82,7 +82,7 @@ export function Road({ q, lesson, onTap, wrong, done }: { q: PlaceProblem; lesso
   const order = shownOrder(q, lesson.show.value === 'moved'), step = lesson.step.value, hint = lesson.hint.value;
   const n = order.length, pointer = q.form !== 'tap';
   return (
-    <div class={cls('tt-road', `n${n}`, lesson.show.value === 'finish' && 'show-finish')} role="group" aria-label="Cars racing to the finish line">
+    <div class={cls('tt-road', `n${n}`, lesson.show.value === 'finish' && 'show-finish')} style={{ '--n': n } as Record<string, number>} role="group" aria-label="Cars racing to the finish line">
       <div class="lane">
         {[...order].reverse().map(colour => {
           const at = order.indexOf(colour) + 1, counted = at <= step, target = pointer && colour === q.target;
@@ -232,11 +232,17 @@ function TallyView({ current, q, waiting }: { current: Current; q: TallyProblem;
 
 // ---------- Race Chart ----------
 
-function Chart({ q, lesson, onCar, wrong, done }: { q: ChartProblem; lesson: Lesson; onCar?: (c: string) => void; wrong: string[]; done: string | null }) {
+export function Chart({ q, lesson, onCar, wrong, done }: { q: ChartProblem; lesson: Lesson; onCar?: (c: string) => void; wrong: string[]; done: string | null }) {
   const focus = lesson.focus.value, step = lesson.step.value, show = lesson.show.value, hint = lesson.hint.value;
   const big = q.form === 'more' ? q.rows.findIndex(r => r.car === q.car) : -1, small = q.form === 'more' ? q.rows.findIndex(r => r.car === q.other) : -1;
   const pairTop = small >= 0 ? q.rows[small]!.wins : 0;
-  const top = q.graph === 'picture' ? 8 : CHART_TOP, U = 26, colW = 90, left = q.graph === 'bar' ? 40 : 10, base = top * U + 14;
+  const top = q.graph === 'picture' ? 8 : CHART_TOP, U = q.graph === 'picture' ? 34 : 26, colW = 90, left = q.graph === 'bar' ? 40 : 10, base = top * U + 14;
+  // To pair two bars off, they stand side by side: when the bar between them would be crossed, the smaller one slides over and the
+  // middle one takes its place, so every pairing line runs straight from one bar to the other.
+  const pairing = show === 'pairs' || show === 'left', slot = q.rows.map((_, k) => k);
+  if (pairing && big >= 0 && small >= 0 && Math.abs(big - small) === 2) { slot[small] = 1; slot[1] = small; }
+  const colX = (k: number) => left + slot[k]! * colW + 14, barW = colW - 28;
+  const near = small >= 0 && big >= 0 && colX(small) < colX(big) ? [colX(small) + barW, colX(big)] : [colX(small), colX(big) + barW];
   const unitLit = (k: number, u: number) => {
     if (show === 'pairs') return (k === big || k === small) && u <= pairTop;
     if (show === 'left') return k === big && u > pairTop && u <= step;
@@ -244,34 +250,32 @@ function Chart({ q, lesson, onCar, wrong, done }: { q: ChartProblem; lesson: Les
     return k === focus && u <= step;
   };
   return (
-    <div class={cls('chart', q.graph)}>
+    <div class={cls('chart', q.graph)} style={{ '--ar': (left + colW * 3 + 10) / (base + 6) } as Record<string, number>}>
       <svg class="chart-svg" viewBox={`0 0 ${left + colW * 3 + 10} ${base + 6}`} role="img" aria-label={q.graph === 'bar' ? 'A bar graph of races won' : 'A picture graph of races won'}>
         {q.graph === 'bar' && Array.from({ length: top + 1 }, (_, v) => (
           <g key={v}><line x1={left} x2={left + colW * 3} y1={base - v * U} y2={base - v * U} class={cls('grid', v === 0 && 'axis')} />
             <text x={left - 8} y={base - v * U + 6} class="tick">{v}</text></g>
         ))}
         {q.rows.map((r, k) => {
-          const x = left + k * colW + 14, w = colW - 28;
+          const x = left + k * colW + 14, w = barW;
           return (
-            <g key={r.car} class={cls('col', `c-${r.car}`, focus === k && 'focus')}>
+            <g key={r.car} class={cls('col', `c-${r.car}`, focus === k && 'focus')} style={{ transform: `translateX(${(slot[k]! - k) * colW}px)` }}>
               {Array.from({ length: r.wins }, (_, i) => {
                 const u = i + 1, y = base - u * U;
                 return q.graph === 'picture'
-                  ? <g key={u} class={cls('trophy', unitLit(k, u) && 'on')} transform={`translate(${x + w / 2} ${y + U / 2})`}><path d="M-9 -10 H9 V-4 Q9 4 0 5 Q-9 4 -9 -4 Z M-3 5 H3 V8 H6 V11 H-6 V8 H-3 Z" /></g>
+                  ? <g key={u} class={cls('trophy', unitLit(k, u) && 'on')} transform={`translate(${x + w / 2} ${y + U / 2}) scale(1.5)`}><path d="M-9 -10 H9 V-4 Q9 4 0 5 Q-9 4 -9 -4 Z M-3 5 H3 V8 H6 V11 H-6 V8 H-3 Z" /></g>
                   : <rect key={u} x={x} y={y} width={w} height={U} class={cls('bar-unit', unitLit(k, u) && 'on')} />;
               })}
-              {show === 'pairs' && k === small && Array.from({ length: pairTop }, (_, i) => (
-                <line key={i} class="pair" x1={x + w} y1={base - (i + .5) * U} x2={left + big * colW + 14} y2={base - (i + .5) * U} />
-              ))}
               {(show === 'top' && k === focus) && <line class="top-line" x1={left} x2={x + w} y1={base - r.wins * U} y2={base - r.wins * U} />}
             </g>
           );
         })}
+        {pairing && Array.from({ length: pairTop }, (_, i) => <line key={`p${i}`} class="pair" x1={near[0]} y1={base - (i + .5) * U} x2={near[1]} y2={base - (i + .5) * U} />)}
       </svg>
       <div class="chart-cars">
-        {q.rows.map(r => onCar
+        {q.rows.map((r, k) => onCar
           ? <button key={r.car} class={cls('chart-car', wrong.includes(r.car) && 'wrong', done === r.car && 'right', hint === r.car && 'hint')} aria-label={`${r.car} car`} onClick={() => onCar(r.car)}><QuizCar colour={r.car} /></button>
-          : <span key={r.car} class={cls('chart-car', (r.car === q.car || r.car === q.other) && 'asked')}><QuizCar colour={r.car} /></span>)}
+          : <span key={r.car} class={cls('chart-car', (r.car === q.car || r.car === q.other) && 'asked')} style={{ transform: `translateX(calc(${slot[k]! - k} * (100% + 8px)))` }}><QuizCar colour={r.car} /></span>)}
       </div>
     </div>
   );

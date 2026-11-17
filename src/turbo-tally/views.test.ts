@@ -1,13 +1,13 @@
 // The pictures the brief makes rules about, checked on what the views actually draw (their component trees, expanded without a DOM):
 // tally marks are bundles of four up and the fifth across; Podium always draws the finish line and the arrow the cars drive, the front
 // car nearest the finish, and never a number on a car; each Podium colour has its own roof symbol; the number line never prints two
-// numbers over each other.
+// numbers over each other; and the "how many more" lesson pairs off two bars side by side, so no pairing line crosses the third.
 import { describe, expect, it } from 'vitest';
 import type { VNode } from 'preact';
 import { seeded } from '../game/rng';
 import { lessonFor } from './tally/teach';
-import { CAR_COLOURS, COLOUR_ART, makeOrder, makePlace, type PlaceProblem } from './tally/problems';
-import { NumberLine, Road, TallyMarks } from './views';
+import { CAR_COLOURS, COLOUR_ART, makeChart, makeOrder, makePlace, type PlaceProblem } from './tally/problems';
+import { Chart, NumberLine, Road, TallyMarks } from './views';
 
 type Node = VNode<Record<string, unknown>> | string | number | null | undefined | boolean | Node[];
 /** Expands a component tree into plain elements: function components (none of these use hooks) are called with their props. */
@@ -92,5 +92,32 @@ describe('the number line', () => {
       const q = makeOrder(level, stretch, seeded(s * 13 + level + stretch * 5));
       check([...q.nums], q.form === 'between' ? [q.lo, q.hi] : []);
     }
+  });
+});
+
+describe('the Race Chart lesson for "how many more"', () => {
+  it('pairs off two bars that stand side by side, so no line crosses the third bar', () => {
+    let apart = 0;
+    for (let s = 1; s <= 400; s++) for (const stretch of [0, 1, 2] as const) {
+      const q = makeChart(3, stretch, seeded(s * 17 + stretch));
+      if (q.form !== 'more') continue;
+      for (const show of ['pairs', 'left']) {
+        const lesson = lessonFor(new AbortController().signal);
+        lesson.show.value = show;
+        const all = [...walk(expand(Chart({ q, lesson, wrong: [], done: null }) as Node))];
+        // where each bar stands once the lesson has moved them: its drawn x plus the column's slide
+        const cols = all.filter(v => classOf(v).startsWith('col ')).map(col => {
+          const slide = Number(/translateX\((-?[\d.]+)px\)/.exec(String((col.props.style as { transform: string }).transform))![1]);
+          const rect = [...walk(col.props.children as Node)].find(v => v.type === 'rect');
+          return rect ? [Number(rect.props.x) + slide, Number(rect.props.x) + slide + Number(rect.props.width)] as const : null;
+        });
+        const pairs = all.filter(v => classOf(v) === 'pair');
+        expect(pairs.length, JSON.stringify(q)).toBe(Math.min(...q.rows.filter(r => r.car === q.car || r.car === q.other).map(r => r.wins)));
+        const [lo, hi] = [Math.min(Number(pairs[0]!.props.x1), Number(pairs[0]!.props.x2)), Math.max(Number(pairs[0]!.props.x1), Number(pairs[0]!.props.x2))];
+        for (const c of cols) if (c) expect(c[1] <= lo + .5 || c[0] >= hi - .5, JSON.stringify({ q, show, c, lo, hi })).toBe(true);
+        if (Math.abs(q.rows.findIndex(r => r.car === q.car) - q.rows.findIndex(r => r.car === q.other)) === 2) apart++;
+      }
+    }
+    expect(apart).toBeGreaterThan(0); // the case that used to cross was met
   });
 });

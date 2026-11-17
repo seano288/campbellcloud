@@ -29,13 +29,15 @@ export function Home({ status }: { status: ComponentChildren }) {
     <div class="screen home-screen tt-home-screen">
       <header class="home-head"><h1>Turbo Tally</h1>{status}</header>
       <div class="home tt-home">
-        <button class="tile t-play" aria-label="Play" onClick={() => { if (voice.active) startRound(); }}><span class="e">▶</span></button>
+        <button class="tile t-play" aria-label="Play" onClick={() => { if (voice.active) startRound(); }}>
+          <span class="start-line" aria-hidden="true" /><span class="e">▶</span>
+        </button>
         <button class="tile t-car" aria-label="Garage" onClick={() => { if (voice.active) screen.value = 'garage'; }}>
           <CarView car={g.car} label={null} /><span class="nm">Garage</span>
           {g.races > 0 && <span class="race-badge" aria-hidden="true">🏁{g.races}</span>}
         </button>
         <button class="tile t-cups" aria-label="Cups" onClick={() => { if (voice.active) screen.value = 'cups'; }}>
-          <span class="cup-icon" aria-hidden="true">🏆</span><span class="nm">Cups</span><span class="cup-count" aria-hidden="true">{g.cups.length}/6</span>
+          <span class="mini-podium" aria-hidden="true"><i /><i><span class="cup-icon">🏆</span></i><i /></span><span class="nm">Cups</span><span class="cup-count" aria-hidden="true">{g.cups.length}/6</span>
         </button>
         <div class="tile t-kinds" role="group" aria-label="My Levels">
           <h2 class="kinds-head">My Levels</h2>

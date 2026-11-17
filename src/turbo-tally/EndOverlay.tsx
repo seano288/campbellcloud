@@ -8,7 +8,7 @@ import { playMoments } from '../celebrate/sequence';
 import { earnedLine } from '../currency/kind';
 import { IconButton } from '../ui/bits';
 import { CurrencyIcon } from '../ui/currency';
-import { CarView } from './art/Art';
+import { carPic } from './art/Art';
 import { TALLY_CURRENCY } from './branding';
 import { nextTrack } from './garage/garage';
 import { player } from './game';
@@ -57,7 +57,7 @@ export function EndOverlay({ result: r, onRace, onGarage, onAgain, onHome }: { r
       {earned && <div class="earned-race">🏁 +1 Race</div>}
       <div class="lines">{lines.map((l, i) => <div key={i}>{l}</div>)}</div>
       <div class={`btns ${awake ? '' : 'asleep'}`}>
-        <button class="big-btn garage my-car" aria-label="Garage" onClick={go(onGarage)}><CarView car={g.car} label={null} /></button>
+        <button class="big-btn garage my-car" aria-label="Garage" onClick={go(onGarage)}><img src={carPic(g.car)} alt="" /></button>
         <button class={`big-btn go race-btn ${awake ? 'pulse' : ''}`} aria-label={`Race at ${to.name}`} onClick={go(onRace)}>
           <span class="race-flag" aria-hidden="true">🏁</span>
           <span class="race-word">Race</span>
