@@ -466,3 +466,63 @@ _Avoid_: mission, level, rescue (the Call is the thing; a rescue is the ladder b
 
 **Town (Hook and Ladder)**: a lot for every scene; a scene he has answered stands there with a thank-you sign, and tapping it makes it his next Call. Things he buys for the Town stand in its park.
 
+## Dino Dig
+
+Dino Dig reuses Word Wreckers' terms where they mean the same thing (Pattern, Meeting a Pattern, Sound box) and Math Bots', Rover Code's
+and Word Wreckers' (Mixed Round, Mastery, Bolt, Goal). It shares Word Wreckers' word list (`src/dino-dig/words/list.ts`). It has no
+Tune-Up. These are its own:
+
+**Game Modes (Dino Dig)**: the five kinds of reading question: Read It (a word is shown, never said; tap its picture), Hear It (hear a
+word, tap the written word), Sound Swap ("This says cat. Make it say cot.": tap the sound to change, then the new one), Real or Silly (two
+words; tap the real one) and Read and Find (read a short sentence, tap the picture it says). Read It and Hear It are open from the start;
+Sound Swap opens at Hear It Level 2, Real or Silly at Read It Level 2, Read and Find once both Read It and Hear It reach Level 2.
+
+**Silly word**: a made-up word a first grader can sound out under a Pattern (vob, shib, blig, fube, treeb, zorp), offered in Real or
+Silly. Never a real word, a name, anything rude, or said like a common word spelled another way; never read aloud.
+_Avoid_: nonsense word, fake word (to him)
+
+**One sound apart**: two words of the same number of sounds that differ in just one, and say a different sound there (ship / shop /
+chip). Level 3 of Read It and Hear It offers them together; a miss on one shows both stacked with the different box lit.
+
+**Heard alike**: a pair the recorded voice says so nearly alike (pen / pin) that Hear It never offers them together.
+
+**Dig**: what a finished Round earns (he starts with one): a patch of ground at a dig site where he rubs the dirt away, taps rocks to crack
+them and drags each bone to the crate. A Dig finds one or two bones, two Bolts, and on every other Dig a fossil. It's used only when every
+bone is in the crate.
+_Avoid_: job, trip, launch
+
+**Dig site**: one of six places to dig (Sandy Creek, Fern Gully, Red Rock Canyon, the Badlands, Volcano Ridge, Frozen Cliffs), two
+dinosaurs at each, smallest first. Each needs a stronger Tool.
+
+**Tool**: what he digs with: the Brush (free), Trowel, Shovel, Pickaxe, Jackhammer and Digger. A better one clears more dirt a stroke,
+cracks rock in fewer taps, and opens the next dig site.
+
+**Gadget (Dino Dig)**: a bought thing that changes a Dig: the Headlamp, Bone Finder (bones show through the dirt), Bolt Finder, Leaf
+Blower, Bone Magnet (loose bones fly to the crate), Water Hose, Dynamite, Dig Dog, Rock Drone and Dig Robot. On once bought, unless he
+switches it off.
+
+**Bone**: one part of a dinosaur's skeleton (the skull, the ribs, the leg bones, the tail bones, the plates, the frill, the sail...), four to
+six a dinosaur, found in a fixed order with the skull last. It snaps onto the skeleton in the Museum.
+
+**Fossil**: one of thirty finds (Ammonite, Dino Tooth, Dino Egg, Amber...) in every other Dig, kept on the Museum's fossil shelf. Never
+bought.
+_Avoid_: treasure (that's Word Wreckers' and Treasure Fleet's)
+
+**Museum**: the reward's home and the screen he shows off: the hall where his living dinosaurs walk among the things he bought for it,
+a plinth for each of the twelve dinosaurs with its skeleton so far, and the fossil shelf.
+
+**Bring it to life**: what a whole skeleton offers: it grows its skin and he plays as it (the Alive run). A dinosaur brought to life
+walks in the Museum hall from then on.
+
+**Alive run**: the action reward: he is a living dinosaur, seen from the side, in the Land he picked: hold to walk, tap to jump, 🦖 to
+roar, eating snacks, to his nest. Each dinosaur moves its own way (the long neck reaches high leaves, the T. rex smashes rocks, the
+Pteranodon flies). It can't be failed: a bump only wobbles him, and anything bumped three times moves out of the way. Free to replay.
+
+**Looks**: a living dinosaur's Color, Markings (stripes, spots... never "pattern", which is a phonics word here), Hat and Roar, bought
+once and worn by one dinosaur at a time, each dinosaur its own.
+_Avoid_: pattern (for markings)
+
+**Gear**: bought things that change the Alive run for every dinosaur (Super Jump, Turbo Run, Snack Magnet, Glider Cape, Big Stomp...).
+
+**Land**: where the Alive run goes (Fern Forest free; Sunny Beach, Swamp, Desert, Snowy Hills, Volcano, Night Jungle, Candy Land), each
+with its own sky, snack and thing in the way.

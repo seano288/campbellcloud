@@ -27,6 +27,7 @@
     "dev:word-wreckers": "vite --config vite.word-wreckers.config.ts --port 5195",
     "dev:turbo-tally": "vite --config vite.turbo-tally.config.ts --port 5193",
     "dev:hook-and-ladder": "vite --config vite.hook-and-ladder.config.ts --port 5187 --strictPort",
+    "dev:dino-dig": "vite --config vite.dino-dig.config.ts --port 5181",
     "dev:hunch": "vite --config vite.hunch.config.ts",
     "dev:purrdoku": "vite --config vite.purrdoku.config.ts",
     "build:purrdoku-boards": "tsx tools/purrdoku-boards.ts"

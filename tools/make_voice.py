@@ -14,6 +14,7 @@
   .venv/bin/python tools/make_voice.py --collection word-wreckers --out public/word-wreckers-voice --index src/word-wreckers/voice.gen.ts
   .venv/bin/python tools/make_voice.py --collection turbo-tally --out public/turbo-tally-voice --index src/turbo-tally/voice.gen.ts
   .venv/bin/python tools/make_voice.py --collection hook-and-ladder --out public/hook-and-ladder-voice --index src/hook-and-ladder/voice.gen.ts
+  .venv/bin/python tools/make_voice.py --collection dino-dig --out public/dino-dig-voice --index src/dino-dig/voice.gen.ts
 
 Select phrases through tools/phrases.ts and write recordings and a typed index to explicit locations.
 Only missing clips are recorded. Cleanup touches only the selected directory, whose .voice-collection
@@ -44,7 +45,9 @@ VOICES = {'purrdoku': ('en-GB-RyanNeural', '-5%'),
           # Turbo Tally chains numbers, places and Rival names into lines like Math Bots, and says colour words in whole sentences
           'turbo-tally': ('en-US-AriaNeural', '-8%'),
           # Hook and Ladder says every word alone (opposites, compounds, endings), and jump / jumps / jumped / jumping must differ
-          'hook-and-ladder': ('en-US-AriaNeural', '-8%')}
+          'hook-and-ladder': ('en-US-AriaNeural', '-8%'),
+          # Dino Dig says every list word alone and slowly (reading by sound), where Ava blurs short vowels
+          'dino-dig': ('en-US-AriaNeural', '-8%')}
 ROOT = Path(__file__).resolve().parent.parent
 
 
@@ -87,6 +90,7 @@ def speakable(s):
 #              sound boxes light: "Slowly: cat" is the word "cat" at that rate.
 #   said_as:   like SAID_AS, for this collection only (slow phrases too).
 #   voice_for: a word this collection's voice can't say alone, said by another voice (slow phrases too).
+#   slow_for:  a word whose slow phrase needs a less slow rate than `slow` (its vowel stretches into another word's).
 COLLECTION_SPEECH = {
     'word-wreckers': {
         # the slowest rate that still sounds like the word: at -45% speech-to-text heard nut as "not", pot as "hot", lake as "late"
@@ -116,6 +120,16 @@ COLLECTION_SPEECH = {
         'said_as': {'cat': 'cat', 'bow': 'beau', 'owl': 'owl.'},
         'voice_for': {w: 'en-US-JennyNeural' for w in ['cat', 'cats', 'key', 'keys', 'duck', 'ducks', 'before', 'bear', 'grapes']},
     },
+    # Dino Dig says the same words the same way as Word Wreckers (its own clips, so the two games' folders stay their own): slowly at
+    # -40% while the sound boxes light, and "cat" and "grab" in Jenny's voice, which Aria says as "Kate" and "crab". Its own voice test
+    # (.scratch/dino-dig/spec.md) also heard Aria's "puff" as "path" and her slow "duck" as "deck", so those are Jenny's too; and her
+    # slow "shop", "sock" and "tub" as "sharp", "suck" and "tab", which -20% doesn't do
+    'dino-dig': {
+        'slow': ('Slowly: ', '-40%'),
+        'said_as': {'cat': 'cat'},
+        'voice_for': {'cat': 'en-US-JennyNeural', 'grab': 'en-US-JennyNeural', 'puff': 'en-US-JennyNeural', 'duck': 'en-US-JennyNeural'},
+        'slow_for': {'shop': '-20%', 'sock': '-20%', 'tub': '-20%'},
+    },
 }
 
 
@@ -124,7 +138,8 @@ def spoken(text, voice, rate, collection=None):
     own = COLLECTION_SPEECH.get(collection, {})
     prefix, slow_rate = own.get('slow', (None, None))
     if prefix and text.startswith(prefix):
-        text, rate = text[len(prefix):], slow_rate
+        text = text[len(prefix):]
+        rate = own.get('slow_for', {}).get(text, slow_rate)
     said = own.get('said_as', {})
     return (said[text] if text in said else speakable(text)), own.get('voice_for', {}).get(text, voice), rate
 
