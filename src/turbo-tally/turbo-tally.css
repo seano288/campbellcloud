@@ -58,6 +58,8 @@ html,body{background:var(--tarmac)}
 .tt-controls{flex:none;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:calc(12px*var(--u))}
 @media (orientation:landscape){.tt-body{flex-direction:row}.tt-controls{flex:0 1 auto;min-width:0;max-width:48%}}
 .choices.nums{grid-template-columns:repeat(3,1fr);width:min(100%,460px)}
+/* side by side, the answers keep their width and the picture gives way (a sideways phone squeezed them to 33px) */
+@media (orientation:landscape){.k-form-which .tt-controls,.k-form-passes .tt-controls,.k-form-passed .tt-controls,.k-form-read .tt-controls,.k-form-each .tt-controls,.k-form-more .tt-controls,.k-form-total .tt-controls{flex:0 0 auto;width:clamp(216px,36vw,460px)}.tt-controls .choices.nums{width:100%}}
 .choices.nums .choice{min-height:max(64px,calc(88px*var(--u)));font-size:max(30px,calc(44px*var(--u)))}
 .choice.hint{animation:hint 1s infinite}
 .quiz-car{display:block;width:100%;height:100%}
@@ -165,7 +167,8 @@ button.chart-car:active{transform:translateY(3px)}
 .tt-slot{display:grid;place-items:center;min-width:max(60px,calc(80px*var(--u)));height:max(54px,calc(70px*var(--u)));border:4px dashed #0006;border-radius:12px;font:900 max(28px,calc(40px*var(--u))) Nunito,sans-serif;background:#fff}
 .tt-slot.full{border:4px solid #000}
 .tt-slot-way{font:900 max(15px,calc(20px*var(--u))) Nunito,sans-serif;color:#0009;white-space:nowrap}
-.number-line{width:min(100%,640px);height:auto;max-height:min(110px,22vh)}
+.number-line{width:min(100%,640px);height:auto;max-height:min(124px,22vh)}
+.nl-stalk{stroke:#0006;stroke-width:2;stroke-dasharray:3 3}
 .nl-axis{stroke:#000;stroke-width:4}.nl-tick{stroke:#000;stroke-width:3}.nl-label{font:900 20px Nunito,sans-serif;text-anchor:middle}
 .nl-num circle{fill:#3a8dde;stroke:#000;stroke-width:3}.nl-num text,.nl-mark text{font:900 24px Nunito,sans-serif;text-anchor:middle}
 .nl-num.on circle{fill:var(--pit)}.nl-num.on text{fill:var(--orange)}

@@ -45,7 +45,7 @@ export const wonMostLine = (c: ChartColour, most: boolean) => `The ${c} car won 
 
 const QUESTIONS = [
   'Tap the faster car.', 'Tap the slower car.', 'Which sign goes in the middle?',
-  'How many tally marks?', 'Make the tally for', 'Which tally shows', 'Tap plus to add a mark. Then tap the check.',
+  'How many tally marks?', 'Make a tally that shows', 'Which tally shows', 'Tap plus to add a mark. Then tap the check.',
   'Which car won the most races?', 'Which car won the fewest races?', 'How many races did they win in all?',
   'Tap the cars from smallest to biggest.', 'Tap the cars from biggest to smallest.', 'Which number goes between', 'and',
 ] as const;
@@ -57,7 +57,7 @@ const TEACHING = [
   // Faster Car
   'Look at the tens first.', 'Which number is bigger?', 'Which number is smaller?', 'has', 'ten.', 'tens.', 'no tens.', 'one.', 'ones.',
   'is more.', 'is less.', 'Same tens. Look at the ones.', 'The open side faces the bigger number.', 'is more than', 'is less than', 'is the same as',
-  'The bigger number is faster.',
+  'The bigger number is faster.', 'The smaller number is slower.',
   // Tally Board
   'Count the bundles by fives.', 'Then count the ones.', 'That makes', 'Each bundle is five.',
   // Race Chart

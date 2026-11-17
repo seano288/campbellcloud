@@ -82,9 +82,11 @@ const tensLine = (x: number): Item[] => { const t = Math.floor(x / 10); return t
 const onesLine = (x: number): Item[] => { const o = x % 10; return [n(x), 'has', n(o), o === 1 ? 'one.' : 'ones.']; };
 async function teachMore(q: MoreProblem, v: VoiceScope, lesson: Lesson, full: boolean) {
   const twoDigit = q.a >= 10 && q.b >= 10;
+  const same = q.answer === '=';
   if (!full) {
     lesson.show.value = 'rods';
-    await v.say(q.form === 'sign' ? 'The open side faces the bigger number.' : twoDigit ? 'Look at the tens first.' : q.form === 'slower' ? 'Which number is smaller?' : 'Which number is bigger?');
+    // the open side means nothing when the two are the same: then the tens (and the ones) are what to look at
+    await v.say(q.form === 'sign' && !same ? 'The open side faces the bigger number.' : twoDigit ? 'Look at the tens first.' : q.form === 'slower' ? 'Which number is smaller?' : 'Which number is bigger?');
     return;
   }
   lesson.show.value = 'rods';
@@ -92,7 +94,7 @@ async function teachMore(q: MoreProblem, v: VoiceScope, lesson: Lesson, full: bo
   await v.say(...tensLine(q.a));
   lesson.focus.value = 1;
   await v.say(...tensLine(q.b));
-  if (Math.floor(q.a / 10) === Math.floor(q.b / 10) && q.a !== q.b) {
+  if (Math.floor(q.a / 10) === Math.floor(q.b / 10)) {
     lesson.focus.value = null;
     await v.say('Same tens. Look at the ones.');
     lesson.focus.value = 0; await v.say(...onesLine(q.a));
@@ -101,14 +103,14 @@ async function teachMore(q: MoreProblem, v: VoiceScope, lesson: Lesson, full: bo
   lesson.focus.value = null;
   if (q.form === 'sign') {
     lesson.hint.value = q.answer;
-    await v.say('The open side faces the bigger number.');
+    await v.say(same ? 'This one means the same.' : 'The open side faces the bigger number.');
     await v.say(n(q.a), q.answer === '<' ? 'is less than' : q.answer === '>' ? 'is more than' : 'is the same as', n(q.b));
     return;
   }
   const big = Math.max(q.a, q.b), small = Math.min(q.a, q.b);
   lesson.hint.value = q.answer;
   if (q.form === 'faster') await v.say(n(big), 'is more.', 'The bigger number is faster.');
-  else await v.say(n(small), 'is less.');
+  else await v.say(n(small), 'is less.', 'The smaller number is slower.');
 }
 
 // ---------- Tally Board ----------
@@ -127,14 +129,15 @@ async function countTally(v: VoiceScope, lesson: Lesson, total: number) {
   await v.say('That makes', n(total));
 }
 async function teachTally(q: TallyProblem, answer: string, v: VoiceScope, lesson: Lesson, full: boolean) {
-  if (!full) { lesson.show.value = 'bundles'; await v.say(q.form === 'make' ? 'Each bundle is five.' : 'Count the bundles by fives.'); return; }
+  // fewer than five marks make no bundle: then each mark is one
+  if (!full) { lesson.show.value = 'bundles'; await v.say(q.form === 'make' ? 'Each bundle is five.' : q.n < 5 ? 'Each mark is one.' : 'Count the bundles by fives.'); return; }
   if (q.form === 'make') {
     // count his tally, then show the one asked for
     const his = Number(answer);
     if (his > 0) await countTally(v, lesson, his);
     lesson.step.value = 0;
     lesson.show.value = 'model';
-    await v.say('Make the tally for', n(q.n));
+    await v.say('Make a tally that shows', n(q.n));
     await countTally(v, lesson, q.n);
     lesson.hint.value = q.answer;
     return;
@@ -229,7 +232,7 @@ async function teachOrder(q: OrderProblem, v: VoiceScope, lesson: Lesson, full: 
 
 // ---------- the Round's explain and 🔎 ----------
 
-async function lessonOf(p: Asking, answer: string, full: boolean, v: VoiceScope, lesson: Lesson) {
+export async function lessonOf(p: Asking, answer: string, full: boolean, v: VoiceScope, lesson: Lesson) {
   const q = p.q;
   if (q.kind === 'place') return teachPlace(q, v, lesson, full);
   if (q.kind === 'more') return teachMore(q, v, lesson, full);

@@ -92,6 +92,17 @@ COLLECTION_SPEECH = {
         # on the list); Jenny says both plainly, fast and slow
         'said_as': {'cat': 'cat'}, 'voice_for': {'cat': 'en-US-JennyNeural', 'grab': 'en-US-JennyNeural'},
     },
+    'turbo-tally': {
+        # speech-to-text on Aria's clips heard these as "Hong Kong", "Big Rake Horn", "Great Purple", "Make a wing", "Knowing",
+        # "Snowball bins", "open-ness" and "Nian"; a breath between the words (or "Neon!") makes each one heard as written
+        'said_as': {
+            'Honk Horn': 'Honk, Horn', 'You got Honk Horn!': 'You got Honk, Horn!',
+            'Big Rig Horn': 'Big Rig, Horn', 'You got Big Rig Horn!': 'You got Big Rig, Horn!',
+            'Grape Purple': 'Grape, Purple', 'You got Grape Purple!': 'You got Grape, Purple!',
+            'Mega Wing': 'Mega, Wing', 'No Wing': 'No, Wing', 'Snowball Bends': 'Snowball, Bends',
+            'Play more Faster Car to open this!': 'Play more Faster Car, to open this!', 'Neon': 'Neon!',
+        },
+    },
 }
 
 

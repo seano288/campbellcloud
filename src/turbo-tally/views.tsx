@@ -78,7 +78,7 @@ function shownOrder(q: PlaceProblem, moved: boolean) {
   return cars;
 }
 
-function Road({ q, lesson, onTap, wrong, done }: { q: PlaceProblem; lesson: Lesson; onTap?: (c: string) => void; wrong: string[]; done: string | null }) {
+export function Road({ q, lesson, onTap, wrong, done }: { q: PlaceProblem; lesson: Lesson; onTap?: (c: string) => void; wrong: string[]; done: string | null }) {
   const order = shownOrder(q, lesson.show.value === 'moved'), step = lesson.step.value, hint = lesson.hint.value;
   const n = order.length, pointer = q.form !== 'tap';
   return (
@@ -182,9 +182,10 @@ function Board({ children, class: c = '' }: { children: ComponentChildren; class
 
 function TallyView({ current, q, waiting }: { current: Current; q: TallyProblem; waiting: boolean }) {
   const lesson = lessonFor(current.signal), voice = useVoice();
-  const speech: Item[] = q.form === 'read' ? ['How many tally marks?'] : q.form === 'make' ? ['Make the tally for', `${q.n}` as Phrase, 'Tap plus to add a mark. Then tap the check.'] : ['Which tally shows', `${q.n}` as Phrase];
-  const text = q.form === 'read' ? 'How many tally marks?' : q.form === 'make' ? `Make the tally for ${q.n}.` : `Which tally shows ${q.n}?`;
+  const speech: Item[] = q.form === 'read' ? ['How many tally marks?'] : q.form === 'make' ? ['Make a tally that shows', `${q.n}` as Phrase, 'Tap plus to add a mark. Then tap the check.'] : ['Which tally shows', `${q.n}` as Phrase];
+  const text = q.form === 'read' ? 'How many tally marks?' : q.form === 'make' ? `Make a tally that shows ${q.n}.` : `Which tally shows ${q.n}?`;
   const ready = useAsked(current, speech), { tap, wrong, done, can } = useChoice(current, ready, waiting);
+  // no running count on his board while he makes it, or he'd tap ＋ until the digit matched and never read a tally; the lesson counts it
   const [made, setMade] = useState(0), [madeDone, setMadeDone] = useState(false);
   const step = lesson.step.value;
   if (q.form === 'make') {
@@ -196,13 +197,13 @@ function TallyView({ current, q, waiting }: { current: Current; q: TallyProblem;
       if (!made) { sNope(); void voice.say('Tap plus to add a mark. Then tap the check.'); return; }
       const verdict = current.actions.submit(String(made));
       if (verdict === 'correct') setMadeDone(true);
-      if (verdict === 'incorrect') setMade(0);
+      // a miss keeps his marks on the board: the lesson counts them, and he fixes them with ＋ and ⌫
     };
     const model = lesson.show.value === 'model';
     return (
       <Shell current={current} ready={ok} kind="tally form-make" text={text} speech={speech}
         stage={<div class="boards">
-          <Board class={madeDone ? 'right' : ''}>{made ? <TallyMarks n={made} lit={model ? 0 : step} /> : <span class="board-empty">?</span>}<span class="board-count" aria-hidden="true">{made || ''}</span></Board>
+          <Board class={madeDone ? 'right' : ''}>{made ? <TallyMarks n={made} lit={model ? 0 : step} /> : <span class="board-empty">?</span>}<span class="board-count" aria-hidden="true">{!model && step > 0 ? step : ''}</span></Board>
           {model && <Board class="model"><TallyMarks n={q.n} lit={step} /></Board>}
         </div>}
         controls={<div class="make-pad">
@@ -294,12 +295,22 @@ export function NumberLine({ nums, focus, marks = [] }: { nums: readonly number[
   const all = [...nums, ...marks], small = Math.max(...all) <= 20, lo = small ? 0 : Math.floor(Math.min(...all) / 10) * 10, hi = small ? 20 : Math.ceil((Math.max(...all) + 1) / 10) * 10;
   const W = 600, x = (v: number) => 20 + ((v - lo) / (hi - lo)) * (W - 40);
   const ticks = Array.from({ length: (hi - lo) / (small ? 1 : 2) + 1 }, (_, i) => lo + i * (small ? 1 : 2));
+  // Numbers close together (38 and 39, or 31 and 33 on a line to 100) would print over each other: a label that would touch the one
+  // before it on its row goes up a row.
+  const AXIS = 100, ROWS = [70, 34, -2], GAP = 38, rowOf = new Map<number, number>(), ends: number[] = ROWS.map(() => -Infinity);
+  for (const v of [...new Set(all)].sort((a, b) => a - b)) {
+    const r = Math.max(0, ends.findIndex(e => x(v) - e >= GAP));
+    rowOf.set(v, r); ends[r] = x(v);
+  }
+  const label = (v: number) => <text x={x(v)} y={ROWS[rowOf.get(v) ?? 0]}>{v}</text>;
+  const top = ROWS[Math.max(0, ...rowOf.values())]! - 26; // only as tall as the rows it uses
   return (
-    <svg class="number-line" viewBox={`0 0 ${W} 110`} role="img" aria-label="A number line">
-      <line x1="10" x2={W - 10} y1="70" y2="70" class="nl-axis" />
-      {ticks.map(t => <g key={t}><line x1={x(t)} x2={x(t)} y1={t % 10 === 0 || (small && t % 5 === 0) ? 58 : 64} y2="76" class="nl-tick" />{(t % 10 === 0 || (small && t % 5 === 0)) && <text x={x(t)} y="100" class="nl-label">{t}</text>}</g>)}
-      {marks.map(m => <g key={`m${m}`} class="nl-mark"><circle cx={x(m)} cy="70" r="9" /><text x={x(m)} y="40">{m}</text></g>)}
-      {nums.map(v => <g key={v} class={cls('nl-num', focus === v && 'on')}><circle cx={x(v)} cy="70" r="11" /><text x={x(v)} y="40">{v}</text></g>)}
+    <svg class="number-line" viewBox={`0 ${top} ${W} ${140 - top}`} role="img" aria-label="A number line">
+      <line x1="10" x2={W - 10} y1={AXIS} y2={AXIS} class="nl-axis" />
+      {ticks.map(t => <g key={t}><line x1={x(t)} x2={x(t)} y1={t % 10 === 0 || (small && t % 5 === 0) ? AXIS - 12 : AXIS - 6} y2={AXIS + 6} class="nl-tick" />{(t % 10 === 0 || (small && t % 5 === 0)) && <text x={x(t)} y={AXIS + 30} class="nl-label">{t}</text>}</g>)}
+      {[...rowOf].filter(([, r]) => r > 0).map(([v, r]) => <line key={`s${v}`} x1={x(v)} x2={x(v)} y1={ROWS[r]! + 6} y2={AXIS - 10} class="nl-stalk" />)}
+      {marks.map(m => <g key={`m${m}`} class="nl-mark"><circle cx={x(m)} cy={AXIS} r="9" />{label(m)}</g>)}
+      {nums.map(v => <g key={v} class={cls('nl-num', focus === v && 'on')}><circle cx={x(v)} cy={AXIS} r="11" />{label(v)}</g>)}
     </svg>
   );
 }

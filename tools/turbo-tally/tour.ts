@@ -4,8 +4,8 @@
 // page (window.__round in dev), and every tap waits for the question to be said first. It fails on buttons off screen or under 44px.
 //   npm run dev:turbo-tally   (in another shell)
 //   npx tsx tools/turbo-tally/tour.ts <url> <outDir>
-// TOUR_VIEW=portrait|landscape|phone|side picks the screen (iPad 9 sizes by default: 810×1080 upright). TOUR_SAVE=fresh|levels: a
-// brand-new player, or one with every kind open at Level 2 (TOUR_LEVEL=1|2|3 picks another) and some Bolts. TOUR_BROWSER=webkit plays in WebKit.
+// TOUR_ROUNDS=n plays n Rounds before the Garage (1 by default). TOUR_VIEW=portrait|landscape|phone|side picks the screen (iPad 9 sizes by default: 810×1080 upright). TOUR_SAVE=fresh|levels: a
+// brand-new player, or one with every kind open at Level 2 (TOUR_LEVEL=1|2|3 picks another) and some Bolts; at Level 3 he hasn't met tally marks or the signs yet. TOUR_BROWSER=webkit plays in WebKit.
 import { mkdirSync } from 'node:fs';
 import { chromium, webkit } from 'playwright';
 
@@ -19,7 +19,7 @@ const levels = {
   version: 1, balance: 30,
   learning: {
     modes: Object.fromEntries(MODES.map(m => [m, { level: LEVEL, window: ['clean', 'clean', 'clean', 'clean', 'clean'], opened: true, starred: false, introPending: false, fresh: false }])),
-    pushed: Object.fromEntries(MODES.map(m => [m, 40])), met: ['tally', 'signs'],
+    pushed: Object.fromEntries(MODES.map(m => [m, 40])), met: LEVEL === 3 ? [] : ['tally', 'signs'], // at Level 3 he meets tally marks and the signs on the way
     tuneUp: { place: { asked: 3, clean: 3, misses: 0 }, more: { asked: 3, clean: 3, misses: 0 } },
   },
 };
@@ -66,6 +66,14 @@ async function fits(name: string) {
       if (r.right > innerWidth + 1 || r.bottom > innerHeight + 1 || r.left < -1 || r.top < -1) out.push(`off screen: ${el.getAttribute('aria-label') ?? el.className}`);
       if (r.height < 43 || r.width < 43) out.push(`small ${Math.round(r.width)}x${Math.round(r.height)}: ${el.getAttribute('aria-label') ?? el.className}`);
     }
+    // numbers printed over each other on a picture (the number line put 64 and 65 on one spot), or a running count on a tally he is
+    // still making (he'd tap ＋ until the digit matched)
+    const texts = [...document.querySelectorAll('.game.tt svg text')].map(t => [t.textContent, t.getBoundingClientRect()] as const).filter(([, b]) => b.width);
+    for (let i = 0; i < texts.length; i++) for (let j = i + 1; j < texts.length; j++) {
+      const [ta, a] = texts[i]!, [tb, b] = texts[j]!;
+      if (a.left < b.right - 2 && b.left < a.right - 2 && a.top < b.bottom - 2 && b.top < a.bottom - 2) out.push(`"${ta}" printed over "${tb}"`);
+    }
+    if (document.querySelector('.k-form-make[data-ready="yes"] .boards .pit-board .board-count')?.textContent) out.push('a count shows on the tally he is making');
     return [...new Set(out)];
   });
   if (bad.length) problems.push(`layout ${name}: ${bad.slice(0, 6).join('; ')}`);
@@ -94,7 +102,14 @@ async function answer(p: NonNullable<Q>, miss: boolean, second = false) {
     if (q.form === 'sign') await tap(SIGN[miss ? wrongOf(['<', '=', '>']) : q.answer]!);
     else { const k = miss ? (q.answer === 'a' ? 'b' : 'a') : q.answer; await tap(`Speed ${k === 'a' ? q.a : q.b}`); }
   } else if (q.kind === 'tally') {
-    if (q.form === 'make') { const marks = miss ? q.n - 1 : q.n; for (let i = 0; i < marks; i++) await tap('Add a mark'); await tap('Done'); }
+    if (q.form === 'make') {
+      // a miss leaves his marks on the board, so he adds or takes away from what's there
+      const want = miss ? (second ? q.n + 2 : q.n - 1) : q.n;
+      let now = await page.locator('.k-form-make .boards .pit-board').first().locator('line.mark').count();
+      for (; now < want; now++) await tap('Add a mark');
+      for (; now > want; now--) await tap('Take away a mark');
+      await tap('Done');
+    }
     else if (q.form === 'pick') await tap(`Tally ${(q.choices as number[]).indexOf(miss ? Number(wrongOf(q.choices.map(String))) : q.n) + 1}`);
     else await tap(miss ? wrongOf(q.choices.map(String)) : String(q.answer));
   } else if (q.kind === 'chart') {
@@ -115,10 +130,17 @@ await page.getByLabel('Start').click({ timeout: 30000 });
 await page.waitForTimeout(800);
 await shot('home');
 
-// ---------- a Round ----------
+// ---------- a Round (TOUR_ROUNDS of them, so more kinds and forms come up) ----------
 await tap('Play');
-const missedKinds = new Set<string>();
+const missedKinds = new Set<string>(), ROUNDS = Number(process.env.TOUR_ROUNDS ?? 1);
 let asked = 0;
+for (let r = 1; r <= ROUNDS; r++) {
+if (r > 1) {
+  await page.waitForSelector('.reward .btns:not(.asleep)', { timeout: 40000 }).catch(() => problems.push('end of Round never woke up'));
+  await shot(`round${r - 1}-done`);
+  await tap('Play again');
+  missedKinds.clear();
+}
 for (let guard = 0; guard < 30; guard++) {
   if (await page.locator('.reward h2').isVisible()) break;
   const p = await question();
@@ -135,6 +157,8 @@ for (let guard = 0; guard < 30; guard++) {
       await page.waitForTimeout(1600);
       await shot(`q${asked}-lesson`);
       await ready(40000);
+      // a miss leaves his tally on the board for the lesson to count, and him to fix
+      if (p.q?.form === 'make' && await page.locator('.k-form-make .boards .pit-board').first().locator('line.mark').count() !== p.q.n - 1) problems.push('a missed tally was wiped off the board');
       // miss again, so the fuller second-miss lesson runs (Faster Car has only one wrong car: 🔎 runs the same lesson), then the right answer
       if (p.q?.kind === 'more' && p.q.form !== 'sign') await tap('Help'); else await answer(p, true, true);
       await page.waitForTimeout(2500);
@@ -145,6 +169,7 @@ for (let guard = 0; guard < 30; guard++) {
   }
   // wait for this question to go
   for (let i = 0; i < 130; i++) { const now = await question(); if (now !== null && JSON.stringify(now) !== JSON.stringify(p)) break; if (await page.locator('.reward h2').isVisible()) break; await page.waitForTimeout(150); }
+}
 }
 await page.waitForTimeout(1500);
 await shot('round-done');
