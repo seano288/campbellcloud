@@ -430,3 +430,39 @@ _Avoid_: enemy, opponent, bot
 _Avoid_: league, championship
 
 **Race number**: the number on his car, 0 to 99, picked free on two wheels, tens and ones.
+
+## Hook and Ladder
+
+Hook and Ladder reuses Math Bots', Rover Code's and Sentence Express's terms where they mean the same thing (Mixed Round, Mastery, Stretch, Bolt, Goal, Paint). It has no Tune-Up and no Meetings. These are its own:
+
+**Game Modes (Hook and Ladder)**: the five kinds of question, about what words mean: Two Words, One Word (compound words: tap the picture two words make, tap where a compound splits, pick the second half that makes a real word), Opposites (with pictures, then spoken words, then in a sentence), Sort It (tap all the things in a group, the one that doesn't belong, what a group is called, and a question about one thing in a group), Endings (-s, -ed and -ing on words that don't change their spelling) and Strong Words (words that mean nearly the same, one stronger: which is bigger, which is the loudest, all three in order). Two Words, One Word and Opposites are open from the start; Sort It opens at Opposites Level 2, Endings at Two Words, One Word Level 2, Strong Words at Sort It Level 2.
+
+**Compound**: a word made of two words whose meaning comes from both (fire truck, rainbow, toothbrush). Never one whose halves mislead (butterfly, ladybug). Its **halves** are the two words.
+_Avoid_: word sum, joined word
+
+**Silly half**: a short word offered as a wrong second half at Two Words, One Word Level 3 (rain + dog). It never makes a real word with the first half: rain + coat is real, so coat is never offered beside bow.
+
+**Fair opposite**: a word that is also a fair answer for "the opposite of": cool and chilly for hot. Never offered as a wrong choice beside the opposite.
+
+**Group**: what Sort It sorts into: animals, food, clothes, things that go, body parts. Every thing belongs to exactly one.
+_Avoid_: category (fine in the research, not on screen)
+
+**Ending**: -s, -ed or -ing, shown as its own tile that joins the word in a lesson.
+_Avoid_: suffix, inflection (fine in the research, not on screen)
+
+**Strong Words set**: two or three words that mean nearly the same, weakest first (whisper, talk, shout). The table is short and hand-checked; the parent reads every set. In a lesson the words sit on a **bar** that grows from small to big and each is said in a voice of matching size.
+
+**Station**: Hook and Ladder's Garage: his fire engines in their bays, the wall of **badges**, the things he has bought for the Station, the big Call button, and the tray of trucks and parts.
+_Avoid_: garage, firehouse (fine to say, but the screen is the Station)
+
+**Truck**: one of eight fire engines (Pumper, Ladder Truck, Tanker, Rescue Truck, Brush Truck, Airport Crash Truck, Fireboat, Fire Helicopter). One at a time is fitted, and each has a **trick** at the Call (two more floors of ladder, twice the water, a faster ladder, grass fires in one splash, foam twice as fast, never runs dry, drops water from the sky).
+
+**Part (Hook and Ladder)**: one Rung on a slot that changes the Call: the **Pump** (how high the water reaches), the **Hose** (how wide the spray is), the **Ladder** (how many floors it climbs) and the **Tank** (how long he sprays before a short refill). The **Nozzle**, **Siren**, **Lights**, **Paint** and **Crew Buddy** (a dalmatian first) change how it sprays, sounds and looks.
+
+**Call**: what a finished Round earns (he starts with one): a short drive with a big Siren button, then a scene from the side where he holds a finger to aim the hose and taps people at windows to send the ladder. It can't be failed: fires never spread, there's no clock, and what his parts can't reach yet the **helpers** finish while he's told which part would reach it. It's used, and paid, only when everything is out.
+_Avoid_: mission, level, rescue (the Call is the thing; a rescue is the ladder bringing someone down in it)
+
+**Scene (Hook and Ladder)**: one of the sixteen Calls, getting taller and stranger: the Trash Bin, the Little House, the Barn, the Car, the Forest Edge, the Bakery, the School, the Tree House, the Ship at the Dock, the Tall Building, the Castle, the Airport, the Lighthouse, the Hotel, the Skyscraper, the Rocket Pad. A new one is the next Call; after the first time it gives a **badge** and a building in the Town.
+
+**Town (Hook and Ladder)**: a lot for every scene; a scene he has answered stands there with a thank-you sign, and tapping it makes it his next Call. Things he buys for the Town stand in its park.
+

@@ -13,6 +13,7 @@
   .venv/bin/python tools/make_voice.py --collection sentence-express --out public/sentence-express-voice --index src/sentence-express/voice.gen.ts
   .venv/bin/python tools/make_voice.py --collection word-wreckers --out public/word-wreckers-voice --index src/word-wreckers/voice.gen.ts
   .venv/bin/python tools/make_voice.py --collection turbo-tally --out public/turbo-tally-voice --index src/turbo-tally/voice.gen.ts
+  .venv/bin/python tools/make_voice.py --collection hook-and-ladder --out public/hook-and-ladder-voice --index src/hook-and-ladder/voice.gen.ts
 
 Select phrases through tools/phrases.ts and write recordings and a typed index to explicit locations.
 Only missing clips are recorded. Cleanup touches only the selected directory, whose .voice-collection
@@ -41,7 +42,9 @@ VOICES = {'purrdoku': ('en-GB-RyanNeural', '-5%'),
           # Word Wreckers says every list word alone (spelling by sound), where Ava blurs short vowels
           'word-wreckers': ('en-US-AriaNeural', '-8%'),
           # Turbo Tally chains numbers, places and Rival names into lines like Math Bots, and says colour words in whole sentences
-          'turbo-tally': ('en-US-AriaNeural', '-8%')}
+          'turbo-tally': ('en-US-AriaNeural', '-8%'),
+          # Hook and Ladder says every word alone (opposites, compounds, endings), and jump / jumps / jumped / jumping must differ
+          'hook-and-ladder': ('en-US-AriaNeural', '-8%')}
 ROOT = Path(__file__).resolve().parent.parent
 
 
@@ -102,6 +105,13 @@ COLLECTION_SPEECH = {
             'Mega Wing': 'Mega, Wing', 'No Wing': 'No, Wing', 'Snowball Bends': 'Snowball, Bends',
             'Play more Faster Car to open this!': 'Play more Faster Car, to open this!', 'Neon': 'Neon!',
         },
+    },
+    'hook-and-ladder': {
+        # alone, Aria says cat as "Kate", key as "he" and duck as "dack" however they're written (speech-to-text heard each that way);
+        # Jenny says all three plainly, and before, bear and grapes too (Aria's came back "the four", "there", "crepes"). A lone "bow"
+        # comes out rhyming with cow; the bow in rainbow rhymes with go, which "beau" gets. "owl." keeps its l.
+        'said_as': {'cat': 'cat', 'bow': 'beau', 'owl': 'owl.'},
+        'voice_for': {w: 'en-US-JennyNeural' for w in ['cat', 'key', 'duck', 'before', 'bear', 'grapes']},
     },
 }
 
