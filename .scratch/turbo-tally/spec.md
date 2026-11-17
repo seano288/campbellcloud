@@ -117,7 +117,7 @@ His feedback on Math Bots decided the shape: he builds from parts, the parts cha
 
 ## Look
 
-Race day: tarmac grey, chequered black and white, signal red and pit-lane yellow, with the family look kept (Bungee titles, Nunito reading, 4px black outlines, solid drop shadows that press in). Question screens are a light card. The cars are drawn in code (`art/car.ts`) from the fitted parts, from the side and from above, and the same functions draw the Garage, the tiles, the podium and the Race, so the car in the Garage is the car on the track. Each Cup has its own ground and scenery (trees, rocks, cacti, pines, lit buildings with a dark wash at night, glowing lava). Question cars are SVG, a colour and a roof symbol. Icon: a red race car from above crossing a chequered line, with tally marks (four and one across) as its skid.
+Race day: tarmac grey, chequered black and white, signal red and pit-lane yellow, with the family look kept (Bungee titles, Nunito reading, 4px black outlines, solid drop shadows that press in). Question screens are a light card. The cars are drawn in code (`art/car.ts`) from the fitted parts, from the side and from above, and the same functions draw the Garage, the tiles, the podium and the Race, so the car in the Garage is the car on the track. Each Cup has its own ground and scenery (trees, rocks, cacti, pines, lit buildings with a dark wash at night, glowing lava). Question cars are SVG, a colour and a roof symbol. Icon: a yellow race car from above crossing a chequered line on a signal-red sunburst, with tally marks (four and one across) as its skid.
 
 Particles are capped (140 skid segments, 60 puffs) so three Rivals, skids and boost flames hold up on an iPad 9; Reduce Motion cuts the puffs and the camera shake.
 
