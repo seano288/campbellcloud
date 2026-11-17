@@ -2,7 +2,7 @@
 
 Read this first, then the game's own brief (`.scratch/<game-slug>/brief.md`). This guide holds everything the five briefs share: who plays, how the existing games are built, what to wire up, how to verify, and what to report. Where a brief and this guide differ, the brief wins.
 
-Briefs that use this guide: `dino-dig`, `word-wreckers`, `sentence-express`, `treasure-fleet`, `wild-rescue`.
+Briefs that use this guide: `dino-dig`, `word-wreckers`, `sentence-express`, `treasure-fleet`, `wild-rescue`, and the second batch (2026-11-17): `turbo-tally`, `hook-and-ladder`, `deep-light`, `food-truck`, `sky-writer`.
 
 Do the work yourself in the current checkout. Don't start subagents. Don't commit, push or open a PR; leave the changes in the working tree.
 
@@ -48,6 +48,10 @@ Stack: Preact and Vite, static files, no new runtime dependencies without a stro
 ## Look
 
 The family look: Bungee for titles, Nunito for reading, 4px black outlines, solid chunky drop shadows. Reading games use Andika for anything he reads (a school font with single-storey *a* and *g*), lowercase except *I*, names and a sentence's first word. Each game gets its own colour world and its own icon drawn in code.
+
+## How much there is to earn
+
+He bought everything in Rover Code within about a day, and Treasure Fleet, Wild Rescue and Sentence Express each had their rewards doubled or tripled the day they were built. Plan for about 150 things to earn from the first build, including kinds that change how the reward plays, not only paints. When he runs out, add more things; don't raise payouts. No price goes over 100 Bolts, because the voice only has number clips up to 100.
 
 ## The action reward
 
