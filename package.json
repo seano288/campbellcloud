@@ -25,6 +25,7 @@
     "dev:wild-rescue": "vite --config vite.wild-rescue.config.ts --port 5196",
     "dev:sentence-express": "vite --config vite.sentence-express.config.ts --port 5194",
     "dev:word-wreckers": "vite --config vite.word-wreckers.config.ts --port 5195",
+    "dev:turbo-tally": "vite --config vite.turbo-tally.config.ts --port 5193",
     "dev:hunch": "vite --config vite.hunch.config.ts",
     "dev:purrdoku": "vite --config vite.purrdoku.config.ts",
     "build:purrdoku-boards": "tsx tools/purrdoku-boards.ts"

@@ -25,6 +25,8 @@ import { expressBuild } from './sentence-express-build';
 import { iconSvg as expressIcon } from '../src/sentence-express/icon';
 import { wreckersBuild } from './word-wreckers-build';
 import { iconSvg as wreckersIcon } from '../src/word-wreckers/icon';
+import { tallyBuild } from './turbo-tally-build';
+import { iconSvg as tallyIcon } from '../src/turbo-tally/icon';
 import { iconSvg as purrdokuIcon } from '../src/purrdoku/art';
 import { purrdokuBuild } from './purrdoku-build';
 import { favicon, homeScreenIcons } from './icons';
@@ -82,6 +84,7 @@ export const SECTIONS: readonly { title: string; games: readonly Tile[] }[] = [
     { path: 'wild-rescue', name: 'Wild Rescue', blurb: 'Animals and the sky, drive a rescue truck', icon: rescueIcon },
     { path: 'sentence-express', name: 'Sentence Express', blurb: 'Reading sentences, build a train set', icon: expressIcon },
     { path: 'word-wreckers', name: 'Word Wreckers', blurb: 'Spelling by sound, wreck and build a town', icon: wreckersIcon },
+    { path: 'turbo-tally', name: 'Turbo Tally', blurb: 'Comparing and graphs, build a race car', icon: tallyIcon },
   ] },
   { title: 'Just for Fun', games: [
     { path: 'hunch', name: 'Hunch', blurb: 'Guess the five-letter word', icon: hunchIcon },
@@ -154,6 +157,7 @@ await build({ ...staticBuild(fleetBuild), logLevel: 'warn' });
 await build({ ...staticBuild(rescueBuild), logLevel: 'warn' });
 await build({ ...staticBuild(expressBuild), logLevel: 'warn' });
 await build({ ...staticBuild(wreckersBuild), logLevel: 'warn' });
+await build({ ...staticBuild(tallyBuild), logLevel: 'warn' });
 await build({ ...hunchBuild(), logLevel: 'warn' });
 await build({ ...staticBuild(purrdokuBuild), logLevel: 'warn' });
 console.log(`Built ${SITE}/: landing page, ${GAMES.map(g => g.path).join(', ')}`);

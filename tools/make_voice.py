@@ -12,6 +12,7 @@
   .venv/bin/python tools/make_voice.py --collection wild-rescue --out public/wild-rescue-voice --index src/wild-rescue/voice.gen.ts
   .venv/bin/python tools/make_voice.py --collection sentence-express --out public/sentence-express-voice --index src/sentence-express/voice.gen.ts
   .venv/bin/python tools/make_voice.py --collection word-wreckers --out public/word-wreckers-voice --index src/word-wreckers/voice.gen.ts
+  .venv/bin/python tools/make_voice.py --collection turbo-tally --out public/turbo-tally-voice --index src/turbo-tally/voice.gen.ts
 
 Select phrases through tools/phrases.ts and write recordings and a typed index to explicit locations.
 Only missing clips are recorded. Cleanup touches only the selected directory, whose .voice-collection
@@ -38,7 +39,9 @@ VOICES = {'purrdoku': ('en-GB-RyanNeural', '-5%'),
           # Sentence Express says every sentence whole and every word alone, so short vowels must be crisp, as in Sight Squad
           'sentence-express': ('en-US-AriaNeural', '-8%'),
           # Word Wreckers says every list word alone (spelling by sound), where Ava blurs short vowels
-          'word-wreckers': ('en-US-AriaNeural', '-8%')}
+          'word-wreckers': ('en-US-AriaNeural', '-8%'),
+          # Turbo Tally chains numbers, places and Rival names into lines like Math Bots, and says colour words in whole sentences
+          'turbo-tally': ('en-US-AriaNeural', '-8%')}
 ROOT = Path(__file__).resolve().parent.parent
 
 

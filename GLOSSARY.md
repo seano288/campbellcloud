@@ -407,3 +407,26 @@ _Avoid_: Garage
 **Traffic**: vehicles he buys that drive up and down the Town by themselves (Taxi, Tractor, Race Car, Racing Snail...). Tapping one honks it.
 
 **Decoration (Word Wreckers)**: a thing for the Town's pavement or sky (Trees, Fountain, Fire Truck, Ferris Wheel, Fireworks, Flying Dragon...). Tapping one makes it hop and say its name.
+
+## Turbo Tally
+
+Turbo Tally reuses Math Bots' and Rover Code's terms where they mean the same thing (Mixed Round, Mastery, Stretch, Bolt, Tune-Up, Meeting, Goal, Paint), and the Truck's Body, Slot and Mod where his race car has them: a **Body** is the car's shape, a **Slot** one place on it that holds one part (Engine, Tyres, Wing, Booster, Paint, Rims, Decals, Horn, Boost Flame), and its parts are Mods by another name (the game says "parts"). These are its own:
+
+**Game Modes (Turbo Tally)**: the five kinds of question, about comparing, places, tallies and graphs: Podium (places in a line of cars: first to tenth, and what a pass does), Faster Car (which speed number is bigger, then the < > = signs), Tally Board (tally marks in bundles of five), Race Chart (picture and bar graphs of three cars' wins) and Line Up (put three numbers in order; which number goes between two others). Podium and Faster Car are open from the start; Tally Board opens at Podium Level 2, Race Chart and Line Up at Faster Car Level 2. Three Laps (adding three numbers) was dropped because Math Bots' Bot Stories already teaches it.
+
+**Speed, Grip, Boost**: his car's three numbers in the Garage, shown as bars with the number on each. They are real: the Race uses them. The Engine (and a little the Body) sets Speed, the Tyres and Wing (and a little the Body) set Grip, the Booster sets Boost, the number of boosts he gets in a Race.
+_Avoid_: power, stats (to him)
+
+**Race**: the reward he drives: three laps of a Track from above, against three Rivals, about a minute. A finished Round earns one (he starts with one). It is used only when he crosses the line; leaving halfway costs nothing. Every finish pays Bolts and is cheered; a Race can't be lost.
+_Avoid_: lap (for the whole Race), match
+
+**Track**: one circuit, a closed centre line and a width, on one surface (tarmac, dirt, sand or snow) that a Tyre suits or doesn't. There are 24, four to a Cup. A Track opens when he beats the Rival on the one before.
+_Avoid_: course, level (Level means a kind's difficulty)
+
+**Rival**: one of the computer cars, each with a name, a car and a part of its own. Each Track features one Rival: finishing ahead of it (not coming first) wins its part, the first time, and opens the next Track. A Rival who beats him gets a little slower on that Track each time until he wins.
+_Avoid_: enemy, opponent, bot
+
+**Cup**: six groups of four Tracks, one per surface or place: Tarmac, Dirt, Sand, Snow, Night City and Volcano. The fourth Track of a Cup is its Cup Final, against the Cup's champion; beating it there wins the Cup's trophy for his shelf.
+_Avoid_: league, championship
+
+**Race number**: the number on his car, 0 to 99, picked free on two wheels, tens and ones.

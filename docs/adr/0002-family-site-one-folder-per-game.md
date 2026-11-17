@@ -25,10 +25,12 @@ Truck Money alone into `dist/` for the existing browser checks.
   becomes available offline after its first online visit at its new folder.
 - **Word Wreckers** (`/word-wreckers/`) has a tile in **Learning Games** and saves under its own key, `word-wreckers-save` (with
   `word-wreckers-place` for the screen and the Round in progress).
+- **Turbo Tally** (`/turbo-tally/`) has a tile in **Learning Games**, after Word Wreckers, and saves under its own key, `turbo-tally-save`
+  (with `turbo-tally-place` for the screen and the Round in progress).
 
 ## Learning games and games just for fun
 
-The landing page groups its tiles into sections: **Learning Games** (Monster Truck Money, Time Flies, Chop Chop, Sight Squad, Math Bots, Rover Code, Treasure Fleet, Wild Rescue) and
+The landing page groups its tiles into sections: **Learning Games** (Monster Truck Money, Time Flies, Chop Chop, Sight Squad, Math Bots, Rover Code, Treasure Fleet, Wild Rescue, Sentence Express, Word Wreckers, Turbo Tally) and
 **Just for Fun**. A fun game still gets its own folder, manifest, icons and worker, but it doesn't have to use the learning engine,
 voice clips or `staticBuild()`. Hunch (`/hunch/`, a five-letter word guessing game) is a plain DOM page with its own
 small build (`tools/hunch-build.ts`) and its own save key, `hunch-save`.
