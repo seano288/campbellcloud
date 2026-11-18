@@ -17,6 +17,7 @@
   .venv/bin/python tools/make_voice.py --collection dino-dig --out public/dino-dig-voice --index src/dino-dig/voice.gen.ts
   .venv/bin/python tools/make_voice.py --collection food-truck --out public/food-truck-voice --index src/food-truck/voice.gen.ts
   .venv/bin/python tools/make_voice.py --collection deep-light --out public/deep-light-voice --index src/deep-light/voice.gen.ts
+  .venv/bin/python tools/make_voice.py --collection sky-writer --out public/sky-writer-voice --index src/sky-writer/voice.gen.ts
 
 Select phrases through tools/phrases.ts and write recordings and a typed index to explicit locations.
 Only missing clips are recorded. Cleanup touches only the selected directory, whose .voice-collection
@@ -53,7 +54,9 @@ VOICES = {'purrdoku': ('en-GB-RyanNeural', '-5%'),
           # Food Truck chains dollar amounts from number clips ("You have", "8", "dollars.") and says names, foods and things alone
           'food-truck': ('en-US-AriaNeural', '-8%'),
           # Deep Light says whole science sentences and an animal's name and fact, and reads its sentence choices aloud, as Wild Rescue
-          'deep-light': ('en-US-AriaNeural', '-8%')}
+          'deep-light': ('en-US-AriaNeural', '-8%'),
+          # Sky Writer names letters and says short words alone (Write a Word), so short vowels must be crisp, as in the reading games
+          'sky-writer': ('en-US-AriaNeural', '-8%')}
 ROOT = Path(__file__).resolve().parent.parent
 
 
@@ -167,6 +170,23 @@ COLLECTION_SPEECH = {
             'Foghorn': 'Fog horn',
             'A barreleye fish has a see-through head, and its eyes look up through it.': 'A barrel eye fish has a see-through head, and its eyes look up through it.',
         },
+    },
+    # Sky Writer says its short-vowel words alone like Dino Dig ("cat" in Jenny's voice: Aria says "Kate"), and its b, d, p and q
+    # lessons name a lowercase letter at the start of a sentence, which the voice must say as the letter's name, not as a word
+    'sky-writer': {
+        'said_as': {'cat': 'cat', 'b starts with the tall line.': 'B, starts with the tall line.', 'd starts with the round part.': 'D, starts with the round part.',
+                    'p starts with the long line.': 'P, starts with the long line.', 'q starts with the round part.': 'Q, starts with the round part.',
+                    'These letters all start like c.': 'These letters all start like C.',
+                    # both speech-to-text models heard Aria's "green dot" as "green knot", and the locked hints lose their kind's name
+                    # without a breath round it (as Dino Dig found)
+                    'Start at the green dot!': 'Start at the green, dot!',
+                    'Play more Trace It to open this!': 'Play more, Trace It, to open this!',
+                    'Play more Where to Start to open this!': 'Play more, Where to Start, to open this!',
+                    'Play more Trace It and Where to Start to open this!': 'Play more, Trace It, and, Where to Start, to open this!',
+                    'Play more Write It to open this!': 'Play more, Write It, to open this!'},
+        # Aria's "Q." comes back as "Hugh" or "Hue" however it's written (Q! Queue. Cue.); Jenny's is heard as Q by both models
+        'voice_for': {'cat': 'en-US-JennyNeural', 'puff': 'en-US-JennyNeural', 'duck': 'en-US-JennyNeural',
+                      'Letter Q': 'en-US-JennyNeural', 'q starts with the round part.': 'en-US-JennyNeural'},
     },
 }
 

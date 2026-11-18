@@ -25,6 +25,7 @@ const collections = {
   'dino-dig': async () => (await import('../src/dino-dig/phrases')).PHRASES,
   'food-truck': async () => (await import('../src/food-truck/phrases')).PHRASES,
   'deep-light': async () => (await import('../src/deep-light/phrases')).PHRASES,
+  'sky-writer': async () => (await import('../src/sky-writer/phrases')).PHRASES,
 };
 if (!name || !Object.hasOwn(collections, name)) throw new Error(`Select --collection ${Object.keys(collections).join('|')}`);
 const phrases = await collections[name as keyof typeof collections]();

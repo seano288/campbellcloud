@@ -617,3 +617,57 @@ light can't.
 **Logbook**: every animal he has photographed, a page for each zone; tapping one says its name and one true fact. About sixty real
 animals, each fact checked against the page in `sea/animals.ts`.
 _Avoid_: collection, album
+
+## Sky Writer
+
+Sky Writer reuses Math Bots', Rover Code's and Dino Dig's terms where they mean the same thing (Mixed Round, Mastery, Bolt, Goal, Gear).
+It has no Tune-Up. It takes its short words from Dino Dig's word list (`src/dino-dig/words/list.ts`, read only). These are its own:
+
+**Game Modes (Sky Writer)**: the six kinds of handwriting question: Trace It (trace a letter on the writing lines), Where to Start (tap
+where a letter starts, which way it goes first, or which line comes second), Which Way (find the letter the right way round among its
+backwards and upside-down turns, or the backwards letter in a word), Tall, Small, Tail (how tall a letter is, and which writing sits on the
+line), Write It (hear a letter, write it on empty lines) and Write a Word (write a short word, one box a letter). Trace It and Where to
+Start are open from the start; Which Way opens at Trace It Level 2, Tall, Small, Tail at Where to Start Level 2, Write It once both reach
+Level 2, Write a Word at Write It Level 2.
+
+**Family**: a group of letters that share a first stroke, taught together and met before any is asked (as Sight Squad's word sets and Dino
+Dig's Patterns): the straight-line capitals (L T I H E F), the c family (c a d g o q), tall lines and tails (l t i j k), bumps (r n m h b p),
+slants (v w x y z), the rest of the small letters (s e f u), the numbers 0 to 9, and the rest of the capitals.
+_Avoid_: group, set (to him)
+
+**Stroke**: one line of a letter from where the pen goes down to where it lifts (or turns back along itself): a letter's strokes come in
+order, each with its own start and its own way. Stroke words are the shared phrases said for each ("Start at the top. Pull down. Back up
+and around."). A lift is between strokes.
+
+**Lane**: how far from a stroke's path his finger may go and still count. It narrows with Trace It's Level; Write It's is wide and hidden.
+Going outside it rubs the stroke out; it is never a miss.
+
+**Rub out**: what happens to a stroke that didn't count (a wobble out of the lane, a tap, a scribble away from the letter): its smoke puffs
+away and he tries again. Not a miss. A lift partway keeps what he drew, and he can carry on from there.
+
+**Wrong start, wrong way**: the only two misses in the writing kinds: a real try at the letter from the wrong place on it (the bottom of a
+tall line, the cross of t first), or along it backwards (a circle going forward instead of back). Either is taught: the little plane flies
+the stroke while its words are said.
+
+**Ball-and-stick**: the print style the letters are drawn in (lines and circles, as Zaner-Bloser teaches, matching Andika's single-storey a
+and g). A default for the parent to confirm against his school's style.
+
+**Show**: what a finished Round earns (he starts with one): a flight at one of sixteen places, his plane through ten rings in about 40
+seconds, Loop and Roll on buttons, then Free Sky. It's used only when the rings are done.
+_Avoid_: launch, trip, job, Dig (those are the other games')
+
+**Free Sky**: the end of a Show: the sky is his, and his plane lays smoke only while his finger is down, so he can draw.
+
+**Postcard**: a Free Sky drawing he keeps; it hangs on the Wall over the place it was drawn. Only he can take one down.
+
+**Patch**: the badge on his Wall for each place he has flown a Show at. Flying a new place gives its patch and opens the next place.
+
+**Airfield**: where Bolts buy planes and parts and his plane is built: twelve planes, Rungs of Engine (speed), Wings (how tight it turns),
+Smoke Tank (how long its trail is) and Propeller (how quickly it gets up to speed), Smoke Colors and Shapes, Paint, Pilots, Tricks, Gear
+and things for the Wall.
+_Avoid_: hangar (that's Time Flies'), shop, garage
+
+**Trick**: a stunt the plane flies by itself from a button: Loop and Roll are free; the third button flies the one he picked (Zigzag,
+Heart, Spiral, Big Loop, Star, Figure Eight), drawing its shape in smoke.
+
+**Wall**: the screen he shows people: his postcards, his planes, his patches and the things he bought for it.
