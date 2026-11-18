@@ -1,0 +1,327 @@
+/* Food Truck: Time Flies' styles (imported before this file, as Turbo Tally and Rover Code do) at a street fair: awning stripes, warm
+   bulb yellow, ketchup red and mint over a dusk-purple night, with the family look kept: Bungee titles, Nunito reading, thick black
+   outlines and chunky drop shadows that press in. Colour signals stay the family's: green is Go and right, yellow is look here, orange
+   is being read aloud. Question screens are a plain light card. Every rule here is scoped to this game's own classes (ft-, service-,
+   spot-, book-, sticker) or to its screens, so nothing leaks between kinds or into another game. */
+:root{--ketchup:#e63946;--mustard:#ffc93c;--mint:#3ccf9a;--bulb:#ffe08a;--dusk:#2a1b3d;--dusk-2:#3d2a57;--chalk:#fffbe9;--floor:max(56px,calc(env(safe-area-inset-bottom) + 40px));
+  --awning:repeating-linear-gradient(90deg,var(--ketchup) 0 28px,#fff 28px 56px)}
+html,body{background:var(--dusk)}
+.ft-start{background:radial-gradient(circle at 50% 18%,#5a3f7d,var(--dusk) 72%)}
+.ft-start h1{color:var(--mustard);text-shadow:3px 3px 0 var(--ketchup),6px 6px 0 #000}
+.ft-start .start-art{width:min(92vw,calc(460px*var(--u)),560px,62vh)}
+.ft-start .start-art .ft-truck{width:100%;height:auto}
+.home-screen.ft-home-screen,.round-screen{background:radial-gradient(circle at 80% 0%,#5a3f7d,var(--dusk) 55%,#1c1229)}
+.ft-home-screen .home-head h1{color:var(--mustard);text-shadow:2px 2px 0 var(--ketchup),4px 4px 0 #000}
+
+/* the truck drawn in code */
+.ft-truck{display:block;width:100%;height:100%;overflow:visible}
+.ft-truck .ft-bulb{animation:bulb 1.2s infinite}
+.ft-truck.bounce{animation:truckbob 1.4s ease-in-out infinite}
+@keyframes bulb{50%{opacity:.45}}
+@keyframes truckbob{50%{transform:translateY(-4px)}}
+
+/* ---------- Home: Play, the Truck, the Sticker Book, My Levels ---------- */
+.home.ft-home{grid-template-areas:"p p" "t b" "k k";grid-template-rows:minmax(0,1fr) minmax(0,.75fr) auto;grid-template-columns:1.4fr 1fr}
+@media (orientation:landscape){.home.ft-home{grid-template-areas:"p t" "p b" "k k";grid-template-rows:minmax(0,1fr) minmax(0,.75fr) auto;grid-template-columns:1.15fr 1fr}}
+/* Play is the awning: red and white stripes over warm bulb yellow, with the green Go in the middle */
+.ft-home .t-play{grid-area:p;background:radial-gradient(circle at 50% 60%,#fff2b8,var(--mustard) 70%)}
+.ft-home .t-play .awning-strip{position:absolute;left:0;right:0;top:0;height:calc(54px*var(--u));background:var(--awning);border-bottom:4px solid #000;
+  -webkit-mask:radial-gradient(circle at 14px 100%,#0000 13px,#000 14px) 0 0/28px 100% repeat-x;mask:none}
+.ft-home .t-play .e{position:relative;display:grid;place-items:center;width:calc(160px*var(--u));height:calc(160px*var(--u));min-width:84px;min-height:84px;border-radius:50%;border:4px solid #000;background:var(--go);color:#fff;font-size:calc(76px*var(--u));padding-left:calc(8px*var(--u));box-shadow:0 0 0 calc(8px*var(--u)) #fff,0 0 0 calc(8px*var(--u) + 4px) #000,0 calc(8px*var(--u) + 7px) 0 calc(8px*var(--u) + 4px) #000}
+.ft-home .t-play:active .e{box-shadow:0 0 0 calc(8px*var(--u)) #fff,0 0 0 calc(8px*var(--u) + 4px) #000}
+.ft-home .t-truck{grid-area:t;flex-direction:column;gap:2px;background:linear-gradient(#8ed1ff 0 70%,#7a7f8c 70%)}
+.ft-home .t-truck .ft-truck{flex:1;min-height:0;width:100%}
+.ft-home .t-book{grid-area:b;flex-direction:column;gap:calc(6px*var(--u));background:radial-gradient(circle at 50% 30%,#6ee6b5,var(--mint) 60%,#1f9e6e)}
+.book-faces{flex:1;min-height:0;display:flex;align-items:center;gap:4px;font-size:calc(52px*var(--u))}
+.book-faces span{display:grid;place-items:center;width:1.25em;height:1.25em;border-radius:14px;background:#fff;border:3px solid #000;box-shadow:0 3px 0 #000;font-size:.8em}
+.ft-home .t-truck .nm,.ft-home .t-book .nm{font-size:calc(22px*var(--u));color:#fff;background:#000;border-radius:10px;padding:2px 10px;white-space:nowrap}
+.service-badge,.book-count{position:absolute;right:10px;top:8px;background:#000;color:var(--mustard);border-radius:999px;padding:2px 12px;font:900 max(16px,calc(20px*var(--u))) Nunito,sans-serif;border:2px solid var(--mustard)}
+/* My Levels: the menu board, chalk white with a red header */
+.ft-home .t-kinds{grid-area:k;background:var(--chalk);display:grid;grid-template-columns:repeat(3,1fr);grid-auto-rows:minmax(max(48px,calc(54px*var(--u))),auto);column-gap:calc(12px*var(--u));padding:0 calc(12px*var(--u)) calc(8px*var(--u));cursor:default}
+.ft-home .t-kinds:active{transform:none;box-shadow:0 7px 0 #000}
+.ft-home .kinds-head{grid-column:1/-1;margin:0 calc(-12px*var(--u)) calc(2px*var(--u));padding:calc(5px*var(--u)) 12px;font:400 max(14px,calc(16px*var(--u))) Bungee,sans-serif;text-align:center;letter-spacing:.04em;color:#fff;background:var(--ketchup);border-bottom:3px solid #000}
+.ft-home .kind{position:relative;display:flex;align-items:center;gap:8px;background:none;border:0;padding:2px;min-height:44px;text-align:left;color:#1d1d1f;cursor:default}
+.ft-home .kind .ki{font-size:max(20px,calc(26px*var(--u)));line-height:1}
+.ft-home .kind .kb{flex:1;min-width:0;display:flex;flex-direction:column;gap:4px}
+.ft-home .kind .kn{font:900 max(14px,calc(18px*var(--u))) Nunito,sans-serif;line-height:1.1}
+.ft-home .kind .lvl{gap:4px}
+.ft-home .kind .lvl i{width:max(12px,calc(15px*var(--u)));height:max(12px,calc(15px*var(--u)));border:2px solid #0004;background:#e9e3cf}
+.ft-home .kind .lvl i.on{border-color:#000;background:radial-gradient(circle at 35% 35%,#fff3b0,#ffc400 60%);box-shadow:0 0 0 2px #ffc40055}
+.ft-home .kind.locked{opacity:.55}
+.ft-home .kind.locked .ki{filter:grayscale(1)}
+.ft-home .kind.fresh{animation:pulse 1s infinite}
+.ft-home .kind .badge{position:absolute;right:-2px;top:2px;font-size:calc(18px*var(--u))}
+@media (max-width:560px){.ft-home .t-kinds{grid-template-columns:repeat(2,1fr)}}
+@media (orientation:landscape) and (max-height:520px){
+  .home.ft-home{grid-template-areas:"p t k" "p b k";grid-template-rows:minmax(0,1fr) minmax(0,1fr);grid-template-columns:1fr .9fr 1.2fr}
+  .ft-home .t-kinds{grid-template-columns:1fr;grid-auto-rows:minmax(44px,auto);overflow-y:auto}
+  .ft-home .kinds-head{position:absolute;width:1px;height:1px;overflow:hidden;clip-path:inset(50%)}
+  .book-faces{font-size:30px}
+}
+
+/* ---------- a question: the bar, then the picture and the answers, side by side when there's width ---------- */
+.round-screen .card{position:relative;background:#fffdf6}
+.game.ft{justify-content:flex-start;gap:calc(8px*var(--u));padding:calc(10px*var(--u));overflow:hidden}
+.game.ft .ask{flex:none;width:100%;max-width:100%}
+.game.ft .ask h2{flex:1;min-width:0;font:900 max(19px,calc(29px*var(--u)))/1.15 Nunito,sans-serif;text-align:left;text-wrap:balance}
+.game.ft .help-btn{flex:none;font-size:max(20px,calc(24px*var(--u)));padding:4px 12px;min-width:48px;min-height:48px}
+.ft-body{flex:1;min-height:0;width:100%;display:flex;flex-direction:column;gap:calc(10px*var(--u));align-items:stretch}
+.ft-stage{position:relative;flex:1 1 0;min-height:0;min-width:0;display:flex;align-items:center;justify-content:center}
+.ft-controls{flex:none;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:calc(12px*var(--u))}
+@media (orientation:landscape){.ft-body{flex-direction:row}.ft-controls{flex:0 0 auto;width:clamp(216px,36vw,460px)}.ft-controls .choices{width:100%}}
+.game.ft .choices.nums{grid-template-columns:repeat(3,1fr);width:min(100%,460px)}
+.game.ft .choices.nums .choice{min-height:max(64px,calc(88px*var(--u)));font-size:max(28px,calc(42px*var(--u)))}
+.game.ft .choices.yesno{grid-template-columns:repeat(2,1fr);width:min(100%,380px)}
+.game.ft .choice.thumb{font-size:max(40px,calc(64px*var(--u)));min-height:max(72px,calc(100px*var(--u)));background:#fff}
+.game.ft .choices.tools{grid-template-columns:repeat(3,1fr);width:min(100%,460px)}
+.game.ft .choice.tool-choice{font-size:max(40px,calc(64px*var(--u)));min-height:max(72px,calc(100px*var(--u)));background:#fff}
+.game.ft .choices.items{grid-template-columns:repeat(3,1fr);width:min(100%,520px)}
+.game.ft .choice.item-choice{background:#fff;padding:calc(8px*var(--u)) 4px;min-height:max(80px,calc(110px*var(--u)))}
+.game.ft .choice.wrong,.ft-card.wrong{opacity:.4;animation:shake .4s}
+.game.ft .choice.right,.ft-card.right{background:var(--green);box-shadow:0 5px 0 #000,0 0 0 6px #2bb67355}
+.game.ft .choice.hint,.ft-card.hint,.ft-shelf.hint{animation:hint 1s infinite}
+.ft-card.focus,.game.ft .choice.focus{outline:5px solid var(--ketchup);outline-offset:3px}
+
+/* pictures: a thing on a white card, a service being done, a worker */
+.ft-pair{display:flex;gap:calc(16px*var(--u));justify-content:center;align-items:stretch;width:100%;flex-wrap:wrap}
+.ft-card{position:relative;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;min-width:max(120px,calc(180px*var(--u)));min-height:max(120px,calc(180px*var(--u)));padding:calc(10px*var(--u));background:#fff;border:4px solid #000;border-radius:24px;box-shadow:0 6px 0 #000;color:#1d1d1f}
+button.ft-card:active{transform:translateY(4px);box-shadow:0 2px 0 #000}
+.ft-card.small{min-width:max(84px,calc(118px*var(--u)));min-height:max(84px,calc(118px*var(--u)));border-radius:18px}
+.ft-card.big{min-width:max(140px,calc(220px*var(--u)));min-height:max(140px,calc(220px*var(--u)))}
+.ft-pic{display:inline-flex;align-items:center;justify-content:center;gap:2px;font-size:max(56px,calc(96px*var(--u)));line-height:1}
+.ft-card.small .ft-pic{font-size:max(40px,calc(64px*var(--u)))}
+.ft-pic.service .who{font-size:1em}.ft-pic.service .on{font-size:.62em;align-self:flex-end}
+.ft-pic.doing .who{animation:work .5s ease-in-out infinite alternate}
+.ft-pic.carry{position:relative;animation:carry 1.2s ease-in-out infinite}
+.ft-pic.carry .hands{position:absolute;bottom:-.25em;left:50%;transform:translateX(-50%);font-size:.5em}
+@keyframes work{to{transform:translateX(12%) rotate(8deg)}}
+@keyframes carry{50%{transform:translateY(-14%)}}
+.shelf-tag{position:absolute;top:-14px;right:-10px;font-size:max(28px,calc(40px*var(--u)));animation:pop-in .3s}
+.ft-worker{display:inline-flex;align-items:flex-end;gap:2px;line-height:1}
+.ft-worker .who{font-size:max(56px,calc(96px*var(--u)))}
+.ft-worker .tool{font-size:max(32px,calc(52px*var(--u)));animation:pop-in .3s}
+.ft-worker.with-tool .who{animation:work .5s ease-in-out infinite alternate}
+.ft-workers{display:flex;gap:calc(14px*var(--u));justify-content:center;flex-wrap:wrap}
+.ft-workers.n3 .ft-card,.ft-workers .ft-card{min-width:max(100px,calc(160px*var(--u)));min-height:max(110px,calc(160px*var(--u)))}
+.ft-tool-q{display:flex;flex-direction:column;align-items:center;gap:calc(12px*var(--u))}
+.ft-big-tool{font-size:max(48px,calc(80px*var(--u)));background:var(--chalk);border:4px solid #000;border-radius:50%;width:1.6em;height:1.6em;display:grid;place-items:center;box-shadow:0 5px 0 #000}
+/* Jobs Level 3: a market stall, the maker on one side and the shopper on the other */
+.ft-market{display:flex;align-items:center;gap:calc(10px*var(--u));justify-content:center;width:100%}
+.ft-stall{display:flex;flex-direction:column;align-items:center;gap:4px;padding:calc(10px*var(--u));background:var(--awning);border:4px solid #000;border-radius:16px;box-shadow:0 5px 0 #000}
+.ft-stall .good{font-size:max(44px,calc(72px*var(--u)));background:#fff;border-radius:12px;padding:4px}
+.ft-stall .arrow{font-size:max(24px,calc(34px*var(--u)))}
+.ft-apron{position:absolute;left:8px;top:6px;font-size:max(24px,calc(34px*var(--u)))}
+.ft-pay{display:flex;gap:2px}
+.ft-pay .ft-coin{width:28px;height:28px}
+
+/* sorting: the pictures on the counter, the two shelves under them */
+.ft-sort{display:flex;flex-direction:column;gap:calc(14px*var(--u));width:100%;height:100%;justify-content:center}
+.ft-counter{display:flex;gap:calc(10px*var(--u));justify-content:center;flex-wrap:wrap;min-height:max(90px,calc(126px*var(--u)))}
+.ft-card.picked{transform:translateY(-6px);box-shadow:0 10px 0 #000,0 0 0 6px var(--yellow)}
+.ft-card.bounced{animation:shake .4s}
+.ft-shelves{display:grid;grid-template-columns:1fr 1fr;gap:calc(12px*var(--u));width:100%}
+.ft-shelf{display:flex;flex-direction:column;align-items:center;gap:6px;min-height:max(110px,calc(150px*var(--u)));padding:calc(8px*var(--u));border:4px solid #000;border-radius:20px;box-shadow:0 6px 0 #000;background:linear-gradient(#fff 0 78%,#c98b4e 78%);color:#1d1d1f}
+.ft-shelf.s-need,.ft-shelf.s-good{background:linear-gradient(#ffe3e5 0 78%,#c98b4e 78%)}
+.ft-shelf.s-want,.ft-shelf.s-service{background:linear-gradient(#fff5c9 0 78%,#c98b4e 78%)}
+.ft-shelf:active{transform:translateY(4px);box-shadow:0 2px 0 #000}
+.ft-shelf.right{border-color:var(--green)}
+.ft-shelf.lit{box-shadow:0 6px 0 #000,0 0 0 6px var(--yellow)}
+.shelf-icon{font-size:max(30px,calc(44px*var(--u)));line-height:1}
+.shelf-row{display:flex;flex-wrap:wrap;gap:4px;justify-content:center}
+.shelf-row .ft-pic{font-size:max(30px,calc(44px*var(--u)))}
+.ft-shelves.meet{max-width:640px}
+.ft-lesson-col{display:flex;flex-direction:column;align-items:center;gap:calc(14px*var(--u));width:100%}
+.ft-shelves.lesson{max-width:520px}
+.ft-shelves.lesson .ft-shelf{min-height:max(76px,calc(110px*var(--u)))}
+.slide-in{animation:slide-in .6s ease-out}
+@keyframes slide-in{from{transform:translateY(-120%) scale(.6);opacity:0}}
+
+/* money */
+.ft-shop{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:calc(12px*var(--u));width:100%;height:100%}
+.ft-money{display:flex;align-items:center;gap:calc(10px*var(--u));padding:calc(6px*var(--u)) calc(14px*var(--u));background:#fff;border:4px solid #000;border-radius:18px;box-shadow:0 5px 0 #000}
+.ft-wallet{font-size:max(30px,calc(42px*var(--u)))}
+.ft-pieces{display:flex;flex-wrap:wrap;gap:4px;align-items:center;max-width:min(60vw,420px)}
+.ft-amount{font:900 max(30px,calc(44px*var(--u))) Nunito,sans-serif}
+.ft-coin{width:max(26px,calc(36px*var(--u)) * var(--s,1));height:max(26px,calc(36px*var(--u)) * var(--s,1));flex:none}
+.ft-coin.lit circle:first-child{fill:#ffb000}
+.ft-coin.lit{filter:drop-shadow(0 0 6px #ffb000);transform:scale(1.12)}
+.ft-coin.empty.lit circle{stroke:var(--ketchup);stroke-width:4;fill:#ffe3e5}
+.ft-bill{width:max(52px,calc(72px*var(--u)));height:auto;flex:none}
+.ft-tag{display:inline-block;background:var(--mustard);border:3px solid #000;border-radius:10px;padding:0 10px;font:900 max(22px,calc(32px*var(--u))) Nunito,sans-serif;color:#1d1d1f;box-shadow:0 3px 0 #000}
+.ft-item{display:inline-flex;flex-direction:column;align-items:center;gap:4px}
+.ft-item .ft-pic{font-size:max(48px,calc(76px*var(--u)))}
+.choice.item-choice .ft-item .ft-pic{font-size:max(36px,calc(56px*var(--u)))}
+.ft-pair.items{align-items:center;gap:calc(8px*var(--u))}
+.plus{font:900 max(30px,calc(44px*var(--u))) Nunito,sans-serif}
+.ft-rows{display:flex;flex-direction:column;gap:6px;padding:8px;background:#fff8e1;border:3px solid #000;border-radius:14px;max-width:100%;overflow:hidden}
+.ft-row{display:flex;align-items:center;gap:3px;min-height:30px}
+.ft-row .ft-coin{width:min(30px,calc((min(92vw,640px) - 60px) / var(--cols)));height:auto;aspect-ratio:1}
+.ft-row-tag{font-size:22px;width:30px;flex:none}
+.ft-row.t-price{border-top:2px dashed #0003;padding-top:4px}
+.ft-earn{display:flex;align-items:center;gap:12px;font:900 max(26px,calc(38px*var(--u))) Nunito,sans-serif;background:#fff;border:4px solid #000;border-radius:16px;padding:6px 16px;box-shadow:0 5px 0 #000}
+.ft-earn .day{font-size:1.2em}.ft-earn .goal{color:var(--ketchup)}
+/* the menu board for Add It Up: chalkboard, the order circled */
+.ft-menu-wrap{display:flex;flex-direction:column;align-items:center;gap:10px;width:100%}
+.ft-menu{display:flex;flex-direction:column;gap:4px;min-width:min(100%,300px);padding:10px 16px 14px;background:#22313a;color:#fff;border:6px solid #8a5a2b;border-radius:16px;box-shadow:0 6px 0 #000}
+.menu-head{font:400 max(16px,calc(22px*var(--u))) Bungee,sans-serif;color:var(--mustard);text-align:center}
+.menu-line{display:flex;align-items:center;gap:8px;padding:2px 8px;border:3px solid transparent;border-radius:999px;font:900 max(22px,calc(32px*var(--u))) Nunito,sans-serif}
+.menu-line .e{font-size:1.2em}.menu-line .dots{flex:1;border-bottom:3px dotted #fff6}
+.menu-line.ordered{border-color:var(--mustard);box-shadow:0 0 0 2px #000,0 0 12px var(--mustard);background:#ffffff14}
+/* meetings */
+.ft.meet .ask{justify-content:center}.ft.meet .ask h2{flex:none;text-align:center}
+.ft-meet-money{display:flex;gap:calc(18px*var(--u));align-items:center;justify-content:center;flex-wrap:wrap}
+.meet-item{display:flex;flex-direction:column;align-items:center;gap:6px;padding:10px;border-radius:16px;border:4px solid transparent;font:900 max(22px,calc(32px*var(--u))) Nunito,sans-serif}
+.meet-item .ft-bill{width:max(110px,calc(150px*var(--u)))}
+.meet-item.lit{border-color:#000;background:#fff6c9;box-shadow:0 0 0 6px var(--yellow)}
+.go-btn{flex-direction:column;gap:0;min-width:max(84px,calc(112px*var(--u)));min-height:max(84px,calc(112px*var(--u)));padding:calc(10px*var(--u)) calc(18px*var(--u));border-radius:50%;font-size:calc(26px*var(--u))}
+.go-btn .e{font-size:calc(40px*var(--u));line-height:1}
+.go-word{font:400 max(16px,calc(22px*var(--u))) Bungee,sans-serif}
+
+/* ---------- the end of a Round ---------- */
+.ft-reward{background:radial-gradient(circle at 50% 30%,#5a3f7d,#1c1229 70%)}
+.earned-service{font:900 calc(30px*var(--u)) Nunito,sans-serif;color:var(--mustard);background:#000;border-radius:999px;padding:6px 20px}
+.ft-reward .btns{align-items:center}
+.big-btn.my-truck{padding:calc(4px*var(--u));width:max(104px,calc(150px*var(--u)));height:max(80px,calc(104px*var(--u)));flex:none;background:linear-gradient(#8ed1ff 0 72%,#7a7f8c 72%)}
+.open-btn,.open-go{gap:12px;min-height:max(80px,calc(110px*var(--u)));padding:calc(10px*var(--u)) calc(26px*var(--u));font-size:calc(30px*var(--u))}
+.open-word{font:400 max(18px,calc(30px*var(--u))) Bungee,sans-serif;white-space:nowrap}
+.service-count{font-size:.7em;background:#0006;border-radius:12px;padding:2px 10px;white-space:nowrap}
+.ft-reward .btns .again.second{font-size:calc(28px*var(--u));padding:calc(18px*var(--u)) calc(24px*var(--u))}
+.big-btn.short{background:#6b5f78}
+
+/* ---------- the Truck: the truck on one side, the shop on the other, stacked when there's no width ---------- */
+.ft-truck-screen,.ft-book-screen{gap:calc(8px*var(--u));padding:max(8px,env(safe-area-inset-top)) max(10px,env(safe-area-inset-right)) max(10px,env(safe-area-inset-bottom)) max(10px,env(safe-area-inset-left));background:radial-gradient(circle at 30% 0%,#5a3f7d,var(--dusk) 70%);color:#fff}
+.work-head{display:flex;align-items:center;gap:10px;flex:none;min-width:0}
+.work-head h1{margin:0 auto 0 0;font:400 calc(32px*var(--u)) Bungee,sans-serif;color:var(--mustard);min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+@media (max-width:430px){.work-head h1{font-size:18px}}
+.goalchip .gi{display:grid;place-items:center;font-size:calc(28px*var(--u))}
+.truck-body{flex:1;min-height:0;display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:calc(14px*var(--u))}
+@media (orientation:portrait){.truck-body{grid-template-columns:minmax(0,1fr);grid-template-rows:minmax(0,.9fr) minmax(0,1.1fr)}}
+.truck-side{display:grid;grid-template-rows:minmax(0,1fr) auto;gap:calc(8px*var(--u));min-height:0;min-width:0}
+.truck-stage{position:relative;min-height:0;border-radius:18px;border:4px solid #000;overflow:hidden;background:linear-gradient(#8ed1ff 0 74%,#7a7f8c 74%);box-shadow:0 6px 0 #000}
+.truck-stage .ft-truck{position:absolute;left:4%;top:6%;width:92%;height:88%}
+.truck-stage.trying .ft-truck{filter:drop-shadow(0 0 12px var(--mustard))}
+.truck-go{display:flex;align-items:center;gap:10px;min-width:0}
+.truck-go .open-btn{flex:1;min-width:0;min-height:max(68px,calc(88px*var(--u)))}
+.truck-go .icon-btn{flex:none;width:max(56px,calc(68px*var(--u)));height:max(56px,calc(68px*var(--u)));font-size:calc(30px*var(--u));color:#fff}
+.parts-side{position:relative;display:grid;grid-template-rows:auto minmax(0,1fr);gap:calc(8px*var(--u));min-height:0;min-width:0}
+.ft-tabs{display:grid;grid-template-columns:repeat(10,minmax(0,1fr));gap:4px}
+@media (max-width:760px),(orientation:landscape) and (max-height:520px){.ft-tabs{grid-template-columns:repeat(5,minmax(0,1fr))}}
+.ft-tab{min-height:max(var(--tap),calc(56px*var(--u)));border-radius:12px;background:#1c1229;border:3px solid #fff3;font:900 calc(26px*var(--u)) Nunito,sans-serif;color:#fff;padding:0;min-width:44px}
+.ft-tab.on{background:var(--mustard);border-color:#000;box-shadow:0 4px 0 #000;color:#000}
+.ft-tray{display:grid;grid-template-columns:repeat(auto-fill,minmax(max(104px,calc(130px*var(--u))),1fr));grid-auto-rows:max-content;gap:calc(8px*var(--u));overflow-y:auto;overscroll-behavior:contain;touch-action:pan-y;padding-bottom:calc(84px*var(--u));min-height:0}
+.ft-tile{position:relative;display:flex;flex-direction:column;align-items:center;gap:2px;padding:6px 4px;border-radius:14px;background:#1c1229;border:3px solid #fff3;color:#fff;font:800 max(14px,calc(15px*var(--u)))/1.1 Nunito,sans-serif}
+.ft-tile .tile-truck{width:92%;height:calc(70px*var(--u));min-height:52px}
+.ft-tile .helper-pic{font-size:calc(48px*var(--u));min-height:52px;display:grid;place-items:center}
+.mt-name{min-height:2.2em;display:grid;place-items:center;text-align:center}
+.mt-tag{display:inline-flex;align-items:center;gap:2px;min-height:1.3em;font-size:max(15px,1.1em);color:#ffd97a}
+.ft-tile.locked{background:#140c1d}
+.ft-tile.can{border-color:var(--mustard)}
+.ft-tile.on{border-color:var(--green);background:#143526;color:#c4f7dc}.ft-tile.on .mt-tag{color:#8ff0bf}
+.ft-tile.trying{border-color:#fff;outline:3px solid var(--mustard);outline-offset:1px}
+.buybar{position:absolute;left:0;right:0;bottom:0;display:flex;align-items:center;gap:10px;padding:8px;background:#000;border:3px solid var(--mustard);border-radius:16px;box-shadow:0 -4px 18px #0009}
+.buybar .x{flex:none;width:var(--tap);height:var(--tap);border-radius:50%;background:#3d2a57;color:#fff;border:0;font-size:20px}
+.buy-name{flex:1;min-width:0;color:#fff;font:900 max(16px,calc(22px*var(--u))) Nunito,sans-serif}
+.buy{font-size:calc(30px*var(--u));padding:calc(8px*var(--u)) calc(22px*var(--u));flex:none}
+
+/* ---------- the Service: the canvas fills the screen, the HUD sits on the sky ---------- */
+.service-screen{position:fixed;inset:0;display:flex;flex-direction:column;background:var(--dusk);color:#fff;touch-action:none;-webkit-user-select:none;user-select:none}
+.service-canvas{position:absolute;inset:0;width:100%;height:100%;display:block;touch-action:none}
+.service-hud{position:absolute;left:0;right:0;top:0;display:flex;align-items:center;gap:8px;padding:max(8px,env(safe-area-inset-top)) max(12px,env(safe-area-inset-right)) 0 max(12px,env(safe-area-inset-left));pointer-events:none}
+.service-hud>*{pointer-events:auto}
+.hud-chip{display:inline-flex;align-items:center;gap:6px;min-height:44px;padding:2px 14px;border-radius:999px;background:#000c;border:3px solid var(--mustard);font:900 max(18px,calc(24px*var(--u))) Nunito,sans-serif}
+.hud-chip.sun{width:min(28vw,180px)}
+.sun-track{position:relative;flex:1;height:8px;border-radius:4px;background:#fff4}
+.sun-dot{position:absolute;top:50%;left:calc(var(--sun,0) * 100%);transform:translate(-50%,-50%);font-size:24px;transition:left .5s linear}
+/* the Spot card */
+.spot-card{position:fixed;inset:0;display:flex;flex-direction:column;gap:calc(10px*var(--u));padding:max(8px,env(safe-area-inset-top)) max(10px,env(safe-area-inset-right)) var(--floor) max(10px,env(safe-area-inset-left));background:radial-gradient(circle at 50% 0%,#5a3f7d,var(--dusk) 70%)}
+.ft-head{display:flex;align-items:center;gap:10px}
+.ft-head h1{margin:0 auto 0 0;font:400 calc(32px*var(--u)) Bungee,sans-serif;color:var(--mustard)}
+.ft-chip{display:inline-flex;align-items:center;gap:6px;min-height:44px;padding:2px 14px;border-radius:999px;background:#000;border:3px solid var(--mustard);font:900 max(18px,calc(24px*var(--u))) Nunito,sans-serif;color:#fff}
+.spot-grid{flex:1;min-height:0;overflow-y:auto;overscroll-behavior:contain;display:grid;grid-template-columns:repeat(auto-fill,minmax(max(108px,calc(150px*var(--u))),1fr));grid-auto-rows:max-content;gap:calc(10px*var(--u))}
+.spot-tile{position:relative;display:flex;flex-direction:column;align-items:center;justify-content:flex-end;gap:2px;min-height:max(92px,calc(120px*var(--u)));padding:6px;border:4px solid #000;border-radius:18px;box-shadow:0 5px 0 #000;background:linear-gradient(var(--sky1),var(--sky2) 68%,var(--ground) 68%);color:#1d1d1f}
+.spot-tile.night{color:#fff}
+.spot-tile.on{outline:5px solid var(--mustard);outline-offset:2px}
+.spot-tile.locked{filter:grayscale(.85) brightness(.7)}
+.spot-props{font-size:max(30px,calc(40px*var(--u)));line-height:1}
+.spot-name{font:900 max(14px,calc(17px*var(--u)))/1.1 Nunito,sans-serif;background:#fffd;color:#1d1d1f;border-radius:8px;padding:1px 8px;text-align:center}
+.spot-lock{position:absolute;top:4px;right:6px;font:900 14px Nunito,sans-serif;background:#000;color:#fff;border-radius:8px;padding:0 6px}
+.spot-foot{flex:none;display:flex;align-items:center;justify-content:center;gap:14px}
+.spot-foot .ft-truck{width:max(110px,calc(170px*var(--u)));height:auto}
+.spot-foot .big-btn{min-height:max(72px,calc(96px*var(--u)))}
+/* the end card */
+.service-result{position:fixed;inset:0;z-index:30;display:grid;place-items:center;padding:12px;background:#0008;overflow-y:auto}
+.result-card{display:flex;flex-direction:column;align-items:center;gap:calc(10px*var(--u));width:min(560px,100%);padding:calc(16px*var(--u)) 18px;background:var(--dusk-2);border:4px solid #000;border-radius:26px;box-shadow:0 8px 0 #000;text-align:center}
+.result-card h2{margin:0;font:400 calc(36px*var(--u)) Bungee,sans-serif;color:var(--mustard)}
+.fed-big{font:900 calc(60px*var(--u)) Nunito,sans-serif;display:flex;align-items:center;gap:10px}
+.new-sticker{display:flex;align-items:center;gap:10px;padding:8px 18px;background:#fff;color:#1d1d1f;border:4px solid #000;border-radius:18px;box-shadow:0 5px 0 #000;animation:pop-in .4s;font:900 calc(26px*var(--u)) Nunito,sans-serif}
+.new-sticker .face{font-size:1.8em}
+.stars-line{font:900 calc(26px*var(--u)) Nunito,sans-serif}
+.stars-line .next{color:#fff9}
+.opened-spot{font:400 calc(22px*var(--u)) Bungee,sans-serif;color:var(--mint)}
+.result-card .btns{display:flex;gap:14px;align-items:center;justify-content:center;flex-wrap:wrap}
+.book-btn{font-size:calc(34px*var(--u));padding:calc(12px*var(--u)) calc(20px*var(--u));background:#fff}
+
+/* ---------- the Sticker Book ---------- */
+.book-tabs{grid-template-columns:repeat(3,minmax(0,1fr))!important}
+.ft-tab.wide{display:flex;align-items:center;justify-content:center;gap:8px}
+.tab-count{font-size:.7em}
+.book-page{flex:1;min-height:0;overflow-y:auto;overscroll-behavior:contain;padding-bottom:12px}
+.sticker-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(max(96px,calc(120px*var(--u))),1fr));gap:calc(8px*var(--u))}
+.sticker{display:flex;flex-direction:column;align-items:center;gap:2px;min-height:max(100px,calc(130px*var(--u)));padding:6px 4px;border:3px dashed #fff5;border-radius:18px;background:#1c1229;color:#fff}
+.sticker.met{border:4px solid #000;background:#fff;color:#1d1d1f;box-shadow:0 4px 0 #000;transform:rotate(-1.5deg)}
+.sticker.met:nth-child(even){transform:rotate(1.5deg)}
+.sticker .face{font-size:max(36px,calc(48px*var(--u)));line-height:1.1}
+.sticker .nm{font:900 max(14px,calc(17px*var(--u))) Nunito,sans-serif;min-height:1.2em}
+.sticker .fav{font-size:max(16px,calc(20px*var(--u)))}
+.spot-grid.book{overflow:visible}
+.truck-row{display:grid;grid-template-columns:repeat(auto-fill,minmax(max(150px,calc(200px*var(--u))),1fr));gap:calc(10px*var(--u))}
+.truck-card{display:flex;flex-direction:column;align-items:center;gap:4px;padding:8px;border:4px solid #000;border-radius:18px;background:linear-gradient(#8ed1ff 0 74%,#7a7f8c 74%);box-shadow:0 5px 0 #000}
+.truck-card .ft-truck{width:100%;height:auto}
+.truck-card.locked .ft-truck{filter:brightness(0) opacity(.35)}
+.truck-card .nm{font:900 max(14px,calc(17px*var(--u))) Nunito,sans-serif;background:#000;color:#fff;border-radius:8px;padding:0 8px}
+.book-foot{flex:none;text-align:center;font:900 max(16px,calc(20px*var(--u))) Nunito,sans-serif;color:#fffc}
+
+@media (prefers-reduced-motion:reduce){
+  .ft-truck .ft-bulb,.ft-truck.bounce,.ft-pic.doing .who,.ft-pic.carry,.ft-worker.with-tool .who,.game.ft .choice.hint,.ft-card.hint,.ft-shelf.hint{animation:none}
+  .game.ft .choice.hint,.ft-card.hint,.ft-shelf.hint{outline:5px solid var(--yellow);outline-offset:3px}
+  .sun-dot{transition:none}
+}
+
+/* a phone on its side: everything tighter, so the picture and the answers fit side by side; every target stays 44px or more */
+@media (orientation:landscape) and (max-height:520px){
+  .game.ft{padding:4px 8px;gap:4px}
+  .game.ft .ask h2{font-size:17px}
+  .game.ft .say-btn,.game.ft .help-btn{width:44px;height:44px;min-height:44px;padding:0}
+  .ft-body{gap:8px}
+  .game.ft .choices.nums .choice{min-height:52px;font-size:26px;padding:4px}
+  .game.ft .choice.thumb,.game.ft .choice.tool-choice{min-height:56px;font-size:34px;padding:2px}
+  .game.ft .choice.item-choice{min-height:60px;padding:2px}
+  .ft-card{min-width:96px;min-height:92px;padding:4px;border-radius:16px}
+  .ft-card.small{min-width:64px;min-height:64px}
+  .ft-card.big{min-width:110px;min-height:100px}
+  .ft-pic{font-size:46px}.ft-card.small .ft-pic{font-size:34px}
+  .ft-worker .who{font-size:46px}.ft-worker .tool{font-size:28px}
+  .ft-workers .ft-card{min-width:84px;min-height:84px}
+  .ft-sort{gap:6px}.ft-counter{min-height:64px;gap:6px}
+  .ft-shelf{min-height:70px;padding:4px}.shelf-icon{font-size:24px}.shelf-row .ft-pic{font-size:26px}
+  .ft-money{padding:2px 10px}.ft-amount{font-size:26px}.ft-wallet{font-size:24px}
+  .ft-shop{gap:6px}.ft-item .ft-pic{font-size:40px}.ft-tag{font-size:20px}
+  .ft-menu{padding:4px 10px 6px;min-width:0}.menu-line{font-size:18px;padding:0 6px}.menu-head{font-size:13px}
+  .ft-menu-wrap{flex-direction:row;align-items:center;justify-content:center}
+  .ft-menu-wrap .ft-rows{flex:1;min-width:0}
+  .ft-shop{flex-wrap:wrap;flex-direction:row;align-content:center}
+  .ft-rows{padding:4px}.ft-row{min-height:22px}
+  .ft-stall .good{font-size:36px}
+  .meet-item .ft-bill{width:90px}
+  .result-card{gap:4px;padding:8px 14px}.result-card h2{font-size:24px}.fed-big{font-size:34px}
+  .result-card .btns .big-btn{min-height:52px;padding:4px 12px}
+  .big-btn.my-truck{width:84px;height:56px}
+  .ft-tile{padding:3px 4px}.ft-tile .tile-truck{min-height:0;height:44px}.mt-name{min-height:0}
+  .spot-tile{min-height:76px}.spot-props{font-size:24px}
+  .spot-foot .ft-truck{width:90px}.spot-foot .big-btn{min-height:56px;padding:4px 16px}
+}
+@media (orientation:portrait) and (max-width:430px){
+  .ft-card{min-width:112px;min-height:112px}
+  .ft-workers .ft-card{min-width:96px;min-height:100px}
+  .ft-workers.n3 .ft-pic,.ft-worker .who{font-size:52px}
+}

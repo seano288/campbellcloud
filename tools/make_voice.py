@@ -15,6 +15,7 @@
   .venv/bin/python tools/make_voice.py --collection turbo-tally --out public/turbo-tally-voice --index src/turbo-tally/voice.gen.ts
   .venv/bin/python tools/make_voice.py --collection hook-and-ladder --out public/hook-and-ladder-voice --index src/hook-and-ladder/voice.gen.ts
   .venv/bin/python tools/make_voice.py --collection dino-dig --out public/dino-dig-voice --index src/dino-dig/voice.gen.ts
+  .venv/bin/python tools/make_voice.py --collection food-truck --out public/food-truck-voice --index src/food-truck/voice.gen.ts
 
 Select phrases through tools/phrases.ts and write recordings and a typed index to explicit locations.
 Only missing clips are recorded. Cleanup touches only the selected directory, whose .voice-collection
@@ -47,7 +48,9 @@ VOICES = {'purrdoku': ('en-GB-RyanNeural', '-5%'),
           # Hook and Ladder says every word alone (opposites, compounds, endings), and jump / jumps / jumped / jumping must differ
           'hook-and-ladder': ('en-US-AriaNeural', '-8%'),
           # Dino Dig says every list word alone and slowly (reading by sound), where Ava blurs short vowels
-          'dino-dig': ('en-US-AriaNeural', '-8%')}
+          'dino-dig': ('en-US-AriaNeural', '-8%'),
+          # Food Truck chains dollar amounts from number clips ("You have", "8", "dollars.") and says names, foods and things alone
+          'food-truck': ('en-US-AriaNeural', '-8%')}
 ROOT = Path(__file__).resolve().parent.parent
 
 
@@ -131,6 +134,21 @@ COLLECTION_SPEECH = {
         'said_as': {'cat': 'cat', 'Dig here!': 'Dig, here!', 'Play more Hear It to open this!': 'Play more, Hear It, to open this!'},
         'voice_for': {'cat': 'en-US-JennyNeural', 'grab': 'en-US-JennyNeural', 'puff': 'en-US-JennyNeural', 'duck': 'en-US-JennyNeural'},
         'slow_for': {'shop': '-20%', 'sock': '-20%', 'tub': '-15%', 'lunch': '-25%', 'brick': '-30%'},
+    },
+    # Food Truck's kind "Enough?" keeps its question mark on screen, but inside a sentence it would be read as a question
+    'food-truck': {
+        'said_as': {
+            'Play more Enough? to open this!': 'Play more, Enough, to open this!', 'You opened Enough?!': 'You opened Enough!',
+            'You are a star at Enough?!': 'You are a star at Enough!',
+            'You are a star at Add It Up!': 'You are a star, at Add It Up!',
+            # speech-to-text heard these as "to openness" and "added up": a breath around the kind's name keeps it whole
+            'Play more Goods and Services to open this!': 'Play more Goods and Services, to open this!',
+            'Play more Add It Up to open this!': 'Play more, Add It Up!, to open this!',
+            # and "AeroSign"
+            'Arrow Sign': 'Arrow, Sign', 'You got Arrow Sign!': 'You got Arrow, Sign!',
+            # as Turbo Tally found, a breath keeps "Grape" from becoming "Great"
+            'Grape Purple': 'Grape, Purple', 'You got Grape Purple!': 'You got Grape, Purple!',
+        },
     },
 }
 

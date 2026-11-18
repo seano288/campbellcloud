@@ -526,3 +526,40 @@ _Avoid_: pattern (for markings)
 
 **Land**: where the Alive run goes (Fern Forest free; Sunny Beach, Swamp, Desert, Snowy Hills, Volcano, Night Jungle, Candy Land), each
 with its own sky, snack and thing in the way.
+
+## Food Truck
+
+Food Truck reuses Math Bots', Rover Code's and Turbo Tally's terms where they mean the same thing (Mixed Round, Mastery, Stretch, Bolt, Tune-Up, Meeting, Goal, Paint, Slot). These are its own:
+
+**Game Modes (Food Truck)**: the six kinds of question, about needs and wants, goods and services, jobs and spending: Need or Want (tap the need; sort four onto the heart shelf and the star shelf; with only enough for one, which to buy first), Goods and Services (tap the good or the service; sort four into the basket and by the helping hands; who gives a service and who makes a good), Jobs (who does a job; which tool a worker uses; in one picture, who made it and who bought it), Add It Up (the order circled on the menu: how much in all), Enough? (is it enough; which one can he buy; how much is left) and Save Up (how many more; how many days of earning; can he buy both). Need or Want, Goods and Services and Add It Up are open from the start; Jobs opens at Goods and Services Level 2, Enough? at Add It Up Level 2, Save Up at Enough? Level 2. Add It Up is kept to one question a Round (Math Bots teaches sums), and it is the one kind with a Tune-Up.
+
+**Need, Want**: a need is something you must have to live (food, water, a home, clothes, medicine); a want is nice to have (toys, games, sweets). Only cases nobody in a family would argue about are used, from a hand-checked table; never a phone, a car, a bike or a pet. A need goes on the **heart shelf** (❤️), a want on the **star shelf** (⭐).
+_Avoid_: necessity, luxury
+
+**Good, Service**: a good is a thing you can hold; a service is a job someone does for you, always drawn being done (a worker and what they work on). Nothing that is both: no restaurant meal. Goods go in the **basket** (🧺), services by the **helping hands** (🤝).
+_Avoid_: product, product and service (to him)
+
+**Maker, Shopper**: Jobs Level 3's picture: the worker who made (baked, grew, painted) a good, and the person who bought it, a market stall between them.
+_Avoid_: producer, consumer (fine in the research, not on screen)
+
+**Dollar**: the money in the questions, whole dollars only, drawn as $1 coins and $5 and $10 bills, never more than $20. Dollars are never Bolts: nothing in the reward is priced in dollars, and customers don't pay him money. Monster Truck Money owns cents and coin names.
+_Avoid_: buck, cash; calling Bolts money
+
+**Truck (Food Truck)**: one of ten food trucks (Taco, Pizza, Burger, Ice Cream, Hot Dog, Noodle, Donut, Pancake, Smoothie, Popcorn), each with its own food, its own **base** (a tortilla, dough, a patty, a cone...), its five **toppings** and its own way of cooking (grill, oven, freezer, pot, fryer, griddle, blender, popper), before the toppings or after. The Taco Truck is free; the others are bought with Bolts and he drives one at a time.
+
+**Part (Food Truck)**: what goes on whichever truck he drives, one per **Slot**: the **Grill** (how many orders cook at once), the **Awning** (how many customers can wait), the **Speaker** (its jingle brings customers sooner), the **Lights** (open the night Spots), and the looks: **Paint**, **Sign**, **Mascot** (on the roof) and **Wheels**. **Helpers** (Bubble Machine, Magic Spatula, Turbo Burner, Robot Helper, Conveyor Belt) change how the Service plays and can be switched off again.
+
+**Service**: the reward he plays with his hands: customers walk up with an order drawn as a picture; he drags the base onto a grill spot, the toppings onto the food, holds to cook it and drags it to the customer. About a minute of customers; then everyone still in line is served and it ends with the count of people he fed. A finished Round earns one (he starts with one). It can't be failed: a wrong topping bounces back to its tray, customers never get cross or leave unfed, and if he stops, a finger points at the next step and then it happens by itself.
+_Avoid_: shift, level, game
+
+**Order, Ticket**: what a customer wants, shown in a bubble by their head and again on the **ticket** above the grill spot cooking it; a topping already on is greyed.
+
+**Star (Food Truck)**: one for every customer he feeds. Stars open Spots. They are never spent.
+_Avoid_: point, score
+
+**Spot**: where the truck parks for a Service, sixteen of them from the Park to the Moon Base, each with its own sky, ground and things in the background, and some with their own visitors. Each opens at a number of stars; the three night Spots (the Night Market, the Starry Camp, the Moon Base) also need Lights.
+_Avoid_: level, map, location
+
+**Regular**: one of forty named customers, four for each truck, each with a favourite order from that truck's toppings. A new one comes to every Service while the truck he drives has one he hasn't met; once fed, their sticker goes in the Sticker Book.
+
+**Sticker Book**: the screen he shows off: a sticker for every Regular (❔ and the truck's food for the ones still to meet), a postcard for every Spot, and his row of trucks wearing his parts.

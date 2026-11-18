@@ -31,6 +31,8 @@ import { ladderBuild } from './hook-and-ladder-build';
 import { iconSvg as ladderIcon } from '../src/hook-and-ladder/icon';
 import { dinoBuild } from './dino-dig-build';
 import { iconSvg as dinoIcon } from '../src/dino-dig/icon';
+import { truckBuild as foodTruckBuild } from './food-truck-build';
+import { iconSvg as foodTruckIcon } from '../src/food-truck/icon';
 import { iconSvg as purrdokuIcon } from '../src/purrdoku/art';
 import { purrdokuBuild } from './purrdoku-build';
 import { favicon, homeScreenIcons } from './icons';
@@ -91,6 +93,7 @@ export const SECTIONS: readonly { title: string; games: readonly Tile[] }[] = [
     { path: 'turbo-tally', name: 'Turbo Tally', blurb: 'Comparing and graphs, build a race car', icon: tallyIcon },
     { path: 'hook-and-ladder', name: 'Hook and Ladder', blurb: 'What words mean, answer fire calls', icon: ladderIcon },
     { path: 'dino-dig', name: 'Dino Dig', blurb: 'Sounding out words, dig up dinosaurs', icon: dinoIcon },
+    { path: 'food-truck', name: 'Food Truck', blurb: 'Needs, wants and spending, run a food truck', icon: foodTruckIcon },
   ] },
   { title: 'Just for Fun', games: [
     { path: 'hunch', name: 'Hunch', blurb: 'Guess the five-letter word', icon: hunchIcon },
@@ -166,6 +169,7 @@ await build({ ...staticBuild(wreckersBuild), logLevel: 'warn' });
 await build({ ...staticBuild(tallyBuild), logLevel: 'warn' });
 await build({ ...staticBuild(ladderBuild), logLevel: 'warn' });
 await build({ ...staticBuild(dinoBuild), logLevel: 'warn' });
+await build({ ...staticBuild(foodTruckBuild), logLevel: 'warn' });
 await build({ ...hunchBuild(), logLevel: 'warn' });
 await build({ ...staticBuild(purrdokuBuild), logLevel: 'warn' });
 console.log(`Built ${SITE}/: landing page, ${GAMES.map(g => g.path).join(', ')}`);
