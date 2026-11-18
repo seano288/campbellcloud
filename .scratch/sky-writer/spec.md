@@ -45,7 +45,8 @@ game is practice for letter formation, not a replacement for writing on paper.**
   plane flies it. Every letter uses only these, so they stay consistent.
 
 Letters with a choice of shape, chosen as defaults: **t** is a tall letter starting at the top line with its cross on the middle line
-(Andika's t is shorter; Zaner-Bloser's starts at the top); **k** has its two arms meeting at the stem; **4** is open (pull down, slide
+(Andika's t is shorter; Zaner-Bloser's starts at the top); **k** and **K** have their two arms meeting at the stem (the arm slants in, the leg slants out from where it met the stem: Zaner-Bloser's
+"slant left, slant right"; pass 2 moved the leg there from partway up the arm); **4** is open (pull down, slide
 right, lift, pull down; Andika's 4 is closed); **1** is a plain line (no flag, no base); **I** has its bars (Andika's does); **G** is
 "curve back, slide left"; **J** has no top bar; **e** starts on the left in the middle of the small space and slides right; **f** curves
 back from near the top.
@@ -59,7 +60,7 @@ Tall, Small, Tail at Where to Start Level 2; Write It once both Trace It and Whe
 |---|---|---|---|
 | **Trace It** `trace` | the letter dotted, a green start dot and a yellow arrow, a wide lane (0.42) | dotted, the start dot, a narrower lane (0.34) | the lines and a faint letter that fades as he starts, the narrowest lane (0.28) |
 | **Where to Start** `start` | the letter with three dots: tap where it starts | the start dot and three arrows: "Which way does it go first?" | every line of the letter: "Which line comes second?" tap it |
-| **Which Way** `flip` | "Tap b": b and its mirror (d) | from four: b d p q, or the letter turned four ways (as it is, backwards, upside down, turned round) | a short word with one letter backwards: tap it |
+| **Which Way** `flip` | "Tap b": b and its mirror (d) | from four: b d p q, or the letter turned four ways (as it is, backwards, upside down, turned round) | a short word with one letter backwards: tap it (the word is said: a backwards d is drawn as a b, so "beb" can only be answered by knowing it's "bed") |
 | **Tall, Small, Tail** `size` | one letter: tall, small or tail? | which of three writings of a word sits on the line the right way? | tap the letter that floats or sinks |
 | **Write It** `write` | hear a lowercase letter; it shows for a second, then he writes it on empty lines | no flash | capitals and numbers too, and numbers 10 to 20 in two boxes ("Write 15") |
 | **Write a Word** `word` | a three-letter word, one box a letter, the word shown above | shown for about 2.5 seconds, then hidden | only said |
@@ -123,8 +124,20 @@ No handwriting recogniser. Each time his finger lifts, the path is walked along 
   shortcut across a circle doesn't count), and gets near its end.
 - **Running on.** He may keep his finger down into the next stroke the way handwriting does ("pull down, push up, back up and over"):
   going back along a stroke he has drawn to reach the next one's start is fine, and so is lifting.
-- **A lift partway** keeps what he drew; he can carry on from there.
+- **A lift partway** keeps what he drew; he can carry on from there. A lift just after finishing a stroke (a circle closed with a little
+  overshoot) is fine, not a lift partway, so it isn't met with "Keep going!".
+- **A dot** is a tap, or a little wiggle (under 0.5 line units) that stays by the dot.
+- **Never stricter than a fingertip** (`forPad`, pass 2): the lanes and starts are in line units, and a sideways phone draws a line unit
+  only about 40 to 55 CSS px (an iPad 120 to 220), so on a small pad they are widened to at least a fingertip: a lane of 22 px either side,
+  a start radius of 28 px, a wrong start 44 px or more from the right one, and 36 px of real writing before anything can be a miss.
 - **A miss** needs a real try along the letter (0.7 line units of it): from the wrong place (more than 0.6 from the start), or backwards.
+  A real try (pass 2) starts on the letter with a stretch along one stroke one way, and is mostly such stretches: a scribble that
+  zigzags across the letter is a rub-out (the first build read three in four random scribbles over a letter as a wrong start at Level 1;
+  now about one in a thousand). A stroke written backwards sets off backwards: one that sets off the right way and then slides back over
+  itself (or off the pad) is a slip. A stroke begun beside its start (no further along it than 0.45) and going the right way is a sloppy
+  start, a rub-out, not a wrong one: a wrong start is another stroke first, or this one from partway along. In Write It, which has no
+  guide, a letter written bigger or smaller than the lines ask (0.7 to 1.4 times), slanted or tipped is never called a miss: a path that
+  would go the right way at another size rubs out.
   Just after a rub-out, a stroke from further on in the letter is him carrying on, not a wrong start. In Write It, a stroke written
   backwards that begins at the same height as the right start (v, w, c) can't be told from the letter sitting further along the line, so
   it rubs out rather than being called a miss; and q written like p only rubs out there (their starts are at the same height, a little
@@ -250,6 +263,41 @@ letter sinks." as "syncs". The letter names said alone ("A." to "Z.") were heard
 `sky-writer-save`, version 1 (an unknown version reads as a blank save), and `sky-writer-place` for the screen and the Round in progress.
 `readAirfield` trusts nothing: nothing he doesn't own is fitted, no more places are open than he has flown his way to, broken postcards are
 dropped. A Show isn't a place: a reload during one lands at the Airfield with the Show still there.
+
+## Pass 2 (bug and sound review), 2026-11-18
+
+What the review found and changed (the sections above are updated to match):
+
+- **The stroke checker invented misses.** Random scribbling over a letter (mashing) was read as a wrong start three times in four at
+  Level 1; a stroke that went half-way and slid back up and off the pad was called "wrong way"; a correct letter written a bit big or
+  slanted in Write It could be called a miss; a sloppy start beside the green dot, going the right way, could be called a wrong start; on a
+  sideways phone (a line unit about 40 to 55 px) the lanes and starts were narrower than a fingertip. All fixed (see How a stroke is
+  checked), each with a test in `letters/check.test.ts`, which still requires every backwards stroke, circle the wrong way, b written as d
+  and wrong start the first build caught to be a miss.
+- **A dot drawn with a little wiggle never counted** (only a near-perfect tap did): fixed.
+- **"Keep going!" after a finished stroke** (a circle closed with a small overshoot) and the rub-out hints queuing up one per rub-out when
+  he mashes (the voice went on for seconds after he stopped): fixed; the Show's "Wobble!", trick names and the like are dropped the same way
+  while the voice is talking.
+- **The words didn't match the plane:** "Push up." (a, g, q), "Push up to the top." (d), "Back up and over." (n, m, h, r) and "Back up and
+  around." (b, p) were said while the plane flew only the stroke after the push up. The plane now flies back up what was drawn first
+  (`leadIn` in `letters/strokes.ts`); `letters/words.test.ts` checks every stroke word against what the plane flies.
+- **k and K:** the leg came off partway up the arm; it now comes from where the arm meets the stem, as Zaner-Bloser writes it.
+- **Which Way Level 3 could be unanswerable:** a backwards d in "bed" is drawn as a b ("beb"), and the word was never said. The word is now
+  said ("bed. One letter is backwards. Tap it!"); every question's line is in `writing/ask.ts` and tested to say what is needed to answer it.
+- **Fingers on the pad:** a resting hand that touched first, or landed with the finger, could take the stroke, and a pencil once seen
+  stopped fingers working for the rest of the question. Now the touch that moves is the writing, a touch that sits still is dropped without
+  a word, and a palm is ignored only while the pencil is down and for a moment after. `tools/sky-writer/fingers.ts` plays these with real
+  touch events (a second finger, a resting hand, sliding off the pad, a cancelled touch, fast, slow, tiny and big strokes, a miss and its
+  lesson, mashing).
+- **Write a Word on a sideways phone:** the word sat above the pad, leaving letters about 38 px a line unit; it now sits beside the pad,
+  and the pad's margins above and below the lines are smaller (letters about 10% bigger everywhere).
+- The offline check (`tools/sky-writer/offline.ts`) now checks every clip is precached, not just over 500, and that the second question is
+  said offline too; the reload check (`tools/sky-writer/reload.ts`) also reloads during a Show and in Free Sky.
+
+Left as they are, for the parent: a t cross or a capital's bar drawn right to left is a wrong-way miss (Zaner-Bloser slides right; some
+programs accept either, and left-handed children often cross right to left); in Write It a stroke written backwards that starts at the
+height the right one does (v, w, c, e) only rubs out; when the Wall is full, keeping a new postcard means leaving Free Sky to take one
+down, so that drawing is lost.
 
 ## Open questions for the parent
 

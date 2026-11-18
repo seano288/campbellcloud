@@ -8,6 +8,8 @@ import { MODE_IDS } from '../learning';
 import { feed, startProgress, TUNING } from '../letters/check';
 import { BDPQ, distinctTurns, FLIP_MAKES_A_WORD, glyphKey, isBdpq, mirrorDiffers, sameUnder, turnedBdpq } from '../letters/glyphs';
 import { FAMILY_IDS, firstWay, letter, metLetters, startOf, type FamilyId, type Pt } from '../letters/strokes';
+import { askLine } from './ask';
+import { PHRASES, nameOf } from '../phrases';
 import { boxesOf, canAsk, check, DINO_SHORT_WORDS, flipSpots, isWriting, makeQuestion, poolFor, strokeAt, tappable, WORDS, wrongDots, type Level, type Question } from './problems';
 
 const LEVELS: readonly Level[] = [1, 2, 3];
@@ -135,6 +137,20 @@ describe('exactly one right choice', { timeout: 30000 }, () => {
         expect(new Set(q.rows!.map(r => JSON.stringify(r))).size).toBe(3);
       }
       if (q.step === 'odd') { expect(q.rows![0]!.filter(p => p.dy !== 0)).toHaveLength(1); expect(q.rows![0]![Number(q.answer)]!.dy).not.toBe(0); }
+    }
+  });
+});
+
+describe('what a question says', { timeout: 30000 }, () => {
+  it('says everything needed to answer it: the letter it asks about, or the word', () => {
+    for (const { q } of ALL) {
+      const line = askLine(q);
+      for (const p of line) expect(PHRASES, JSON.stringify(q)).toContain(p);
+      if (q.kind === 'word') expect(line).toContain(q.word);
+      // Which Way's words: a backwards d is drawn as a b ("bed" shows as "beb"), so only the word says which letter is wrong
+      else if (q.kind === 'flip' && q.step === 'word') expect(line).toContain(q.word);
+      else if (q.kind === 'write') expect(line.join(' ')).toContain(q.text.length > 1 ? q.text : nameOf(q.text));
+      else if (q.kind !== 'size' || q.step === 'sort') expect(line).toContain(nameOf(q.ch));
     }
   });
 });

@@ -2,7 +2,7 @@
 // wrong start or wrong way is a miss) and never meaningless (a backwards letter, a circle going the wrong way, or a scribble doesn't pass).
 import { describe, expect, it } from 'vitest';
 import { seeded, type Rng } from '../../game/rng';
-import { feed, MISS_LEN, startProgress, TUNING, type Progress, type Result, type Tuning } from './check';
+import { feed, forPad, MISS_LEN, startProgress, TUNING, type Progress, type Result, type Tuning } from './check';
 import { endOf, FAMILIES, FAMILY_IDS, LETTERS, letter, resample, STROKE_WORDS, startOf, type Letter, type Pt, type Stroke } from './strokes';
 
 const LEVELS = [TUNING[1], TUNING[2], TUNING[3], TUNING.write] as const;
@@ -218,6 +218,21 @@ describe('a wrong try', { timeout: 30000 }, () => {
       expect(r.outcome, `${dx}`).toMatchObject({ kind: 'miss', why: 'start' });
     }
   });
+  it('almost never reads mashing (a random scribble right over the letter) as a try at it: it rubs out', () => {
+    // a real try starts on the letter and is mostly stretches along it one way; a scribble zigzags across it. (The first build read
+    // three in four of these as a wrong start at Level 1.)
+    const rng = seeded(3);
+    for (const t of LEVELS) {
+      let misses = 0, tries = 0;
+      for (const L of LETTERS) for (let k = 0; k < 20; k++) {
+        const W = Math.max(2.1, L.width + 1.3), place = (W - L.width) / 2;
+        const pts: Pt[] = Array.from({ length: 6 + Math.floor(rng() * 10) }, () => [-place + rng() * W, -0.2 + rng() * 3.4]);
+        if (feed(L, t, startProgress(t), pts).outcome.kind === 'miss') misses++;
+        tries++;
+      }
+      expect(misses, `${misses} of ${tries} at lane ${t.lane}`).toBeLessThanOrEqual(tries * 0.003);
+    }
+  });
   it('never lets a scribble across the lines write a letter', () => {
     const rng = seeded(5);
     for (const t of [TUNING[2], TUNING[3]]) for (const L of LETTERS) {
@@ -226,6 +241,106 @@ describe('a wrong try', { timeout: 30000 }, () => {
       for (let i = 0; i < 160; i++) { x += (rng() - 0.5) * 0.5; y = Math.max(0, Math.min(2.5, y + (rng() - 0.5) * 0.5)); pts.push([x, y]); }
       expect(write(L, t, [pts]).finished, L.ch).toBe(false);
       pts = [];
+    }
+  });
+});
+
+describe('a real finger', { timeout: 60000 }, () => {
+  const seg = (...pts: Pt[]) => resample(pts, 0.04);
+  const S = (ch: string, k: number): Pt[] => [...letter(ch).strokes[k]!.pts];
+  const ALL_TUNINGS = [...LEVELS, ...LEVELS.map(t => forPad(t, 38))];
+  it('writes the ways children really write: a k or K leg from where the arm met the stem, an R leg from the stem, a dot drawn with a wiggle', () => {
+    const ways: [string, Pt[][]][] = [
+      ['k', [S('k', 0), [...S('k', 1), ...seg([0.05, 1.55], [0.9, 2])]]],
+      ['K', [S('K', 0), [...S('K', 1), ...seg([0.05, 1.05], [1.25, 2])]]],
+      ['K', [S('K', 0), S('K', 1), seg([0, 1.1], [1.25, 2])]],
+      ['R', [S('R', 0), [...S('R', 1), ...seg([0, 1], [1.3, 2])]]],
+      ['R', [S('R', 0), S('R', 1), seg([0, 1], [1.3, 2])]],
+      ['a', [S('a', 0), seg([0.97, 1.2], [1, 2])]], // no push up: straight down from where the circle closed
+      ['d', [[...S('d', 0), ...seg([0.93, 1.25], [1, 0]), ...seg([1, 0], [1, 2])]]], // circle, push up to the top, pull down, all in one
+      ['i', [S('i', 0), seg([0, 0.4], [0.06, 0.47], [0.02, 0.5])]],
+      ['i', [S('i', 0), seg([-0.05, 0.45], [0.12, 0.45])]],
+      ['j', [S('j', 0), seg([0.55, 0.4], [0.68, 0.48], [0.6, 0.5])]],
+      ['b', [S('b', 0), seg([0, 1.5]).concat(resample(Array.from({ length: 61 }, (_, i) => { const a = ((180 - 360 * i / 60) * Math.PI) / 180; return [0.5 + 0.5 * Math.cos(a), 1.5 - 0.5 * Math.sin(a)] as Pt; }), 0.04))]],
+    ];
+    for (const t of ALL_TUNINGS) for (const [ch, paths] of ways) {
+      const w = write(letter(ch), t, paths.map(p => p.map(([x, y]) => [x + (t.free ? 0.8 : 0), y] as Pt)));
+      expect(w.misses, `${ch} lane ${t.lane.toFixed(2)}`).toEqual([]);
+      expect(w.finished, `${ch} lane ${t.lane.toFixed(2)} ${JSON.stringify(w.results.map(r => r.outcome))}`).toBe(true);
+    }
+  });
+  it('is not told to keep going when it lifts just after finishing a stroke', () => {
+    for (const t of LEVELS) for (const ch of ['a', 'd', 'b', 'n', 'm', 'h']) {
+      const L = letter(ch), r = feed(L, t, startProgress(t), drawStroke(L.strokes[0]!, { dx: t.free ? 0.5 : 0 }));
+      expect(r.finished, ch).toEqual([0]);
+      expect(r.outcome.kind, ch).toBe('ok');
+    }
+  });
+  it('is never told it missed when it writes the letter bigger or smaller, slanted or tipped (Write It has no guide)', () => {
+    const rng = seeded(42), bad: string[] = [];
+    for (const [name, t, big] of [['L1', TUNING[1], 0.15], ['L2', TUNING[2], 0.15], ['L3', TUNING[3], 0.15], ['write', TUNING.write, 0.35], ['small pad', forPad(TUNING.write, 40), 0.35]] as const) {
+      for (const L of LETTERS) for (let k = 0; k < 16; k++) {
+        const sc = 1 - big + rng() * big * 2, shear = (rng() - 0.5) * (big * 1.4), rot = (rng() - 0.5) * 0.15, dx = t.free ? rng() * 2 : 0;
+        const ys = L.strokes.flatMap(s => s.pts.map(p => p[1])), cy = (Math.min(...ys) + Math.max(...ys)) / 2, cx = L.width / 2;
+        const tf = ([x, y]: Pt): Pt => { let X = (x - cx) * sc; const Y = (y - cy) * sc; X -= shear * Y; return [cx + X * Math.cos(rot) - Y * Math.sin(rot) + dx, cy + X * Math.sin(rot) + Y * Math.cos(rot)]; };
+        let p = startProgress(t);
+        for (const s of L.strokes) {
+          const path = s.dot ? [tf(s.pts[0]!)] : resample(s.pts.map(tf), 0.02 + rng() * 0.1).map(([x, y]) => [x + (rng() - 0.5) * 0.04, y + (rng() - 0.5) * 0.04] as Pt);
+          const r = feed(L, t, p, path);
+          p = r.progress;
+          if (r.outcome.kind === 'miss') bad.push(`${L.ch} ${name} ×${sc.toFixed(2)} slant ${shear.toFixed(2)}: ${r.outcome.why}`);
+        }
+      }
+    }
+    expect(bad).toEqual([]);
+  });
+  it('is never told it missed when it sets off the right way and then slides back over what it drew (and off the pad)', () => {
+    for (const t of [...LEVELS, forPad(TUNING[3], 50)]) for (const L of LETTERS) for (const [k, s] of L.strokes.entries()) {
+      if (s.dot || s.len < 0.6) continue;
+      const half = drawStroke(s).slice(0, Math.ceil(s.pts.length / 2)), back = [...half].reverse().slice(1), a = half.at(-1)!, b = s.pts[0]!;
+      const off: Pt = [b[0] + (b[0] - a[0]) * 2, b[1] + (b[1] - a[1]) * 2];
+      const prog: Progress = { done: k, dx: 0, partial: null };
+      for (const path of [[...half, ...back], [...half, ...back, off], [...half, off]]) {
+        const r = feed(L, { ...t, free: false }, prog, path.map(([x, y]) => [x, y] as Pt));
+        expect(r.outcome.kind, `${L.ch} stroke ${k + 1}`).not.toBe('miss');
+      }
+    }
+  });
+  it('is never told it missed when it starts a little beside the start and goes the right way', () => {
+    for (const t of LEVELS) for (const L of LETTERS) for (const [ox, oy] of [[0.3, 0], [-0.3, 0], [0, 0.3], [0, -0.3], [0.25, 0.25]] as const) {
+      let p = startProgress(t);
+      for (const s of L.strokes) {
+        const path = drawStroke(s, { dx: t.free ? 1 : 0 });
+        if (path[0]) path.unshift([path[0][0] + ox, path[0][1] + oy]);
+        const r = feed(L, t, p, path);
+        p = r.progress;
+        expect(r.outcome.kind, `${L.ch} from ${ox},${oy}`).not.toBe('miss');
+      }
+    }
+  });
+  it('is fair on a small pad (a sideways phone draws a line unit about 40 px): lanes and starts never narrower than a fingertip', () => {
+    const t = forPad(TUNING[3], 40);
+    expect(t.lane * 40).toBeGreaterThanOrEqual(22);
+    expect(t.startR * 40).toBeGreaterThanOrEqual(28);
+    expect((t.missStart ?? 0) * 40).toBeGreaterThanOrEqual(44);
+    // on a big pad the Level's own numbers stand
+    expect(forPad(TUNING[3], 200)).toMatchObject({ lane: TUNING[3].lane, startR: TUNING[3].startR, endR: TUNING[3].endR });
+    const rng = seeded(9);
+    for (const base of LEVELS) {
+      const small = forPad(base, 40);
+      for (const L of LETTERS) {
+        // a clean or wobbly finger finishes with no miss
+        const w = write(L, small, clean(L, { wobble: small.lane * 0.5, jitter: small.lane * 0.15, rng, step: 0.05, dx: small.free ? 0.6 : 0 }));
+        expect(w.misses, L.ch).toEqual([]);
+        expect(w.finished, `${L.ch} ${JSON.stringify(w.results.map(r => r.outcome))}`).toBe(true);
+      }
+      // and the wrong way and b written as d are still taught
+      for (const ch of ['l', 'o', 'c', 'h', 'b', 'd', '2', '5', 'S']) {
+        const s = letter(ch).strokes[0]!;
+        if (small.free && Math.abs(endOf(s)[1] - startOf(s)[1]) <= small.startR) continue;
+        expect(feed(letter(ch), small, startProgress(small), drawStroke(s, { reverse: true })).outcome.kind, `${ch} backwards`).toBe('miss');
+      }
+      for (const [want, wrote] of [['b', 'd'], ['d', 'b']] as const) expect(write(letter(want), small, clean(letter(wrote), { dx: small.free ? 0.3 : 0 })).misses.length, `${want} as ${wrote}`).toBeGreaterThan(0);
     }
   });
 });

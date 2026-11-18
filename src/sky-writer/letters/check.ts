@@ -28,6 +28,10 @@ export interface Tuning {
   readonly endR: number;
   /** Write It: the letter can sit anywhere along the lines; only its height is fixed. */
   readonly free: boolean;
+  /** A wrong start must be at least this far from the right one (MISS_START unless the pad is small: see forPad). */
+  readonly missStart?: number;
+  /** How much real writing along the letter a miss needs (MISS_LEN unless the pad is small). */
+  readonly missLen?: number;
 }
 
 /** Trace It's three Levels narrow the lane; writing from memory has a wide one, hidden. */
@@ -44,6 +48,32 @@ export const TAP = 0.12;
 export const MISS_LEN = 0.7;
 /** A wrong start must be at least this far from the right one (nearer is just a rub-out). */
 export const MISS_START = 0.6;
+/** A real try's first stretch along one stroke one way must begin within this much of where the path does. */
+const OPENS = 0.3;
+/** A stretch along a stroke carries on over a gap this long (a wobble out of the lane, crossing another line)... */
+const RUN_GAP = 0.2;
+/** ...and over this long nearer another stroke (where two lines meet or run side by side, as a's circle and its stem do). */
+const RUN_SWITCH = 0.35;
+/** After finishing a stroke, a lift this little way on isn't a lift partway along the next: just the end of what he finished. */
+export const LIFT_AFTER = 0.35;
+/** A dot may be made with a little wiggle, not only a tap: a path this short that stays by the dot is the dot. */
+export const DOT_MOVE = 0.5;
+/** A stroke he began beside its start (no further along it than this) and went along the right way is a sloppy start, not a wrong one. */
+export const BESIDE = 0.45;
+
+/** The least a finger can be asked for, in CSS pixels, however small the pad draws the lines (a sideways phone draws a line unit about
+ *  40 to 50 px; an iPad 120 to 220): a fingertip is about 40 px across and covers the line it's on. */
+export const FINGER_PX = { lane: 22, startR: 28, endR: 16, missStart: 44, missLen: 36 } as const;
+/** The tuning for a pad that draws one line unit `unitPx` CSS pixels: never stricter than a finger can be. */
+export function forPad(t: Tuning, unitPx: number): Tuning {
+  if (!(unitPx > 0)) return t;
+  const atLeast = (units: number, px: number) => Math.max(units, px / unitPx);
+  const startR = atLeast(t.startR, FINGER_PX.startR);
+  return {
+    ...t, lane: atLeast(t.lane, FINGER_PX.lane), startR, accept: Math.max(t.accept, startR), endR: atLeast(t.endR, FINGER_PX.endR),
+    missStart: atLeast(t.missStart ?? MISS_START, FINGER_PX.missStart), missLen: atLeast(t.missLen ?? MISS_LEN, FINGER_PX.missLen),
+  };
+}
 
 export interface Progress {
   /** Strokes finished. */
@@ -78,17 +108,24 @@ const indexAt = (s: Stroke, u: number) => (s.pts.length > 1 ? Math.max(0, Math.m
 
 /** The nearest sample of a stroke to a point, between two arc lengths. */
 function nearest(s: Stroke, p: Pt, from = 0, to = Infinity): { i: number; d: number } {
-  let best = { i: 0, d: Infinity };
-  const lo = indexAt(s, Math.max(0, from)), hi = to === Infinity ? s.pts.length - 1 : indexAt(s, Math.min(s.len, to));
-  for (let i = lo; i <= hi; i++) { const d = dist(s.pts[i]!, p); if (d < best.d) best = { i, d }; }
-  return best;
+  let bi = 0, bd = Infinity;
+  const lo = indexAt(s, Math.max(0, from)), hi = to === Infinity ? s.pts.length - 1 : indexAt(s, Math.min(s.len, to)), [px, py] = p;
+  for (let i = lo; i <= hi; i++) { const q = s.pts[i]!, ex = q[0] - px, ey = q[1] - py, d = ex * ex + ey * ey; if (d < bd) { bd = d; bi = i; } }
+  return { i: bi, d: Math.sqrt(bd) };
 }
 function tangent(s: Stroke, i: number): Pt {
   const a = s.pts[Math.max(0, i - 1)]!, b = s.pts[Math.min(s.pts.length - 1, i + 1)]!, d = dist(a, b) || 1;
   return [(b[0] - a[0]) / d, (b[1] - a[1]) / d];
 }
+/** How far a point is from a stroke's bounding box: no nearer than that to the stroke (a quick way to skip far strokes). */
+const boxes = new WeakMap<Stroke, readonly [number, number, number, number]>();
+function boxDist(s: Stroke, [x, y]: Pt) {
+  let b = boxes.get(s);
+  if (!b) { const xs = s.pts.map(p => p[0]), ys = s.pts.map(p => p[1]); b = [Math.min(...xs), Math.min(...ys), Math.max(...xs), Math.max(...ys)]; boxes.set(s, b); }
+  return Math.hypot(Math.max(b[0] - x, 0, x - b[2]), Math.max(b[1] - y, 0, y - b[3]));
+}
 /** Is a point on any of these strokes (within the lane)? */
-const onAny = (strokes: readonly Stroke[], p: Pt, lane: number) => strokes.some(s => !s.dot && nearest(s, p).d <= lane);
+const onAny = (strokes: readonly Stroke[], p: Pt, lane: number) => strokes.some(s => !s.dot && boxDist(s, p) <= lane && nearest(s, p).d <= lane);
 
 // ---------- following one stroke ----------
 
@@ -138,39 +175,116 @@ function entry(L: Letter, k: number, path: readonly Pt[], i: number, t: Tuning, 
 
 // ---------- telling a real wrong try from a slip ----------
 
-/** Was this a real try along the letter, from the wrong place or the wrong way? `startedRight`: it began where it should, so it can
- *  only be the wrong way. `from`: strokes before this are already drawn, and going back along them is a lead-in, not a mistake. */
-export function judge(L: Letter, t: Tuning, path: readonly Pt[], dx: number, from: number, startedRight: boolean, carryOn = false): { why: Why; stroke: number } | null {
-  const strokes = L.strokes.map((s, k) => ({ s, k })).filter(x => !x.s.dot && x.k >= from);
-  if (!strokes.length || path.length < 2) return null;
+/** How the path's writing along the letter splits, stroke by stroke, into the right way and backwards (strokes from `from` on; going back
+ *  along one already drawn is a lead-in and counts for neither). */
+interface Run { k: number; back: boolean; len: number }
+function tally(L: Letter, t: Tuning, raw: readonly Pt[], dx: number, from: number) {
+  // a long jump between two samples (a flick, or a finger leaving the pad) is read in short pieces, so it counts only where it really
+  // runs along the letter
+  const path = densify(raw, 0.08), strokes = L.strokes.map((s, k) => ({ s, k })).filter(x => !x.s.dot && x.k >= from);
+  const drawnStrokes = L.strokes.slice(0, from).filter(s => !s.dot);
   const fwd = new Map<number, number>(), back = new Map<number, number>();
-  let on = 0;
+  let on = 0, went = 0, gap = 0, other = 0, run: Run | null = null, opening: Run | null = null;
+  const runs: Run[] = [];
+  // The opening run: the path's first stretch along one stroke one way, if it begins as the path does (a lead-in back along what's
+  // drawn aside). A real try at the letter starts with one; a scribble that wanders across the letter doesn't.
+  const close = () => { run = null; };
   for (let m = 1; m < path.length; m++) {
-    const a = shift(path[m - 1]!, dx), b = shift(path[m]!, dx), seg = dist(a, b);
+    const a = path[m - 1]!, b = path[m]!, ux = b[0] - a[0], uy = b[1] - a[1], seg = Math.hypot(ux, uy);
     if (!seg) continue;
-    const mid: Pt = [(a[0] + b[0]) / 2, (a[1] + b[1]) / 2];
+    const mid: Pt = [(a[0] + b[0]) / 2 - dx, (a[1] + b[1]) / 2];
     let best: { k: number; i: number; d: number } | null = null;
-    for (const { s, k } of strokes) { const n = nearest(s, mid); if (!best || n.d < best.d) best = { k, i: n.i, d: n.d }; }
+    for (const { s, k } of strokes) { if (best && boxDist(s, mid) >= best.d) continue; const n = nearest(s, mid); if (!best || n.d < best.d) best = { k, i: n.i, d: n.d }; }
     // going back along a stroke he has drawn: neither for nor against
-    const drawn = L.strokes.slice(0, from).some(s => !s.dot && nearest(s, mid).d < best!.d);
-    if (!best || best.d > t.lane * 1.2 || drawn) continue;
-    const tg = tangent(L.strokes[best.k]!, best.i), along = ((b[0] - a[0]) * tg[0] + (b[1] - a[1]) * tg[1]);
+    const drawn = drawnStrokes.some(s => boxDist(s, mid) < best!.d && nearest(s, mid).d < best!.d);
+    if (drawn) continue;
+    went += seg;
+    if (!best || best.d > t.lane * 1.2) { gap += seg; if (gap > RUN_GAP) close(); continue; }
+    const tg = tangent(L.strokes[best.k]!, best.i), along = ux * tg[0] + uy * tg[1];
     on += seg;
     if (along > 0) fwd.set(best.k, (fwd.get(best.k) ?? 0) + along); else back.set(best.k, (back.get(best.k) ?? 0) - along);
+    // across the stroke rather than along it (crossing another line): it neither starts nor ends a run
+    if (Math.abs(along) < 0.5 * seg) { gap += seg; if (gap > RUN_GAP) close(); continue; }
+    const isBack = along < 0;
+    if (run && (run.k !== best.k || run.back !== isBack)) {
+      // a short stretch nearer another line (where two lines meet or run side by side) doesn't end a run
+      other += seg;
+      if (other <= RUN_SWITCH) continue;
+      close();
+    }
+    other = 0;
+    if (!run) { run = { k: best.k, back: isBack, len: 0 }; runs.push(run); if (!opening && went - seg <= OPENS) opening = run; }
+    run.len += Math.abs(along);
+    gap = 0;
   }
-  const all = travel(path), sum = (x: Map<number, number>) => [...x.values()].reduce((a, b) => a + b, 0);
+  /** How much of the path is real stretches along the letter going this way (a scribble is mostly not). */
+  const along = (isBack: boolean) => runs.reduce((sum, r) => (r.back === isBack && r.len >= RUN_GAP ? sum + r.len : sum), 0);
+  return { on, fwd, back, opening, along };
+}
+function densify(path: readonly Pt[], step: number): Pt[] {
+  const out: Pt[] = path.length ? [path[0]!] : [];
+  for (let m = 1; m < path.length; m++) {
+    const a = path[m - 1]!, b = path[m]!, d = dist(a, b), n = d > step * 2 ? Math.ceil(d / step) : 1;
+    for (let i = 1; i <= n; i++) out.push([a[0] + ((b[0] - a[0]) * i) / n, a[1] + ((b[1] - a[1]) * i) / n]);
+  }
+  return out;
+}
+const total = (x: Map<number, number>) => [...x.values()].reduce((a, b) => a + b, 0);
+
+// Write It has no guide, so he may write the letter bigger or smaller than the lines ask. Pinned where he started it, a big W's slants
+// lie along the template's other slants (and look backwards), and a big E's last bar starts well below the template's. A letter the
+// wrong size is a rub-out, not a miss: before calling one, the path is tried at other sizes, about where he started this path and about
+// where he started the letter.
+const SIZES_TRIED = [0.7, 0.82, 1.2, 1.4];
+const scaled = (path: readonly Pt[], [ax, ay]: Pt, f: number) => path.map(([x, y]) => [ax + (x - ax) / f, ay + (y - ay) / f] as Pt);
+const anchors = (L: Letter, path: readonly Pt[], dx: number, from: number): Pt[] =>
+  from > 0 ? [path[0]!, [startOf(L.strokes[0]!)[0] + dx, startOf(L.strokes[0]!)[1]]] : [path[0]!];
+/** Would the path go the right way along the letter at another size? */
+function rightWayAnotherSize(L: Letter, t: Tuning, path: readonly Pt[], dx: number, from: number) {
+  return anchors(L, path, dx, from).some(a => SIZES_TRIED.some(f => {
+    const p = scaled(path, a, f), r = tally(L, t, p, dx, from);
+    return r.on >= 0.6 * travel(p) && total(r.back) < 0.3 * r.on;
+  }));
+}
+/** Would a later stroke start in its place if the letter were another size? */
+function startsRightAnotherSize(L: Letter, t: Tuning, path: readonly Pt[], dx: number, from: number) {
+  const s = L.strokes[from];
+  if (!s || from === 0) return false;
+  return SIZES_TRIED.some(f => {
+    const p0 = shift(scaled(path, anchors(L, path, dx, from)[1]!, f)[0]!, dx);
+    return dist(p0, startOf(s)) < (t.missStart ?? MISS_START) || (!s.dot && arcAt(s, nearest(s, p0).i) <= BESIDE && nearest(s, p0).d <= t.lane * 1.5);
+  });
+}
+
+/** Was this a real try along the letter, from the wrong place or the wrong way? `startedRight`: it began where it should, so it can
+ *  only be the wrong way. `from`: strokes before this are already drawn, and going back along them is a lead-in, not a mistake. */
+export function judge(L: Letter, t: Tuning, path: readonly Pt[], dx: number, from: number, startedRight: boolean, carryOn = false, sizes = true): { why: Why; stroke: number } | null {
+  if (!L.strokes.some((s, k) => !s.dot && k >= from) || path.length < 2) return null;
+  const missLen = t.missLen ?? MISS_LEN, { on, fwd, back, opening, along } = tally(L, t, path, dx, from), all = travel(path);
   const top = (x: Map<number, number>) => [...x.entries()].sort((a, b) => b[1] - a[1])[0]?.[0] ?? from;
-  if (on < MISS_LEN || on < 0.6 * all) return null;
-  const backs = sum(back);
-  if (backs >= 0.55 * on && backs >= MISS_LEN * 0.8) {
+  if (on < missLen || on < 0.6 * all) return null;
+  const backs = total(back);
+  // a real try starts on the letter with a stretch along one stroke, and is mostly stretches along it going that way: a scribble
+  // wandering across the letter isn't one
+  if (!opening || along(opening.back) < 0.5 * all) return null;
+  // a stroke written backwards sets off backwards: one that set off the right way and then came back over itself (sliding back up
+  // and off the pad) is a slip
+  if (backs >= 0.55 * on && backs >= missLen * 0.8 && opening.back && opening.len >= missLen * 0.8) {
     // just after a rub-out, a path that goes the right way along a later stroke is him carrying on, not going backwards
     if (carryOn && L.strokes.some((s, k) => k > from && !s.dot && alongOne(s, path, dx, t.lane) >= 0.6 * all)) return null;
+    if (t.free && sizes && rightWayAnotherSize(L, t, path, dx, from)) return null;
     return { why: 'way', stroke: top(back) };
   }
   if (startedRight) return null;
-  const expected = L.strokes[from];
-  if (expected && dist(shift(path[0]!, dx), startOf(expected)) < MISS_START) return null;
-  return sum(fwd) >= MISS_LEN ? { why: 'start', stroke: top(fwd) } : null;
+  const expected = L.strokes[from], p0 = shift(path[0]!, dx);
+  if (expected && dist(p0, startOf(expected)) < (t.missStart ?? MISS_START)) return null;
+  if (total(fwd) < missLen || opening.back || opening.len < missLen) return null;
+  const k = opening.k;
+  // beside the start of the stroke he should be on, going along it the right way: a sloppy start, not a wrong one (a wrong start is
+  // another stroke first, or this one from partway along it)
+  if (expected && !expected.dot && k === from && arcAt(expected, nearest(expected, p0).i) <= BESIDE) return null;
+  if (t.free && sizes && startsRightAnotherSize(L, t, path, dx, from)) return null;
+  return { why: 'start', stroke: k };
 }
 
 /** How far the path goes the right way along one stroke (going back along it counts against). */
@@ -195,9 +309,11 @@ function judgeFree(L: Letter, t: Tuning, path: readonly Pt[], from: number): { w
     const dx = Math.round((x0 - q[0]) * 10) / 10;
     if (tried.has(dx)) continue;
     tried.add(dx);
-    const j = judge(L, t, path, dx, from, false);
+    const j = judge(L, t, path, dx, from, false, false, false);
     if (j && (!best || (j.why === 'way' && best.why === 'start'))) best = { ...j, dx };
   }
+  // the clearest wrong try, unless it would be right at another size
+  if (best && (best.why === 'way' ? rightWayAnotherSize(L, t, path, best.dx, from) : startsRightAnotherSize(L, t, path, best.dx, from))) return null;
   return best;
 }
 
@@ -220,12 +336,12 @@ export function feed(L: Letter, t: Tuning, prog: Progress, path: readonly Pt[]):
   const fair = (m: { why: Why; stroke: number } | null) => (m && m.why === 'start' && prog.rubbed ? null : m);
   if (!path.length || done >= L.strokes.length) return result({ kind: 'rubout', why: 'tap' }, false);
 
-  // a tap: a dot, if a dot is next and it's in its place
-  if (travel(path) < TAP) {
-    const s = L.strokes[done]!;
-    if (s.dot && dx !== null && dist(shift(path[0]!, dx), startOf(s)) <= t.startR * 1.3) { finished.push(done); done++; partial = null; return result({ kind: 'ok' }); }
-    return result({ kind: 'rubout', why: s.dot ? 'away' : 'tap' }, false);
+  // a dot, if a dot is next and it's in its place: a tap, or a little wiggle that stays by it (a child "draws" a dot as often as he taps it)
+  const next = L.strokes[done]!;
+  if (next.dot && dx !== null && travel(path) < DOT_MOVE && path.every(p => dist(shift(p, dx!), startOf(next)) <= t.startR * 1.3 + 0.1)) {
+    finished.push(done); done++; partial = null; return result({ kind: 'ok' });
   }
+  if (travel(path) < TAP) return result({ kind: 'rubout', why: next.dot ? 'away' : 'tap' }, false);
 
   // Write It: where the letter sits comes from where he starts it, if he starts it at the right height
   if (dx === null) {
@@ -251,7 +367,12 @@ export function feed(L: Letter, t: Tuning, prog: Progress, path: readonly Pt[]):
     const from = finished.length ? leftEnd(L, t, path, i, dx, k) : i;
     const m = from < 0 ? null : judge(L, t, path.slice(from), dx, k, true, !!prog.rubbed);
     if (m) return result({ kind: 'miss', why: m.why, stroke: m.stroke });
-    if (f.kind === 'lift') { partial = { stroke: k, u: Math.max(f.u, partial?.stroke === k ? partial.u : 0) }; return result({ kind: 'rubout', why: 'lift' }, true); }
+    if (f.kind === 'lift') {
+      partial = { stroke: k, u: Math.max(f.u, partial?.stroke === k ? partial.u : 0) };
+      // he finished a stroke and lifted just as the next began (a circle closed with a little overshoot): that's all fine, not a lift
+      // partway that he should be told to carry on from
+      return result(finished.length && travel(path.slice(i)) < LIFT_AFTER ? { kind: 'ok' } : { kind: 'rubout', why: 'lift' }, true);
+    }
     return result({ kind: 'rubout', why: 'lane' });
   }
   const rest = path.slice(Math.max(0, i - 1));

@@ -99,7 +99,8 @@ const LOWER: Record<string, Raw[]> = {
   t: [S(line(0.4, 0, 0.4, 2), 'Start at the top.', 'Pull down.'), S(line(0, 1, 0.8, 1), 'Lift.', 'Cross.')],
   i: [S(line(0, 1, 0, 2), 'Start at the middle.', 'Pull down.'), DOT(0, 0.45, 'Lift.', 'Add the dot.')],
   j: [S(path(line(0.6, 1, 0.6, 2.55), arc(0.15, 2.55, 0.45, 0.45, 0, -160)), 'Start at the middle.', 'Pull down below the line.', 'Hook back.'), DOT(0.6, 0.45, 'Lift.', 'Add the dot.')],
-  k: [S(line(0, 0, 0, 2), 'Start at the top.', 'Pull down.'), S(line(0.85, 1, 0.05, 1.55), 'Lift.', 'Start on the right.', 'Slant down.'), S(line(0.3, 1.38, 0.9, 2), 'Slant down.')],
+  // k and K: the arm slants in to the stem and the leg slants out from where it met it (Zaner-Bloser's "slant left, slant right")
+  k: [S(line(0, 0, 0, 2), 'Start at the top.', 'Pull down.'), S(line(0.85, 1, 0.05, 1.55), 'Lift.', 'Start on the right.', 'Slant down.'), S(line(0.05, 1.55, 0.9, 2), 'Slant down.')],
   // bumps: down, then back up and over (or around)
   r: [S(line(0, 1, 0, 2), 'Start at the middle.', 'Pull down.'), S(arc(0.45, 1.45, 0.45, 0.45, 180, 35), 'Back up and over.')],
   n: [S(line(0, 1, 0, 2), 'Start at the middle.', 'Pull down.'), HUMP(0)],
@@ -138,7 +139,7 @@ const CAPITAL: Record<string, Raw[]> = {
   D: [DOWN(0), S(path(line(0, 0, 0.5, 0), arc(0.5, 1, 0.85, 1, 90, -90), line(0.5, 2, 0, 2)), 'Lift.', 'Slide right.', 'Curve forward.', 'Slide left.')],
   G: [S(arc(0.95, 1, 0.95, 1, 45, 360), 'Start near the top.', 'Curve back.'), S(line(1.9, 1, 1.1, 1), 'Slide left.')],
   J: [S(path(line(1, 0, 1, 1.5), arc(0.55, 1.5, 0.45, 0.5, 0, -180)), 'Start at the top.', 'Pull down.', 'Hook back.')],
-  K: [DOWN(0), S(line(1.2, 0, 0, 1.1), 'Lift.', 'Start on the right.', 'Slant down.'), S(line(0.3, 0.825, 1.25, 2), 'Slant down.')],
+  K: [DOWN(0), S(line(1.2, 0, 0.05, 1.05), 'Lift.', 'Start on the right.', 'Slant down.'), S(line(0.05, 1.05, 1.25, 2), 'Slant down.')],
   M: [DOWN(0), S(poly([0, 0], [0.75, 1.5], [1.5, 0], [1.5, 2]), 'Lift.', 'Slant down.', 'Slant up.', 'Pull down.')],
   N: [DOWN(0), S(poly([0, 0], [1.3, 2], [1.3, 0]), 'Lift.', 'Slant down.', 'Push up.')],
   O: [RING(0.95, 0.95)],
@@ -204,6 +205,16 @@ export const letter = (ch: string): Letter => { const l = BY_CH.get(ch); if (!l)
 export const isLetter = (ch: string) => BY_CH.has(ch);
 /** The letters he has met: every letter in the Families he has met. */
 export const metLetters = (families: readonly FamilyId[]) => families.flatMap(f => FAMILIES[f]);
+
+/** Strokes that begin by going back up what he just drew ("Push up." after a circle, "Back up and over." after a pulled-down line):
+ *  the plane flies that push up too, from where the last stroke ended, so it does what the words say. Empty for any other stroke. */
+const LEADS: readonly StrokeWord[] = ['Push up.', 'Push up to the top.', 'Back up and over.', 'Back up and around.'];
+export function leadIn(L: Letter, k: number): Pt[] {
+  const s = L.strokes[k], before = L.strokes[k - 1];
+  if (!s || !before || s.dot || before.dot || !LEADS.includes(s.say[0]!)) return [];
+  const a = before.pts.at(-1)!, b = s.pts[0]!;
+  return Math.hypot(a[0] - b[0], a[1] - b[1]) > 0.05 ? resample([a, b]).slice(0, -1) : [];
+}
 
 /** Where a stroke starts, and where it ends. */
 export const startOf = (s: Stroke): Pt => s.pts[0]!;

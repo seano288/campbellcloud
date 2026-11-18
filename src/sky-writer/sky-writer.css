@@ -62,6 +62,13 @@ html,body{background:var(--sky-deep)}
 .sw-pad{display:block;width:100%;height:100%;touch-action:none;cursor:crosshair}
 .sw-word{flex:none;font:700 max(40px,min(calc(84px*var(--u)),14cqh)) Andika,Nunito,sans-serif;line-height:1;padding:calc(4px*var(--u)) calc(24px*var(--u));background:#fff;border:4px solid #000;border-radius:20px;box-shadow:0 5px 0 #000;color:#000}
 .sw-word.hidden{color:#9cc8ec;letter-spacing:.1em}
+/* a sideways phone: the word sits beside the pad, so the pad has the whole height to write in (above it, letters were too small for a
+   finger) */
+@media (orientation:landscape) and (max-height:520px){
+  .game.sw.k-word .sw-work{flex-direction:row;align-items:center;justify-content:center}
+  .game.sw.k-word .sw-word{font-size:max(28px,min(48px,22cqh));padding:4px 12px}
+  .game.sw.k-word .sw-pad-wrap{align-self:stretch}
+}
 /* letters drawn from their strokes */
 .sw-glyph{display:block;width:100%;height:100%;overflow:visible}
 .sw-glyph .st{fill:none;stroke:var(--sw-ink);stroke-width:.17;stroke-linecap:round;stroke-linejoin:round}
@@ -108,7 +115,9 @@ circle.sw-hit{fill:transparent;stroke:none}
 .sw-letterbtn:hover{border-color:#0002}
 .sw-letterbtn.hint{border-color:var(--yellow);background:#fff3b066;animation:hint 1s infinite}
 .sw-letterbtn.right{border-color:#178046;background:#c9f0d466}
-.sw-said{margin:0;font:900 40px Nunito,sans-serif;color:#178046}
+.sw-work{position:relative}
+/* the tick after a right answer sits over the corner of the work area, so it never pushes the letter off a short screen */
+.sw-said{position:absolute;right:8px;bottom:4px;margin:0;font:900 40px Nunito,sans-serif;color:#178046}
 /* b and d side by side in a lesson */
 .sw-pair{flex:none;align-self:center;display:flex;gap:16px;padding:8px 14px;border-radius:20px;background:#fff7d6;border:4px solid var(--yellow);box-shadow:0 4px 0 #b88a00}
 .sw-pair-one{display:flex;flex-direction:column;align-items:center;width:max(70px,calc(110px*var(--u)));height:max(110px,calc(170px*var(--u)));opacity:.55;transition:opacity .2s}
@@ -132,6 +141,10 @@ circle.sw-hit{fill:transparent;stroke:none}
   .sw-famletter{width:58px;height:76px}
   .meet-go{font-size:22px;padding:6px 28px}
   .game.sw:has(.sw-pair) .sw-pair-one{width:52px;height:80px}
+  /* the b/d lesson floats over the writing pad rather than squashing it to a sliver while the plane flies */
+  .game.sw{position:relative}
+  .game.sw .sw-pair{position:absolute;z-index:5;left:50%;top:50%;transform:translate(-50%,-40%)}
+  .game.sw .sw-pair-one{height:auto}
 }
 @media (max-width:430px) and (orientation:portrait){
   .sw-choices.n4{flex-wrap:wrap;max-height:none}

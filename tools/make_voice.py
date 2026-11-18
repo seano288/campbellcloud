@@ -183,7 +183,13 @@ COLLECTION_SPEECH = {
                     'Play more Trace It to open this!': 'Play more, Trace It, to open this!',
                     'Play more Where to Start to open this!': 'Play more, Where to Start, to open this!',
                     'Play more Trace It and Where to Start to open this!': 'Play more, Trace It, and, Where to Start, to open this!',
-                    'Play more Write It to open this!': 'Play more, Write It, to open this!'},
+                    'Play more Write It to open this!': 'Play more, Write It, to open this!',
+                    # pass 2: both models heard "a Where" as "aware", "Tall, Small, Tail" as "small the tail" and "opened Trace It" as
+                    # "open trace it" (opened alone, as the other kinds' lines are, they hear right); a lone "Boing!" came back "boy"
+                    'You are a Where to Start star!': 'You are a. Where to Start, star!',
+                    'You opened Tall, Small, Tail!': 'You opened Tall. Small. Tail!',
+                    'You opened Trace It!': 'You opened, Trace It!',
+                    'Boing!': 'Boing, boing!'},
         # Aria's "Q." comes back as "Hugh" or "Hue" however it's written (Q! Queue. Cue.); Jenny's is heard as Q by both models
         'voice_for': {'cat': 'en-US-JennyNeural', 'puff': 'en-US-JennyNeural', 'duck': 'en-US-JennyNeural',
                       'Letter Q': 'en-US-JennyNeural', 'q starts with the round part.': 'en-US-JennyNeural'},

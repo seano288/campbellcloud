@@ -10,7 +10,7 @@
 import { signal, type Signal } from '@preact/signals';
 import { sChime, sPop } from '../../audio/sfx';
 import { isBdpq } from '../letters/glyphs';
-import { letter, type Letter } from '../letters/strokes';
+import { leadIn, letter, type Letter } from '../letters/strokes';
 import type { Asking } from '../mix';
 import { nameOf, type Phrase } from '../phrases';
 import { createVoiceScope, type VoiceScope } from '../voice';
@@ -53,7 +53,7 @@ export function lessonFor(lifetime: AbortSignal): Lesson {
 const reduced = () => typeof matchMedia === 'function' && matchMedia('(prefers-reduced-motion:reduce)').matches;
 const beat = (v: VoiceScope, ms: number) => v.wait(reduced() ? ms / 3 : ms);
 /** How long the plane takes to fly a stroke. */
-export const flyMs = (L: Letter, k: number) => (L.strokes[k]!.dot ? 450 : Math.max(800, L.strokes[k]!.len * 620));
+export const flyMs = (L: Letter, k: number) => (L.strokes[k]!.dot ? 450 : Math.max(800, (L.strokes[k]!.len + leadIn(L, k).length * 0.04) * 620));
 
 /** The plane flies one stroke of a box's letter while its words are said; its smoke stays to trace over. */
 export async function flyStroke(v: VoiceScope, l: Lesson, ch: string, box: number, k: number) {

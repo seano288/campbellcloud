@@ -1,5 +1,8 @@
 // The writing pad: the three writing lines drawn as contrails across a strip of sky, one box per letter, and his finger (or an Apple
-// Pencil: pointer events take either, and once a pencil is seen, a resting palm's touches are ignored) leaving smoke. Each time he lifts,
+// Pencil: pointer events take either, and while a pencil is writing, and for a moment after, a resting palm's touches are ignored)
+// leaving smoke. One finger writes at a time: when several touch at once, the one that moves is the writing, and a touch that sits
+// still (a resting hand, a second finger) is dropped without a word. The checker's lanes are never narrower than a fingertip, however small the pad draws the lines
+// (letters/check.ts forPad). Each time he lifts,
 // the stroke checker (letters/check.ts) says what the path did: strokes that count stay as his smoke, a slip rubs out with a puff, and a
 // wrong start or wrong way is a miss, which the Round teaches (writing/teach.ts: the little plane flies it).
 //
@@ -8,13 +11,18 @@
 import { useEffect, useRef } from 'preact/hooks';
 import { sClink, sPop, sWhoosh } from '../../audio/sfx';
 import { drawPlane, type Look } from '../art/plane';
-import { feed, startProgress, type Progress, type Tuning } from '../letters/check';
-import { letter, startOf, type Letter, type Pt } from '../letters/strokes';
+import { feed, forPad, startProgress, travel, type Progress, type Tuning } from '../letters/check';
+import { leadIn, letter, startOf, type Letter, type Pt } from '../letters/strokes';
 import { useVoice } from '../voice';
 import { lessonFor, showAgain, walkNext } from './teach';
 
 export type Guide = 'arrow' | 'dots' | 'faint' | 'none';
-const TOP = 0.5, HEIGHT = 4.0;
+/** The pad shows the lines (0 to 3) with a little sky above the top line and below the tail line. */
+const TOP = 0.3, HEIGHT = 3.6;
+/** After a pencil is lifted, touches are a palm for this long. */
+const PEN_PALM_MS = 1200;
+/** A touch that has moved less than this (CSS px) since it came down is a resting hand, and a new touch takes over from it. */
+const RESTING_PX = 10;
 
 interface Box { ch: string; L: Letter; left: number; w: number; place: number }
 function layout(chars: readonly string[], free: boolean) {
@@ -46,9 +54,12 @@ export function WritePad({ chars, tuning, guide, signal, active, flash, smoke, l
     box: 0,
     smoke: [] as { pts: Pt[]; box: number }[],
     rubbed: [] as { pts: Pt[]; t: number }[],
-    path: null as Pt[] | null,
-    pointer: null as number | null,
-    pen: false,
+    /** The fingers (or pencil) on the pad now, each with its path. */
+    touches: new Map<number, { path: Pt[]; type: string }>(),
+    /** Touches still down when another one's writing was read: when they lift they are ignored. */
+    others: new Set<number>(),
+    penDown: false,
+    pen: 0,
     rubs: 0,
     started: performance.now(),
     firstTouch: 0,
@@ -76,30 +87,52 @@ export function WritePad({ chars, tuning, guide, signal, active, flash, smoke, l
   }
   const local = (b: number, p: Pt): Pt => [p[0] - st.boxes[b]!.left - (tuning.free ? 0 : st.boxes[b]!.place), p[1]];
 
+  /** How far a path has gone, in CSS pixels. */
+  const px = (path: readonly Pt[]) => travel(path) * (st.view.s / st.view.dpr);
+  /** The touch that is writing: the one that has moved furthest. */
+  const writing = (): Pt[] | null => { let best: Pt[] | null = null; for (const t of st.touches.values()) if (!best || px(t.path) > px(best)) best = t.path; return best; };
+
   function down(e: PointerEvent) {
-    if (e.pointerType === 'pen') st.pen = true;
-    else if (st.pen && e.pointerType === 'touch') return; // a palm resting while he writes with the pencil
-    if (st.pointer !== null || !latest.current.active || st.box >= st.boxes.length) return;
+    if (e.pointerType === 'pen') st.pen = performance.now();
+    // a palm resting while he writes with the pencil (it may also come down first, just before the pencil)
+    else if (e.pointerType === 'touch' && (st.penDown || performance.now() - st.pen < PEN_PALM_MS)) return;
+    if (!latest.current.active || st.box >= st.boxes.length || st.touches.size >= 4) return;
     e.preventDefault();
-    (e.target as Element).setPointerCapture?.(e.pointerId);
-    st.pointer = e.pointerId;
-    st.path = [toUnits(e)];
+    try { (e.target as Element).setPointerCapture?.(e.pointerId); } catch { /* the pointer is already gone */ }
+    if (e.pointerType === 'pen') {
+      st.penDown = true;
+      // the pencil came down over a palm: the palm's touches are not writing
+      for (const [id, t] of st.touches) if (t.type === 'touch') { st.touches.delete(id); st.others.add(id); }
+    }
+    st.touches.set(e.pointerId, { path: [toUnits(e)], type: e.pointerType });
     if (!st.firstTouch) st.firstTouch = performance.now();
   }
   function move(e: PointerEvent) {
-    if (e.pointerId !== st.pointer || !st.path) return;
+    if (e.pointerType === 'pen') st.pen = performance.now();
+    const t = st.touches.get(e.pointerId);
+    if (!t) return;
     const events = typeof e.getCoalescedEvents === 'function' ? e.getCoalescedEvents() : [e];
     for (const ev of events.length ? events : [e]) {
-      const p = toUnits(ev), last = st.path.at(-1)!;
-      if (Math.hypot(p[0] - last[0], p[1] - last[1]) > 0.015) st.path.push(p);
+      const p = toUnits(ev), last = t.path.at(-1)!;
+      if (Math.hypot(p[0] - last[0], p[1] - last[1]) > 0.015) t.path.push(p);
     }
   }
   function up(e: PointerEvent) {
-    if (e.pointerId !== st.pointer || !st.path) return;
-    const path = st.path, b = st.box, box = st.boxes[b]!;
-    st.pointer = null; st.path = null;
+    if (e.pointerType === 'pen') { st.pen = performance.now(); st.penDown = false; }
+    const t = st.touches.get(e.pointerId);
+    if (!t) return;
+    st.touches.delete(e.pointerId);
+    // Several touches at once: only one writes. A touch that sat still while another was down (a resting hand, a second finger) is
+    // dropped without a word; the one that moved is the writing, and the others still down when it lifts are only along for the ride.
+    // (A dot is made by a touch that sits still, so when a dot is next a still touch counts unless it was only along for the ride.)
+    const still = px(t.path) < RESTING_PX, along = st.others.delete(e.pointerId), dotNext = !!st.boxes[st.box]?.L.strokes[st.progress[st.box]?.done ?? 0]?.dot;
+    if (still && (along || (st.touches.size > 0 && !dotNext))) return;
+    for (const id of st.touches.keys()) st.others.add(id);
+    st.touches.clear();
+    const path = t.path, b = st.box, box = st.boxes[b]!;
     if (!latest.current.active) { st.rubbed.push({ pts: path, t: performance.now() }); return; }
-    const r = feed(box.L, latest.current.tuning, st.progress[b]!, path.map(p => local(b, p)));
+    const r = feed(box.L, forPad(latest.current.tuning, st.view.s / st.view.dpr), st.progress[b]!, path.map(p => local(b, p)));
+    if (import.meta.env.DEV) ((window as unknown as { __padLog?: unknown[] }).__padLog ??= []).push({ ch: box.ch, outcome: r.outcome, finished: r.finished, n: path.length });
     st.progress[b] = r.progress;
     lesson.at.box = b; lesson.at.done = r.progress.done;
     if (r.finished.length || r.outcome.kind === 'ok') { st.smoke.push({ pts: path, box: b }); st.rubs = 0; }
@@ -161,7 +194,7 @@ export function WritePad({ chars, tuning, guide, signal, active, flash, smoke, l
       // boxes
       if (st.boxes.length > 1) for (const [i, b] of st.boxes.entries()) {
         c.globalAlpha = i === st.box ? 0.22 : 0.08; c.fillStyle = '#ffffff';
-        c.beginPath(); c.roundRect(X(b.left + 0.08), Y(-0.35), (b.w - 0.16) * s, 3.7 * s, 0.25 * s); c.fill(); c.globalAlpha = 1;
+        c.beginPath(); c.roundRect(X(b.left + 0.08), Y(-0.25), (b.w - 0.16) * s, 3.5 * s, 0.25 * s); c.fill(); c.globalAlpha = 1;
       }
       const lw = s * 0.17, smokeAt = (i: number) => (smoke === 'rainbow' ? `hsl(${(i * 47) % 360} 90% 60%)` : smoke === 'glow' ? '#fffbd0' : smoke);
       // the guide for the box he's on
@@ -195,13 +228,16 @@ export function WritePad({ chars, tuning, guide, signal, active, flash, smoke, l
       for (const gd of lesson.guide.value) { if (gd.box !== b) continue; const pts = strokePts(gd.box, gd.stroke); if (st.boxes[gd.box]!.L.strokes[gd.stroke]!.dot) dot(pts[0]!, lw * 0.9, '#fff3b0', 0.8); else line(pts, lw * 1.6, '#fff3b0', 0.55); }
       // his smoke
       st.smoke.forEach((sm, i) => { line(sm.pts, lw * 1.9, smokeAt(i), 0.3); line(sm.pts, lw, smokeAt(i)); if (sm.pts.length === 1) dot(sm.pts[0]!, lw * 0.7, smokeAt(i)); });
-      if (st.path) { line(st.path, lw * 1.9, smokeAt(st.smoke.length), 0.3); line(st.path, lw, smokeAt(st.smoke.length)); if (st.path.length === 1) dot(st.path[0]!, lw * 0.6, smokeAt(0)); }
+      const live = writing();
+      if (live) { line(live, lw * 1.9, smokeAt(st.smoke.length), 0.3); line(live, lw, smokeAt(st.smoke.length)); if (live.length === 1) dot(live[0]!, lw * 0.6, smokeAt(0)); }
       st.rubbed = st.rubbed.filter(r => now - r.t < 600);
       for (const r of st.rubbed) { const a = 1 - (now - r.t) / 600; line(r.pts, lw * (1 + (1 - a) * 2), '#ffffff', a * 0.6); }
       // the plane flying a stroke
       const fly = lesson.fly.value;
       if (fly && st.boxes[fly.box]) {
-        const pts = strokePts(fly.box, fly.stroke), u = Math.min(1, (now - fly.from) / fly.ms), n = Math.max(1, Math.round(u * (pts.length - 1)));
+        // a stroke that starts by pushing back up what was drawn ("Push up.", "Back up and over.") is flown from where the last one ended
+        const fb = st.boxes[fly.box]!, fdx = fb.left + dxOf(fly.box), lead = leadIn(fb.L, fly.stroke).map(([x, y]) => [x + fdx, y] as Pt);
+        const pts = [...lead, ...strokePts(fly.box, fly.stroke)], u = Math.min(1, (now - fly.from) / fly.ms), n = Math.max(1, Math.round(u * (pts.length - 1)));
         if (pts.length > 1) { line(pts.slice(0, n + 1), lw * 1.6, '#fff3b0', 0.85); } else dot(pts[0]!, lw * 0.9 * u, '#fff3b0');
         const at = pts[Math.min(pts.length - 1, n)]!, prev = pts[Math.max(0, n - 2)]!, ang = pts.length > 1 ? Math.atan2(at[1] - prev[1], at[0] - prev[0]) : 0;
         c.save(); c.translate(X(at[0]), Y(at[1])); c.rotate(ang); if (Math.cos(ang) < 0) c.scale(1, -1); drawPlane(c, look, s * 0.0042, now / 1000); c.restore();

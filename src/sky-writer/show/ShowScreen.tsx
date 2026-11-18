@@ -5,14 +5,14 @@
 // can draw; 📮 keeps it as a postcard on the Wall.
 //
 // The canvas runs at most 1.5 device pixels a CSS pixel and the trail keeps at most TRAIL_MAX pieces, for the iPad 9's 60 fps.
-import { useEffect, useRef, useState } from 'preact/hooks';
+import { useEffect, useMemo, useRef, useState } from 'preact/hooks';
 import { sChime, sFanfare, sNope, sPop } from '../../audio/sfx';
 import { confetti } from '../../celebrate/effects';
 import { seeded } from '../../game/rng';
 import { IconButton } from '../../ui/bits';
 import { lookOf } from '../art/PlanePic';
 import { drawPlane, EMOJI_FONT } from '../art/plane';
-import { useCanvasLoop } from '../art/loop';
+import { chatter, useCanvasLoop } from '../art/loop';
 import { SHAPES, TRICKS, type TrickId } from '../airfield/parts';
 import { flight, hasGear, MAX_POSTCARDS, openShows, specialTrick } from '../airfield/state';
 import { keepCard, player, settleShow } from '../game';
@@ -30,6 +30,8 @@ const HAZARD_PIC = { cloud: '☁️', balloon: '🎈', bird: '🐦' } as const;
 
 export function ShowScreen() {
   const voice = useVoiceScope(), a = player.state.value.airfield;
+  // what's said as things happen (a bump, a trick) is dropped while the voice is still talking, so it never queues up behind the action
+  const quip = useMemo(() => chatter((line: Phrase) => voice.sayMore(line)), [voice]);
   const [at, setAt] = useState<ShowId>(flying.value!.at), [phase, setPhase] = useState<Phase>('pick');
   const [passed, setPassed] = useState(0), [armed, setArmed] = useState(false), [kept, setKept] = useState<'no' | 'yes' | 'full'>('no'), [drawn, setDrawn] = useState(0);
   const look = lookOf(a), fl = flight(a), special = specialTrick(a), here = show(at);
@@ -82,11 +84,11 @@ export function ShowScreen() {
         if (e === 'first-ring') void voice.sayMore('Through the ring!');
         if (e === 'last-ring') void voice.sayMore('Last ring!');
       }
-      if (e === 'bump') { sBonk(); void voice.sayMore('Wobble!'); }
-      if (e === 'boing') { sBoingShield(); void voice.sayMore('Boing!'); }
+      if (e === 'bump') { sBonk(); quip('Wobble!'); }
+      if (e === 'boing') { sBoingShield(); quip('Boing!'); }
       if (e === 'trick') sTrick();
-      if (e === 'turbo') void voice.sayMore('Zoom!');
-      if (e === 'full') void voice.sayMore('Out of smoke!');
+      if (e === 'turbo') quip('Zoom!');
+      if (e === 'full') quip('Out of smoke!');
       if (e === 'rings-done') ringsDone(w);
     }
     if (extras.sparkle && frames.current % 6 === 0) burst(w.x - Math.cos(w.heading) * 20, w.y - Math.sin(w.heading) * 20, '✨', 1);
@@ -207,7 +209,7 @@ export function ShowScreen() {
   function trick(id: TrickId) {
     const w = world.current;
     if (!w || !voice.active) return;
-    if (startTrick(w, id)) { const name = TRICKS.find(x => x.id === id)!.name; if (id === 'loop') void voice.sayMore('Loop!'); else if (id === 'roll') void voice.sayMore('Roll!'); else void voice.sayMore(name as Phrase); }
+    if (startTrick(w, id)) { const name = TRICKS.find(x => x.id === id)!.name; quip(id === 'loop' ? 'Loop!' : id === 'roll' ? 'Roll!' : name as Phrase); }
   }
   function leave() {
     if (!voice.active) return;

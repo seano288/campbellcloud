@@ -2,7 +2,7 @@
 // the three writing lines. The question is always said; 🔊 says it again with no penalty, and 🔎 runs the fuller lesson (it counts as
 // help). A miss is never marked with a red X: a wrong choice greys and wobbles, and the lesson plays on the letter itself
 // (writing/teach.ts); in the writing kinds the little plane flies the stroke.
-import { useEffect, useState } from 'preact/hooks';
+import { useEffect, useMemo, useState } from 'preact/hooks';
 import type { ComponentChildren } from 'preact';
 import { sClink, sNope } from '../audio/sfx';
 import type { ProblemInstance } from '../learning/round';
@@ -14,7 +14,9 @@ import { glyphKey } from './letters/glyphs';
 import { TUNING } from './letters/check';
 import { FAMILIES, letter, startOf } from './letters/strokes';
 import type { Asking, Problem } from './mix';
-import { FAMILY_LINES, nameOf, sayLetter, type Phrase } from './phrases';
+import { chatter } from './art/loop';
+import { FAMILY_LINES, nameOf, type Phrase } from './phrases';
+import { askLine } from './writing/ask';
 import { boxesOf, strokeAt, type FlipQ, type MeetQ, type SizeQ, type StartQ, type TraceQ, type WordQ, type WriteQ } from './writing/problems';
 import { help, lessonFor, type Lesson } from './writing/teach';
 import { WritePad, type Guide } from './writing/WritePad';
@@ -83,7 +85,9 @@ const Big = ({ t }: { t: string }) => <span class="sw-ch">{t}</span>;
 
 function WriteView({ current, q, waiting }: { current: Current<Asking>; q: TraceQ | WriteQ | WordQ; waiting: boolean }) {
   const voice = useVoice(), lesson = lessonFor(current.signal), level = current.problem.level, chars = boxesOf(q);
-  const speech: Item[] = q.kind === 'trace' ? ['Trace', ...sayLetter(q.ch)] : q.kind === 'write' ? ['Write', ...(q.text.length > 1 ? [q.text as Phrase] : sayLetter(q.text))] : ['Write the word', q.word as Phrase];
+  // a hint after a rub-out is dropped while the voice is still talking, so rubbing out again and again never queues up a string of them
+  const hint = useMemo(() => chatter((line: Phrase) => voice.sayMore(line)), [voice]);
+  const speech: Item[] = askLine(q);
   const ready = useAsked(current, speech);
   const [showWord, setShowWord] = useState(q.kind === 'word' && q.show !== 'said');
   useEffect(() => { if (q.kind === 'word' && q.show === 'flash') { const t = setTimeout(() => setShowWord(false), 2600); return () => clearTimeout(t); } }, []);
@@ -103,9 +107,9 @@ function WriteView({ current, q, waiting }: { current: Current<Asking>; q: Trace
             miss: (why, stroke, box) => { current.actions.submit(`miss:${why}:${stroke}:${box}`); },
             rub: why => {
               if (!voice.active || lesson.fly.peek()) return;
-              if ((why === 'tap' || why === 'away') && (guide === 'arrow' || guide === 'dots')) void voice.sayMore('Start at the green dot!');
-              else if (why === 'lane' && q.kind === 'trace') void voice.sayMore('Stay on the path!');
-              else if (why === 'lift') void voice.sayMore('Keep going!');
+              if ((why === 'tap' || why === 'away') && (guide === 'arrow' || guide === 'dots')) hint('Start at the green dot!');
+              else if (why === 'lane' && q.kind === 'trace') hint('Stay on the path!');
+              else if (why === 'lift') hint('Keep going!');
             },
           }} />
       </div>
@@ -145,8 +149,8 @@ function Framed({ ch, children, lit, over, onTap, crop }: { ch: string; children
 const pct = (ch: string, [x, y]: readonly [number, number], crop = false) => { const f = frame(ch, crop); return { left: `${((x - f.x0) / f.w) * 100}%`, top: `${((y - f.y0) / f.h) * 100}%` }; };
 
 function StartView({ current, q, waiting }: { current: Current<Asking>; q: StartQ; waiting: boolean }) {
-  const lesson = lessonFor(current.signal), ask: Phrase = q.step === 'dot' ? 'Where does it start? Tap the dot!' : q.step === 'way' ? 'Which way does it go first?' : 'Which line comes second? Tap it!';
-  const speech: Item[] = [...sayLetter(q.ch), ask], ready = useAsked(current, speech), c = useChoices(current, waiting, ready);
+  const lesson = lessonFor(current.signal);
+  const speech: Item[] = askLine(q), ready = useAsked(current, speech), c = useChoices(current, waiting, ready);
   const title = q.step === 'dot' ? <>Where does <Big t={q.ch} /> start?</> : q.step === 'way' ? <>Which way does <Big t={q.ch} /> go first?</> : <>Which line comes second?</>;
   const L = letter(q.ch), lit = lesson.lit.value, [tapped, setTapped] = useState<number | null>(null);
   if (q.step === 'dot') return (
@@ -188,7 +192,7 @@ function StartView({ current, q, waiting }: { current: Current<Asking>; q: Start
 // ---------- Which Way ----------
 
 function FlipView({ current, q, waiting }: { current: Current<Asking>; q: FlipQ; waiting: boolean }) {
-  const speech: Item[] = q.step === 'word' ? ['One letter is backwards. Tap it!'] : ['Tap', ...sayLetter(q.ch)];
+  const speech: Item[] = askLine(q);
   const ready = useAsked(current, speech), c = useChoices(current, waiting, ready);
   if (q.step === 'word') {
     const parts = [...q.word!].map((ch, i) => ({ ch, turn: i === q.at ? ('m' as const) : ('id' as const) }));
@@ -228,7 +232,7 @@ function Row({ parts, c }: { parts: readonly { ch: string; dy?: number; turn?: '
 
 const SIZE_ICONS = { tall: '⬆️', small: '⏺️', tail: '⬇️' } as const;
 function SizeView({ current, q, waiting }: { current: Current<Asking>; q: SizeQ; waiting: boolean }) {
-  const speech: Item[] = q.step === 'sort' ? [...sayLetter(q.ch), 'Is it tall, small, or a tail letter?'] : q.step === 'line' ? ['Which one sits on the line the right way?'] : ['One letter floats or sinks. Tap it!'];
+  const speech: Item[] = askLine(q);
   const ready = useAsked(current, speech), c = useChoices(current, waiting, ready);
   if (q.step === 'sort') return (
     <Shell current={current} kind="size sort" text={<>Is <Big t={q.ch} /> tall, small, or a tail?</>} speech={speech} ready={ready && !waiting}>

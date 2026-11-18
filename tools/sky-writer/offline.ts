@@ -6,6 +6,7 @@ import assert from 'node:assert/strict';
 import { resolve } from 'node:path';
 import { chromium } from 'playwright';
 import { preview } from 'vite';
+import { CLIPS } from '../../src/sky-writer/voice.gen';
 
 const server = await preview({ configFile: false, logLevel: 'silent', build: { outDir: resolve(import.meta.dirname, '../../dist-site') }, preview: { host: '127.0.0.1', port: 0 } });
 const url = `${server.resolvedUrls!.local[0]!}sky-writer/`;
@@ -32,7 +33,10 @@ try {
     return paths;
   });
   const clips = cached.filter(p => p.includes('/sky-writer-voice/') || p.endsWith('.mp3')).length;
-  assert.ok(clips > 500, `only ${clips} voice clips precached`);
+  // every clip the game can say, not just most of them
+  const files = new Set(cached.map(p => p.split('/').pop()));
+  const missing = [...new Set(Object.values(CLIPS))].filter(f => !files.has(f));
+  assert.deepEqual(missing, [], `${missing.length} voice clips not precached`);
   console.log(`precached ${cached.length} files, ${clips} of them voice clips`);
 
   // offline: reload, Start, Play
@@ -48,7 +52,11 @@ try {
   await page.waitForTimeout(2500);
   await page.locator('.game.sw[data-ready="yes"]').waitFor({ timeout: 40000 });
   const stars = await page.locator('.stars').getAttribute('aria-label');
-  console.log(`offline: a Round started, ${said} clips played, ${stars}`);
+  // the second question (the first one he answers) is said too: its letter, offline
+  await page.waitForTimeout(1500);
+  const after = await page.evaluate(() => (window as unknown as { __clips: number }).__clips);
+  assert.ok(after > said, 'the second question was not said offline');
+  console.log(`offline: a Round started, ${said} clips played for the first question and ${after - said} more for the second, ${stars}`);
   const saved = await page.evaluate(() => JSON.parse(localStorage.getItem('sky-writer-place') ?? '{}'));
   assert.equal(saved.screen, 'round', 'the Round in progress was not remembered');
 } catch (e) {
