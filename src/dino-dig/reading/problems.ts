@@ -17,7 +17,7 @@
 import { pick, shuffle, type Rng } from '../../game/rng';
 import { isVowelSound, sameSound, VOWELS, WORD_INFO, wordsIn, type PatternId, type Word, type WordInfo } from '../words/list';
 import { diffBox, heardAlike, neighbours, oneSoundApart, shared, veryDifferent } from '../words/pairs';
-import { CONTAINERS, hasPicture, pictureClash, SUBJECTS, SURFACES } from '../words/pictures';
+import { CONTAINERS, hasPicture, IN_OR_ON, pictureClash, SUBJECTS, SURFACES } from '../words/pictures';
 import { SILLY } from '../words/silly';
 
 /** A word's sounds and Pattern, looked up once. */
@@ -90,7 +90,8 @@ const MULTI = (s: string) => s.length > 1;
 /** The words he could be told to change into w at this Level: one sound apart, met, and (L3) a change with two letters for one sound. */
 export function swapSources(level: Level, w: Word, met: readonly Word[]): Word[] {
   return neighbours(w).filter(f => {
-    if (!met.includes(f)) return false;
+    // "This says pen. Make it say pin." is no question when the two sound alike
+    if (!met.includes(f) || heardAlike(f, w)) return false;
     const i = diffBox(f, w), a = infoOf(f).sounds[i]!, b = infoOf(w).sounds[i]!;
     return level === 3 ? MULTI(a) || MULTI(b) : !MULTI(a) && !MULTI(b);
   });
@@ -186,8 +187,7 @@ export function otherScenes(level: Level, s: Scene, met: readonly Word[], rng: R
   }
   const cands: Scene[] = [];
   if (s.size) cands.push({ ...s, size: s.size === 'big' ? 'little' : 'big' });
-  if (s.rel === 'on' && s.b && CONTAINERS.includes(s.b)) cands.push({ ...s, rel: 'in' });
-  if (s.rel === 'in' && s.b && SURFACES.includes(s.b)) cands.push({ ...s, rel: 'on' });
+  if ((s.rel === 'on' || s.rel === 'in') && s.b && IN_OR_ON.includes(s.b)) cands.push({ ...s, rel: s.rel === 'on' ? 'in' : 'on' });
   const swaps = (w: Word, pool: readonly Word[]) =>
     shuffle(rng, pool.filter(x => x !== w && x !== s.a && x !== s.b)).sort((a, b) => Number(oneSoundApart(b, w)) - Number(oneSoundApart(a, w)) || shared(b, w) - shared(a, w));
   const aPool = s.rel === 'on' || s.rel === 'in' ? subs.filter(x => !pictureClash(x, s.b!)) : subs;

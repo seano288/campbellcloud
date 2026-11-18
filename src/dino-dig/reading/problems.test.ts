@@ -9,7 +9,7 @@ import { seeded } from '../../game/rng';
 import { WORDS as SIGHT_WORDS } from '../../sight-squad/words/list';
 import { infoOf, isVowelSound, PATTERN_IDS, sameSound, WORDS, type PatternId, type Word } from '../words/list';
 import { diffBox, heardAlike, oneSoundApart, veryDifferent } from '../words/pairs';
-import { hasPicture, pictureClash } from '../words/pictures';
+import { hasPicture, IN_OR_ON, pictureClash } from '../words/pictures';
 import { SILLY } from '../words/silly';
 import {
   canAsk, check, KINDS, latest, listWordsOf, makeQuestion, metWords, nearMiss, sceneKey, sentenceLength, sentenceOf, wordsApart,
@@ -118,6 +118,9 @@ describe('Sound Swap', () => {
       else expect(a.length === 1 && b.length === 1, `${q.from}>${q.word}`).toBe(true);
     });
   });
+  it('never asks him to change a word into one the voice says alike (pen to pin)', () => {
+    each(q => { if (q.kind === 'swap') expect(heardAlike(q.from, q.word), `${q.from}>${q.word}`).toBe(false); });
+  });
   it('offers tiles that each say a different sound, and never the old one', () => {
     each(q => {
       if (q.kind !== 'swap') return;
@@ -136,6 +139,7 @@ describe('Real or Silly', () => {
       if (q.kind !== 'real') return;
       expect(q.choices.sort()).toEqual([q.word, q.silly].sort());
       expect(WORDS as readonly string[]).not.toContain(q.silly);
+      if (level === 1) expect(q.silly[0] !== q.word[0] && ![...q.silly].some(c => /[aeiou]/.test(c) && q.word.includes(c)), `${q.word}/${q.silly}`).toBe(true);
       if (level === 2) expect(SILLY[infoOf(q.word).pattern]).toContain(q.silly);
       if (level === 3) expect([...q.silly].filter((c, i) => c !== q.word[i]).length).toBe(1);
       if (level === 3) expect(q.silly.length).toBe(q.word.length);
@@ -164,6 +168,11 @@ describe('Read and Find', () => {
       for (const c of q.choices) if (sceneKey(c) !== sceneKey(q.scene)) {
         if (level === 3) expect(wordsApart(c, q.scene), `${sentenceOf(c)} / ${sentenceOf(q.scene)}`).toBe(1);
         else expect(wordsApart(c, q.scene)).toBeGreaterThanOrEqual(1);
+        // Level 1: another thing that looks and sounds nothing like it; Level 2: another thing, not one sound apart
+        if (level === 1) expect(veryDifferent(c.a, q.scene.a), `${sentenceOf(c)} / ${sentenceOf(q.scene)}`).toBe(true);
+        if (level === 2) expect(oneSoundApart(c.a, q.scene.a), `${sentenceOf(c)} / ${sentenceOf(q.scene)}`).toBe(false);
+        // "in a" against "on a" only where they plainly differ: a fox on a boat is in it too
+        if (c.rel !== q.scene.rel) expect(IN_OR_ON, `${sentenceOf(c)} / ${sentenceOf(q.scene)}`).toContain(q.scene.b);
       }
     });
   });

@@ -88,7 +88,7 @@ export type MarkingId = (typeof MARKINGS)[number]['id'];
 export const HATS = [
   { id: 'none', name: 'No Hat', price: 0, pic: '🚫' },
   { id: 'cap', name: 'Cap', price: 6, pic: '🧢' },
-  { id: 'bow', name: 'Bow', price: 6, pic: '🎀' },
+  { id: 'bow', name: 'Hair Bow', price: 6, pic: '🎀' },
   { id: 'shades', name: 'Sunglasses', price: 10, pic: '🕶️' },
   { id: 'flower', name: 'Flower', price: 10, pic: '🌼' },
   { id: 'sunhat', name: 'Sun Hat', price: 12, pic: '👒' },

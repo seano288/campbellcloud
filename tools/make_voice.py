@@ -123,12 +123,14 @@ COLLECTION_SPEECH = {
     # Dino Dig says the same words the same way as Word Wreckers (its own clips, so the two games' folders stay their own): slowly at
     # -40% while the sound boxes light, and "cat" and "grab" in Jenny's voice, which Aria says as "Kate" and "crab". Its own voice test
     # (.scratch/dino-dig/spec.md) also heard Aria's "puff" as "path" and her slow "duck" as "deck", so those are Jenny's too; and her
-    # slow "shop", "sock" and "tub" as "sharp", "suck" and "tab", which -20% doesn't do
+    # slow "shop", "sock" and "tub" as "sharp", "suck" and "tab", which -20% doesn't do. The review pass's check (both models) still heard
+    # slow "tub" as "tab" at -20% (-15% is heard right), and slow "lunch" as "lunge" and "brick" as "break" (-25% and -30% are heard right)
     'dino-dig': {
         'slow': ('Slowly: ', '-40%'),
-        'said_as': {'cat': 'cat'},
+        # both models heard a plain "Dig here!" as "Take care." and "Play more Hear It to open this!" without its "Hear It"
+        'said_as': {'cat': 'cat', 'Dig here!': 'Dig, here!', 'Play more Hear It to open this!': 'Play more, Hear It, to open this!'},
         'voice_for': {'cat': 'en-US-JennyNeural', 'grab': 'en-US-JennyNeural', 'puff': 'en-US-JennyNeural', 'duck': 'en-US-JennyNeural'},
-        'slow_for': {'shop': '-20%', 'sock': '-20%', 'tub': '-20%'},
+        'slow_for': {'shop': '-20%', 'sock': '-20%', 'tub': '-15%', 'lunch': '-25%', 'brick': '-30%'},
     },
 }
 

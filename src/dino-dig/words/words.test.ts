@@ -19,11 +19,20 @@ const MODERN = [
   'nah', 'meh', 'duh', 'zip', 'vax', 'vape', 'blog', 'vlog', 'meme', 'gif', 'nerd', 'geek', 'dork', 'snot', 'barf', 'blah', 'fave', 'glam', 'jock', 'pal',
   'prom', 'thug', 'tux', 'wiz', 'yuk', 'pog', 'larp', 'womp', 'yomp', 'vom', 'vin', 'jeb', 'jem', 'kip', 'pim', 'zeb', 'zak', 'dex', 'jax', 'yeet', 'sus',
 ];
+/** Found reading the list by hand, and kept out word for word (not through the other spellings: they would catch too much): slang
+ *  (bish, trib, virg, parm, marg, spag, crit, nong, purp, jort, wub, fark), foods (larb, blin), names a child knows (Zurg, porgs, Stig)
+ *  or meets (Yash, Ying, Nin, Garp), and drit (Norwegian for dirt, and worse). */
+const BY_HAND = [
+  'bish', 'trib', 'virg', 'parm', 'marg', 'spag', 'crit', 'nong', 'purp', 'jort', 'wub', 'fark', 'larb', 'blin', 'zurg', 'porg', 'stig', 'yash',
+  'ying', 'nin', 'garp', 'drit',
+];
 const RUDE = ['fuk', 'fuc', 'shit', 'sht', 'dik', 'dic', 'cok', 'kok', 'ass', 'tit', 'cum', 'fag', 'sex', 'poo', 'pee', 'pis', 'butt', 'bum', 'crap', 'damn',
   'hell', 'turd', 'slut', 'fart', 'barf', 'puke', 'nig', 'jiz', 'wank', 'twat', 'nad', 'fick', 'shid', 'fap', 'jap', 'wop', 'gyp', 'yid', 'kike', 'cuck',
-  'spic', 'spik', 'coon', 'homo', 'dyke', 'dong', 'wang', 'shag', 'spunk', 'poon', 'knob', 'boob', 'gash', 'skank', 'vag', 'tard', 'nazi', 'kkk'];
+  'spic', 'spik', 'coon', 'homo', 'dyke', 'dong', 'wang', 'shag', 'spunk', 'poon', 'knob', 'boob', 'gash', 'skank', 'vag', 'tard', 'nazi', 'kkk',
+  // rhymes with a rude word
+  'unt'];
 const common = (w: string) => HUN.has(w) || NAMES.has(w) || MODERN.includes(w) || (WORDS as readonly string[]).includes(w);
-const real = (w: string) => WEB2.has(w) || common(w);
+const real = (w: string) => WEB2.has(w) || common(w) || BY_HAND.includes(w);
 const formOf = (a: string) => common(a) || (a.endsWith('ed') && (common(a.slice(0, -2)) || common(a.slice(0, -1)))) || (a.endsWith('s') && common(a.slice(0, -1))) || (/[aeiouyw]d$/.test(a) && common(a.slice(0, -1)));
 
 /** Other ways to spell the sounds of a silly word: one of these that is a common word means it would be read as that word. */
@@ -35,9 +44,15 @@ const ALTS: [RegExp, string[]][] = [
   [/a([^aeiou])e$/, ['ai$1', 'ay$1', 'ei$1', 'a$1$1']], [/i([^aeiou])e$/, ['igh$1', 'y$1e', 'ie$1', 'uy$1']], [/o([^aeiou])e$/, ['oa$1', 'ow$1', 'oe$1', 'o$1']],
   [/u([^aeiou])e$/, ['oo$1', 'ew$1', 'ou$1', 'ui$1', 'ue$1']],
 ];
+/** A vowel team or magic e said as the other one (caik is cake, fraim is frame, grait is grate, foak and foke are folk). Tried on the
+ *  silly word itself only: chained with ALTS they'd turn a short vowel into a long one (pag into page). */
+const LONG: [RegExp, string[]][] = [
+  [/ai([^aeiou]+)$/, ['a$1e', 'eigh$1']], [/ee([^aeiou]+)$/, ['e$1e', 'ie$1', 'ea$1']], [/oa([^aeiou]+)$/, ['o$1e', 'ol$1']], [/o([^aeiou])e$/, ['ol$1']],
+];
 function alikes(w: string): string[] {
   const out = new Set([w]);
   for (let round = 0; round < 2; round++) for (const s of [...out]) for (const [re, alts] of ALTS) for (const a of alts) if (re.test(s)) out.add(s.replace(re, a));
+  for (const [re, alts] of LONG) for (const a of alts) if (re.test(w)) out.add(w.replace(re, a));
   return [...out];
 }
 

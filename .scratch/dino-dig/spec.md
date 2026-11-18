@@ -18,13 +18,17 @@ earn Bolts and a Dig; Digs find bones; whole skeletons come alive and he plays a
   (🌫️ fog, 🥫 can, 🛖 hut, ⛈️ storm) plus four it doesn't have (5️⃣ five, 9️⃣ nine, 3️⃣ three, 🪽 wing): 81 pictured words. Read It and
   Read and Find use only these. **Look-alike groups** are never offered together: 🐤 🐦 🦆, ⛵ 🚢, 🐑 🐐, 🍃 🪴 🌳, 🐟 🦈 🦐, 🪨 🧱, ✋ 👏,
   🚗 🚚 🚌, ⛸️ 🛷, 👕 👗, the four numbers, ❄️ ⭐.
-- **Silly words** (`words/silly.ts`, Dino Dig only): 711 made-up words, each built from its Pattern's letters (a consonant or blend, the
-  Pattern's vowel, a consonant; never a soft c or g, never ending in letters English words don't end in): cvc 37 (vob, yig), digraph 73
-  (shib, vock), blend 244 (blig, zomp), magic e 88 (fube, blike), vowel team 79 (treeb, voak), r-controlled 190 (zorp, nirg). Each is not
+- **Silly words** (`words/silly.ts`, Dino Dig only): 672 made-up words, each built from its Pattern's letters (a consonant or blend, the
+  Pattern's vowel, a consonant; never a soft c or g, never ending in letters English words don't end in): cvc 35 (vob, yig), digraph 69
+  (shib, vock), blend 236 (blig, zomp), magic e 87 (fube, blike), vowel team 65 (treeb, voak), r-controlled 180 (zorp, nirg). Each is not
   in macOS's dictionary or names list, nor in the US and UK Hunspell dictionaries, nor in a list of modern words, slang and short names
   they lack; nothing rude can be read in it; and no other spelling of its sounds is a common word (fone for phone, slaid for slayed).
   The test (`words/words.test.ts`) re-checks all of it wherever those dictionaries are installed, and caught 9 more while building
-  (yump/yomp, lirp/larp...). Hand-removed: pog, fap, larp, womp, vom, vin and others a parent would wince at.
+  (yump/yomp, lirp/larp...). Hand-removed: pog, fap, larp, womp, vom, vin and others a parent would wince at. The review pass (2 of 3)
+  read all 711 and took out 39: real words in a vowel team's clothes (caik is cake, faik fake, faim fame, fraim frame, grait grate,
+  baib babe, vaip vape, foak and foke folk, greeb grebe...; the test now tries a team said as a magic e), slang (bish, trib, virg, parm,
+  marg, spag, crit, nong, purp, jort, wub, fark), foods (larb, blin), names (Zurg, porg, Stig, Yash, Ying, Nin, Garp), drit, and yunt and
+  zunt (they rhyme with a rude word).
 - **One sound apart** (`words/pairs.ts`): same number of sounds, one box different, and a different sound there (cat / coat yes; c / k
   never). 120 of the 201 words have such a neighbour on the list.
 - **Heard alike**: pairs Hear It never offers together: pen / pin (one sound in much of the South), and pairs speech-to-text heard as each
@@ -44,7 +48,9 @@ Silly at Read It Level 2; Read and Find once both Read It and Hear It reach Leve
 | **Read and Find** `sentence`: read a short sentence; tap the picture | 3 words: "A big pig." | 4 or 5: "I see a fox." "A fox in a box." "A cat and a dog." | 3 pictures, each one word off the sentence: big / little, on / in, or a thing swapped (one sound apart first) |
 
 Read and Find's pictures are built from emoji: one thing (big, little, or as it is), two side by side, one sitting on another, or one
-in another (peeking out over its front: the container is drawn twice, the front copy clipped to its lower half). Sentences use met words
+in another (peeking out over its front: the container is drawn twice, the front copy clipped to its lower half), sized by the card so
+the thing in a jar can be told apart. Level 3 offers "in a" against "on a" only for a box, a car and a truck (`IN_OR_ON`): a cat in bed
+is on it too, and a fox on a boat (or a bus, a ship) is in it. Sentences use met words
 plus the first Sight Squad words (a, I, see, big, little, and, on, in).
 
 **The rules the tests enforce** (`reading/problems.test.ts`, every kind × Level × each of the six stages through the Patterns × every word
@@ -53,10 +59,12 @@ it can ask × 2 seeds: 12,000 questions):
 - A question only uses words from Patterns he has met: the word, every choice, Sound Swap's other word, every word of every sentence
   offered, and the silly word's Pattern.
 - **Exactly one right answer**: every choice (and for Sound Swap every box and tile) is tried, and one is right.
-- Words heard alike are never offered together in Hear It.
+- Words heard alike are never offered together in Hear It, and Sound Swap never asks him to turn one into the other ("This says pen.
+  Make it say pin.").
 - Read It and Read and Find use only pictured words, never two look-alikes.
 - Each Level's shape (counts, very different / one sound apart / one word off; Sound Swap's single-letter or two-letter change; Real or
-  Silly's same-Pattern and one-letter-off).
+  Silly's nothing-in-common, same-Pattern and one-letter-off; Read and Find's very different things at Level 1 and nothing one sound
+  apart at Level 2; in / on only where they plainly differ).
 - Sound Swap's tiles each say a different sound from the right one and the old one (never k for c), vowels for vowels.
 - Every kind can be asked at every Level from 25 or more words once every Pattern is met; a kind with nothing to ask at a Level yet
   (Sound Swap Level 3 before digraphs) sits out.
@@ -109,6 +117,15 @@ Recorded with `tools/make_voice.py`'s settings for Dino Dig, Aria (`en-US-AriaNe
   -20% instead of -40%** (at -40% their vowel stretched into "sharp", "suck", "tab"; at -20% small.en heard all three right). This needed
   one new option there, `slow_for`, a per-word slow rate; no other collection uses it, so no other game's clips changed (Word Wreckers'
   index re-checks with no new or missing clips).
+- **The review pass (2 of 3) checked every clip again**: all 879 are real audio (none empty; every slow word longer than its normal one;
+  spoken lengths 0.4 to 1.2 s for words and numbers, in line with their text for the rest), transcribed with small.en (every word,
+  slow word and number, and all 373 other lines) and large-v3-turbo (the doubtful words both ways, the twelve dinosaur names). Fixed:
+  slow "tub" still came back "tab" at -20% (now -15%), slow "lunch" as "lunge" (now -25%), slow "brick" as "break" (now -30%), "Dig
+  here!" as "Take care." (said as "Dig, here!"), and "Play more Hear It to open this!" lost its "Hear It" (said with commas round it).
+  The hat "Bow" is now "Hair Bow" (alone it can be said like "take a bow"). Left for the parent's ear: large-v3-turbo hears Aria's
+  "moth" as "math" and "mop" as "map" in every voice and speed tried (small.en hears both right; mop / map are never offered together
+  in Hear It or Sound Swap), small.en hears bat as "that", cube as "hub", grape as "crepe" and slow hut, luck, pot, cute and beak as
+  hot, lack, hot, hute and beek (large-v3-turbo hears all of them right).
 - **Isolated sounds are not usable**, as the brief assumed: "a", "aah.", "æ" all came back as the letter name "A"; "t", "t.", "/t/" as "T";
   "tuh" as "tā"; "mmm" as "Ennem". Only /sh/ came out as a sound ("sh", "Shh."). So the game never plays a lone sound; it lights the boxes
   while the whole word is said slowly, then normally, and teaches by contrast between whole words. *Open question*: /sh/ alone may be
@@ -135,8 +152,9 @@ for the Museum hall.
   to the crate**; let go anywhere else it stays loose where he put it; let go most of the way there (or tap it three times) and it flies in.
   Bolts and the fossil fly up by themselves when uncovered.
 - **Help**: after 7 seconds without progress a 👇 points at the next bone ("Dig here!"); after 18 the dirt over it falls away by itself
-  and a rock on it crumbles. A scripted child always finishes (`dig/dig.test.ts`: every site × every tool, a child who only rubs anywhere
-  and taps, and one who stops).
+  and a rock on it crumbles. A bone left loose gets the 👇 too ("Drag it to the crate!"), and after 18 seconds it flies to the crate by
+  itself, so a child who never drags still finishes. A scripted child always finishes (`dig/dig.test.ts`: every site × every tool, a
+  child who only rubs anywhere and taps, one who stops, and one who does nothing at all).
 - **Gadgets**: Headlamp (a light at his finger), Bone Finder (bones show faintly through the dirt), Bolt Finder (the same for Bolts),
   Leaf Blower (💨, three a Dig: blows a band of dirt off), Bone Magnet (loose bones fly to the crate), Water Hose (🚿, two a Dig: a much
   wider stroke for six seconds), Dynamite (🧨, once: every rock), Dig Dog (a 🐕 digs at the next bone), Rock Drone (cracks rocks), Dig Robot
@@ -183,7 +201,7 @@ need 4 more Bolts." and it becomes his Goal (shown as a chip). Looks are for one
 | Gadgets | above | 10 | 12 to 70 | 320 |
 | Colors | Natural; 17 from Red to Rainbow | 17 | 3 to 40 | 149 |
 | Markings | none; Spots, Stripes, Scales, Polka Dots, Zigzag, Hearts, Stars, Tiger, Leopard, Camo, Flames, Galaxy, Glow Stripes | 13 | 8 to 60 | 282 |
-| Hats | none; Cap, Bow, Sunglasses, Flower, Sun Hat, Smart Hat, Headphones, Goggles, Hard Hat, Top Hat, Army Helmet, Crown | 12 | 6 to 50 | 227 |
+| Hats | none; Cap, Hair Bow, Sunglasses, Flower, Sun Hat, Smart Hat, Headphones, Goggles, Hard Hat, Top Hat, Army Helmet, Crown | 12 | 6 to 50 | 227 |
 | Roars | Big Roar; Squeak, Chirp, Honk, Growl, Trumpet, Thunder, Robot, Dragon, Siren, Space Laser, Mega Roar (made in code, `sounds.ts`) | 11 | 5 to 60 | 258 |
 | Gear | Sparkle Feet, Rainbow Trail, Confetti Roar, Snack Magnet, Super Jump, Turbo Run, Big Stomp, Glider Cape | 8 | 12 to 75 | 317 |
 | Lands | Fern Forest; Sunny Beach, Swamp, Desert, Snowy Hills, Volcano, Night Jungle, Candy Land | 7 | 20 to 100 | 400 |
@@ -217,8 +235,10 @@ and unknown ids are dropped. A Dig or a run isn't a place: a reload during one l
 
 ## Open questions for the parent
 
-1. Every word clip needs a listen on the iPad, especially the least sure (in the report): tub (heard as "tab" by the large model in every
-   voice), the Jenny ones (cat, grab, puff, duck) among Aria's, the -20% slow shop, sock and tub, hut, luck, brick, grape, cube, cute.
+1. Every word clip needs a listen on the iPad, especially the least sure: moth and mop (normal and slow; a model hears "math", "map"),
+   tub (normal, and slow at -15%), the Jenny ones (cat, grab, puff, duck) among Aria's, the slower-than-usual slow clips (shop, sock at
+   -20%, lunch -25%, brick -30%), bat, cube, grape, cute, and slow hut, luck, pot, beak; then "Dig here!", "Hair Bow" and the dinosaur
+   names. The 2 the voice says as "to" is right for a number.
 2. The pictures need a look on the iPad (Apple's emoji): especially 🪽 wing, 📌 pin, 🪵 log, 🍃 leaf, 🎨 paint, 🛝 slide, ⛓️ chain, 🧠 brain,
    and the composed Read and Find scenes (is "in" readable when one emoji peeks out of another?).
 3. Should Read It Level 3 have more one-sound-apart pictures? Only 29 pictured words have a pictured neighbour; the other choice is the

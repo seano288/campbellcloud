@@ -71,6 +71,15 @@ describe('a Dig', () => {
     const loose = w.things.find(x => x.state === 'loose' && x.thing === 'bone');
     if (loose) { tap(w, loose.px, loose.py, 1); tap(w, loose.px, loose.py, 1); tap(w, loose.px, loose.py, 1); for (let i = 0; i < 40; i++) step(w, DT); expect(loose.state).toBe('crated'); }
   });
+  it('is finished by a child who does nothing at all: the help uncovers each bone and sends it to the crate', () => {
+    for (const seed of [1, 2, 3]) for (let tier = 1; tier <= SITES.length; tier++) {
+      const w = world(tier, seed, DINOS[tier * 2 - 1]!.bones.slice(0, 2));
+      let t = 0, dragHint = false;
+      while (!finished(w) && t < 400) { const e = step(w, DT); dragHint ||= e.some(x => x.kind === 'hint' && !!x.drag); t += DT; }
+      expect(finished(w), `seed ${seed} site ${tier}`).toBe(true);
+      expect(dragHint, 'a hint points at a bone left loose').toBe(true);
+    }
+  });
   it('keeps a bone under a rock buried until the rock is cracked, and every tap cracks it', () => {
     const w = world(6, 3), bone = w.things.find(x => x.thing === 'bone')!;
     expect(blocked(w, bone)).toBe(true);

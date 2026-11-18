@@ -144,7 +144,7 @@ export function DigScreen() {
       if (e.kind === 'crack') { sChip(); say('Crack!'); }
       if (e.kind === 'smash') { sCrunch(); say('Smash!'); for (let i = 0; i < 6; i++) puffs.current.push({ x: e.rock.x + (Math.random() - .5) * e.rock.r, y: e.rock.y + (Math.random() - .5) * e.rock.r, t: 0, c: s.rock }); }
       if (e.kind === 'tapLoose') { sPop(); say('Drag it to the crate!'); }
-      if (e.kind === 'hint') say(dig.dino ? 'Dig here!' : 'Keep digging!');
+      if (e.kind === 'hint') say(e.drag ? 'Drag it to the crate!' : dig.dino ? 'Dig here!' : 'Keep digging!');
       if (e.kind === 'crated') {
         sClink();
         if (e.thing.thing === 'bone') { setFound(f => ({ ...f, bones: f.bones + 1 })); sChime(); }

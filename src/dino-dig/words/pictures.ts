@@ -36,6 +36,9 @@ export const SUBJECTS = [
   'cake', 'bone', 'peach', 'grape', 'seal', 'goat', 'sheep', 'shrimp', 'nut', 'drum', 'flag', 'kite', 'brush', 'pen', 'shirt', 'star',
 ] as const satisfies readonly Word[];
 /** What a subject can sit on ("A cat on a bed."). */
-export const SURFACES: readonly Word[] = ['bed', 'box', 'log', 'rock', 'truck', 'sled', 'bus', 'boat', 'ship', 'slide', 'bike', 'car', 'brick', 'tent'];
+export const SURFACES: readonly Word[] = ['bed', 'box', 'log', 'rock', 'truck', 'sled', 'bus', 'boat', 'ship', 'slide', 'bike', 'car', 'brick'];
 /** What a subject can be in ("A fox in a box."). */
 export const CONTAINERS: readonly Word[] = ['box', 'nest', 'jar', 'truck', 'boat', 'tent', 'car', 'bus', 'ship', 'bed'];
+/** Where "in a" and "on a" plainly mean two different pictures, so Read and Find's Level 3 may offer one against the other. Not a bed,
+ *  a boat, a bus or a ship: a cat in bed is on it too, and a fox on a boat is in it (he rides on a bus). */
+export const IN_OR_ON: readonly Word[] = ['box', 'car', 'truck'];

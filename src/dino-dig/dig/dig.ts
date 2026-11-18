@@ -58,7 +58,7 @@ export type DigEvent =
   | { kind: 'crack'; rock: Rock }
   | { kind: 'smash'; rock: Rock }
   | { kind: 'crated'; thing: Buried }
-  | { kind: 'hint'; x: number; y: number }
+  | { kind: 'hint'; x: number; y: number; drag?: boolean }
   | { kind: 'tapLoose'; thing: Buried }
   | { kind: 'stamp'; x: number; y: number; r: number };
 
@@ -197,7 +197,7 @@ export function grab(w: DigWorld, x: number, y: number): Buried | null {
 export function drag(w: DigWorld, t: Buried, x: number, y: number) {
   t.px = Math.max(t.hw, Math.min(W - t.hw, x));
   t.py = Math.max(t.hh, Math.min(H - t.hh, y));
-  w.idle = 0;
+  w.idle = 0; w.hint = null;
 }
 const inCrate = (w: DigWorld, x: number, y: number) => x > w.crate.x - 40 && y > w.crate.y - 40;
 /** Let go: in or near the crate (or dragged most of the way there), it goes in; anywhere else it stays, loose. */
@@ -232,6 +232,14 @@ export function step(w: DigWorld, dt: number, h: Helpers = {}): DigEvent[] {
     t.px = t.fx + (to.x - t.fx) * e;
     t.py = t.fy + (to.y - t.fy) * e - Math.sin(k * Math.PI) * 80;
     if (k >= 1) { t.state = 'crated'; w.idle = 0; out.push({ kind: 'crated', thing: t }); }
+  }
+  // a bone he has uncovered and left: the hint points at it, and after a while it goes to the crate by itself, so a child who never
+  // drags still finishes
+  const loose = w.things.find(t => t.state === 'loose' && t.thing === 'bone');
+  if (loose) {
+    if (w.idle > HINT_S && !w.hint) { w.hint = { x: loose.px, y: loose.py }; out.push({ kind: 'hint', x: loose.px, y: loose.py, drag: true }); }
+    if (w.idle > HELP_S) { send(loose); w.hint = null; }
+    return out;
   }
   const next = nextBuried(w);
   if (next && w.idle > HINT_S && !w.hint) { w.hint = { x: next.x, y: next.y }; out.push({ kind: 'hint', x: next.x, y: next.y }); }
