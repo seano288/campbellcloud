@@ -295,6 +295,8 @@ export function isRightAnswer(q: Question, a: string): boolean {
 
 /** What a question is about, so a Round doesn't ask about the same thing twice. */
 export function topicOf(q: Question): string {
+  // "which bounces": the thing offered against the mirror (the answer is always the mirror, so it can't tell two apart)
+  if (q.kind === 'mirror' && q.form === 'which') return `mirror:which:${q.choices.find(c => c !== 'mirror')}`;
   if (q.kind === 'mirror') return `mirror:${q.form}:${q.answer}:${'lab' in q ? JSON.stringify(q.lab.gem) : ''}`;
   if (q.kind === 'see') return `see:${q.form}:${'animal' in q ? q.animal : q.answer}`;
   if (q.kind === 'through') return `through:${q.form}:${'item' in q ? q.item : 'items' in q ? q.items.join() : q.choices.join()}`;

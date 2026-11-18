@@ -82,3 +82,26 @@ describe('the Dive', () => {
     expect(startDive('reef', STARTER, []).flashes).toBe(0);
   });
 });
+
+describe('the submarine he steers', () => {
+  it('always faces where its light points, however he steers', () => {
+    for (const gear of [STARTER, BEST]) {
+      const s = startDive('midnight', gear, [], 3);
+      const frame = 1 / 60;
+      for (let i = 0; i < 60 * 40 && s.phase === 'dive'; i++) {
+        // a finger that jumps about: ahead, behind, above, released
+        if (i % 90 === 0) { const r = (i / 90) % 5; if (r === 4) release(s); else hold(s, s.sub.x + [300, -300, 40, -40][r]!, s.sub.y + [60, -60, -250, 250][r]!); }
+        step(s, frame);
+        const ax = Math.cos(s.sub.aim);
+        if (Math.abs(ax) > 0.2) expect(s.sub.face, `frame ${i}`).toBe(ax > 0 ? 1 : -1);
+      }
+    }
+  });
+  it('a fast Motor stops at his finger instead of overshooting and turning round', () => {
+    const s = startDive('midnight', BEST, [], 3);
+    hold(s, s.sub.x + 250, s.sub.y + 75);
+    let turned = false;
+    for (let i = 0; i < 240; i++) { step(s, 1 / 60); if (Math.cos(s.sub.aim) < 0) turned = true; }
+    expect(turned).toBe(false);
+  });
+});

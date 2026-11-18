@@ -51,7 +51,8 @@ export function mixedSession(read: () => LearningState, explain: Explanation<Ask
   /** A fresh question of this kind and Level, not one already asked this Round if a few tries find another. */
   function fresh(b: Base, r: Rng): Question {
     let q = makeQuestion(b.mode, b.level, b.stretch, r);
-    for (let tries = 0; tries < 8 && seen.has(topicOf(q)); tries++) q = makeQuestion(b.mode, b.level, b.stretch, r);
+    // enough tries to find the last unasked one of a small set ("which bounces" has four), so he isn't asked the same picture again
+    for (let tries = 0; tries < 24 && seen.has(topicOf(q)); tries++) q = makeQuestion(b.mode, b.level, b.stretch, r);
     seen.add(topicOf(q));
     return q;
   }

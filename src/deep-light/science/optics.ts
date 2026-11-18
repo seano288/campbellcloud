@@ -72,6 +72,15 @@ export const hitsGem = (lab: Lab) => trace(lab).end === 'gem';
 /** The lab with its mirrors turned (or moved) as given. */
 export const withMirrors = (lab: Lab, mirrors: Lab['mirrors']): Lab => ({ ...lab, mirrors });
 
+/** "Which one bounces the light?" as a lab, so its beam is traced like every other: the lamp shines along the bottom row at one
+ *  thing, a mirror turned / (it sends the beam up) or a solid thing (a rock to the ray code: it stops the beam). */
+export const BOUNCE_LAB = { w: 6, h: 4, lamp: { x: 0, y: 3, dir: 0 }, at: { x: 4, y: 3 } } as const;
+export function bounceLab(mirror: boolean): Lab {
+  const { w, h, lamp, at } = BOUNCE_LAB;
+  // the gem is off the lab (never hit): this picture only shows where the beam goes
+  return { w, h, lamp, gem: { x: -9, y: -9 }, mirrors: mirror ? [{ ...at, turn: 3 }] : [], rocks: mirror ? [] : [at] };
+}
+
 // ---------- a beam meeting a thing ----------
 
 /** How much light a material lets through: all of it, some of it, none (it blocks it). A mirror bounces it back. */

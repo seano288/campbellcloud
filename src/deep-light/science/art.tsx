@@ -2,12 +2,14 @@
 // answer, and every shadow is the one shadowOf() finds, so a picture can't disagree with what is marked right.
 import type { ComponentChildren } from 'preact';
 import { AnimalPic } from '../art/Pics';
-import { beamPast, shadowOf, trace, wallLook, type Cell, type Lab, type Lamp, type Pass, type Turn } from './optics';
+import { beamPast, BOUNCE_LAB, bounceLab, shadowOf, trace, wallLook, type Cell, type Lab, type Lamp, type Pass, type Turn } from './optics';
 import { STAGE } from './problems';
 import { material, SOUNDS, type MaterialId } from './things';
 
 const cls = (...xs: (string | false | null | undefined)[]) => xs.filter(Boolean).join(' ');
 const INK = '#141414';
+/** An emoji's size inside an SVG picture, in the picture's own units (a style, so no page rule for emoji can change it). */
+const EMOJI_36 = { fontSize: '36px' };
 
 /** A thing's picture: an emoji, or an animal drawn in code ("animal:anglerfish"), or a stretched string. */
 export function ThingPic({ icon, class: c, label }: { icon: string; class?: string; label?: string }) {
@@ -30,7 +32,8 @@ export function Cave({ animal, lit, label }: { animal: string; lit: boolean; lab
       {/* the lamp hangs at the top left: on, it glows; off, it's a dark bulb */}
       <path d="M34 18 V26" stroke={INK} stroke-width="2" />
       <circle cx="34" cy="31" r="6" fill={lit ? '#fff6c8' : '#2a2a30'} stroke={INK} stroke-width="2" />
-      {lit && <text x="62" y="86" font-size="36" text-anchor="middle" class="cave-animal emo" aria-hidden="true">{animal}</text>}
+      {/* the size is set as a style: a rule for emoji in a choice (.dl-choice .choice-pic .emo) would otherwise blow it up past the cave */}
+      {lit && <text x="62" y="86" text-anchor="middle" class="cave-animal emo" style={EMOJI_36} aria-hidden="true">{animal}</text>}
     </svg>
   );
 }
@@ -169,10 +172,14 @@ export function LabView({ lab, beam, onMirror, spots, onSpot, picked, hint, labe
 /** "Which one bounces the light?": the lamp shines at one thing; a mirror sends the beam up, anything else stops it. */
 export function BounceScene({ item, beam }: { item: string; beam: boolean }) {
   const mirror = item === 'mirror';
+  // the beam is traced by the ray code on a small lab (optics.ts bounceLab), its cells laid over this picture: the lamp's cell at
+  // x 22, the thing's at x 100, the bottom row at y 70
+  const ray = beam ? trace(bounceLab(mirror)) : null;
+  const px = (x: number) => 22 + (x * (100 - 22)) / BOUNCE_LAB.at.x, py = (y: number) => 70 - (BOUNCE_LAB.at.y - y) * 20;
   return (
     <svg class="bounce-scene" viewBox="0 0 140 100" role="img" aria-label={mirror ? 'The lamp shines at a mirror' : `The lamp shines at ${material(item).name}`}>
       <rect width="140" height="100" rx="12" fill="#0a1430" />
-      {beam && <path d={mirror ? 'M22 70 H100 V8' : 'M22 70 H88'} fill="none" stroke="#fff2b0" stroke-width="7" stroke-linecap="round" stroke-linejoin="round" class="beam" />}
+      {ray && <polyline points={ray.points.map(p => `${px(p.x)},${py(p.y)}`).join(' ')} fill="none" stroke="#fff2b0" stroke-width="7" stroke-linecap="round" stroke-linejoin="round" class="beam" />}
       {mirror
         ? <g transform="translate(100 70) rotate(-45)"><rect x="-22" y="-4" width="44" height="8" rx="2" fill="#cfefff" stroke={INK} stroke-width="3" /></g>
         : <g transform="translate(100 70) scale(.5)"><Sheet id={item as MaterialId} /></g>}
@@ -211,7 +218,7 @@ export function ShadowScene({ icon, lamp, cast, shadow, lamps, onLamp, spots, on
           </g>
         );
       })}
-      <text x={t.x} y={FLOOR - 1.5} font-size="17" text-anchor="middle" class="shadow-thing emo" aria-hidden="true">{icon}</text>
+      <text x={t.x} y={FLOOR - 1.5} text-anchor="middle" class="shadow-thing emo" style={{ fontSize: '17px' }} aria-hidden="true">{icon}</text>
       {lamp && <LampIcon at={lamp} on />}
       {lamps?.map(l => (
         <g class={cls('pick-lamp', picked === l.id && 'picked', hint === l.id && 'hint')}>

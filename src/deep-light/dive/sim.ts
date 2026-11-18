@@ -134,7 +134,8 @@ export function step(s: DiveState, dt: number) {
   if (s.phase === 'rise') want = { x: 0, y: -g.speed * 0.8 };
   else if (s.target) {
     const dx = s.target.x - sub.x, dy = s.target.y - sub.y, d = Math.hypot(dx, dy);
-    if (d > 8) { const v = g.speed * Math.min(1, d / 140); want = { x: (dx / d) * v, y: (dy / d) * v }; }
+    // it slows as it nears his finger, sooner the faster its Motor, so a fast submarine doesn't overshoot and turn round
+    if (d > 8) { const v = g.speed * Math.min(1, d / Math.max(140, g.speed * 0.5)); want = { x: (dx / d) * v, y: (dy / d) * v }; }
   }
   const k = Math.min(1, dt * 3.2);
   sub.vx += (want.x - sub.vx) * k; sub.vy += (want.y - sub.vy) * k;
@@ -145,7 +146,10 @@ export function step(s: DiveState, dt: number) {
     const toward = Math.atan2(s.target.y - sub.y, s.target.x - sub.x);
     if (Math.hypot(s.target.x - sub.x, s.target.y - sub.y) > 30) sub.aim += wrap(toward - sub.aim) * Math.min(1, dt * 6);
   } else if (sp > 40) sub.aim += wrap(Math.atan2(sub.vy, sub.vx) - sub.aim) * Math.min(1, dt * 3);
-  if (Math.abs(sub.vx) > 25) sub.face = sub.vx > 0 ? 1 : -1;
+  // the submarine faces where its light points (its headlights are on its nose): facing by its speed, it could be drawn looking one
+  // way with its beam coming out of its tail
+  const ax = Math.cos(sub.aim);
+  if (Math.abs(ax) > 0.15) sub.face = ax > 0 ? 1 : -1;
   // the edges of the sea only nudge him back
   s.bumped = Math.max(0, s.bumped - dt);
   const minY = s.phase === 'rise' ? -200 : WORLD.top;

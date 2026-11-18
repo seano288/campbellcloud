@@ -259,6 +259,35 @@ The listen-check (2026-11-18): every clip is real audio (afinfo: 1.9 to 7.8 s wi
 - `npm run build:site`, `npx tsx tools/deep-light/offline.ts` (the production build precaches 655 files, 641 of them voice clips; offline,
   a Round starts, its question is said and the answer counts) and `npm run check:offline` pass.
 
+## Bug and sound review (pass 2, 2026-11-18)
+
+Played every kind at every Level on its own (right, one miss, two misses with the stage handed to him) at all four sizes, the Dive
+(doing nothing, mashing with many fingers, leaving and reloading halfway, starter against best parts, every zone), a Round reloaded
+mid-lesson, and the sound through a paused audio context, a hidden-and-shown tab and a miss lesson. Fixed:
+
+- **Light to See Level 1: the animal in the lit cave was drawn huge**, spilling over both caves (the choices' emoji size rule reached
+  the SVG `<text>` inside the cave). The caves' and the shadow scene's emoji now set their size as a style.
+- **A tap on the lamp, light or string while "Tap the lamp!" was still being said was lost**, and he waited out the whole nine seconds
+  (the wait only started after the line). It now starts as the button appears (`teach.ts letHimTry`).
+- **Mirrors Level 1's beam was a drawn path, not the ray code** (the brief's rule). It's now traced on a small lab (`optics.ts
+  bounceLab`).
+- **"Which one bounces the light?" could ask the very same picture twice in a row**, which looks as if his answer didn't count (its
+  "same thing" key ignored what the mirror was offered against, and the Round gave up looking for a new one after 8 tries).
+- **On a Dive with a fast Motor the submarine overshot his finger and turned round**, and it could be drawn facing one way with its
+  beam coming out of its tail. It now slows sooner the faster it goes, and always faces where its light points.
+- **The little drum tap was the same size as the big bang**, and **the string choice was wider than its tile on a phone** (only one peg
+  showed): two more choice rules winning over the sound pictures'.
+- **The anglerfish and lanternfish in "makes its own light" were small grey fish on yellow**, nothing saying they make light; they're
+  now bigger, on a dark-sea backing where their lights show.
+- **On an iPad, a lesson's picture pushed the answers into the bottom band** (30 px from the edge); the question keeps them above it.
+  On a sideways phone the Dive's Sonar and Horn sat 36 px from the bottom; they're above the floor now.
+- **"Foghorn" was heard as "Falkhorn"** by both speech models; re-recorded said as "Fog horn".
+
+Still left: on a sideways phone the answers sit about 26 px from the bottom (the shared card layout has no room to spare at 390 px tall);
+the quiet sounds' small rings are faint; Shadows Level 2 still can't take a second, different miss. Clips for the parent's ear: Comb
+Jelly (heard "cone jelly"), Atolla Jelly ("Atala"), Nudibranch ("Neutobranch"), Scaly-Foot Snail ("Skelly"), Super Hull ("Superhole"),
+Weddell Seal, Pompeii Worm, Vent Mussel (sounds like "muscle", as it should), Barreleye Fish and the new Foghorn.
+
 ## Not done
 
 - Not run on a real iPad 9 or in Safari. Most needs checking there: the Dive's frame rate in the dark zones (the Crystal Cave draws the

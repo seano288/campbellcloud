@@ -432,7 +432,7 @@ export const CLIPS = {
   "Toot Horn": "012abcc52c33.mp3",
   "Beep Horn": "3e987677ce4a.mp3",
   "Honk Horn": "b9db45a5b831.mp3",
-  "Foghorn": "52de006ff7bf.mp3",
+  "Foghorn": "93aec320cfc7.mp3",
   "Whale Song": "0b0d89e38ec1.mp3",
   "Bubble Horn": "fd9adc081e65.mp3",
   "Dolphin Click": "7abf70d1344f.mp3",

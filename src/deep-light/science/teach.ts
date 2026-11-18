@@ -92,8 +92,11 @@ const beat = (v: VoiceScope, ms: number) => v.wait(reduced() ? ms / 3 : ms);
 async function letHimTry(l: Lesson, v: VoiceScope, kind: TryIt, line: Phrase, ms = 9000) {
   if (!v.active) return;
   l.tryIt.value = kind;
+  // the wait starts as the stage becomes his, not after the line: a child taps the button the moment it appears, and a tap while
+  // "Tap the lamp!" is still being said must count (it used to be lost, and he waited out the whole nine seconds)
+  const tried = l.waitTry(ms, v);
   await v.say(line);
-  await l.waitTry(ms, v);
+  await tried;
   l.tryIt.value = null;
   await beat(v, 600);
 }

@@ -88,6 +88,15 @@ describe('a Round', () => {
     for (let seed = 1; seed <= 200; seed++) { const ps = asked(open(freshLearning(), MODE_IDS, 2), seed, 5); repeats += ps.length - new Set(ps.map(p => topicOf(p.q))).size; }
     expect(repeats).toBeLessThan(10);
   });
+  it('never asks the very same question twice in a Round when there are others to ask', () => {
+    // "Which one bounces the light?" is always answered by the mirror: told apart by what it's offered against, or a Round of it
+    // asked the same picture again straight after he answered it (it looked as if his answer hadn't counted)
+    for (const kind of MODE_IDS) for (const level of [1, 2, 3] as const) for (let seed = 1; seed <= 40; seed++) {
+      const ps = asked(open(freshLearning(), [kind], level), seed, 4).filter(p => p.level === level);
+      const same = ps.filter((p, i) => ps.findIndex(o => JSON.stringify(o.q) === JSON.stringify(p.q)) !== i);
+      if (kind === 'mirror' && level === 1) expect(same, `mirror L1 seed ${seed}`).toEqual([]);
+    }
+  });
   it('knows a right answer, a wrong one and a tap that is not an answer', () => {
     const p = asked(freshLearning(), 3, 1)[0]!;
     expect(isRight(p, p.q.answer)).toBe(true);

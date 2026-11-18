@@ -6,9 +6,9 @@
 // - "lets some light through" comes only from the hand-checked table of clear cases.
 import { describe, expect, it } from 'vitest';
 import { seeded } from '../../game/rng';
-import { bounce, hitsGem, shadowOf, trace, TURNS, type Dir, type Lab } from './optics';
+import { BOUNCE_LAB, bounce, bounceLab, hitsGem, shadowOf, trace, TURNS, type Dir, type Lab } from './optics';
 import { everyAnswer, isAnswer, LAB, makeQuestion, mirrorsLight, shadowFrom, spotLights, STAGE, type Kind, type Level, type Question } from './problems';
-import { LIGHT_THINGS, MATERIALS, MOON, SHADOW_THINGS, SOUNDS } from './things';
+import { BOUNCE_OTHERS, HELLO, KEY, LIGHT_THINGS, MATERIALS, MOON, SHADOW_THINGS, SOUND_Q3, SOUNDS, WHY_CHOICES } from './things';
 
 const KINDS: Kind[] = ['see', 'through', 'shadow', 'mirror', 'sound', 'signal'];
 const LEVELS: Level[] = [1, 2, 3];
@@ -67,8 +67,8 @@ describe('every question', () => {
 describe('the moon', () => {
   it('is never offered in "makes its own light" at Levels 1 and 2, and never counts as making its own light', () => {
     const rng = seeded(11);
-    for (const level of [1, 2] as const) for (let i = 0; i < 2000; i++) {
-      const q = makeQuestion('see', level, 2, rng);
+    for (const level of [1, 2] as const) for (let i = 0; i < 3000; i++) {
+      const q = makeQuestion('see', level, ([0, 1, 2] as const)[i % 3]!, rng);
       expect([...('items' in q ? q.items : []), ...('choices' in q ? q.choices : [])]).not.toContain('moon');
     }
     let met = 0;
@@ -168,5 +168,62 @@ describe('sound questions never depend on the volume', () => {
       expect(new Set(q.choices).size).toBe(3);
       expect(q.choices.filter(c => c === q.answer).length).toBe(1);
     }
+  });
+});
+
+// The sentence questions (why can't you see it, what happens to the sound, how do you say hello) are marked right by their table, so
+// "one answer is right" above only compares the answer with itself. These check the tables against the science instead.
+describe('the sentence questions, against the science', () => {
+  it('"Why can\'t you see it?" offers the one true reason and two that are plainly not why', () => {
+    expect(WHY_CHOICES.filter(c => c.right).map(c => c.id)).toEqual(['dark']);
+    const rng = seeded(19);
+    for (let i = 0; i < 600; i++) {
+      const q = makeQuestion('see', 3, 0, rng);
+      if (q.form !== 'why') continue;
+      expect(q.choices.filter(c => WHY_CHOICES.find(w => w.id === c)!.right)).toEqual([q.answer]);
+    }
+  });
+  it('"What happens to the sound?" marks its table\'s right sentence, and every other choice is one of its wrong ones', () => {
+    const rng = seeded(23);
+    for (let i = 0; i < 600; i++) {
+      const q = makeQuestion('sound', 3, 0, rng);
+      if (q.kind !== 'sound' || q.form !== 'why') continue;
+      const f = SOUND_Q3[q.which];
+      expect(q.answer).toBe(f.right);
+      expect(q.choices.filter(c => c !== q.answer).every(c => (f.wrong as readonly string[]).includes(c))).toBe(true);
+      expect(f.wrong as readonly string[]).not.toContain(f.right);
+    }
+  });
+  it('"How do you say hello far away?" offers exactly one thing that would really reach the friend', () => {
+    // in the dark, a light is seen far away, and so is a loud sound heard; behind a rock, light and a wave are blocked and only a
+    // loud sound gets round. A whisper doesn't carry far, and a wave can't be seen in the dark. So the dark scene must never offer the
+    // horn (it would be a second right answer).
+    const works = { dark: ['flashlight', 'horn'], rock: ['horn'] } as const;
+    const rng = seeded(29);
+    for (let i = 0; i < 600; i++) {
+      const q = makeQuestion('signal', 1, 0, rng);
+      if (q.kind !== 'signal' || q.form !== 'hello') continue;
+      expect(q.answer).toBe(HELLO[q.scene].right);
+      expect(q.choices.filter(c => (works[q.scene] as readonly string[]).includes(c))).toEqual([q.answer]);
+    }
+  });
+  it('the lighthouse key gives every number of flashes one meaning', () => {
+    expect(new Set(KEY.map(k => k.n)).size).toBe(KEY.length);
+    expect(new Set(KEY.map(k => k.said)).size).toBe(KEY.length);
+  });
+});
+
+describe('"Which one bounces the light?" is drawn by the ray code', () => {
+  it('the mirror sends the beam up and away; every other thing stops it where it stands', () => {
+    const m = trace(bounceLab(true));
+    expect(m.bounces).toBe(1);
+    expect(m.points[1]).toEqual(BOUNCE_LAB.at);
+    expect(m.points.at(-1)!.x).toBe(BOUNCE_LAB.at.x);
+    expect(m.points.at(-1)!.y).toBeLessThan(BOUNCE_LAB.at.y);
+    const solid = trace(bounceLab(false));
+    expect(solid.end).toBe('rock');
+    expect(solid.points.at(-1)).toEqual(BOUNCE_LAB.at);
+    // and the things offered against the mirror all block the light (none lets it through, none is glass)
+    for (const id of BOUNCE_OTHERS) expect(MATERIALS.find(x => x.id === id)!.pass).toBe('none');
   });
 });

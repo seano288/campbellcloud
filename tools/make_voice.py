@@ -163,6 +163,8 @@ COLLECTION_SPEECH = {
             'Deep Hull': 'Deep, Hull',
             'You opened Shadows!': 'You opened, Shadows!', 'You opened Signals!': 'You opened, Signals!', 'You opened Shake and Sound!': 'You opened, Shake and Sound!',
             'Barreleye Fish': 'Barrel eye Fish',
+            # pass 2 review: both whisper models heard "Foghorn" as "Falkhorn"; two words keep the "fog"
+            'Foghorn': 'Fog horn',
             'A barreleye fish has a see-through head, and its eyes look up through it.': 'A barrel eye fish has a see-through head, and its eyes look up through it.',
         },
     },
