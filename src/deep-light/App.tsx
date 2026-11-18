@@ -5,7 +5,7 @@ import { unlockAudio } from '../audio/context';
 import { CurrencyPile } from '../ui/currency';
 import { HoldForProgress } from '../ui/MoveProgress';
 import { BuildLabel } from '../ui/BuildLabel';
-import { SubArt } from './art/Pics';
+import { AnimalPic, SubArt } from './art/Pics';
 import { DEEP_CURRENCY } from './branding';
 import { DiveScreen } from './dive/DiveScreen';
 import { DockScreen } from './dock/DockScreen';
@@ -38,7 +38,7 @@ function Start() {
   return (
     <div class="start dl-start">
       <HoldForProgress game="deep-light" keys={[SAVE_KEY, PLACE_KEY]}><h1>Deep<br />Light</h1></HoldForProgress>
-      <div class="start-art"><span class="start-beam" aria-hidden="true" /><SubArt look={lookOf(player.state.value.dock)} label="Your submarine" /></div>
+      <div class="start-art"><span class="start-beam" aria-hidden="true" /><AnimalPic id="lanternfish" class="start-fish" /><SubArt look={lookOf(player.state.value.dock)} label="Your submarine" /></div>
       <button class="big-btn go start-btn" aria-label="Start" onClick={() => {
         if (!voice.active) return;
         unlockAudio(); // sound needs this tap on iPad Safari

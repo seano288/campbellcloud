@@ -1,5 +1,5 @@
 // Draws every Deep Light animal (or one) on a dark sea and saves the picture, so the art can be looked at without playing a Dive.
-//   npx tsx tools/deep-light/gallery.ts [outFile] [animalId]
+//   npx tsx tools/deep-light/gallery.ts [outFile] [animalId[,animalId...]]
 // With an id it draws that one large (the anglerfish was shown to the parent first: .scratch/deep-light/anglerfish.png).
 import { build } from 'esbuild';
 import { resolve } from 'node:path';
@@ -16,8 +16,8 @@ await page.setContent('<body style="margin:0;background:#06102a"><canvas id="c">
 await page.addScriptTag({ content: bundle.outputFiles[0]!.text });
 const size = await page.evaluate(only => {
   const { drawCreature, glowAt, ANIMALS } = (window as any).art;
-  const list = only ? ANIMALS.filter((a: any) => a.id === only) : ANIMALS;
-  const cell = only ? 420 : 170, cols = only ? 1 : 8, rows = Math.ceil(list.length / cols);
+  const ids = only ? only.split(',') : null, list = ids ? ANIMALS.filter((a: any) => ids.includes(a.id)) : ANIMALS;
+  const one = !!ids && ids.length === 1, cell = one ? 420 : ids ? 300 : 170, cols = one ? 1 : ids ? Math.min(4, ids.length) : 8, rows = Math.ceil(list.length / cols);
   const c = document.getElementById('c') as HTMLCanvasElement, W = cols * cell, H = rows * (cell + (only ? 40 : 24));
   c.width = W * 2; c.height = H * 2; c.style.width = `${W}px`; c.style.height = `${H}px`;
   const ctx = c.getContext('2d')!; ctx.scale(2, 2);

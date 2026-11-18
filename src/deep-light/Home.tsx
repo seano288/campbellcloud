@@ -34,7 +34,7 @@ export function Home({ status }: { status: ComponentChildren }) {
       <header class="home-head"><h1>Deep Light</h1>{status}</header>
       <div class="home dl-home">
         <button class="tile t-play" aria-label="Play" onClick={() => { if (voice.active) startRound(); }}>
-          <span class="play-sea" aria-hidden="true"><span class="play-beam" /><AnimalPic id="lanternfish" class="play-fish" /></span>
+          <span class="play-sea" aria-hidden="true"><span class="play-beam" /><AnimalPic id="lanternfish" class="play-fish" /><AnimalPic id="crystaljelly" class="play-jelly" /></span>
           <span class="spot porthole"><span class="e">▶</span></span>
         </button>
         <button class="tile t-dock" aria-label="Dock" onClick={() => { if (voice.active) screen.value = 'dock'; }}>
@@ -45,7 +45,7 @@ export function Home({ status }: { status: ComponentChildren }) {
           <span class="dl-signrow"><span class="nm dl-sign">Logbook</span><span class="log-count">{dock.photos.length}/{ANIMALS.length}</span></span>
           <span class="log-peek" aria-hidden="true">
             {dock.photos.slice(-3).map(id => <AnimalPic key={id} id={id} />)}
-            {!dock.photos.length && <span class="emo">📷</span>}
+            {!dock.photos.length && [0, 1, 2].map(i => <span key={i} class="log-empty">?</span>)}
           </span>
         </button>
         <div class="tile t-kinds" role="group" aria-label="My Levels">

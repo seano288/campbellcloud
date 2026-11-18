@@ -144,7 +144,7 @@ export function drawDive(ctx: C, s: DiveState, v: View, look: SubLook, sprites: 
   // the water, darker the deeper the camera is: one solid colour (a full-screen gradient fill cost more than everything else together
   // in the measurements, and the dark covers most of the screen anyway)
   const depth = Math.max(0, Math.min(1, ((v.h / 2 - v.oy) / k) / WORLD.h));
-  ctx.fillStyle = mix(z.top, z.bottom, depth); ctx.fillRect(0, 0, v.w, v.h);
+  ctx.fillStyle = mix(z.water[0], z.water[1], depth); ctx.fillRect(0, 0, v.w, v.h);
   ctx.save(); ctx.setTransform(k, 0, 0, k, v.ox, v.oy);
   if (!skip('scenery')) drawScenery(ctx, s, sc, t);
   for (const tr of s.treasures) if (!tr.got) drawTreasure(ctx, tr.kind, tr.x, tr.y);

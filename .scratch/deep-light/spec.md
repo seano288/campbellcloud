@@ -307,3 +307,52 @@ Weddell Seal, Pompeii Worm, Vent Mussel (sounds like "muscle", as it should), Ba
 4. Should the school words (transparent, translucent, opaque) be said at Level 3, or left out?
 5. One Dive per Round and the first one free; treasure 1 Bolt each, 3 a Dive: right amounts?
 6. Is 2,775 Bolts for everything the right size (about 350 Rounds at 6 Bolts plus treasure)?
+
+## Design pass (pass 3, 2026-11-18)
+
+Judged from screenshots at 810×1080, 1080×810, 390×844 and 844×390 (`tools/deep-light/shots.ts`, which seeds `Math.random` so the
+same questions come up every run; before and after in `.scratch/deep-light/design/`). No question, answer, Level, price, payout, save,
+ray-code geometry or spoken line changed.
+
+- **Lessons play on full-strength pictures.** The shared "wait" fade (`.card.thinking button`, 50% and desaturated) greyed out the very
+  pictures a lesson plays on: the cave that lights up, the fire and anglerfish that glow. Now only the pictures not being taught dim (60%),
+  and the taught ones (the hint, a glowing thing, pulsing rings, both caves) stay at full strength. The cave lesson's lamp button sits in a
+  small row of its own, so the caves keep their size.
+- **Sound is answerable with the volume off.** A quiet sound's one small ring was the same size as its emoji and drawn under it, so it
+  was never seen. The sound's picture is now drawn small in the middle of its rings (ring sizes unchanged), the quiet ring is a 4px line
+  that never fades below half, and the ship emoji no longer spills out of its box.
+- **Materials sit on a little light box** of bright stripes: clear glass shows them, wax paper and frosted glass dim them, wood and metal
+  hide them (each sheet's look is unchanged). On the yellow tile, clear glass had looked like a yellow sheet.
+- **The lighthouse stands in a night sea**: its flashes were pale yellow on the pale card.
+- **Mirrors he can turn have a dashed cyan ring**, and the light lab is bigger when it is the whole question.
+- **Sun or moon**: each sits in a little night-sky disc (the moon was yellow on the yellow tile).
+- **Tap-all** goes two by two for four things (the fourth sat alone), and a glowing thing glows round its own shape.
+- **Sideways phone**: answers now sit 56px or more above the bottom (the reviewer's 26px).
+- **Home**: the beam now runs from his headlight to the glowing fish (it pointed at nothing); specks of cyan, lime and magenta and a
+  crystal jelly in the dark; the Logbook is a dark album of tilted photos (empty: three dashed "?" frames, not a camera emoji), with its
+  count no longer cut off on a phone; My Levels is a dark glass panel with cyan Level bars; a sideways phone puts Play, the biggest thing,
+  on the left in three columns (it was the smallest tile).
+- **Start**: a glowing fish at the end of his beam.
+- **Dock**: his submarine floats in the water by the pier (it sat on the pier line); the Dive button is a deeper teal so its white
+  lettering reads; locked places show their picture dimmed with a little lock; the Dive, Logbook and ▶ buttons and Buy sit above the 56px
+  floor.
+- **Logbook**: every animal fills its frame (a vent mussel was a speck); the card's ✓ was white on white.
+- **Round end**: shafts of light from the surface and glowing specks.
+- **The Dive**: each zone has its own lit-water colour, so in the Midnight Zone and the Trench the headlight shows blue water instead of
+  black (one solid fill as before; no new drawing).
+- **Animals**: the dark ones are lighter so they show on the dark sea (manta, viperfish, loosejaw, gulper, flashlight fish, penguin,
+  scaly-foot snail and others); the viperfish has soft rounded teeth like a smiling walrus and a light on its back; the loosejaw a red lamp
+  under its eye; the flashlight fish a big light under its eye; the hatchetfish a hatchet shape; the gulper eel a big shut grin; the
+  vampire squid its cape and ear fins; squids, shrimps, the lobster and worms smile.
+- **Icon**: the family's sunburst, in deep-sea blues, spins out from the glowing fish; the yellow submarine climbs in from the lower left
+  and its warm beam reaches the fish (cyan with magenta fins and lime lights). Its gradient ids are now `dl-…`: the landing page inlines
+  every icon, and another icon's `#glow` had been colouring Deep Light's. The fish's glow is drawn under the beam, so the Home Screen PNG (librsvg, via sharp) keeps the beam warm instead of tinting it
+  green.
+
+Checked after: `npm run typecheck`, `typecheck:pairings`, `npm test` (1437 tests), `build:site`, `tools/deep-light/offline.ts`, and the
+tour at all four sizes on a new save and on Level 2 and Level 3 saves (no problems; 60 fps through every Dive). The Dive, measured with
+`tools/deep-light/perf.ts` (CPU 4× slower, 2× pixels) against a copy of the code before this pass: 60 fps in the Crystal Cave, the
+Trench and the Midnight Zone, drawing 0.5 to 0.7 ms a frame both before and after.
+
+Not changed, for the parent: the question card stays the family's pale card (the dark scenes sit on it); the shaker's rings are a big
+circle round the small string picture; the mirror key for "where should the mirror go" sits at the stage's top left, away from the lab.

@@ -11,58 +11,75 @@ html,body{background:var(--abyss)}
 .animal-pic{display:block;max-width:100%;max-height:100%;object-fit:contain}
 
 /* ---------- Start ---------- */
-.dl-start{background:radial-gradient(ellipse 50% 30% at 62% 52%,#fff2b033,#fff2b000 70%),var(--dl-sea)}
 .dl-start h1{color:var(--lamp);text-shadow:3px 3px 0 #0a6a8a,6px 6px 0 #000}
 .dl-start .start-art{position:relative;width:min(80vw,calc(440px*var(--u)));height:min(30vh,calc(230px*var(--u)));min-width:220px;min-height:120px}
-.dl-start .start-beam{position:absolute;left:62%;top:30%;width:60%;height:50%;background:linear-gradient(90deg,#fff2b0aa,#fff2b000);clip-path:polygon(0 40%,100% 0,100% 100%,0 60%);pointer-events:none}
+.dl-start .start-beam{position:absolute;left:62%;top:22%;width:46%;height:58%;background:linear-gradient(90deg,#fff2b0cc,#ffd23f55);clip-path:polygon(0 52%,100% 0,100% 100%,0 66%);pointer-events:none}
+/* at the end of his beam, a fish of the deep, glowing */
+.dl-start .start-fish{position:absolute;left:96%;top:18%;width:42%;filter:drop-shadow(0 0 14px #5af0ffaa);pointer-events:none}
+/* a phone upright: the submarine moves left so its fish fits on the screen too */
+@media (max-width:500px){.dl-start .start-art{width:60vw;min-width:0;margin-right:22vw}.dl-start .start-fish{left:94%;width:40%}}
+.dl-start{background:radial-gradient(circle at 18% 70%,#9aff5a 0 2px,#9aff5a00 3px),radial-gradient(circle at 82% 78%,#ff5ad8 0 2.5px,#ff5ad800 4px),radial-gradient(circle at 70% 18%,#5af0ff 0 2px,#5af0ff00 3px),radial-gradient(ellipse 50% 30% at 62% 52%,#fff2b033,#fff2b000 70%),var(--dl-sea)}
 
 /* ---------- Home ---------- */
 .home-screen:has(.dl-home),.round-screen:has(.dl){background:var(--dl-sea)}
 .home-screen:has(.dl-home) .home-head h1{color:var(--lamp);text-shadow:2px 2px 0 #0a6a8a,4px 4px 0 #000}
 .home.dl-home{grid-template-areas:"p p" "d l" "k k";grid-template-rows:minmax(0,1fr) minmax(0,.8fr) auto;grid-template-columns:1.2fr 1fr}
 @media (orientation:landscape){.home.dl-home{grid-template-areas:"p d" "p l" "k k";grid-template-rows:minmax(0,1fr) minmax(0,1fr) auto;grid-template-columns:1.2fr 1fr}}
-/* Play: a dark sea where his beam finds a glowing fish; ▶ is a porthole window */
-.dl-home .t-play{grid-area:p;position:relative;overflow:hidden;padding:0;background:radial-gradient(ellipse 70% 70% at 70% 30%,#0d2a5a,#04102a 70%,#020814);container-type:size}
+/* Play: the dark sea, where his headlight's beam reaches up and finds a glowing fish; ▶ is the round window of a porthole. Little
+   specks of other animals' light (cyan, lime, magenta) drift in the dark around it. */
+.dl-home .t-play{grid-area:p;position:relative;overflow:hidden;padding:0;container-type:size;
+  background:radial-gradient(circle at 18% 22%,#9aff5a 0 2px,#9aff5a00 3px),radial-gradient(circle at 30% 78%,#ff5ad8 0 2.5px,#ff5ad800 4px),radial-gradient(circle at 88% 70%,#5af0ff 0 2px,#5af0ff00 3px),radial-gradient(circle at 62% 12%,#5af0ff 0 1.5px,#5af0ff00 2.5px),radial-gradient(circle at 10% 50%,#ff5ad8 0 1.5px,#ff5ad800 2.5px),radial-gradient(ellipse 50% 50% at 76% 26%,#5af0ff2e,#5af0ff00 70%),radial-gradient(ellipse 80% 80% at 70% 30%,#0d2a5a,#04102a 70%,#020814)}
 .dl-home .play-sea{position:absolute;inset:0}
-.dl-home .play-beam{position:absolute;left:-10%;top:30%;width:80%;height:60%;background:linear-gradient(80deg,#fff2b000,#fff2b066 60%,#fff2b0aa);clip-path:polygon(0 100%,100% 0,100% 70%);transform-origin:0 100%}
-.dl-home .play-fish{position:absolute;right:6%;top:6%;width:min(40cqw,40cqh);filter:drop-shadow(0 0 18px #7ff7ff)}
-.dl-home .t-play .porthole{position:relative;display:grid;place-items:center;width:min(48cqh,40cqw,calc(220px*var(--u)));height:min(48cqh,40cqw,calc(220px*var(--u)));min-width:64px;min-height:64px;border-radius:50%;background:radial-gradient(circle at 40% 35%,#c8d0d8,#7a8a9a 70%);border:5px solid #000;box-shadow:inset 0 -6px 0 #0003,0 0 0 6px #5d6670}
+/* the beam: narrow where it leaves his headlight (bottom left), wide where it reaches the fish (top right) */
+.dl-home .play-beam{position:absolute;left:0;top:6%;width:84%;height:90%;background:linear-gradient(60deg,#fff2b0d9,#ffd23f73 70%,#ffd23f33);clip-path:polygon(0 88%,100% 0,100% 50%,0 97%)}
+.dl-home .play-fish{position:absolute;right:5%;top:7%;width:min(38cqw,42cqh);filter:drop-shadow(0 0 14px #5af0ffaa)}
+.dl-home .play-jelly{position:absolute;right:9%;bottom:8%;width:min(17cqw,22cqh);opacity:.85;filter:drop-shadow(0 0 10px #5affb0aa)}
+.dl-home .t-play .porthole{position:relative;display:grid;place-items:center;width:min(48cqh,40cqw,calc(220px*var(--u)));height:min(48cqh,40cqw,calc(220px*var(--u)));min-width:64px;min-height:64px;border-radius:50%;background:radial-gradient(circle at 40% 35%,#c8d0d8,#7a8a9a 70%);border:5px solid #000;box-shadow:inset 0 -6px 0 #0003,0 0 0 6px #5d6670,0 0 0 10px #000,0 0 40px 14px #5af0ff40}
 .dl-home .t-play .e{display:grid;place-items:center;width:76%;height:76%;border-radius:50%;border:5px solid #000;background:radial-gradient(circle at 38% 32%,#3fd07f,var(--go) 62%);color:#fff;font-size:min(20cqh,calc(80px*var(--u)));padding-left:.12em;box-shadow:inset 0 -6px 0 #0003;transition:transform .08s}
 .dl-home .t-play:active .e{transform:translateY(4px) scale(.97)}
-.dl-signrow{display:flex;align-items:center;justify-content:space-between;gap:6px;flex:none;min-width:0;width:100%;padding:calc(8px*var(--u)) calc(10px*var(--u)) 0;position:relative;z-index:1}
+.dl-signrow{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:6px;flex:none;min-width:0;width:100%;padding:calc(8px*var(--u)) calc(10px*var(--u)) 0;position:relative;z-index:1}
 .dl-home .nm.dl-sign{display:block;flex:none;font:400 max(15px,calc(22px*var(--u)))/1.1 Bungee,sans-serif;color:var(--cyan);text-shadow:none;background:var(--deep-3);border:3px solid #000;border-radius:10px;padding:.18em .6em;box-shadow:inset 0 0 0 2px #5af0ff55,0 3px 0 #000;white-space:nowrap}
 .dl-home .t-dock{grid-area:d;padding:0;flex-direction:column;justify-content:flex-start;align-items:stretch;gap:0;background:linear-gradient(#5aa8d8 0 45%,#2a6bd8 45% 47%,#0d3a7a 47%)}
 .dl-home .dock-water{flex:1;min-height:0;padding:4% 8% 8%;display:flex}
-.dl-home .t-logbook{grid-area:l;padding:0;flex-direction:column;justify-content:flex-start;align-items:stretch;gap:0;background:linear-gradient(#d8c8a0,#b8a070)}
+/* the Logbook: a dark album of photos from the deep, each in a white photo frame */
+.dl-home .t-logbook{grid-area:l;padding:0;flex-direction:column;justify-content:flex-start;align-items:stretch;gap:0;background:radial-gradient(ellipse 90% 70% at 50% 100%,#13305f,#071a3a 80%)}
 .dl-home .log-count{font:900 max(14px,calc(18px*var(--u))) Nunito,sans-serif;color:#000;background:#fff;border:3px solid #000;border-radius:999px;padding:0 10px}
-.dl-home .log-peek{flex:1;min-height:0;display:flex;align-items:center;justify-content:center;gap:4%;padding:4% 6%}
-.dl-home .log-peek .animal-pic{flex:1;min-width:0;max-height:100%;background:#0a1d44;border:3px solid #000;border-radius:10px;padding:2px}
-.dl-home .log-peek .emo{font-size:calc(48px*var(--u))}
+.dl-home .log-peek{flex:1;min-height:0;display:flex;align-items:center;justify-content:center;gap:5%;padding:4% 6% 6%}
+.dl-home .log-peek .animal-pic,.dl-home .log-peek .log-empty{flex:1;min-width:0;max-width:34%;max-height:100%;aspect-ratio:200/170;background:radial-gradient(circle,#13305f,#04102a);border:max(4px,calc(6px*var(--u))) solid #fff;outline:3px solid #000;border-radius:6px;padding:2px}
+.dl-home .log-peek .animal-pic:nth-child(1){transform:rotate(-5deg)}.dl-home .log-peek .animal-pic:nth-child(3){transform:rotate(4deg)}
+.dl-home .log-peek .log-empty{display:grid;place-items:center;background:#ffffff14;border:3px dashed #5af0ff88;outline:0;color:#5af0ffaa;font:400 max(20px,min(14cqh,calc(40px*var(--u)))) Bungee,sans-serif}
 .call-badge{position:static;background:#000;color:var(--yellow);border-radius:999px;padding:3px 12px;font:900 max(16px,calc(22px*var(--u))) Nunito,sans-serif;border:2px solid var(--yellow)}
-.dl-home .t-kinds{grid-area:k;background:var(--cream);display:grid;grid-template-columns:repeat(2,1fr);grid-auto-rows:minmax(max(48px,calc(54px*var(--u))),auto);column-gap:calc(16px*var(--u));row-gap:calc(4px*var(--u));padding:calc(6px*var(--u)) calc(14px*var(--u)) calc(10px*var(--u));cursor:default}
+/* My Levels: a dark glass panel, each kind a lamp with its Level in glowing cyan */
+.dl-home .t-kinds{grid-area:k;background:linear-gradient(#0b2552,#071a3a);box-shadow:inset 0 0 0 3px #5af0ff33,0 7px 0 #000;color:#fff;display:grid;grid-template-columns:repeat(2,1fr);grid-auto-rows:minmax(max(48px,calc(54px*var(--u))),auto);column-gap:calc(16px*var(--u));row-gap:calc(4px*var(--u));padding:calc(6px*var(--u)) calc(14px*var(--u)) calc(10px*var(--u));cursor:default}
 @media (min-width:700px){.dl-home .t-kinds{grid-template-columns:repeat(3,1fr)}}
-.dl-home .t-kinds:active{transform:none;box-shadow:0 7px 0 #000}
-.dl-home .kinds-head{grid-column:1/-1;margin:0;font:400 max(14px,calc(16px*var(--u))) Bungee,sans-serif;text-align:center;color:#0009}
-.dl-home .kind{position:relative;display:flex;align-items:center;gap:calc(10px*var(--u));padding:2px;min-height:44px;text-align:left;color:#000}
-.dl-home .kind .ki{flex:none;display:grid;place-items:center;width:max(36px,calc(46px*var(--u)));height:max(36px,calc(46px*var(--u)));border-radius:50%;background:#fff;border:3px solid #000;box-shadow:0 3px 0 #000;font-size:max(18px,calc(24px*var(--u)));line-height:1}
+.dl-home .t-kinds:active{transform:none;box-shadow:inset 0 0 0 3px #5af0ff33,0 7px 0 #000}
+.dl-home .kinds-head{grid-column:1/-1;margin:0;font:400 max(14px,calc(16px*var(--u))) Bungee,sans-serif;text-align:center;color:var(--cyan)}
+.dl-home .kind{position:relative;display:flex;align-items:center;gap:calc(10px*var(--u));padding:2px;min-height:44px;text-align:left;color:#fff}
+.dl-home .kind .ki{flex:none;display:grid;place-items:center;width:max(36px,calc(46px*var(--u)));height:max(36px,calc(46px*var(--u)));border-radius:50%;background:radial-gradient(circle at 40% 35%,#fff,#d8f6ff);border:3px solid #000;box-shadow:0 0 0 3px #5af0ff66,0 3px 0 3px #000;font-size:max(18px,calc(24px*var(--u)));line-height:1}
 .dl-home .kind .kb{flex:1;min-width:0;display:flex;flex-direction:column;gap:4px}
 .dl-home .kind .kn{font:900 max(14px,calc(18px*var(--u))) Nunito,sans-serif;line-height:1.1}
-.dl-home .kind .lvl{gap:0;width:100%;max-width:max(84px,calc(140px*var(--u)));height:max(12px,calc(15px*var(--u)));border-radius:99px;overflow:hidden;background:#fff;border:2px solid #000}
+.dl-home .kind .lvl{gap:0;width:100%;max-width:max(84px,calc(140px*var(--u)));height:max(12px,calc(15px*var(--u)));border-radius:99px;overflow:hidden;background:#04102a;border:2px solid #5af0ff66}
 .dl-home .kind .lvl i{flex:1;width:auto;height:100%;border:0;border-radius:0;background:none}
-.dl-home .kind .lvl i+i{box-shadow:inset 2px 0 0 #0003}
-.dl-home .kind .lvl i.on{background:#2ec4d8}
-.dl-home .kind.locked{filter:grayscale(.9) brightness(.85);opacity:.7}
-.dl-home .kind.locked .ki{box-shadow:none;background:#e8e2cf}
+.dl-home .kind .lvl i+i{box-shadow:inset 2px 0 0 #04102a}
+.dl-home .kind .lvl i.on{background:linear-gradient(#b8fbff,var(--cyan));box-shadow:inset 2px 0 0 #04102a,0 0 8px #5af0ff}
+.dl-home .kind.locked{color:#8ea3c4}
+.dl-home .kind.locked .ki{box-shadow:0 3px 0 #000;background:#3a4a66;filter:grayscale(1)}
+.dl-home .kind.locked .lvl{border-color:#ffffff22}
 .dl-home .kind.fresh{animation:pulse 1s infinite}
 .dl-home .kind .badge{position:absolute;right:-2px;top:2px;font-size:calc(18px*var(--u))}
 @media (orientation:landscape) and (max-height:520px){
-  .home.dl-home{grid-template-areas:"p k" "d k" "l k";grid-template-rows:minmax(0,1.3fr) minmax(0,1fr) minmax(0,1fr);grid-template-columns:1fr 1.25fr}
-  .dl-home .t-kinds{grid-template-columns:1fr;grid-auto-rows:minmax(44px,auto)}
+  /* a sideways phone: Play the biggest thing on the left, the Dock and the Logbook in the middle, the Levels on the right */
+  .home.dl-home{grid-template-areas:"p d k" "p l k";grid-template-rows:minmax(0,1fr) minmax(0,1fr);grid-template-columns:1.25fr .85fr 1fr;gap:10px}
+  .dl-home .t-kinds{grid-template-columns:1fr;grid-auto-rows:minmax(44px,auto);row-gap:0;padding:4px 10px;align-content:center}
   .dl-home .kinds-head{position:absolute;width:1px;height:1px;overflow:hidden;clip-path:inset(50%)}
-  .dl-home .t-dock,.dl-home .t-logbook{flex-direction:row;align-items:stretch}
-  .dl-signrow{flex-direction:column;justify-content:center;align-items:flex-start;padding:0 0 0 8px;width:auto}
+  .dl-home .kind .kn{font-size:14px}
+  .dl-signrow{padding:6px 6px 0}
+  .dl-home .nm.dl-sign{font-size:13px}
+  .dl-home .call-badge,.dl-home .log-count{font-size:13px;padding:0 8px}
+  .dl-home .dock-water{padding:2% 8% 6%}
 }
-@media (max-width:430px) and (orientation:portrait){.dl-home .t-kinds{grid-template-columns:1fr}}
+@media (max-width:430px) and (orientation:portrait){.dl-home .t-kinds{column-gap:8px;padding-left:8px;padding-right:8px}.dl-home .kind{gap:6px}.dl-home .kind .kn{font-size:14px}.dl-home .nm.dl-sign{font-size:14px;padding:.18em .45em}}
+@media (prefers-reduced-motion:reduce){.dl-home .kind.fresh{animation:none;outline:5px solid var(--yellow);outline-offset:2px}}
 
 /* ---------- a question ---------- */
 .round-screen .card:has(.dl){background:linear-gradient(#eef8ff,#cfe6f4)}
@@ -81,6 +98,8 @@ html,body{background:var(--abyss)}
 .dl-choice .choice-pic{display:grid;place-items:center;min-height:0}
 .dl-choice .choice-pic .emo{font-size:max(40px,min(calc(84px*var(--u)),11vh));line-height:1.05}
 .dl-choice .choice-pic .emo.big{font-size:max(48px,min(calc(110px*var(--u)),13vh))}
+/* the sun and the moon each in a little night sky: the moon was yellow on the yellow tile */
+.game.dl.q-sunmoon .dl-choice .choice-pic .emo.big{display:grid;place-items:center;width:1.5em;height:1.5em;border-radius:50%;background:radial-gradient(circle,#13305f,#04102a);border:3px solid #000}
 .dl-choice .choice-pic svg,.dl-choice .choice-pic .animal-pic{width:max(70px,min(calc(150px*var(--u)),18vh));height:auto;max-height:min(18vh,160px)}
 .dl-choice .choice-text{font:900 max(16px,calc(22px*var(--u)))/1.15 Nunito,sans-serif;text-align:center}
 .dl-choices.n2 .dl-choice{max-width:calc(340px*var(--u))}
@@ -93,11 +112,17 @@ html,body{background:var(--abyss)}
 .dl-choice.wrong{background:#ddd;color:#999;opacity:.7}
 .dl-choice.picked{background:#c9f0d8;outline:5px solid var(--go);outline-offset:-2px}
 .choice.hint{animation:hint 1s infinite}
-.card.thinking .dl-choice.hint{opacity:1;filter:none}
+/* a lesson plays on the question's own pictures: the shared "wait" fade (.card.thinking button) would grey out the very cave that
+   lights up or the fire that glows, so here the pictures only dim, and the ones being taught stay at full strength */
+.card.thinking .game.dl .dl-choice{opacity:.6;filter:saturate(.75)}
+.card.thinking .game.dl .dl-choice.hint,.card.thinking .game.dl .dl-choice:has(.glowing,.pulse),.card.thinking .game.dl.q-cave .dl-choice{opacity:1;filter:none}
 .check-btn{font-size:calc(40px*var(--u));padding:calc(8px*var(--u)) calc(44px*var(--u));min-height:max(56px,calc(70px*var(--u)));flex:none}
 .check-btn:disabled{opacity:.4}
 .card.thinking button.try-btn,.card.thinking .lab .tap{opacity:1;filter:none;cursor:pointer}
 .card.thinking .shadow-holder.drag{opacity:1}
+.q-cave .dl-stage{flex:none;width:100%}
+.q-cave .dl-stage .try-btn{position:static}
+.game.dl.q-cave .dl-choice .choice-pic svg{width:max(110px,min(calc(300px*var(--u)),34vh));max-height:min(34vh,320px)}
 .try-btn{position:absolute;right:4%;bottom:6%;width:max(64px,calc(84px*var(--u)));height:max(64px,calc(84px*var(--u)));border-radius:50%;font-size:calc(40px*var(--u));padding:0;background:radial-gradient(circle at 40% 30%,#fff6c8,var(--lamp) 60%,#c89a00);z-index:2}
 .thing-pic.emo{font-size:max(40px,min(calc(80px*var(--u)),10vh));line-height:1}
 .thing-pic.big{font-size:max(64px,min(calc(140px*var(--u)),18vh))}
@@ -106,9 +131,13 @@ img.thing-pic{width:max(64px,calc(120px*var(--u)))}
 /* an animal that makes its own light (the anglerfish, the lanternfish) is shown in its dark sea, big enough that its lights show:
    on the yellow tile it was a small grey fish, and nothing in the picture said it makes light */
 .dl-choice .own-pic .animal-pic{width:max(84px,min(calc(170px*var(--u)),20vh));max-height:none;background:radial-gradient(circle,#13305f,#04102a);border:3px solid #000;border-radius:14px}
-.own-pic.glowing{box-shadow:0 0 0 6px #fff6c8,0 0 30px 14px #ffd23f;background:#fff6c8}
-.dl-choices.own{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));width:min(100%,640px)}
-.dl-choices.own .dl-choice{max-width:none;min-width:0}
+.own-pic.glowing{filter:drop-shadow(0 0 8px #fff2b0) drop-shadow(0 0 18px #ffd23f)}
+.dl-choice:has(.own-pic.glowing){background:#fff2b0;box-shadow:0 5px 0 #000,0 0 0 5px #fff6c8,0 0 28px 10px #ffd23fcc}
+/* tap-all: rows of three, or two by two for four, the last row centred */
+.dl-choices.own{display:flex;flex-wrap:wrap;justify-content:center;width:min(100%,640px)}
+.dl-choices.own .dl-choice{flex:0 1 calc((100% - 2 * calc(12px*var(--u))) / 3);max-width:none;min-width:0}
+.dl-choices.own.n4{width:min(100%,480px)}
+.dl-choices.own.n4 .dl-choice{flex-basis:calc((100% - calc(12px*var(--u))) / 2)}
 .cave{max-height:min(26vh,220px)}
 .no-stage .dl-choice .choice-pic svg{width:max(110px,min(calc(300px*var(--u)),34vh));max-height:min(34vh,320px)}
 .no-stage .cave{max-height:min(34vh,320px)}
@@ -122,6 +151,11 @@ img.thing-pic{width:max(64px,calc(120px*var(--u)))}
 .shadow-scene .tap,.lab .tap{cursor:pointer}
 .shadow-scene .spot.hint ellipse,.lab .spot.hint circle,.shadow-scene .pick-lamp.hint circle{animation:hint 1s infinite;stroke:var(--yellow);stroke-width:1}
 .lab .mirror.hint circle{fill:#ffd23f55}
+/* a mirror he can turn says so: a dashed cyan ring round it (its angle and the beam are the ray code's, untouched) */
+.q-turn .lab .mirror circle,.q-two .lab .mirror circle{fill:#5af0ff1f;stroke:#5af0ff;stroke-width:.045;stroke-dasharray:.11 .07}
+.q-turn .lab .mirror.hint circle,.q-two .lab .mirror.hint circle{fill:#ffd23f55;stroke:var(--yellow)}
+/* the light lab is the whole question when it has no answer tiles under it: give it the room */
+.q-turn .dl-stage svg,.q-two .dl-stage svg,.q-spot .dl-stage svg{max-height:min(58vh,560px)}
 .lab .gem.hit{filter:drop-shadow(0 0 .15px #7ff7ff)}
 .mirror-key{position:absolute;left:2%;top:2%;display:grid;place-items:center;width:48px;height:48px;border-radius:12px;background:#fff;border:3px solid #000;box-shadow:0 3px 0 #000}
 .copy-pad{flex:none;display:flex;flex-direction:column;align-items:center;gap:calc(10px*var(--u))}
@@ -142,14 +176,20 @@ img.thing-pic{width:max(64px,calc(120px*var(--u)))}
 /* the little drum tap is drawn smaller than the big bang: a scale, since the choice rules (.no-stage .dl-choice .choice-pic .emo) set
    every choice's emoji size and won a font-size here */
 .sound-pic .emo.small{transform:scale(.6)}
+/* a sound's picture sits small in the middle of its rings, so even a quiet sound's one small ring shows round it (the bigger emoji
+   the choice rules gave it covered that ring completely, and spilled out of the box); the rings' sizes are unchanged */
+.game.dl .dl-choice .sound-pic .emo{font-size:max(28px,calc(44px*var(--u)));line-height:1}
+.game.dl .no-stage .dl-choice .sound-pic{width:max(96px,min(calc(190px*var(--u)),22vh));height:max(96px,min(calc(190px*var(--u)),22vh))}
+.game.dl .no-stage .dl-choice .sound-pic .emo{font-size:max(30px,min(calc(64px*var(--u)),7.5vh))}
 .rings{position:absolute;inset:0;display:grid;place-items:center;pointer-events:none}
-.rings i{position:absolute;border-radius:50%;border:4px solid #2a8ad8;animation:ring 1.4s ease-out infinite;opacity:0}
+.rings i{position:absolute;border-radius:50%;border:4px solid #1f6fd0;animation:ring 1.4s ease-out infinite;opacity:0}
 .sound-pic.loud3 .rings i{width:100%;height:100%;border-width:6px}
-.sound-pic.loud1 .rings i{width:52%;height:52%;border-width:2px;animation-name:ring-small}
+.sound-pic.loud1 .rings i{width:52%;height:52%;border-width:4px;border-color:#1f6fd0;animation-name:ring-small}
 .sound-pic.pulse{outline:5px solid var(--yellow);outline-offset:3px;border-radius:50%}
 .shaker .rings i{width:100%;height:100%}
 @keyframes ring{0%{transform:scale(.5);opacity:.9}100%{transform:scale(1.15);opacity:0}}
-@keyframes ring-small{0%{transform:scale(.7);opacity:.8}100%{transform:scale(1);opacity:0}}
+/* a quiet sound's one small ring never fades away entirely, so it can always be seen */
+@keyframes ring-small{0%{transform:scale(.8);opacity:1}100%{transform:scale(1);opacity:.5}}
 .shaker.shaking .emo,.shaker.shaking svg,.paper-scene.shaking .paper{animation:jiggle .09s linear infinite;filter:blur(.6px)}
 @keyframes jiggle{0%{transform:translate(-2px,1px)}50%{transform:translate(2px,-1px)}100%{transform:translate(-2px,1px)}}
 .shaker .sand{position:absolute;left:30%;right:30%;top:22%;display:flex;justify-content:space-around;z-index:2}
@@ -166,9 +206,12 @@ img.thing-pic{width:max(64px,calc(120px*var(--u)))}
 .dl-stage .string-pic{width:min(80%,420px)}
 .paper-scene{position:relative;display:flex;align-items:center;gap:calc(40px*var(--u));font-size:max(54px,calc(90px*var(--u)))}
 .paper-scene .rings{left:20%;right:auto;width:40%}
-.lighthouse-stage{position:relative;display:flex;align-items:center;justify-content:center;gap:12px;height:100%}
+/* the lighthouse stands in a night sea: a flash of light only shows against the dark (on the pale card its beams were nearly white
+   on white) */
+.lighthouse-stage{position:relative;display:flex;align-items:flex-end;justify-content:center;gap:12px;height:auto;max-height:100%;padding:calc(10px*var(--u)) calc(28px*var(--u)) 2%;border:4px solid #000;border-radius:18px;
+  background:radial-gradient(circle at 20% 18%,#fff 0 1px,#fff0 2px),radial-gradient(circle at 78% 12%,#fff 0 1px,#fff0 2px),radial-gradient(circle at 88% 40%,#fff 0 1px,#fff0 2px),linear-gradient(#071a3a 0 86%,#1f5fa8 86%)}
 .lighthouse{height:100%;max-height:min(30vh,260px);width:auto}
-.lighthouse-stage .watch-btn{flex:none;width:var(--tap);height:var(--tap);font-size:24px}
+.lighthouse-stage .watch-btn{flex:none;align-self:center;width:var(--tap);height:var(--tap);font-size:24px}
 .flash-marks{display:inline-flex;align-items:center;gap:8px;min-height:24px}
 .flash-marks i{display:block;height:16px;border-radius:8px;background:#ffd23f;border:3px solid #000}
 .flash-marks i.short{width:16px}
@@ -187,7 +230,8 @@ img.thing-pic{width:max(64px,calc(120px*var(--u)))}
 .key-pic{display:flex;flex-direction:column;align-items:center;gap:4px}
 .hello-scene{max-height:min(28vh,240px)}
 @media (orientation:landscape) and (max-height:520px){
-  .game.dl{padding:6px 8px;gap:6px}
+  /* answers stay above the bottom band: the card's margin and border plus this keep them 56px up */
+  .game.dl{padding:6px 8px calc(var(--floor) - 20px);gap:6px}
   .game.dl .ask h2{font-size:16px}
   .dl-body{flex-direction:row;flex-wrap:wrap;gap:6px;align-content:center}
   .dl-stage{flex:1 1 45%;height:100%;max-height:100%}
@@ -203,6 +247,8 @@ img.thing-pic{width:max(64px,calc(120px*var(--u)))}
   .dl-choices.own{grid-template-columns:repeat(3,minmax(0,1fr))}
   .check-btn{min-height:48px;padding:4px 30px;font-size:26px}
   .sound-pic,.shaker{width:64px;height:64px}
+  .game.dl .no-stage .dl-choice .sound-pic{width:84px;height:84px}
+  .game.dl .no-stage .dl-choice .sound-pic .emo{font-size:26px}
   .sound-pic .emo,.shaker .emo{font-size:34px}
   .sort-pad{flex:1 1 50%;gap:4px}
   .q-sort .dl-stage{flex:1 1 40%}
@@ -223,13 +269,15 @@ img.thing-pic{width:max(64px,calc(120px*var(--u)))}
 }
 
 /* ---------- end of a Round ---------- */
-.dl-reward{background:radial-gradient(ellipse 60% 40% at 50% 40%,#fff2b022,#fff2b000 70%),var(--dl-sea)}
+/* the end of a Round: shafts of light coming down from the surface, and specks of the deep's own glowing colours */
+.dl-reward{background:radial-gradient(circle at 14% 70%,#9aff5a 0 2px,#9aff5a00 3px),radial-gradient(circle at 84% 62%,#ff5ad8 0 2.5px,#ff5ad800 4px),radial-gradient(circle at 76% 84%,#5af0ff 0 2px,#5af0ff00 3px),radial-gradient(circle at 24% 22%,#5af0ff 0 1.5px,#5af0ff00 2.5px),radial-gradient(circle at 66% 14%,#9aff5a 0 1.5px,#9aff5a00 2.5px),
+  linear-gradient(100deg,#fff2b000 30%,#fff2b014 36%,#fff2b000 42%,#fff2b000 55%,#fff2b010 60%,#fff2b000 66%),radial-gradient(ellipse 60% 40% at 50% 40%,#fff2b022,#fff2b000 70%),var(--dl-sea)}
 .earned-call{font:900 calc(30px*var(--u)) Nunito,sans-serif;color:var(--yellow);background:#000;border-radius:999px;padding:6px 20px}
 .dl-reward .btns{align-items:center}
 .dl-reward .btns .big-btn.my-sub{padding:calc(6px*var(--u));width:max(130px,calc(190px*var(--u)));height:max(84px,calc(110px*var(--u)));flex:none;background:linear-gradient(#5aa8d8,#2a6bd8)}
-.big-btn.dive-btn{gap:10px;min-height:max(84px,calc(110px*var(--u)));padding:calc(10px*var(--u)) calc(24px*var(--u));font-size:calc(34px*var(--u));background:radial-gradient(circle at 40% 30%,#7ff7ff,#2ab8d8 60%,#0a6a8a);color:#fff}
+.big-btn.dive-btn{gap:10px;min-height:max(84px,calc(110px*var(--u)));padding:calc(10px*var(--u)) calc(24px*var(--u));font-size:calc(34px*var(--u));background:linear-gradient(#3cc8e4,#0b7d9e 45%,#075d7a);color:#fff}
 .dive-word{font:400 max(20px,calc(32px*var(--u))) Bungee,sans-serif;white-space:nowrap;text-shadow:2px 2px 0 #000}
-.dive-count{font-size:.68em;background:#0006;border-radius:12px;padding:2px 10px;white-space:nowrap}
+.dive-count{font:900 .68em Nunito,sans-serif;background:#04102acc;border:2px solid #000;border-radius:12px;padding:2px 10px;white-space:nowrap}
 .big-btn.dive-btn.short{background:#5d6b78}
 .dl-reward .btns .again.second{font-size:calc(28px*var(--u));padding:calc(18px*var(--u)) calc(24px*var(--u))}
 .armed{background:var(--red)!important}
@@ -258,16 +306,21 @@ img.thing-pic{width:max(64px,calc(120px*var(--u)))}
 .goalchip.ready{box-shadow:0 0 0 4px var(--yellow)}
 .dock-body{flex:1;min-height:0;display:grid;grid-template-columns:minmax(0,1.05fr) minmax(0,1fr);gap:calc(12px*var(--u))}
 @media (orientation:portrait){.dock-body{grid-template-columns:minmax(0,1fr);grid-template-rows:minmax(0,1.1fr) minmax(0,1fr)}}
+/* the Dive button, the Logbook and ▶ stay above the bottom band (the tray scrolls on under it, and Buy sits above it) */
+@media (orientation:landscape){.bay-side{padding-bottom:calc(var(--floor) - 10px)}}
 .bay-side{display:grid;grid-template-rows:minmax(0,1fr) auto auto;gap:calc(8px*var(--u));min-height:0;min-width:0}
 /* the Dock: sky, the pier, the water his submarine sits in */
-.dock-bay{position:relative;min-height:0;display:flex;padding:4% 8% 3%;border:4px solid #000;border-radius:18px;overflow:hidden;box-shadow:0 6px 0 #000;background:linear-gradient(#0000 0 64%,#7a5a3a 64% 68%,#5a3a24 68% 70%,#0000 70%),linear-gradient(#7ac8f0,#bfe6ff 50%,#2a8ad8 66%,#0d3a7a)}
+.dock-bay{position:relative;min-height:0;display:flex;padding:4% 8% 3%;border:4px solid #000;border-radius:18px;overflow:hidden;box-shadow:0 6px 0 #000;background:linear-gradient(#0000 0 50%,#8a6a44 50% 54%,#5a3a24 54% 56%,#0000 56%),repeating-linear-gradient(90deg,#0000 0 9%,#5a3a24 9% 10.5%),linear-gradient(#0000 0 56%,#9ff3ff66 56% 57%,#0000 57%),linear-gradient(#7ac8f0,#cdeeff 46%,#2a8ad8 56%,#0d3a7a);background-size:100% 100%,100% 6%,100% 100%,100% 100%;background-position:0 0,0 54%,0 0,0 0;background-repeat:no-repeat}
 .dock-bay .sub-art{position:relative;flex:1}
 .dock-bay .sub-art.trying{filter:drop-shadow(0 0 12px #ffd23f)}
-.dock-things{position:absolute;left:3%;right:3%;top:52%;display:flex;flex-wrap:wrap;gap:2px;font-size:max(20px,calc(30px*var(--u)));line-height:1;pointer-events:none;justify-content:space-between}
+.dock-things{position:absolute;left:3%;right:3%;top:36%;display:flex;flex-wrap:wrap;gap:2px;font-size:max(20px,calc(30px*var(--u)));line-height:1;pointer-events:none;justify-content:space-between}
 .dock-things>.trying{filter:drop-shadow(0 0 6px #ffd23f)}
 .zone-map{display:grid;grid-template-columns:repeat(8,minmax(0,1fr));gap:4px}
 .zone{min-height:max(48px,calc(56px*var(--u)));min-width:44px;border-radius:12px;border:3px solid #000;padding:0;display:grid;place-items:center;font-size:calc(26px*var(--u));box-shadow:0 3px 0 #000}
-.zone.locked{filter:saturate(.3) brightness(.7)}
+.zone{position:relative}
+/* a place he can't dive yet still shows what it is, dimmed, with a little lock on it */
+.zone.locked .zone-icon{filter:grayscale(1) brightness(.55);opacity:.8}
+.zone-lock{position:absolute;right:1px;bottom:0;font-size:max(13px,calc(16px*var(--u)));line-height:1;font-family:"Apple Color Emoji","Segoe UI Emoji","Noto Color Emoji",sans-serif}
 .zone.next{outline:4px solid var(--yellow);outline-offset:1px}
 .bay-go{display:flex;align-items:center;gap:10px;min-width:0}
 .bay-go .dive-btn{flex:1;min-width:0;min-height:max(64px,calc(84px*var(--u)))}
@@ -276,7 +329,7 @@ img.thing-pic{width:max(64px,calc(120px*var(--u)))}
 .dl-tabs{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:5px}
 .dl-tab{min-width:44px;min-height:max(46px,calc(54px*var(--u)));border-radius:14px;background:var(--deep-2);border:3px solid #fff3;font-size:calc(26px*var(--u));padding:0}
 .dl-tab.on{background:var(--yellow);border-color:#000;box-shadow:0 4px 0 #000}
-.dl-tray{display:grid;grid-template-columns:repeat(auto-fill,minmax(max(100px,calc(124px*var(--u))),1fr));grid-auto-rows:max-content;gap:calc(8px*var(--u));overflow-y:auto;overscroll-behavior:contain;touch-action:pan-y;padding-bottom:calc(84px*var(--u));min-height:0}
+.dl-tray{display:grid;grid-template-columns:repeat(auto-fill,minmax(max(100px,calc(124px*var(--u))),1fr));grid-auto-rows:max-content;gap:calc(8px*var(--u));overflow-y:auto;overscroll-behavior:contain;touch-action:pan-y;padding-bottom:calc(84px*var(--u) + var(--floor));min-height:0}
 .dl-tile{position:relative;display:flex;flex-direction:column;align-items:center;gap:2px;padding:6px 4px;border-radius:14px;background:var(--deep-2);border:3px solid #fff3;color:#fff;font:800 max(14px,calc(15px*var(--u)))/1.1 Nunito,sans-serif;min-height:44px}
 .dl-tile .part-pic{width:calc(110px*var(--u));height:calc(70px*var(--u));min-width:80px;min-height:50px;object-fit:contain;display:block}
 .dl-tile .tile-emo{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;height:calc(70px*var(--u));min-height:50px;font-size:calc(36px*var(--u))}
@@ -292,7 +345,7 @@ img.thing-pic{width:max(64px,calc(120px*var(--u)))}
 .dl-tile.can{border-color:var(--yellow)}
 .dl-tile.on{border-color:var(--green);background:#0e3a30;color:#c4f7dc}.dl-tile.on .mt-tag{color:#8ff0bf}
 .dl-tile.trying{border-color:#fff;outline:3px solid var(--yellow);outline-offset:1px}
-.buybar{position:absolute;left:0;right:0;bottom:0;display:flex;align-items:center;gap:10px;padding:8px;background:#000;border:3px solid var(--yellow);border-radius:16px;box-shadow:0 -4px 18px #0009}
+.buybar{position:absolute;left:0;right:0;bottom:calc(var(--floor) - 10px);display:flex;align-items:center;gap:10px;padding:8px;background:#000;border:3px solid var(--yellow);border-radius:16px;box-shadow:0 -4px 18px #0009}
 .buybar .x{flex:none;width:var(--tap);height:var(--tap);border-radius:50%;background:var(--deep-2);color:#fff;border:0;font-size:20px}
 .buy-name{flex:1;min-width:0;color:#fff;font:900 max(16px,calc(22px*var(--u))) Nunito,sans-serif}
 .buy{font-size:calc(30px*var(--u));padding:calc(8px*var(--u)) calc(22px*var(--u));flex:none}
@@ -333,6 +386,7 @@ img.thing-pic{width:max(64px,calc(120px*var(--u)))}
 .log-card-inner h2{margin:0;font:400 calc(30px*var(--u)) Bungee,sans-serif;color:var(--lamp);text-shadow:2px 2px 0 #000}
 .log-card-inner p{margin:0;font:800 max(17px,calc(24px*var(--u)))/1.3 Nunito,sans-serif}
 .log-card-btns{display:flex;gap:14px}
+.log-card-btns .big-btn:not(.go){background:var(--yellow);color:#000}
 @media (orientation:landscape) and (max-height:520px){
   .log-card-inner{display:grid;grid-template-columns:auto 1fr;grid-template-rows:auto 1fr auto;column-gap:16px;row-gap:4px;padding:10px 16px;text-align:left}
   .log-card-inner .animal-pic.big{grid-row:1/4;width:min(34vw,240px)}

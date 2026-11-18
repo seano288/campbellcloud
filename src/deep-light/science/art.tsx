@@ -78,9 +78,20 @@ export function Sheet({ id }: { id: MaterialId }) {
   );
 }
 
+/** A little light box behind a material shown on its own: bright stripes that show clearly through clear glass, faintly through wax
+ *  paper and not at all through wood, so the picture says how much light gets through. The sheet's own look is unchanged. */
+function Backdrop() {
+  return (
+    <g>
+      <rect x="-27" y="-42" width="54" height="84" rx="8" fill="#0a1d44" stroke={INK} stroke-width="2.5" />
+      {(['#5af0ff', '#ff5ad8', '#9aff5a', '#ffd23f'] as const).map((c, i) => <rect x="-24" y={-31 + i * 18} width="48" height="7" rx="3.5" fill={c} />)}
+    </g>
+  );
+}
+
 /** A material on its own, as a choice. */
 export function MaterialPic({ id }: { id: MaterialId }) {
-  return <svg class="material-pic" viewBox="-30 -44 60 88" aria-hidden="true"><Sheet id={id} /></svg>;
+  return <svg class="material-pic" viewBox="-30 -44 60 88" aria-hidden="true"><Backdrop /><Sheet id={id} /></svg>;
 }
 
 /** The lamp, a thing in its beam, and the wall behind. `beam` 0..1: how far the light has run (1 the whole way); the wall shows a
@@ -188,7 +199,7 @@ export function BounceScene({ item, beam }: { item: string; beam: boolean }) {
   );
 }
 export function MirrorPic() {
-  return <svg class="material-pic" viewBox="-30 -44 60 88" aria-hidden="true"><rect x="-16" y="-36" width="32" height="72" rx="6" fill="#cfefff" stroke={INK} stroke-width="3" /><path d="M-8 -20 L4 -30 M-8 -6 L10 -22" stroke="#fff" stroke-width="3" stroke-linecap="round" /></svg>;
+  return <svg class="material-pic" viewBox="-30 -44 60 88" aria-hidden="true"><Backdrop /><rect x="-16" y="-36" width="32" height="72" rx="6" fill="#cfefff" stroke={INK} stroke-width="3" /><path d="M-8 -20 L4 -30 M-8 -6 L10 -22" stroke="#fff" stroke-width="3" stroke-linecap="round" /></svg>;
 }
 
 // ---------- Shadows ----------

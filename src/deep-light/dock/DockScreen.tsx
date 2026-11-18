@@ -130,7 +130,7 @@ export function DockScreen() {
               const open = zoneOpen(st, z.id);
               return (
                 <button key={z.id} class={`zone ${open ? 'open' : 'locked'} ${next === z.id ? 'next' : ''}`} aria-label={z.name} style={{ background: `linear-gradient(${z.top}, ${z.bottom})` }} onClick={() => tapZone(z.id)}>
-                  <span class="zone-icon" aria-hidden="true">{open ? z.icon : '🔒'}</span>
+                  <span class="zone-icon" aria-hidden="true">{z.icon}</span>{!open && <span class="zone-lock" aria-hidden="true">🔒</span>}
                 </button>
               );
             })}

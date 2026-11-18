@@ -40,6 +40,23 @@ export function SubArt({ look, label, class: cls = '' }: { look: SubLook; label?
   return <CanvasArt class={`sub-art ${cls}`} k={JSON.stringify(look)} label={label} paint={(ctx, w, h) => paintSub(ctx, look, w, h, 0.4)} />;
 }
 
+const bounds = new Map<string, { cx: number; cy: number; w: number; h: number }>();
+/** Where an animal's drawing actually is, in its own units (drawn once small, and the pixels it covered measured). */
+function boundsOf(a: ReturnType<typeof animal>) {
+  let b = bounds.get(a.id);
+  if (b) return b;
+  const W: number = CREATURE_BOX.w, H: number = CREATURE_BOX.h, c = document.createElement('canvas');
+  c.width = W; c.height = H;
+  const ctx = c.getContext('2d', { willReadFrequently: true })!;
+  ctx.translate(W / 2, H / 2); drawCreature(ctx, a, 0.3);
+  const px = ctx.getImageData(0, 0, W, H).data;
+  let x0 = W, y0 = H, x1 = 0, y1 = 0;
+  for (let y = 0; y < H; y++) for (let x = 0; x < W; x++) if (px[(y * W + x) * 4 + 3]! > 24) { if (x < x0) x0 = x; if (x > x1) x1 = x; if (y < y0) y0 = y; if (y > y1) y1 = y; }
+  b = x1 > x0 ? { cx: (x0 + x1 + 1) / 2 - W / 2, cy: (y0 + y1 + 1) / 2 - H / 2, w: x1 - x0 + 1, h: y1 - y0 + 1 } : { cx: 0, cy: 0, w: W, h: H };
+  bounds.set(a.id, b);
+  return b;
+}
+
 const cache = new Map<string, string>();
 /** An animal as an image (a data URL), drawn once at this many pixels wide; `silhouette` draws it dark, for one not found yet. */
 export function animalImage(id: string, px = 240, silhouette = false): string {
@@ -49,7 +66,10 @@ export function animalImage(id: string, px = 240, silhouette = false): string {
   const a = animal(id), c = document.createElement('canvas'), k = px / CREATURE_BOX.w;
   c.width = px; c.height = Math.round(CREATURE_BOX.h * k);
   const ctx = c.getContext('2d')!;
-  ctx.translate(c.width / 2, c.height / 2); ctx.scale(k * 0.9, k * 0.9);
+  // every animal fills its frame the same way, so a little vent mussel shows as clearly as a whale in the Logbook (on a Dive each is
+  // drawn at its own size instead)
+  const box = boundsOf(a), fit = Math.min(1.9, (CREATURE_BOX.w * 0.86) / box.w, (CREATURE_BOX.h * 0.84) / box.h);
+  ctx.translate(c.width / 2, c.height / 2); ctx.scale(k * fit, k * fit); ctx.translate(-box.cx, -box.cy);
   if (a.glow && !silhouette) {
     const [gx, gy] = glowAt(a), g = ctx.createRadialGradient(gx, gy, 0, gx, gy, 44);
     g.addColorStop(0, a.glow + 'cc'); g.addColorStop(1, a.glow + '00');

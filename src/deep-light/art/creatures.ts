@@ -65,8 +65,12 @@ function angler(ctx: C, a: Art, t: number) {
 
 function fish(ctx: C, a: Art, t: number) {
   const f = a.form ?? 'round', wag = Math.sin(t * 6) * 3;
-  const size = { round: [38, 28], tall: [32, 36], long: [46, 18], thin: [44, 12], sword: [44, 18], tadpole: [40, 22], tripod: [42, 15], rattail: [26, 20] }[f] ?? [38, 28];
+  const size = { round: [38, 28], tall: [32, 36], long: [46, 18], thin: [44, 12], sword: [44, 18], tadpole: [40, 22], tripod: [42, 15], rattail: [26, 20], viper: [44, 19], loosejaw: [44, 17], flashlight: [36, 26], hatchet: [30, 32] }[f] ?? [38, 28];
   const [rx, ry] = size as [number, number];
+  // a hatchetfish is deep in the belly and thin at the tail, like the blade of a hatchet; the rest are ovals
+  const shape = f === 'hatchet'
+    ? () => { ctx.moveTo(-rx, -ry * 0.25); ctx.quadraticCurveTo(0, -ry * 1.05, rx, -ry * 0.45); ctx.quadraticCurveTo(rx * 1.1, ry * 0.2, rx * 0.5, ry * 0.75); ctx.quadraticCurveTo(-rx * 0.1, ry * 1.25, -rx * 0.75, ry * 0.25); ctx.closePath(); }
+    : () => ellipse(ctx, 0, 0, rx, ry);
   // the tail
   if (f === 'rattail' || f === 'tadpole') {
     blob(ctx, a.body, () => { ctx.moveTo(-rx * 0.4, -ry * 0.7); ctx.quadraticCurveTo(-rx * 2, -2 + wag, -rx * 2.4, wag); ctx.quadraticCurveTo(-rx * 2, 2 + wag, -rx * 0.4, ry * 0.7); ctx.closePath(); });
@@ -79,13 +83,18 @@ function fish(ctx: C, a: Art, t: number) {
   } else {
     blob(ctx, a.body, () => { ctx.moveTo(-rx * 0.5, -ry * 0.85); ctx.quadraticCurveTo(-rx * 0.1, -ry - 16, rx * 0.25, -ry * 0.9); ctx.closePath(); });
   }
+  if (f === 'viper') { // a long spine on its back with a light at the tip
+    ctx.beginPath(); ctx.moveTo(-rx * 0.35, -ry * 0.9); ctx.quadraticCurveTo(-rx * 0.2, -ry - 26, rx * 0.25, -ry - 22);
+    ctx.lineWidth = 5; ctx.strokeStyle = INK; ctx.lineCap = 'round'; ctx.stroke(); ctx.lineWidth = 2.5; ctx.strokeStyle = a.body; ctx.stroke();
+    blob(ctx, a.accent, () => ellipse(ctx, rx * 0.25 + 2, -ry - 22, 4.5, 4.5), 2);
+  }
   if (f === 'tripod') { // three long fins to stand on
     lines(ctx, [[-10, ry * 0.6, -30, ry + 44], [10, ry * 0.6, 4, ry + 46], [-rx - 4, 0, -rx - 30, ry + 40]], INK, 5);
     lines(ctx, [[-10, ry * 0.6, -30, ry + 44], [10, ry * 0.6, 4, ry + 46], [-rx - 4, 0, -rx - 30, ry + 40]], a.accent, 2.5);
   }
   // the body
-  blob(ctx, a.body, () => ellipse(ctx, 0, 0, rx, ry));
-  ctx.save(); ctx.beginPath(); ellipse(ctx, 0, 0, rx - 2, ry - 2); ctx.clip();
+  blob(ctx, a.body, shape);
+  ctx.save(); ctx.beginPath(); shape(); ctx.clip();
   ctx.beginPath(); ellipse(ctx, -4, ry * 0.55, rx * 0.8, ry * 0.45); ctx.fillStyle = '#ffffff2a'; ctx.fill();
   if (a.stripes) for (const x of [-rx * 0.45, rx * 0.15]) { ctx.beginPath(); ctx.rect(x - 5, -ry, 10, ry * 2); ctx.fillStyle = a.accent; ctx.fill(); ctx.lineWidth = 2.5; ctx.strokeStyle = INK; ctx.stroke(); }
   if (a.spots) dots(ctx, [[-rx * 0.5, -ry * 0.3], [-rx * 0.15, ry * 0.25], [-rx * 0.3, ry * 0.5], [rx * 0.05, -ry * 0.45], [-rx * 0.65, ry * 0.1]], Math.max(2.5, ry * 0.13), a.accent);
@@ -97,12 +106,25 @@ function fish(ctx: C, a: Art, t: number) {
   if (a.lights) dots(ctx, Array.from({ length: 5 }, (_, i) => [-rx * 0.6 + i * rx * 0.3, ry * 0.62] as [number, number]), Math.max(2, ry * 0.12), a.accent);
   // the face
   const ex = rx * 0.55, ey = -ry * 0.25, er = Math.max(5, Math.min(11, ry * 0.42));
+  // a light of its own under the eye: the flashlight fish's big bean, the loosejaw's red lamp (and a little blue one behind it)
+  if (f === 'flashlight' || f === 'loosejaw') {
+    const lx = ex - er * 0.2, ly = ey + er * 1.55, big = f === 'flashlight';
+    if (!big) blob(ctx, '#7ad8ff', () => ellipse(ctx, lx - er * 1.5, ly + 1, er * 0.42, er * 0.42), 2);
+    blob(ctx, a.accent, () => ellipse(ctx, lx, ly, er * (big ? 1.05 : 0.9), er * (big ? 0.62 : 0.62), -0.15), 2.5);
+    ctx.beginPath(); ellipse(ctx, lx - er * 0.3, ly - er * 0.18, er * 0.25, er * 0.16, -0.15); ctx.fillStyle = '#fff'; ctx.fill();
+  }
+  // a viperfish's big lower jaw, its long teeth soft and rounded like a smiling walrus's; a loosejaw's jaw hangs open on its hinge
+  if (f === 'viper') {
+    blob(ctx, a.body, () => { ctx.moveTo(rx * 0.35, ry * 0.3); ctx.quadraticCurveTo(rx * 0.8, ry * 1.05, rx + 4, ry * 0.2); ctx.closePath(); }, 3);
+    for (const [x, h] of [[rx * 0.8, 17], [rx * 0.97, 14]] as const) blob(ctx, '#fffbe8', () => { ctx.moveTo(x - 3.2, ry * 0.55); ctx.lineTo(x - 3.2, ry * 0.55 - h + 3.2); ctx.arc(x, ry * 0.55 - h + 3.2, 3.2, Math.PI, 0); ctx.lineTo(x + 3.2, ry * 0.55); ctx.closePath(); }, 2);
+  }
+
   if (a.see) { // a see-through head, eyes looking up through it
     ctx.beginPath(); ellipse(ctx, ex - 2, -ry * 0.45, er * 1.7, er * 1.5); ctx.fillStyle = '#bff6ff55'; ctx.fill(); ctx.lineWidth = 2.5; ctx.strokeStyle = '#ffffffaa'; ctx.stroke();
     eye(ctx, ex - 2, -ry * 0.35, er * 0.9, 0); ctx.beginPath(); ellipse(ctx, ex - 2, -ry * 0.35 - er * 0.3, er * 0.45, er * 0.45); ctx.fillStyle = '#1b1530'; ctx.fill();
   } else eye(ctx, ex, ey, er);
   smile(ctx, rx * 0.72, ry * 0.25, Math.max(4, ry * 0.2));
-  if (a.teeth) for (const [x, y] of [[rx * 0.78, ry * 0.05], [rx * 0.9, ry * 0.12]] as const) blob(ctx, '#fffbe8', () => { ctx.moveTo(x - 2.5, y); ctx.quadraticCurveTo(x, y - 12, x + 2.5, y); ctx.closePath(); }, 1.5);
+  if (a.teeth && f !== 'viper') for (const [x, y] of [[rx * 0.78, ry * 0.05], [rx * 0.9, ry * 0.12]] as const) blob(ctx, '#fffbe8', () => { ctx.moveTo(x - 2.5, y); ctx.quadraticCurveTo(x, y - 12, x + 2.5, y); ctx.closePath(); }, 1.5);
 }
 
 // ---------- the rest of the sea ----------
@@ -112,11 +134,14 @@ function eel(ctx: C, a: Art, t: number) {
   ctx.beginPath(); ctx.moveTo(30, 0); ctx.bezierCurveTo(0, -14 + w, -30, 14 - w, -64, w);
   ctx.lineWidth = gulper ? 14 : 22; ctx.strokeStyle = INK; ctx.lineCap = 'round'; ctx.stroke();
   ctx.lineWidth = gulper ? 8 : 15; ctx.strokeStyle = a.body; ctx.stroke();
-  if (gulper) {
-    blob(ctx, a.body, () => { ctx.moveTo(14, -6); ctx.quadraticCurveTo(40, -36, 52, -14); ctx.lineTo(54, 18); ctx.quadraticCurveTo(36, 30, 14, 6); ctx.closePath(); });
-    blob(ctx, '#1a1020', () => { ctx.moveTo(26, -8); ctx.quadraticCurveTo(46, -24, 50, -10); ctx.lineTo(50, 12); ctx.quadraticCurveTo(38, 18, 26, 4); ctx.closePath(); }, 2);
-    blob(ctx, a.accent, () => ellipse(ctx, -66, w, 5, 5), 2);
-    eye(ctx, 20, -12, 5);
+  if (gulper) { // a huge pouch of a mouth, shut in a long grin, and a pink light at the tip of its whip of a tail
+    blob(ctx, a.body, () => { ctx.moveTo(8, -8); ctx.quadraticCurveTo(26, -34, 56, -16); ctx.quadraticCurveTo(66, -6, 60, 4); ctx.quadraticCurveTo(52, 34, 22, 22); ctx.quadraticCurveTo(8, 14, 8, -8); ctx.closePath(); });
+    ctx.save(); ctx.beginPath(); ctx.moveTo(8, -8); ctx.quadraticCurveTo(26, -34, 56, -16); ctx.quadraticCurveTo(66, -6, 60, 4); ctx.quadraticCurveTo(52, 34, 22, 22); ctx.quadraticCurveTo(8, 14, 8, -8); ctx.clip();
+    ctx.beginPath(); ellipse(ctx, 38, 20, 26, 12); ctx.fillStyle = '#ff9ad866'; ctx.fill(); ctx.restore();
+    ctx.beginPath(); ctx.moveTo(26, 0); ctx.quadraticCurveTo(44, 12, 61, 0); ctx.lineWidth = 3; ctx.strokeStyle = INK; ctx.lineCap = 'round'; ctx.stroke();
+    blob(ctx, a.accent, () => ellipse(ctx, -66, w, 6, 6), 2);
+    ctx.beginPath(); ellipse(ctx, -67.5, w - 1.5, 2, 2); ctx.fillStyle = '#fff'; ctx.fill();
+    eye(ctx, 30, -14, 7, 0.3); cheek(ctx, 22, 4, 5);
   } else {
     blob(ctx, a.body, () => ellipse(ctx, 32, 0, 18, 13));
     eye(ctx, 38, -5, 6); smile(ctx, 44, 5, 4);
@@ -164,10 +189,16 @@ function squid(ctx: C, a: Art, t: number) {
   if (a.lights) dots(ctx, [[-30, -4], [-18, 6], [-6, -6], [-38, 6]], 2.5, a.accent);
   ctx.restore();
   eye(ctx, 8 * s, -4, long ? 12 : 7, 0.3);
+  smile(ctx, 10 * s, long ? 13 : 7, long ? 5 : 3.5); cheek(ctx, 0, long ? 8 : 5, long ? 5 : 4);
 }
 
 function octopus(ctx: C, a: Art, t: number) {
-  const dumbo = a.form === 'dumbo';
+  const dumbo = a.form === 'dumbo', vampire = a.form === 'vampire';
+  if (vampire) { // the cape of skin between its arms, scalloped at the edge
+    blob(ctx, a.body, () => { ctx.moveTo(-28, 4); ctx.quadraticCurveTo(-40, 30, -34, 44); for (let i = 0; i < 5; i++) ctx.quadraticCurveTo(-27 + i * 15, 34 + Math.sin(t * 3 + i) * 2, -20 + i * 15, 46); ctx.quadraticCurveTo(40, 30, 28, 4); ctx.closePath(); });
+    ctx.beginPath(); ctx.moveTo(-26, 12); ctx.quadraticCurveTo(0, 30, 26, 12); ctx.lineTo(30, 40); ctx.lineTo(-30, 40); ctx.closePath(); ctx.fillStyle = '#0000002a'; ctx.fill();
+    for (const s of [-1, 1]) blob(ctx, a.body, () => ellipse(ctx, s * 22, -30, 10, 6, s * 0.7), 3);
+  }
   for (let i = 0; i < 6; i++) {
     const x = -24 + i * 9.6, w = Math.sin(t * 3 + i) * 6;
     ctx.beginPath(); ctx.moveTo(x, 6); ctx.bezierCurveTo(x - 6, 28, x + 10 + w, 34, x + 6 + w, 46);
@@ -201,7 +232,7 @@ function shrimp(ctx: C, a: Art, t: number) {
   if (a.stripes) lines(ctx, [[-10, -14, -6, 12], [4, -14, 6, 12]], a.accent, 4);
   for (const x of [-18, -4, 8]) lines(ctx, [[x, -12, x + 2, 10]], '#0003', 1.5);
   if (a.lights) dots(ctx, [[-14, 8], [0, 9], [12, 6]], 2.5, a.accent);
-  eye(ctx, 14, -6, 5.5);
+  eye(ctx, 14, -6, 5.5); smile(ctx, 19, 3, 3);
 }
 
 function lobster(ctx: C, a: Art, t: number) {
@@ -210,7 +241,7 @@ function lobster(ctx: C, a: Art, t: number) {
   for (let i = 0; i < 4; i++) lines(ctx, [[-4 + i * 9, 8, -10 + i * 9, 22]], INK, 3.5);
   blob(ctx, a.body, () => { ctx.moveTo(34, 0); ctx.bezierCurveTo(30, -18, -30, -16, -44, -2); ctx.lineTo(-60, -10); ctx.lineTo(-58, 12); ctx.lineTo(-44, 6); ctx.bezierCurveTo(-30, 14, 30, 16, 34, 0); });
   if (a.spines) for (let i = 0; i < 5; i++) blob(ctx, a.accent, () => { const x = -24 + i * 11; ctx.moveTo(x - 3, -11); ctx.lineTo(x, -18); ctx.lineTo(x + 3, -11); ctx.closePath(); }, 1.5);
-  eye(ctx, 22, -8, 6);
+  eye(ctx, 22, -8, 6); smile(ctx, 28, 3, 3.5);
 }
 
 function turtle(ctx: C, a: Art, t: number) {
@@ -316,7 +347,7 @@ function worm(ctx: C, a: Art, t: number) {
   blob(ctx, a.body, () => { ctx.moveTo(-36, 6); ctx.quadraticCurveTo(0, -10, 30, 0); ctx.lineTo(30, 10); ctx.quadraticCurveTo(0, 4, -36, 14); ctx.closePath(); });
   lines(ctx, Array.from({ length: 10 }, (_, i) => [-30 + i * 6, 2 - i * 0.2, -32 + i * 6, -8 + Math.sin(t * 4 + i) * 2] as [number, number, number, number]), '#ffffffcc', 2);
   for (let i = 0; i < 4; i++) { ctx.beginPath(); ellipse(ctx, 34, -2 + i * 4, 6, 2, 0.4); ctx.fillStyle = a.accent; ctx.fill(); }
-  eye(ctx, 24, 0, 4);
+  eye(ctx, 24, 0, 4); smile(ctx, 28, 6, 2.5);
 }
 
 function snail(ctx: C, a: Art, t: number) {
@@ -333,7 +364,7 @@ function snail(ctx: C, a: Art, t: number) {
     blob(ctx, a.body, () => { ctx.moveTo(-40, 8); ctx.quadraticCurveTo(-10, -18, 34, -4); ctx.quadraticCurveTo(38, 12, -40, 8); });
     for (let i = 0; i < 7; i++) blob(ctx, a.accent, () => ellipse(ctx, -28 + i * 9, -8 + Math.abs(i - 3), 4, 8 + Math.sin(t * 3 + i), -0.2), 2);
     lines(ctx, [[30, -6, 38, -20], [26, -6, 30, -20]], INK, 3);
-    eye(ctx, 22, -2, 4.5); return;
+    eye(ctx, 22, -2, 4.5); smile(ctx, 27, 4, 2.5); return;
   }
   blob(ctx, a.accent, () => { ctx.moveTo(-36, 16); ctx.quadraticCurveTo(0, 10, 36, 14); ctx.quadraticCurveTo(40, 22, -36, 22); ctx.closePath(); });
   lines(ctx, [[30, 12, 40, -2], [26, 12, 32, -2]], INK, 3);
@@ -397,6 +428,9 @@ export function glowAt(a: Pick<Animal, 'art'>, t = 0): [number, number] {
   if (a.art.shape === 'angler') return [37, -58 + Math.sin(t * 2.4) * 3];
   if (a.art.shape === 'jelly') return [0, -8];
   if (a.art.shape === 'eel' && a.art.form === 'gulper') return [-66, 0];
+  if (a.art.form === 'flashlight') return [18, 10];
+  if (a.art.form === 'loosejaw') return [23, 7];
+  if (a.art.form === 'viper') return [13, -41];
   return [0, 4];
 }
 /** The box an animal's drawing fills, in its units: wide enough for tails, arms and lures. */
