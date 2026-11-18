@@ -175,7 +175,9 @@ export function drawService(g: CanvasRenderingContext2D, s: Service, now: number
   });
   // the trays
   for (const t of L.trays) {
-    g.fillStyle = '#fff'; g.strokeStyle = INK; g.lineWidth = 4;
+    // the family's solid drop under each tray (one flat fill, no blur), then the tray
+    g.fillStyle = INK; rounded(g, t.x - L.r, t.y - L.r + 5, L.r * 2, L.r * 2, L.r * .35); g.fill();
+    g.fillStyle = '#fffbe9'; g.strokeStyle = INK; g.lineWidth = 4;
     rounded(g, t.x - L.r, t.y - L.r, L.r * 2, L.r * 2, L.r * .35); g.fill(); g.stroke();
     if (t.id === 'base') drawBase(g, s.kind.base, t.x, t.y, L.r * .8);
     else emoji(g, s.kind.toppings.find(x => x.id === t.id)!.emoji, t.x, t.y, L.r * 1.15);

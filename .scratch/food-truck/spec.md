@@ -2,8 +2,7 @@
 
 Status: built on 2026-11-18 from `brief.md` (pass 1 of 3: build), playable at `/food-truck/` with a tile in **Learning Games** on the
 landing page, after Dino Dig. Every decision below is a **default for the parent to confirm**. Not yet run on a real iPad or in Safari.
-The name is still the brief's working name. The bug pass and the visual design pass follow; the look is the family look in street-fair
-colours, not yet designed.
+The name is still the brief's working name. The bug pass and the visual design pass followed (see their sections below).
 
 A new learning game on the family site, built the same way as Turbo Tally and Rover Code (`src/turbo-tally/` was the closest model: a
 non-reading game of taps, with a Tune-Up and Meetings), for the same player (6 to 7, reads numbers and short words, leans on the recorded
@@ -295,7 +294,36 @@ titles, Nunito for reading, 4px black outlines and solid drop shadows that press
 green ▶, the Truck tile shows his truck (with 🍽️ and how many Services), the Sticker Book tile his newest Regulars and n/40, and My
 Levels is a menu board with a ketchup-red header. The truck is drawn in code (`art/TruckPic.tsx`) from the side, hatch open, wearing every
 part. Icon (`icon.ts`): a ketchup-red food truck from the side, its hatch open under a red-and-white awning with bulbs, a big $ in a mint
-circle on its sign, on warm yellow rays. Signals stay the family's: green Go and right, yellow look here, orange being read aloud.
+circle on its sign, on warm yellow rays. (Pass 3 redrew the icon and the screens: see "Design pass" below.) Signals stay the family's: green Go and right, yellow look here, orange being read aloud.
+
+## Design pass (pass 3, 2026-11-18)
+
+Judged from screenshots of every screen at 810×1080, 1080×810, 390×844 and 844×390 (`tools/food-truck/gallery.ts` takes them: each kind
+at each Level with both lessons, the Meetings, the end of a Round, Home, every Truck tab, the Spot card, a Service and the Sticker Book).
+What changed, all in `food-truck.css` and the game's own components unless named:
+
+- **The question pictures fill the screen.** They were fixed sizes (180px cards in a 760×900 card on the iPad, with most of it empty).
+  The stage is now a size container and every picture, shelf, coin row, menu board and money box takes its size from it (`--card` for a
+  picture card, set by each form from how many cards it lays out; `--m` for money). On the iPad the pictures are about twice the size;
+  a phone on its side still fits.
+- **The lessons glow yellow, never red.** A lesson's "look at this one" was a ketchup-red outline, which read as "wrong" on the right
+  answer. It's the family's yellow glow now.
+- **Jobs Level 3's stall** was a striped box with the good under a grey panel: the shared `.arrow` class (the garage's translucent arrow
+  buttons) was styling the stall's arrow. It's renamed, and the stall is drawn as a stall: an awning over the good on a wooden counter,
+  with the way the good goes under it.
+- **Save Up's "how many days"** heading now starts "You have $3." when he starts with some, as the voice does (heading text only).
+- **The shop shows the part, not the whole truck, on each tile** (`art/PartPic.tsx`): one, two or three grill plates, the awning's
+  stripes, the string of lights in their colours, the wheel and rim, the sign with its picture, the speaker, mascot or Helper big. Trucks
+  and Paint still show the truck. Tiles and tabs are cream cards and chunky tabs with black outlines and drops, not dark slabs.
+- **The world:** a string of warm bulbs on a sagging wire (one small SVG tile) over the Start screen, the end of a Round and the Truck's
+  stage; the question card hangs under a strip of awning; Play's awning has its scallops; the truck on Start stands on a street; the
+  Service he earned is an order ticket; the Sticker Book is a cream page and the stickers still to find are faint outlines with their
+  truck's food; the Home Sticker Book tile shows big tilted stickers; the Service's trays are cream with the family's solid drop.
+- **The bottom band:** Home's tiles, the Round's card and the Truck screen's buttons now sit 56px or more above the bottom on a tall
+  screen, from this game's own CSS. On a phone on its side the Truck's Open button sits 24px up (it was 10px).
+- **Icon:** a mint food truck at a night market (dusk purple, rays from its sign, a string of bulbs, a paved square), its hatch open
+  under a scalloped awning with a burger and a taco on the counter, and a big $ on a mustard roof sign. No sibling icon is purple or has
+  a mint hero; the old icon's red truck on yellow rays sat too close to Hook and Ladder's red truck and Word Wreckers' yellow.
 
 ## Save
 
@@ -386,5 +414,6 @@ Captain Fin (Finn), Aisha (Ayesha), Malik (Malek), and "Grill" / "Mega Grill" (h
   as text.
 - Drag on real glass: generous snapping and 48px pieces are tested in code; how it feels under a 6-year-old's finger is not.
 - The clips have not been listened to by a person; only speech-to-text checked them (above).
-- Visual design is pass 3's: the kitchen, the Spot card, the shop tiles and the Sticker Book are functional, not designed.
+- The design pass did not redraw the Service's kitchen (a steel counter with grill spots and trays): only the trays changed, to keep
+  the frame cheap on the iPad 9.
 - No Trophies; no charitable giving (open question 8).

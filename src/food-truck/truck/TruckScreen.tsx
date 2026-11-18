@@ -7,6 +7,7 @@ import { sChime, sClink, sFanfare, sNope } from '../../audio/sfx';
 import { confetti } from '../../celebrate/effects';
 import { IconButton } from '../../ui/bits';
 import { CurrencyIcon, CurrencyPile } from '../../ui/currency';
+import { PartPic } from '../art/PartPic';
 import { TruckPic, type TruckLook } from '../art/TruckPic';
 import { TRUCK_CURRENCY } from '../branding';
 import { buy, player, updateTruck } from '../game';
@@ -118,7 +119,7 @@ export function TruckScreen() {
               const price = priceOf(k), can = !owned && balance >= price;
               return (
                 <button key={k} class={`ft-tile ${on ? 'on' : ''} ${owned ? 'owned' : 'locked'} ${can ? 'can' : ''} ${trial === k ? 'trying' : ''}`} aria-label={nameOf(k)} aria-pressed={on} onClick={() => tap(k)}>
-                  {helper ? <span class="helper-pic" aria-hidden="true">{partOf(k as PartKey).look[0]}</span> : <TruckPic look={lookWith(t, k)} class="tile-truck" label={nameOf(k)} />}
+                  {truck || partOf(k as PartKey).slot === 'paint' ? <TruckPic look={lookWith(t, k)} class="tile-truck" label={nameOf(k)} /> : <PartPic k={k as PartKey} />}
                   <span class="mt-name">{nameOf(k)}</span>
                   <span class="mt-tag">{owned ? (on ? '✓' : helper ? 'off' : '') : <>{price}<CurrencyIcon kind={TRUCK_CURRENCY} size={18} /></>}</span>
                 </button>

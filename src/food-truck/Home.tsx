@@ -39,7 +39,7 @@ export function Home({ status }: { status: ComponentChildren }) {
           {t.services > 0 && <span class="service-badge" aria-hidden="true">🍽️{t.services}</span>}
         </button>
         <button class="tile t-book" aria-label="Sticker Book" onClick={() => { if (voice.active) screen.value = 'book'; }}>
-          <span class="book-faces" aria-hidden="true">{(t.regulars.length ? REGULARS.filter(r => t.regulars.includes(r.id)).slice(-3).map(r => r.face) : ['❔', '❔', '❔']).map((f, i) => <span key={i}>{f}</span>)}</span>
+          <span class="book-faces" aria-hidden="true">{(t.regulars.length ? REGULARS.filter(r => t.regulars.includes(r.id)).slice(-3).map(r => r.face) : ['❓', '❓', '❓']).map((f, i) => <span key={i}>{f}</span>)}</span>
           <span class="nm">Sticker Book</span><span class="book-count" aria-hidden="true">{t.regulars.length}/{REGULARS.length}</span>
         </button>
         <div class="tile t-kinds" role="group" aria-label="My Levels">
@@ -49,8 +49,7 @@ export function Home({ status }: { status: ComponentChildren }) {
             return (
               <button key={id} class={`kind ${m.opened ? '' : 'locked'} ${m.opened && m.fresh ? 'fresh' : ''}`} aria-label={MODE_NAMES[id]} onClick={() => tap(id)}>
                 <span class="ki">{m.opened ? MODE_ICONS[id] : '🔒'}</span>
-                <span class="kb"><span class="kn">{MODE_NAMES[id]}</span><LevelDots level={m.opened ? m.level : 0} /></span>
-                {m.opened && m.starred && <span class="badge">⭐</span>}
+                <span class="kb"><span class="kn">{MODE_NAMES[id]}</span><span class="kl"><LevelDots level={m.opened ? m.level : 0} />{m.opened && m.starred && <span class="badge">⭐</span>}</span></span>
               </button>
             );
           })}

@@ -282,7 +282,7 @@ function RoleView({ current, q, waiting }: { current: Current; q: Extract<JobPro
     <Shell current={current} ready={c.can} kind="job form-role" text={line} speech={speech}
       stage={<div class="ft-market">
         {q.makerLeft ? maker : buyer}
-        <span class="ft-stall" aria-hidden="true"><span class="good">{m.emoji}</span><span class="arrow">{q.makerLeft ? '➡️' : '⬅️'}</span></span>
+        <span class="ft-stall" aria-hidden="true"><span class="roof" /><span class="good">{m.emoji}</span><span class="counter" /><span class="stall-way">{q.makerLeft ? '➡️' : '⬅️'}</span></span>
         {q.makerLeft ? buyer : maker}
       </div>} />
   );
@@ -336,7 +336,8 @@ function EnoughView({ current, q, waiting }: { current: Current; q: EnoughProble
 
 function SaveView({ current, q, waiting }: { current: Current; q: SaveProblem; waiting: boolean }) {
   const speech = questionSpeech(q);
-  const text = q.form === 'more' ? 'How many more do you need?' : q.form === 'days' ? `You earn $${q.perDay} a day. How many days until you have $${q.goal}?` : 'Can you buy both?';
+  // the days question says his starting money first when he has some, so the heading does too
+  const text = q.form === 'more' ? 'How many more do you need?' : q.form === 'days' ? `${q.start > 0 ? `You have $${q.start}. ` : ''}You earn $${q.perDay} a day. How many days until you have $${q.goal}?` : 'Can you buy both?';
   const ready = useAsked(current, speech), l = lessonFor(current.signal), c = useChoice(current, ready, waiting);
   if (q.form === 'days') {
     return (
