@@ -272,7 +272,12 @@ for (let i = 0; i < 600; i++) {
   const m = d.animals.filter(a => !a.done).sort((a, b) => Math.hypot(a.x - d.sub.x, a.y - d.sub.y) - Math.hypot(b.x - d.sub.x, b.y - d.sub.y))[0];
   const tr = d.treasures.find(x => !x.got);
   const goal = m ?? tr ?? d.sub;
-  const p = inside(goal);
+  // a finger steering toward a corner must land on the sea, not on the Sonar and Horn buttons (a row on a sideways phone)
+  let p = inside(goal);
+  for (const [dx, dy] of [[0, 0], [-170, 0], [0, -110], [-170, -110]] as const) {
+    const q = { x: p.x + dx, y: p.y + dy };
+    if (await page.evaluate(({ x, y }) => document.elementFromPoint(x, y)?.tagName === 'CANVAS', q)) { p = q; break; }
+  }
   await touch(holding ? 'touchMove' : 'touchStart', p); holding = true;
   if (!shotDive && d.t > 6) { await shot(`dive-${d.zone}`); shotDive = true; }
   await page.waitForTimeout(150);
