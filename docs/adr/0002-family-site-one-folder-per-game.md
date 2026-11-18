@@ -37,6 +37,6 @@ The landing page groups its tiles into sections: **Learning Games** (Monster Tru
 voice clips or `staticBuild()`. Hunch (`/hunch/`, a five-letter word guessing game) is a plain DOM page with its own
 small build (`tools/hunch-build.ts`) and its own save key, `hunch-save`.
 Sentence Express (`/sentence-express/`) is a tile in **Learning Games**, after Wild Rescue.
-Dino Dig (`/dino-dig/`) is a tile in **Learning Games**, after Word Wreckers, and saves under `dino-dig-save` (with `dino-dig-place` for
+Dino Dig (`/dino-dig/`) is a tile in **Learning Games**, after Turbo Tally, and saves under `dino-dig-save` (with `dino-dig-place` for
 the screen and the Round in progress). It shares Word Wreckers' word list (`src/dino-dig/words/list.ts`) but records its own voice clips
 in `public/dino-dig-voice/`.
