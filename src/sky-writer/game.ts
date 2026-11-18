@@ -6,7 +6,7 @@ import { createRewardPurchases } from '../app/purchaseCoordination';
 import { credit, readCurrency, type CurrencyState, type EarningsPolicy } from '../currency/currency';
 import { boltsFor } from '../round/rules';
 import { browserStorage, createStore, type SaveAdapter } from '../save/storage';
-import { earnShow, finishShow, freshAirfield, keepPostcard, proposePurchase, readAirfield, SHOW_BOLTS, type AirfieldState, type Postcard } from './airfield/state';
+import { earnShow, finishShow, freshAirfield, keepPostcard, proposePurchase, readAirfield, SHOW_BOLTS, takeDown, type AirfieldState, type Postcard } from './airfield/state';
 import { freshLearning, readLearning, recordSolved, startPractice, type Asked, type LearningChange, type LearningState } from './learning';
 import type { ShowId } from './show/places';
 
@@ -75,3 +75,6 @@ export function settleShow(store: Pick<typeof player, 'commit'>, at: ShowId): { 
 /** Keeps a Free Sky drawing on his Wall. False when the Wall is full. */
 export const keepCard = (store: Pick<typeof player, 'commit'>, card: Postcard) =>
   store.commit(s => { const airfield = keepPostcard(s.airfield, card); return airfield ? { ...s, airfield } : null; }).kind === 'accepted';
+/** The Wall is full: take postcard `i` down and put this one up, in one go (nothing is taken down unless the new one goes up). */
+export const swapCard = (store: Pick<typeof player, 'commit'>, i: number, card: Postcard) =>
+  store.commit(s => { const down = takeDown(s.airfield, i), airfield = down && keepPostcard(down, card); return airfield ? { ...s, airfield } : null; }).kind === 'accepted';

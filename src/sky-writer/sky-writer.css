@@ -1,40 +1,62 @@
-/* Sky Writer: Time Flies' styles (imported before this file, as the sibling games do) in sky blue, cloud white and stunt-plane red,
-   keeping the family look: Bungee titles, Nunito for the game's words, Andika for every letter he reads, 4px black outlines and chunky
-   drop shadows that press in. The three writing lines are drawn as contrails. Colour signals stay the family's: green is Go and right,
-   yellow is look here, orange is being read aloud (a lit stroke). Every rule is scoped to a Sky Writer class, so nothing leaks between
-   kinds or games. Pass 1 (build): functional, not yet designed. */
-:root{--sky:#3d93dc;--sky-2:#9fd6fb;--sky-deep:#1f5fa8;--cloud:#f7fbff;--stunt:#e63946;--stunt-2:#a8222c;--sw-ink:#14161c;--paper:#ffffff;--rule:#8fbfe8;
-  --floor:max(56px,calc(env(safe-area-inset-bottom) + 40px))}
+/* Sky Writer: Time Flies' styles (imported before this file, as the sibling games do) recoloured into Sky Writer's own world: a ruled
+   sky. Deep sky blue fading to a pale horizon, cloud white for paper and panels, stunt-plane red for the plane, the Show and the trim, and
+   the three writing lines (top, middle dashed, bottom) drawn as white contrails wherever he writes or reads a letter. The family look stays:
+   Bungee titles, Nunito for the game's words, Andika for every letter he reads, 4px black outlines and chunky drop shadows that press in.
+   Colour signals stay the family's: green is Go and right, yellow is look here (a taught answer, the plane's lesson smoke, the held start
+   dot), orange is being read aloud (a lit stroke). Every rule is scoped to a Sky Writer class, so nothing leaks between kinds or games. */
+:root{--sky:#3d93dc;--sky-2:#9fd6fb;--sky-deep:#1765c4;--sky-night:#0d3f86;--cloud:#f7fbff;--stunt:#e63946;--stunt-2:#a8222c;--sw-ink:#14161c;--paper:#ffffff;--rule:#8fbfe8;
+  --sw-navy:#0b2540;--floor:max(56px,calc(env(safe-area-inset-bottom) + 40px));
+  /* a soft bank of cloud along the bottom of a sky (background layers) */
+  --clouds:radial-gradient(closest-side,#fff 96%,#fff0) -6% calc(100% + 34px)/44% 110px no-repeat,radial-gradient(closest-side,#fff 96%,#fff0) 22% calc(100% + 46px)/30% 100px no-repeat,radial-gradient(closest-side,#fff 96%,#fff0) 104% calc(100% + 30px)/46% 104px no-repeat,radial-gradient(closest-side,#fffc 96%,#fff0) 78% calc(100% + 52px)/30% 100px no-repeat}
+@media (max-height:520px){:root{--clouds:radial-gradient(closest-side,#fff 96%,#fff0) -6% calc(100% + 22px)/40% 60px no-repeat,radial-gradient(closest-side,#fff 96%,#fff0) 104% calc(100% + 20px)/42% 60px no-repeat}}
 html,body{background:var(--sky-deep)}
-.sw-start{background:radial-gradient(circle at 50% 30%,#8fd0fa,var(--sky) 45%,var(--sky-deep) 90%)}
+.sw-start{background:var(--clouds),linear-gradient(var(--sky-deep),var(--sky) 60%,var(--sky-2))}
 .sw-start h1{font-size:clamp(40px,10vmin,96px);line-height:.95;color:#fff;text-shadow:3px 3px 0 var(--stunt),7px 7px 0 #000}
 .sw-start .start-art{width:min(80vw,calc(440px*var(--u)));height:min(30vh,calc(240px*var(--u)));min-width:200px;min-height:110px}
 .plane-pic{display:block;width:100%;height:100%}
-.home-screen:has(.sw-home),.round-screen:has(.sw),.af-screen,.wall-screen{background:linear-gradient(var(--sky-deep),var(--sky) 55%,var(--sky-2))}
+.home-screen:has(.sw-home),.round-screen:has(.sw),.af-screen{background:linear-gradient(var(--sky-deep),var(--sky) 55%,var(--sky-2))}
 .home-screen:has(.sw-home) .home-head h1{color:#fff;text-shadow:2px 2px 0 var(--stunt),4px 4px 0 #000}
-.sw-ch{font:700 1.15em Andika,Nunito,sans-serif;padding:0 .12em;background:#fff;border:3px solid #000;border-radius:10px;display:inline-block;line-height:1.05;margin:0 .1em}
+/* a letter he reads in a line of words: Andika, on a little card */
+.sw-ch{font:700 1.2em/1 Andika,Nunito,sans-serif;padding:.04em .2em .1em;background:#fff;border:3px solid #000;border-radius:10px;display:inline-block;margin:0 .1em;vertical-align:-.08em;box-shadow:0 3px 0 #000}
 
 /* ---------- Home ---------- */
 .home.sw-home{grid-template-areas:"p p" "a s" "a w" "k k";grid-template-rows:minmax(0,1.25fr) minmax(0,.5fr) minmax(0,.5fr) auto;grid-template-columns:1.2fr 1fr}
-.sw-home .t-play{grid-area:p;padding:0;background:var(--sky);container-type:size}
-.sw-sky{position:absolute;inset:0;pointer-events:none}
-.sw-home .t-play .spot{position:absolute;left:66%;top:48%;z-index:3;transform:translate(-50%,-50%);--spot:min(max(96px,calc(200px*var(--u))),58cqh,38cqw);width:var(--spot);height:var(--spot);display:grid;place-items:center}
+/* Play: a strip of ruled sky, the smoke "a" and the biplane on the left, the ▶ on the right where it never covers the plane */
+.sw-home .t-play{grid-area:p;padding:0;background:var(--clouds),linear-gradient(var(--sky-deep),var(--sky) 62%,var(--sky-2));container-type:size;--spot:min(max(96px,calc(200px*var(--u))),62cqh,34cqw)}
+.sw-art{position:absolute;left:4cqw;top:6cqh;bottom:8cqh;right:calc(var(--spot) + 9cqw);pointer-events:none}
+.sw-art svg{display:block;width:100%;height:100%}
+.sw-home .t-play .spot{position:absolute;right:5cqw;top:50%;z-index:3;transform:translateY(-50%);width:var(--spot);height:var(--spot);display:grid;place-items:center}
 .sw-home .t-play .e{display:grid;place-items:center;width:100%;height:100%;border-radius:50%;border:4px solid #000;background:radial-gradient(circle at 34% 30%,#2fa463,var(--go,var(--green)) 58%);color:#fff;font-size:calc(var(--spot) * .36);box-shadow:inset 0 -7px 0 #0003,0 0 0 calc(var(--spot) * .045) #fff,0 0 0 calc(var(--spot) * .045 + 4px) #000,0 7px 0 calc(var(--spot) * .045 + 4px) #000;padding-left:.12em}
+@container (max-aspect-ratio:13/10){
+  .sw-art,.sw-home .t-play .spot{--spot:min(max(96px,calc(200px*var(--u))),40cqh,56cqw)}
+  .sw-art{left:5cqw;right:5cqw;top:6cqh;bottom:calc(var(--spot) + 12cqh)}
+  .sw-home .t-play .spot{right:auto;left:50%;top:auto;bottom:7cqh;transform:translateX(-50%)}
+}
+.sw-home .t-play:active .e{box-shadow:inset 0 -7px 0 #0003,0 0 0 calc(var(--spot) * .045) #fff,0 0 0 calc(var(--spot) * .045 + 4px) #000,0 3px 0 calc(var(--spot) * .045 + 4px) #000}
 .sw-home .t-airfield{grid-area:a;flex-direction:column;justify-content:flex-end;gap:0;background:linear-gradient(#bfe4fb 0 70%,#000 70% calc(70% + 4px),#7d8794 calc(70% + 4px) 84%,#5b6573 84%);padding:8px 8px 6px}
+/* the runway's centre line */
+.sw-home .t-airfield::after{content:'';position:absolute;left:8%;right:8%;top:77%;height:4px;background:repeating-linear-gradient(90deg,#fff 0 22px,#fff0 22px 40px);opacity:.85;pointer-events:none}
 .sw-home .t-airfield .plane-pic{flex:1;min-height:0}
-.sw-home .t-show{grid-area:s;flex-direction:column;gap:2px;background:linear-gradient(#ffffff1f,#0000 40%),var(--stunt)}
+.sw-home .t-airfield .nm{position:relative;z-index:1}
+.sw-home .t-show{grid-area:s;flex-direction:column;gap:2px;background:radial-gradient(circle at 50% 40%,#ff6b72,var(--stunt) 55%,var(--stunt-2))}
+.sw-home .t-show,.sw-home .t-wall{container-type:size}
 .sw-home .t-show.empty{filter:saturate(.45) brightness(.9)}
-.sw-home .t-wall{grid-area:w;flex-direction:column;gap:2px;background:linear-gradient(#ffffff1f,#0000 40%),#f2c53a}
-.sw-home .t-show .e,.sw-home .t-wall .e{font-size:max(30px,min(calc(56px*var(--u)),9vh));line-height:1;filter:drop-shadow(0 3px 0 #0005)}
-.sw-home .nm{font:400 max(15px,calc(24px*var(--u))) Bungee,sans-serif;color:#fff;text-shadow:2px 2px 0 #000,-1px -1px 0 #000,1px -1px 0 #000,-1px 1px 0 #000;white-space:nowrap}
-.show-badge{position:absolute;right:8px;top:6px;background:#000;color:#fff;border-radius:999px;padding:2px 10px;font:900 max(15px,calc(20px*var(--u))) Nunito,sans-serif;border:2px solid #fff}
-.sw-home .t-kinds{grid-area:k;display:grid;grid-template-columns:repeat(2,1fr);grid-auto-rows:minmax(max(48px,calc(58px*var(--u))),auto);column-gap:calc(18px*var(--u));padding:calc(6px*var(--u)) calc(16px*var(--u)) calc(10px*var(--u));background:var(--cloud);border-top:max(10px,calc(14px*var(--u))) solid var(--stunt);cursor:default}
-.sw-home .t-kinds:active{transform:none;box-shadow:0 7px 0 #000}
-.sw-home .kinds-head{grid-column:1/-1;margin:0;font:400 max(14px,calc(18px*var(--u))) Bungee,sans-serif;text-align:center}
-.sw-home .kind{position:relative;display:flex;align-items:center;gap:calc(10px*var(--u));border-top:2px solid #0002;padding:4px 2px;min-height:44px;text-align:left}
+.sw-home .t-wall{grid-area:w;flex-direction:column;gap:2px;background:radial-gradient(circle at 50% 40%,#ffe07a,#f2c53a 60%,#d9a514)}
+.sw-home .t-show .e,.sw-home .t-wall .e{position:relative;font-size:max(30px,min(calc(56px*var(--u)),9vh,40cqh));line-height:1;filter:drop-shadow(0 3px 0 #0005)}
+/* the Show's plane flies through a yellow ring */
+.sw-home .t-show .e{display:grid;place-items:center;width:1.55em;aspect-ratio:1;border-radius:50%;border:3px solid #000;box-shadow:0 0 0 max(5px,.12em) #ffd23f,0 0 0 calc(max(5px,.12em) + 3px) #000;margin-bottom:max(8px,.2em);filter:none}
+/* (a short tile, an upright phone: no room for the ring) */
+@container (max-height:120px){.sw-home .t-show .e{display:block;width:auto;aspect-ratio:auto;border:0;box-shadow:none;margin:0;filter:drop-shadow(0 3px 0 #0005)}}
+.sw-home .nm{position:relative;font:400 max(15px,calc(24px*var(--u))) Bungee,sans-serif;color:#fff;text-shadow:2px 2px 0 #000,-1px -1px 0 #000,1px -1px 0 #000,-1px 1px 0 #000;white-space:nowrap}
+.show-badge{position:absolute;right:8px;top:6px;z-index:1;background:#000;color:#fff;border-radius:999px;padding:2px 10px;font:900 max(15px,calc(20px*var(--u))) Nunito,sans-serif;border:2px solid #fff}
+.sw-home .t-kinds{grid-area:k;display:grid;grid-template-columns:repeat(2,1fr);grid-auto-rows:minmax(max(48px,calc(58px*var(--u))),auto);column-gap:calc(18px*var(--u));padding:calc(6px*var(--u)) calc(16px*var(--u)) calc(10px*var(--u));background:var(--cloud);border-top:max(10px,calc(14px*var(--u))) solid var(--stunt);cursor:default;box-shadow:0 4px 0 #0007}
+.sw-home .t-kinds:active{transform:none;box-shadow:0 4px 0 #0007}
+.sw-home .kinds-head{grid-column:1/-1;margin:0;font:400 max(14px,calc(18px*var(--u))) Bungee,sans-serif;text-align:center;color:var(--sw-navy)}
+.sw-home .kind{position:relative;display:flex;align-items:center;gap:calc(10px*var(--u));border-top:2px solid #0b254018;padding:4px 2px;min-height:44px;text-align:left;border-radius:12px}
+.sw-home .kind:active{background:#0b25400d}
 .sw-home .kind .ki{flex:none;display:grid;place-items:center;width:max(36px,calc(46px*var(--u)));aspect-ratio:1;border-radius:50%;background:#fff;border:3px solid #000;box-shadow:0 3px 0 #000;font-size:max(18px,calc(24px*var(--u)))}
 .sw-home .kind .kb{flex:1;min-width:0;display:flex;flex-direction:column;gap:4px}
-.sw-home .kind .kn{font:900 max(15px,calc(20px*var(--u))) Nunito,sans-serif;line-height:1.1}
+.sw-home .kind .kn{font:900 max(15px,calc(20px*var(--u))) Nunito,sans-serif;line-height:1.1;color:var(--sw-navy)}
 .sw-home .kind.locked{filter:grayscale(.9);opacity:.6}
 .sw-home .kind.fresh{animation:pulse 1s infinite}
 .sw-home .kind .badge{position:absolute;right:0;top:2px}
@@ -51,22 +73,22 @@ html,body{background:var(--sky-deep)}
 @media (max-width:430px) and (orientation:portrait){.sw-home .t-kinds{grid-template-columns:1fr;grid-auto-rows:minmax(44px,auto)}.sw-home .kind .kb{flex-direction:row;align-items:center;gap:10px}.sw-home .kind .kn{flex:1}}
 
 /* ---------- a question ---------- */
-.round-screen .card:has(.sw){background:linear-gradient(#5aa7e6,var(--sky-2));border-top:max(10px,calc(14px*var(--u))) solid var(--stunt)}
-.game.sw{display:flex;flex-direction:column;justify-content:flex-start;gap:calc(8px*var(--u));padding:calc(10px*var(--u));overflow:hidden;height:100%;min-height:0}
+.round-screen .card:has(.sw){background:var(--clouds),linear-gradient(#4f9fe4,var(--sky-2));border-top:max(10px,calc(14px*var(--u))) solid var(--stunt)}
+.game.sw{position:relative;display:flex;flex-direction:column;justify-content:flex-start;gap:calc(8px*var(--u));padding:calc(10px*var(--u));overflow:hidden;height:100%;min-height:0}
 .game.sw .ask{flex:none;width:100%}
-.game.sw .ask h2{flex:1;min-width:0;font:900 max(19px,calc(28px*var(--u)))/1.25 Nunito,sans-serif;text-align:left;text-wrap:balance;color:#0b2540}
+.game.sw .ask h2{flex:1;min-width:0;font:900 max(19px,calc(28px*var(--u)))/1.25 Nunito,sans-serif;text-align:left;text-wrap:balance;color:var(--sw-navy)}
 .game.sw .help-btn{background:#fff}
-.sw-work{flex:1 1 auto;min-height:0;width:100%;display:flex;flex-direction:column;align-items:center;justify-content:space-evenly;gap:calc(12px*var(--u));container-type:size}
-/* the writing pad: a strip of sky with contrail lines */
-.sw-pad-wrap{flex:1 1 auto;min-height:0;width:100%;border:4px solid #000;border-radius:22px;box-shadow:0 5px 0 #000;overflow:hidden;background:linear-gradient(#2f7fd0,#6fb8ef 70%,#a9dcfc)}
+.sw-work{position:relative;flex:1 1 auto;min-height:0;width:100%;display:flex;flex-direction:column;align-items:center;justify-content:space-evenly;gap:calc(12px*var(--u));container-type:size}
+/* the writing pad: a strip of deep sky with contrail lines (drawn by writing/WritePad.tsx) */
+.sw-pad-wrap{flex:1 1 auto;min-height:0;width:100%;border:4px solid #000;border-radius:22px;box-shadow:0 5px 0 #000;overflow:hidden;background:linear-gradient(#1c6cc9,#3f92e0 55%,#8fcbf6)}
 .sw-pad{display:block;width:100%;height:100%;touch-action:none;cursor:crosshair}
-.sw-word{flex:none;font:700 max(40px,min(calc(84px*var(--u)),14cqh)) Andika,Nunito,sans-serif;line-height:1;padding:calc(4px*var(--u)) calc(24px*var(--u));background:#fff;border:4px solid #000;border-radius:20px;box-shadow:0 5px 0 #000;color:#000}
+.sw-word{flex:none;font:700 max(40px,min(calc(84px*var(--u)),14cqh)) Andika,Nunito,sans-serif;line-height:1;padding:calc(4px*var(--u)) calc(24px*var(--u)) calc(10px*var(--u));background:#fff;border:4px solid #000;border-radius:20px;box-shadow:0 5px 0 #000;color:#000}
 .sw-word.hidden{color:#9cc8ec;letter-spacing:.1em}
 /* a sideways phone: the word sits beside the pad, so the pad has the whole height to write in (above it, letters were too small for a
    finger) */
 @media (orientation:landscape) and (max-height:520px){
   .game.sw.k-word .sw-work{flex-direction:row;align-items:center;justify-content:center}
-  .game.sw.k-word .sw-word{font-size:max(28px,min(48px,22cqh));padding:4px 12px}
+  .game.sw.k-word .sw-word{font-size:max(28px,min(48px,22cqh));padding:4px 12px 8px}
   .game.sw.k-word .sw-pad-wrap{align-self:stretch}
 }
 /* letters drawn from their strokes */
@@ -75,8 +97,9 @@ html,body{background:var(--sky-deep)}
 .sw-glyph .st.dot{fill:var(--sw-ink);stroke:none}
 .sw-glyph .st.lit{stroke:var(--orange)}.sw-glyph .st.dot.lit{fill:var(--orange)}
 .sw-glyph .st.faded{opacity:.25}
-.sw-lines .ln{stroke:var(--rule);stroke-width:.035;stroke-linecap:round}
-.sw-lines .mid{stroke-dasharray:.14 .1}.sw-lines .base{stroke-width:.055;stroke:#5a9bd6}.sw-lines .tail{stroke-dasharray:.05 .12;opacity:.7}
+/* on paper the writing lines are the same three contrails, in sky blue: top, middle dashed, bottom strongest, the tail line faint */
+.sw-lines .ln{stroke:var(--rule);stroke-width:.04;stroke-linecap:round}
+.sw-lines .mid{stroke-dasharray:.16 .11}.sw-lines .base{stroke-width:.06;stroke:#4f93d2}.sw-lines .tail{stroke-dasharray:.05 .12;opacity:.7}
 .sw-glyph.drawn path.st{stroke-dasharray:1;stroke-dashoffset:1;animation:sw-draw .8s ease-out forwards}
 @keyframes sw-draw{to{stroke-dashoffset:0}}
 .sw-startdot{fill:#2fd36b;stroke:#000;stroke-width:.04}
@@ -87,6 +110,7 @@ html,body{background:var(--sky-deep)}
 circle.sw-hit{fill:transparent;stroke:none}
 .sw-dotbtn{position:absolute;transform:translate(-50%,-50%);width:max(48px,calc(64px*var(--u)));height:max(48px,calc(64px*var(--u)));display:grid;place-items:center;border-radius:50%;padding:0}
 .sw-dotbtn span{display:block;width:62%;height:62%;border-radius:50%;background:var(--yellow);border:4px solid #000;box-shadow:0 3px 0 #000}
+.sw-dotbtn:active span{transform:translateY(2px);box-shadow:0 1px 0 #000}
 .sw-dotbtn.wrong span{background:#ccc;filter:grayscale(1)}
 .sw-dotbtn.right span{background:#2fd36b}
 .sw-dotbtn.hint span{animation:hint 1s infinite;background:#2fd36b}
@@ -99,7 +123,7 @@ circle.sw-hit{fill:transparent;stroke:none}
 .sw-choice{flex:0 1 auto;min-width:var(--tap);height:100%;aspect-ratio:.78;display:block;padding:6px;border:4px solid #000;border-radius:22px;background:var(--paper);box-shadow:0 5px 0 #000;overflow:hidden}
 .sw-choice>.sw-glyph{width:100%;height:100%}
 .sw-choices.words{flex:none;height:auto;max-height:none}
-.sw-sizebtn{aspect-ratio:auto;height:auto;min-height:max(64px,calc(96px*var(--u)));padding:8px 18px;display:flex;align-items:center;gap:8px;font:900 max(20px,calc(30px*var(--u))) Nunito,sans-serif}
+.sw-sizebtn{aspect-ratio:auto;height:auto;min-height:max(64px,calc(96px*var(--u)));padding:8px 18px;display:flex;align-items:center;gap:8px;font:900 max(20px,calc(30px*var(--u))) Nunito,sans-serif;color:var(--sw-navy)}
 .sw-sizebtn .ico{font-size:1.2em}
 .sw-choices.rows{flex-direction:column;align-items:center;max-height:none}
 .sw-rowbtn{width:min(100%,520px);height:auto;flex:1 1 0;min-height:var(--tap);aspect-ratio:auto;padding:2px 10px}
@@ -108,43 +132,44 @@ circle.sw-hit{fill:transparent;stroke:none}
 .sw-choice.wrong,.sw-letterbtn.wrong,.sw-arrow.wrong{filter:grayscale(1);opacity:.45}
 .sw-choice.right,.sw-arrow.right{background:#c9f0d4;border-color:#178046}
 .sw-choice.hint,.sw-arrow.hint{animation:hint 1s infinite;background:#fff3b0}
+/* while a lesson plays the family fades the buttons; the one being taught stays bright */
+.card.thinking .sw-choice.hint,.card.thinking .sw-arrow.hint,.card.thinking .sw-dotbtn.hint,.card.thinking .sw-letterbtn.hint,.card.thinking .sw-choice.right,.card.thinking .sw-arrow.right,.card.thinking .sw-dotbtn.right{opacity:1;filter:none}
 .sw-choice.wobble,.sw-letterbtn.wobble,.sw-arrow.wobble,.sw-dotbtn.wobble{animation:sw-slide .45s}
 @keyframes sw-slide{20%{translate:-8px 0}40%{translate:8px 0}60%{translate:-6px 0}80%{translate:4px 0}}
 .sw-row{position:relative;flex:0 1 auto;height:min(100%,70cqh);max-width:100%;background:var(--paper);border:4px solid #000;border-radius:22px;box-shadow:0 5px 0 #000}
 .sw-letterbtn{position:absolute;top:0;bottom:0;min-width:44px;border-radius:14px;background:transparent;border:3px dashed transparent}
-.sw-letterbtn:hover{border-color:#0002}
+@media (hover:hover){.sw-letterbtn:hover{border-color:#0002}}
 .sw-letterbtn.hint{border-color:var(--yellow);background:#fff3b066;animation:hint 1s infinite}
 .sw-letterbtn.right{border-color:#178046;background:#c9f0d466}
-.sw-work{position:relative}
-/* the tick after a right answer sits over the corner of the work area, so it never pushes the letter off a short screen */
-.sw-said{position:absolute;right:8px;bottom:4px;margin:0;font:900 40px Nunito,sans-serif;color:#178046}
-/* b and d side by side in a lesson */
-.sw-pair{flex:none;align-self:center;display:flex;gap:16px;padding:8px 14px;border-radius:20px;background:#fff7d6;border:4px solid var(--yellow);box-shadow:0 4px 0 #b88a00}
-.sw-pair-one{display:flex;flex-direction:column;align-items:center;width:max(70px,calc(110px*var(--u)));height:max(110px,calc(170px*var(--u)));opacity:.55;transition:opacity .2s}
+/* the tick after a right answer: a green badge over the corner of the work area, so it never pushes the letter off a short screen */
+.sw-said{position:absolute;right:8px;bottom:8px;margin:0;display:grid;place-items:center;width:max(48px,calc(64px*var(--u)));aspect-ratio:1;border-radius:50%;background:#178046;border:4px solid #000;box-shadow:0 0 0 4px #fff;font:900 max(26px,calc(36px*var(--u)))/1 Nunito,sans-serif;color:#fff;animation:sw-pop .35s cubic-bezier(.16,1,.3,1)}
+@keyframes sw-pop{from{scale:.3;opacity:0}}
+/* b and d (or p and q) side by side in a lesson: a card that floats over the work, so the pad never changes size under his finger */
+.sw-pair{position:absolute;z-index:5;left:50%;top:54%;translate:-50% -50%;display:flex;gap:calc(20px*var(--u));padding:calc(12px*var(--u)) calc(20px*var(--u)) calc(8px*var(--u));border-radius:24px;background:var(--cloud);border:4px solid #000;box-shadow:0 0 0 6px var(--yellow),0 0 30px 10px #ffd23f88}
+.sw-pair-one{display:flex;flex-direction:column;align-items:center;height:min(max(130px,calc(240px*var(--u))),48vh);aspect-ratio:.62;opacity:.4;transition:opacity .2s}
+.sw-pair-one>.sw-glyph{flex:1;min-height:0}
 .sw-pair-one.on{opacity:1}
-.sw-pair-one .sw-name{font:700 22px Andika,sans-serif}
-/* meeting a Family */
-.game.sw.k-meet{justify-content:space-evenly;align-items:center}
-.sw-family{display:flex;flex-wrap:wrap;justify-content:center;gap:calc(12px*var(--u));max-width:100%}
-.sw-famletter{width:max(64px,calc(110px*var(--u)));height:max(84px,calc(150px*var(--u)));padding:4px;border:4px solid #000;border-radius:18px;background:var(--paper);box-shadow:0 5px 0 #000;opacity:.35}
+.sw-pair-one .sw-name{flex:none;font:700 max(24px,calc(40px*var(--u)))/1 Andika,sans-serif;padding-bottom:4px}
+/* meeting a Family: its letters on cards as big as the screen allows */
+.game.sw.k-meet{align-items:center;container-type:size}
+.sw-family{--per:var(--per-w);--rows:var(--rows-w);flex:1;min-height:0;display:flex;flex-wrap:wrap;justify-content:center;align-content:center;gap:calc(12px*var(--u));width:100%;--w:min(calc((100cqw - 20px - (var(--per) - 1) * 12px) / var(--per)),calc((100cqh - 190px - (var(--rows) - 1) * 12px) / var(--rows) * .74),240px)}
+/* upright, fewer to a row and bigger */
+@container (max-aspect-ratio:1/1){.sw-family{--per:var(--per-n);--rows:var(--rows-n)}}
+.sw-famletter{width:max(48px,var(--w));aspect-ratio:.74;padding:4px;border:4px solid #000;border-radius:18px;background:var(--paper);box-shadow:0 5px 0 #000;opacity:.35}
 .sw-famletter.shown{opacity:1}
-.sw-family.many .sw-famletter{width:max(48px,calc(76px*var(--u)));height:max(64px,calc(100px*var(--u)))}
-.meet-go{font-size:max(26px,calc(40px*var(--u)));padding:calc(12px*var(--u)) calc(40px*var(--u))}
+.meet-go{flex:none;font-size:max(26px,calc(40px*var(--u)));padding:calc(12px*var(--u)) calc(40px*var(--u));margin-bottom:calc(8px*var(--u))}
 @media (orientation:landscape) and (max-height:520px){
   .game.sw{gap:6px;padding-block:6px}
   .round-screen .card:has(.sw){margin-bottom:max(48px,calc(env(safe-area-inset-bottom) + 28px))}
   .round-screen:has(.sw) .roundbar{padding-block:4px}
-  .sw-word{font-size:34px;padding:0 16px}
+  .sw-word{font-size:34px;padding:0 16px 4px}
   .sw-arrow{width:64px;height:64px;font-size:34px}
   .sw-sizebtn{min-height:56px;font-size:20px}
-  .sw-family.many .sw-famletter{width:44px;height:58px}
-  .sw-famletter{width:58px;height:76px}
-  .meet-go{font-size:22px;padding:6px 28px}
-  .game.sw:has(.sw-pair) .sw-pair-one{width:52px;height:80px}
-  /* the b/d lesson floats over the writing pad rather than squashing it to a sliver while the plane flies */
-  .game.sw{position:relative}
-  .game.sw .sw-pair{position:absolute;z-index:5;left:50%;top:50%;transform:translate(-50%,-40%)}
-  .game.sw .sw-pair-one{height:auto}
+  .sw-family{--w:min(calc((100cqw - 20px - (var(--per) - 1) * 12px) / var(--per)),calc((100cqh - 110px - (var(--rows) - 1) * 12px) / var(--rows) * .74),240px)}
+  .meet-go{font-size:22px;padding:6px 28px;margin-bottom:0}
+  .sw-pair{top:50%;padding:6px 14px 2px}
+  .sw-pair-one{height:min(68vh,170px)}
+  .sw-pair-one .sw-name{font-size:22px}
 }
 @media (max-width:430px) and (orientation:portrait){
   .sw-choices.n4{flex-wrap:wrap;max-height:none}
@@ -153,57 +178,68 @@ circle.sw-hit{fill:transparent;stroke:none}
 }
 
 /* ---------- end of a Round ---------- */
-.sw-reward{background:linear-gradient(to top,#5b6573 0 max(18px,3vh),#000 0 calc(max(18px,3vh) + 4px),transparent 0),radial-gradient(circle at 50% 30%,#5aa7e6,var(--sky-deep) 70%)}
+.sw-reward{background:linear-gradient(to top,#5b6573 0 max(18px,3vh),#000 0 calc(max(18px,3vh) + 4px),transparent 0),var(--clouds),radial-gradient(circle at 50% 30%,#5aa7e6,var(--sky-deep) 70%)}
 .sw-reward h2{font-size:max(28px,calc(56px*var(--u)));color:#fff;text-shadow:2px 2px 0 var(--stunt),4px 4px 0 #000}
 .earned-job{font:900 calc(30px*var(--u)) Nunito,sans-serif;color:#fff;background:#000;border-radius:999px;padding:6px 20px}
+.sw-reward .lines{text-shadow:0 2px 0 #0008}
 .sw-reward .btns{align-items:center}
-.big-btn.my-plane{padding:calc(4px*var(--u));width:max(96px,calc(170px*var(--u)));height:max(84px,calc(136px*var(--u)));flex:none;background:linear-gradient(#bfe4fb 0 80%,#7d8794 80%)}
-.sw-reward .job-btn{gap:10px;min-height:max(84px,calc(136px*var(--u)));padding:calc(10px*var(--u)) calc(30px*var(--u));font-size:calc(40px*var(--u));background:radial-gradient(circle at 40% 30%,#ff8a8f,var(--stunt) 60%,var(--stunt-2));color:#fff}
-.sw-reward .job-count{background:#000;color:#fff;border-radius:999px;padding:0 12px;font-size:.7em}
-@media (max-width:430px) and (orientation:portrait){.sw-reward .btns{gap:12px}.big-btn.my-plane{width:96px;height:84px}.sw-reward .job-btn{font-size:21px;min-height:84px;padding-inline:15px}}
+.sw-reward .btns .big-btn.my-plane{display:block;padding:4px;width:max(96px,calc(170px*var(--u)));height:max(84px,calc(136px*var(--u)));flex:none;background:linear-gradient(#bfe4fb 0 72%,#000 72% calc(72% + 3px),#7d8794 calc(72% + 3px))}
+.big-btn.my-plane .plane-pic{width:100%;height:100%}
+.sw-reward .job-btn{gap:10px;min-height:max(84px,calc(136px*var(--u)));padding:calc(10px*var(--u)) calc(30px*var(--u));font-size:calc(40px*var(--u));background:radial-gradient(circle at 40% 30%,#f2575f,var(--stunt) 55%,var(--stunt-2));color:#fff;text-shadow:0 2px 0 #0007}
+.sw-reward .job-count{background:#000;color:#fff;border-radius:999px;padding:0 12px;font-size:.7em;text-shadow:none}
+@media (max-width:430px) and (orientation:portrait){.sw-reward .btns{gap:12px}.sw-reward .btns .big-btn.my-plane{width:96px;height:84px}.sw-reward .job-btn{font-size:21px;min-height:84px;padding-inline:15px}}
 
 /* ---------- the Airfield ---------- */
 .af-head{flex:none;display:flex;align-items:center;gap:12px;padding:calc(8px*var(--u)) 16px}
 .af-head h1{flex:1;margin:0;font:400 max(22px,calc(36px*var(--u))) Bungee,sans-serif;color:#fff;text-shadow:2px 2px 0 var(--stunt),4px 4px 0 #000}
-.af-top{flex:none;display:flex;flex-wrap:wrap;gap:10px;align-items:center;justify-content:center;padding:0 16px}
-.af-stage{position:relative;flex:1 1 300px;max-width:620px;height:max(150px,min(30vh,260px));border:4px solid #000;border-radius:22px;box-shadow:0 5px 0 #000;overflow:hidden;background:linear-gradient(#3a8ad8,#b6e2fd 76%,#000 76% calc(76% + 3px),#7d8794 calc(76% + 3px) 88%,#5b6573 88%)}
-.af-runway{display:block;width:100%;height:100%}
-.af-buy{position:absolute;right:10px;bottom:10px;font-size:max(20px,calc(26px*var(--u)));padding:8px 18px}
-.af-actions{position:absolute;left:10px;top:10px;display:flex;gap:10px}
+.af-top{flex:none;display:flex;flex-direction:column;gap:10px;align-items:center;padding:0 16px}
+.af-stage{position:relative;width:100%;height:max(150px,min(30vh,280px));border:4px solid #000;border-radius:22px;box-shadow:0 5px 0 #000;overflow:hidden;background:linear-gradient(#1f72cf,#5fb0ee 46%,#c4e8fd 76%,#000 76% calc(76% + 3px),#7d8794 calc(76% + 3px) 88%,#5b6573 88%)}
+/* the runway's centre line, and two contrails high in the sky */
+.af-stage::before{content:'';position:absolute;left:0;right:0;top:82%;height:4px;background:repeating-linear-gradient(90deg,#fff 0 28px,#fff0 28px 52px);opacity:.85}
+.af-stage::after{content:'';position:absolute;left:0;right:0;top:16%;height:28%;border-top:3px solid #ffffffa0;border-bottom:3px dashed #ffffff70;pointer-events:none}
+.af-runway{position:relative;z-index:1;display:block;width:100%;height:100%}
+.af-buy{position:absolute;z-index:2;right:10px;bottom:10px;font-size:max(20px,calc(26px*var(--u)));padding:8px 18px}
+.af-actions{position:absolute;z-index:2;left:10px;top:10px;display:flex;gap:10px}
 .af-show{font-size:max(18px,calc(24px*var(--u)));padding:6px 16px;background:var(--stunt);color:#fff}
 .af-show b{background:#000;border-radius:999px;padding:0 10px}
 .af-show.empty{filter:saturate(.4)}
 .af-wall{width:56px;height:56px;padding:0;font-size:26px}
-.af-tabs{flex:none;display:flex;flex-wrap:wrap;gap:6px;justify-content:center;padding:10px 16px}
-.af-tab{display:flex;align-items:center;gap:4px;min-height:44px;min-width:44px;justify-content:center;padding:4px 10px;border:3px solid #000;border-radius:14px;background:var(--sky-deep);color:#fff;font:400 max(12px,calc(14px*var(--u))) Bungee,sans-serif;box-shadow:0 3px 0 #000}
-.af-tab.on{background:#fff;color:#000;transform:translateY(2px);box-shadow:0 1px 0 #000}
-.af-tab .ti{font-size:20px}
+/* the twelve tabs: two even rows of six, the name under its picture (a phone shows only the pictures) */
+.af-tabs{flex:none;display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:6px;padding:10px 16px}
+.af-tab{display:flex;flex-direction:column;align-items:center;gap:2px;min-height:44px;min-width:44px;justify-content:center;padding:4px 2px;border:3px solid #000;border-radius:14px;background:var(--sky-deep);color:#fff;font:400 12px/1.05 Bungee,sans-serif;text-align:center;box-shadow:0 3px 0 #000}
+.af-tab:active{transform:translateY(2px);box-shadow:0 1px 0 #000}
+.af-tab.on{background:#fff;color:#000;transform:translateY(2px);box-shadow:0 1px 0 #000,0 0 0 3px var(--yellow)}
+.af-tab .ti{font-size:max(20px,calc(24px*var(--u)));line-height:1}
+@media (orientation:landscape) and (min-height:521px){.af-tabs{grid-template-columns:repeat(12,minmax(0,1fr))}.af-tab{font-size:11px;letter-spacing:-.03em}}
 .af-tray{flex:1;min-height:0;overflow-y:auto;display:grid;grid-template-columns:repeat(auto-fill,minmax(max(104px,calc(130px*var(--u))),1fr));gap:10px;align-content:start;padding:4px 16px var(--floor)}
-.af-tile{position:relative;display:flex;flex-direction:column;align-items:center;gap:2px;min-height:96px;padding:8px 4px;border:4px solid #000;border-radius:18px;background:#fff;box-shadow:0 4px 0 #000;font:900 max(13px,calc(15px*var(--u)))/1.1 Nunito,sans-serif}
-.af-tile .ico{font-size:max(30px,calc(40px*var(--u)))}
-.af-tile.locked{background:#c9dcec}
+.af-tile{position:relative;display:flex;flex-direction:column;align-items:center;gap:4px;min-height:96px;padding:8px 4px;border:4px solid #000;border-radius:18px;background:#fff;box-shadow:0 4px 0 #000;font:900 max(13px,calc(15px*var(--u)))/1.1 Nunito,sans-serif;color:var(--sw-navy)}
+.af-tile .ico{font-size:max(30px,calc(40px*var(--u)));line-height:1.1}
 .af-tile.afford{box-shadow:0 4px 0 #000,0 0 0 4px var(--yellow)}
 .af-tile:active{transform:translateY(3px);box-shadow:0 1px 0 #000}
-.af-tile.owned{background:#e7f3dc}
-.af-tile.worn{background:#b9e6c4;border-color:#178046}
+.af-tile.owned{background:#e9f6e4}
+.af-tile.worn{background:#c4ecd0;border-color:#178046}
 .af-tile.trying{outline:4px dashed var(--stunt);outline-offset:2px;background:#fff6dc}
 .af-tile.goal::after{content:'🎯';position:absolute;right:4px;top:2px;font-size:16px}
-.af-tile .cost,.af-tile .check{display:flex;align-items:center;gap:2px;color:#000}
-.goal-chip{display:flex;align-items:center;gap:8px;min-height:var(--tap);padding:4px 14px 4px 6px;border-radius:999px;background:#000;color:#fff;font:900 16px Nunito,sans-serif}
+.af-tile .cost,.af-tile .check{display:flex;align-items:center;gap:3px;color:#000}
+/* the price on a little tag: grey while he's saving, yellow when he can buy it */
+.af-tile .cost{padding:0 9px 0 4px;border-radius:999px;background:#e3edf7;border:2px solid #0b254030}
+.af-tile.afford .cost{background:var(--yellow);border-color:#000}
+.af-tile .check{color:#178046;font-size:1.1em}
+.goal-chip{display:flex;align-items:center;gap:8px;min-height:var(--tap);padding:4px 14px 4px 6px;border-radius:999px;background:#000;color:#fff;font:900 16px Nunito,sans-serif;border:3px solid #fff3}
 .goal-chip .gi{font-size:26px}.goal-chip .gb{width:80px;height:12px;border-radius:6px;background:#333;overflow:hidden}.goal-chip .gb i{display:block;height:100%;background:var(--yellow)}
 @media (orientation:landscape) and (max-height:520px){
   .af-screen{display:grid;grid-template-columns:minmax(0,.9fr) minmax(0,1.1fr);grid-template-rows:auto auto minmax(0,1fr)}
   .af-screen>.af-head{grid-column:1/-1;padding-block:4px}
   .af-top{grid-column:1;grid-row:2/4;flex-direction:column;flex-wrap:nowrap;align-items:stretch;justify-content:flex-start;gap:8px;padding:0 0 var(--floor) 16px;min-height:0}
-  .af-stage{flex:1 1 auto;min-height:100px;height:auto;max-width:none}
+  .af-stage{flex:1 1 auto;min-height:100px;height:auto}
   .goal-chip{flex:none;align-self:flex-start;max-width:100%}
   .goal-chip .gn{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-  .af-tabs{grid-column:2;grid-row:2;flex-wrap:nowrap;overflow-x:auto;justify-content:flex-start;gap:4px;padding:0 16px 6px 12px}
+  .af-tabs{grid-column:2;grid-row:2;display:flex;flex-wrap:nowrap;overflow-x:auto;justify-content:flex-start;gap:4px;padding:2px 16px 6px 12px}
   .af-tab{padding:2px;min-width:44px;flex:0 0 44px}
   .af-tab .tn{display:none}
   .af-tray{grid-column:2;grid-row:3;padding-left:12px;grid-template-columns:repeat(auto-fill,minmax(100px,1fr))}
 }
-@media (max-width:430px) and (orientation:portrait){.af-tab{padding:2px 6px}.af-tab .tn{display:none}}
+@media (max-width:430px) and (orientation:portrait){.af-tabs{gap:4px;padding-inline:12px}.af-tab{padding:2px}.af-tab .tn{display:none}}
 
 /* ---------- a Show ---------- */
 .show-screen{position:relative;background:linear-gradient(var(--sky1,#5fb8f2),var(--sky2,#cdeeff))}
@@ -219,36 +255,56 @@ circle.sw-hit{fill:transparent;stroke:none}
 .show-btn{width:max(64px,calc(90px*var(--u)));height:max(64px,calc(90px*var(--u)));border-radius:50%;border:4px solid #000;box-shadow:0 5px 0 #000;font-size:max(28px,calc(40px*var(--u)));background:#fff;touch-action:none}
 .show-btn:active{transform:translateY(3px);box-shadow:0 2px 0 #000}
 .show-keep{background:var(--stunt);color:#fff}
-.show-card-wrap{position:absolute;inset:0;z-index:5;display:grid;place-items:center;padding:16px;background:#0006;overflow:auto}
-.show-card{display:flex;flex-direction:column;align-items:center;gap:calc(12px*var(--u));max-width:min(92vw,680px);padding:calc(18px*var(--u));background:var(--cloud);border:4px solid #000;border-radius:26px;box-shadow:0 8px 0 #000;text-align:center}
-.show-card h2{margin:0;font:400 max(20px,calc(34px*var(--u))) Bungee,sans-serif;color:var(--sw-ink)}
+.show-card-wrap{position:absolute;inset:0;z-index:5;display:grid;place-items:center;padding:16px;background:#0b254055;overflow:auto}
+.show-card{display:flex;flex-direction:column;align-items:center;gap:calc(12px*var(--u));max-width:min(92vw,680px);padding:calc(18px*var(--u));background:var(--cloud);border:4px solid #000;border-top:max(10px,calc(14px*var(--u))) solid var(--stunt);border-radius:26px;box-shadow:0 8px 0 #000;text-align:center}
+.show-card h2{margin:0;font:400 max(20px,calc(34px*var(--u))) Bungee,sans-serif;color:var(--sw-navy)}
 .show-places{display:grid;grid-template-columns:repeat(8,minmax(44px,1fr));gap:8px;width:100%}
-.show-place-btn{position:relative;min-height:56px;aspect-ratio:1;border:3px solid #000;border-radius:14px;background:#fff;box-shadow:0 3px 0 #000;font-size:max(24px,calc(34px*var(--u)))}
+.show-place-btn{position:relative;min-height:56px;aspect-ratio:1;border:3px solid #000;border-radius:50%;background:#fff;box-shadow:0 3px 0 #000;font-size:max(24px,calc(34px*var(--u)))}
+.show-place-btn:not(.locked){outline:2px dashed #0b254055;outline-offset:-8px}
+.show-place-btn:active{transform:translateY(2px);box-shadow:0 1px 0 #000}
 .show-place-btn.on{background:var(--yellow);box-shadow:0 3px 0 #000,0 0 0 4px var(--stunt)}
-.show-place-btn.locked{background:#c9dcec;filter:grayscale(.6)}
-.show-place-btn .flown{position:absolute;right:2px;bottom:0;font:900 14px Nunito,sans-serif;color:#178046}
+.show-place-btn.locked{background:#dbe7f2;font-size:max(18px,calc(24px*var(--u)));filter:grayscale(.6);opacity:.8}
+.show-place-btn .flown{position:absolute;right:-4px;bottom:-4px;display:grid;place-items:center;width:22px;height:22px;border-radius:50%;background:#178046;border:2px solid #000;font:900 13px/1 Nunito,sans-serif;color:#fff}
 .show-go{font-size:max(24px,calc(34px*var(--u)))}
+.show-swap{width:min(92vw,680px)}
+/* the Wall is full: his postcards, small, to pick one to swap; the one tapped once is ringed in red */
+.swap-cards{display:grid;grid-template-columns:repeat(auto-fill,minmax(96px,1fr));gap:14px 10px;width:100%;max-height:min(52vh,420px);overflow-y:auto;padding:14px 6px 8px}
+.swap-cards .wall-card-btn{padding:3px;min-height:44px}
+.swap-cards .wall-card-btn.armed{box-shadow:0 5px 0 #000,0 0 0 5px var(--stunt)}
+@media (max-height:520px){.show-card.show-swap{max-height:calc(100% - 8px)}.swap-cards{max-height:34vh;grid-template-columns:repeat(auto-fill,minmax(80px,1fr));padding-top:12px}.show-swap .big-btn{padding:4px 22px}}
 @media (max-width:600px){.show-places{grid-template-columns:repeat(4,minmax(44px,1fr))}}
-@media (orientation:landscape) and (max-height:520px){.show-places{grid-template-columns:repeat(8,minmax(44px,1fr))}.show-place-btn{min-height:44px}.show-card{gap:6px;padding:10px}.show-card h2{font-size:18px}}
+@media (orientation:landscape) and (max-height:520px){.show-places{grid-template-columns:repeat(8,minmax(44px,1fr))}.show-place-btn{min-height:44px}.show-card{gap:6px;padding:10px;border-top-width:8px}.show-card h2{font-size:18px}}
 
-/* ---------- the Wall ---------- */
-.wall-screen{background:linear-gradient(#f4e9d6,#e8d8bc)}
-.wall-screen .af-head h1{color:var(--stunt);text-shadow:2px 2px 0 #000}
-.wall-scroll{flex:1;min-height:0;overflow-y:auto;padding:0 16px var(--floor);display:flex;flex-direction:column;gap:calc(14px*var(--u))}
-.wall-section h2{margin:4px 0 8px;font:400 max(16px,calc(22px*var(--u))) Bungee,sans-serif;color:var(--sw-ink)}
-.wall-cards{display:grid;grid-template-columns:repeat(auto-fill,minmax(max(140px,calc(200px*var(--u))),1fr));gap:12px}
-.wall-card-btn{padding:0;border:4px solid #000;border-radius:10px;background:#fff;box-shadow:0 5px 0 #000;aspect-ratio:4/3;overflow:hidden;transform:rotate(-1deg)}
-.wall-card-btn:nth-child(2n){transform:rotate(1.2deg)}
-.wall-card{display:block;width:100%;height:100%}
+/* ---------- the Wall: a cork board in the hangar ---------- */
+.wall-screen{background:radial-gradient(#0000 0 1.5px,#0000 2px) 0 0/14px 14px,radial-gradient(circle at 30% 20%,#d9a46a,#b57a42 70%,#9c6534);background-color:#b57a42}
+.wall-screen::before{content:'';position:absolute;inset:0;pointer-events:none;background:radial-gradient(#6b3f1a33 1px,#0000 1.5px) 0 0/9px 9px,radial-gradient(#fff2 1px,#0000 1.5px) 4px 5px/11px 11px}
+.wall-screen>*{position:relative}
+.wall-screen .af-head h1{color:#fff;text-shadow:2px 2px 0 var(--stunt),4px 4px 0 #000}
+.wall-scroll{flex:1;min-height:0;overflow-y:auto;padding:4px 16px var(--floor);display:flex;flex-direction:column;gap:calc(18px*var(--u))}
+/* each section's name on a strip of red tape */
+.wall-section h2{display:inline-block;margin:4px 0 12px;padding:4px 14px 2px;font:400 max(16px,calc(22px*var(--u))) Bungee,sans-serif;color:#fff;background:var(--stunt);border:3px solid #000;border-radius:6px;rotate:-1.5deg;text-shadow:1px 1px 0 #0008}
+.wall-cards{display:grid;grid-template-columns:repeat(auto-fill,minmax(max(140px,calc(200px*var(--u))),1fr));gap:calc(18px*var(--u)) 14px;padding-top:6px}
+/* a postcard, taped up, a little crooked */
+.wall-card-btn{position:relative;padding:6px;border:4px solid #000;border-radius:8px;background:#fff;box-shadow:0 5px 0 #000;aspect-ratio:4/3;rotate:-1.2deg}
+.wall-card-btn:nth-child(2n){rotate:1.4deg}
+.wall-card-btn:nth-child(3n){rotate:-.4deg}
+.wall-card-btn::before{content:'';position:absolute;z-index:1;left:50%;top:-12px;width:38%;height:22px;translate:-50% 0;rotate:-3deg;background:#fff6c8d0;border:1px solid #0002;box-shadow:0 1px 2px #0003}
+.wall-card-btn:active{transform:translateY(3px);box-shadow:0 2px 0 #000}
+.wall-card{display:block;width:100%;height:100%;border-radius:3px}
 .wall-card.gold{box-shadow:inset 0 0 0 6px #e0b12a}
-.wall-empty{width:100%;min-height:72px;border:4px dashed #0004;border-radius:18px;background:#fff8;font:900 max(16px,calc(20px*var(--u))) Nunito,sans-serif}
-.wall-planes{display:flex;flex-wrap:wrap;gap:10px}
-.wall-plane{width:max(110px,calc(150px*var(--u)));height:max(72px,calc(96px*var(--u)));border:4px solid #000;border-radius:16px;background:linear-gradient(#bfe4fb,#e9f6ff);box-shadow:0 4px 0 #000;padding:2px}
-.wall-patches{display:grid;grid-template-columns:repeat(8,minmax(44px,1fr));gap:8px}
-.wall-patch{aspect-ratio:1;min-height:48px;border:4px solid #000;border-radius:50%;background:#fff;box-shadow:0 3px 0 #000;font-size:max(24px,calc(32px*var(--u)))}
-.wall-patch.none{background:#ddd;opacity:.6}
-.wall-things{display:flex;flex-wrap:wrap;gap:8px;justify-content:center;padding-top:4px}
-.wall-thing{width:56px;height:56px;border-radius:14px;background:#fff8;border:3px solid #0003;font-size:32px}
+.wall-card-btn:has(.gold){background:linear-gradient(135deg,#ffe07a,#d9a514 50%,#ffe07a)}
+.wall-empty{width:100%;min-height:72px;border:4px dashed #0006;border-radius:18px;background:#fffc;font:900 max(16px,calc(20px*var(--u))) Nunito,sans-serif;color:var(--sw-navy)}
+.wall-planes{display:flex;flex-wrap:wrap;gap:12px}
+.wall-plane{width:max(110px,calc(150px*var(--u)));height:max(72px,calc(96px*var(--u)));border:4px solid #000;border-radius:16px;background:linear-gradient(#5fb0ee,#c4e8fd);box-shadow:0 4px 0 #000;padding:2px}
+.wall-plane:active{transform:translateY(3px);box-shadow:0 1px 0 #000}
+/* patches: round, stitched; a place not flown yet is an empty stitched ring */
+.wall-patches{display:grid;grid-template-columns:repeat(8,minmax(44px,1fr));gap:10px}
+.wall-patch{aspect-ratio:1;min-height:48px;border:4px solid #000;border-radius:50%;background:radial-gradient(circle at 40% 35%,#ff7a80,var(--stunt) 70%);box-shadow:0 3px 0 #000;outline:3px dashed #fff;outline-offset:-11px;font-size:max(24px,calc(32px*var(--u)))}
+.wall-patch:active{transform:translateY(2px);box-shadow:0 1px 0 #000}
+.wall-patch.none{background:#0000;border:3px dashed #0007;box-shadow:none;outline:none;color:#0006;font:900 max(20px,calc(26px*var(--u))) Nunito,sans-serif}
+.wall-things{display:flex;flex-wrap:wrap;gap:10px;justify-content:center;padding-top:4px}
+.wall-thing{width:60px;height:60px;border-radius:50%;background:#fff;border:3px solid #000;box-shadow:0 3px 0 #000;font-size:32px}
+.wall-thing:active{transform:translateY(2px);box-shadow:0 1px 0 #000}
 .wall-big-wrap{position:absolute;inset:0;z-index:6;display:grid;place-items:center;padding:16px;background:#000a}
 .wall-big{display:flex;flex-direction:column;align-items:center;gap:12px;width:min(92vw,720px)}
 .wall-big .wall-card{width:100%;aspect-ratio:4/3;height:auto;max-height:70vh;border:4px solid #000;border-radius:12px;background:#fff}

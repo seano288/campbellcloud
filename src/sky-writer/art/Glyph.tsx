@@ -47,12 +47,15 @@ export function LetterStrokes({ ch, x = 0, dy = 0, turn, lit, faded, cls = '' }:
 }
 
 /** A row of letters, on the lines or not. `children` draws on top in the same units (dots, arrows). */
-export function Glyph({ parts, lines = true, label, cls = '', lit, children, tall }: {
+/** `span`: the top and bottom to show, in line units, when several rows must share one scale (a letter that floats or sinks past the lines
+ *  would otherwise be cut off, or shrink its own row and give the answer away). */
+export function Glyph({ parts, lines = true, label, cls = '', lit, children, tall, span }: {
   parts: readonly GlyphPart[]; lines?: boolean; label?: string; cls?: string; lit?: { at: number; strokes: readonly number[] } | null; children?: ComponentChildren; tall?: boolean;
+  span?: readonly [number, number];
 }) {
   const { at, width } = rowLayout(parts), top = lines || tall ? -PAD : -0.1;
   const ys = parts.flatMap(p => letter(p.ch).strokes.flatMap(s => s.pts.map(q => q[1] + (p.dy ?? 0))));
-  const y0 = lines || tall ? top : Math.min(...ys) - PAD, y1 = lines || tall ? 3 + PAD : Math.max(...ys) + PAD;
+  const y0 = span ? span[0] : lines || tall ? top : Math.min(...ys) - PAD, y1 = span ? span[1] : lines || tall ? 3 + PAD : Math.max(...ys) + PAD;
   return (
     <svg class={`sw-glyph ${cls}`} viewBox={`${-PAD} ${y0} ${width + PAD * 2} ${y1 - y0}`} role="img" aria-label={label ?? parts.map(p => p.ch).join('')}>
       {lines && <Lines x0={-PAD} x1={width + PAD} />}

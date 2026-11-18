@@ -23,6 +23,8 @@ const TOP = 0.3, HEIGHT = 3.6;
 const PEN_PALM_MS = 1200;
 /** A touch that has moved less than this (CSS px) since it came down is a resting hand, and a new touch takes over from it. */
 const RESTING_PX = 10;
+/** The little plane's smoke in a lesson, and the smoke he traces over afterwards: yellow, the family's "look here". */
+const LESSON_SMOKE = '#ffe066';
 
 interface Box { ch: string; L: Letter; left: number; w: number; place: number }
 function layout(chars: readonly string[], free: boolean) {
@@ -208,8 +210,9 @@ export function WritePad({ chars, tuning, guide, signal, active, flash, smoke, l
           const pts = strokePts(b, k);
           if (walk && k !== next) continue;
           if (g === 'arrow' || g === 'dots' || walk) {
-            if (L.strokes[k]!.dot) dot(pts[0]!, s * 0.09, '#ffffff', 0.9);
-            else for (let i = 0; i < pts.length; i += 3) dot(pts[i]!, s * 0.045, '#ffffff', 0.95);
+            // white dots ringed in navy, so they still show where they cross a white contrail line
+            if (L.strokes[k]!.dot) { dot(pts[0]!, s * 0.11, '#0b2540', 0.5); dot(pts[0]!, s * 0.085, '#ffffff'); }
+            else for (let i = 0; i < pts.length; i += 3) { dot(pts[i]!, s * 0.06, '#0b2540', 0.45); dot(pts[i]!, s * 0.042, '#ffffff'); }
           } else if (g === 'faint') line(pts, lw * 0.8, '#ffffff', Math.max(0, 0.32 - sinceTouch * 0.3));
         }
         if (flash) { const t = (now - st.started) / 1000, a = t < 1.1 ? 1 : Math.max(0, 1 - (t - 1.1) * 2); if (a > 0) for (let k = 0; k < L.strokes.length; k++) { const pts = strokePts(b, k); if (L.strokes[k]!.dot) dot(pts[0]!, lw * 0.6, '#ffffff', a); else line(pts, lw, '#ffffff', a); } }
@@ -225,7 +228,8 @@ export function WritePad({ chars, tuning, guide, signal, active, flash, smoke, l
         }
       }
       // the plane's smoke from a lesson, to trace over
-      for (const gd of lesson.guide.value) { if (gd.box !== b) continue; const pts = strokePts(gd.box, gd.stroke); if (st.boxes[gd.box]!.L.strokes[gd.stroke]!.dot) dot(pts[0]!, lw * 0.9, '#fff3b0', 0.8); else line(pts, lw * 1.6, '#fff3b0', 0.55); }
+      // (smoke: a soft white puff round a yellow core, the family's "look here")
+      for (const gd of lesson.guide.value) { if (gd.box !== b) continue; const pts = strokePts(gd.box, gd.stroke); if (st.boxes[gd.box]!.L.strokes[gd.stroke]!.dot) { dot(pts[0]!, lw * 1.2, '#ffffff', 0.45); dot(pts[0]!, lw * 0.75, LESSON_SMOKE, 0.9); } else { line(pts, lw * 2.2, '#ffffff', 0.3); line(pts, lw * 1.25, LESSON_SMOKE, 0.75); } }
       // his smoke
       st.smoke.forEach((sm, i) => { line(sm.pts, lw * 1.9, smokeAt(i), 0.3); line(sm.pts, lw, smokeAt(i)); if (sm.pts.length === 1) dot(sm.pts[0]!, lw * 0.7, smokeAt(i)); });
       const live = writing();
@@ -238,9 +242,10 @@ export function WritePad({ chars, tuning, guide, signal, active, flash, smoke, l
         // a stroke that starts by pushing back up what was drawn ("Push up.", "Back up and over.") is flown from where the last one ended
         const fb = st.boxes[fly.box]!, fdx = fb.left + dxOf(fly.box), lead = leadIn(fb.L, fly.stroke).map(([x, y]) => [x + fdx, y] as Pt);
         const pts = [...lead, ...strokePts(fly.box, fly.stroke)], u = Math.min(1, (now - fly.from) / fly.ms), n = Math.max(1, Math.round(u * (pts.length - 1)));
-        if (pts.length > 1) { line(pts.slice(0, n + 1), lw * 1.6, '#fff3b0', 0.85); } else dot(pts[0]!, lw * 0.9 * u, '#fff3b0');
+        if (pts.length > 1) { const flown = pts.slice(0, n + 1); line(flown, lw * 2.2, '#ffffff', 0.4); line(flown, lw * 1.25, LESSON_SMOKE, 0.95); } else { dot(pts[0]!, lw * 1.2 * u, '#ffffff', 0.5); dot(pts[0]!, lw * 0.75 * u, LESSON_SMOKE); }
         const at = pts[Math.min(pts.length - 1, n)]!, prev = pts[Math.max(0, n - 2)]!, ang = pts.length > 1 ? Math.atan2(at[1] - prev[1], at[0] - prev[0]) : 0;
-        c.save(); c.translate(X(at[0]), Y(at[1])); c.rotate(ang); if (Math.cos(ang) < 0) c.scale(1, -1); drawPlane(c, look, s * 0.0042, now / 1000); c.restore();
+        // the plane is big enough to watch: about two thirds of a line space long, and never under about 90 CSS px long however small the pad
+        c.save(); c.translate(X(at[0]), Y(at[1])); c.rotate(ang); if (Math.cos(ang) < 0) c.scale(1, -1); drawPlane(c, look, Math.max(s * 0.0062, 0.52 * dpr), now / 1000); c.restore();
       }
     };
     raf = requestAnimationFrame(frame);

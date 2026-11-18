@@ -208,7 +208,8 @@ Show plays (planes, Engines, Wings, Tanks, Propellers, Tricks, Gear). No price i
 3. **Show done:** "Show done! You flew through 7 rings!", a patch and "A new place to fly!" when it's a new place. The Show is used and its
    2 Bolts paid now; leaving before (🛫 twice) costs and pays nothing.
 4. **Free Sky:** "The sky is yours! Draw with your smoke!" Smoke only while his finger is down; it stays. 📮 Keep puts it on the Wall
-   ("You kept a postcard!"); ✓ goes back to the Airfield. The Smoke Tank sets how much smoke Free Sky holds (800 to 1,600 points; then "Out
+   ("You kept a postcard!"); ✓ goes back to the Airfield. When the Wall is full, Keep says "Your Wall is full!" and shows his postcards
+   right there: he taps one ("Tap again to take it down.") and taps it again to swap it for the new one (🎨 goes back to drawing). The Smoke Tank sets how much smoke Free Sky holds (800 to 1,600 points; then "Out
    of smoke!").
 
 **Frame rate (the brief's risk):** the trail keeps at most 300 pieces (90 × the Smoke Tank), drawn as six bands (six strokes a frame), with
@@ -231,6 +232,37 @@ again), his planes, the sixteen patches (❔ for places not flown) and his Wall 
   costs about 340 Rounds. The first Rung (6 to 8 Bolts) comes after about one Round.
 - A new place opens only by flying the newest place: one new place per Show, so all sixteen take sixteen Shows.
 - No Legendaries, no Trophies.
+
+## Look (pass 3, design), 2026-11-18
+
+Sky Writer's own world is **a ruled sky**: deep sky blue (#1765c4) fading to a pale horizon (#9fd6fb) with a bank of white cloud along the
+bottom of each sky screen, the three writing lines (top, middle dashed, bottom) drawn as white contrails wherever he writes or reads a
+letter, cloud white (#f7fbff) for paper and panels, and stunt-plane red (#e63946, dark #a8222c) for his plane, the Show and the trim (the
+red band over each question card and panel). The family look stays: Bungee titles, Nunito words, Andika for every letter he reads, 4px
+outlines, drop shadows that press in; signals stay the family's (green Go and right and the start dot; yellow look here: a taught answer,
+the plane's lesson smoke, the held start dot, the b/d card; orange being read aloud: a lit stroke).
+
+- **Icon** (`icon.ts`): a big single-storey smoke "a" in white with a dark outline, sitting between the middle and bottom contrail lines
+  on a deep-to-pale sky, its stroke running on into a smoke trail up to a red biplane (black outlines, yellow spinner) climbing out at the
+  upper right; a little cloud top left, a cloud bank along the bottom. No sunburst: Time Flies is the blue sunburst with a clock and a grey
+  jet; this one is ruled sky with a letter. Checked at 60 px and tile size beside the other games (`tools/sky-writer/icon-sheet.ts`).
+- **Home**: Play is the icon's scene at the left of a strip of sky (the lines run on across the whole tile at the letter's scale) and the
+  green ▶ at the right, so it never covers the plane; in a tall tile (iPad sideways) the ▶ sits under the drawing. The Airfield's runway has
+  a centre line; the Show's plane flies through a yellow ring on red; the Wall is gold.
+- **Writing pad**: the guide dots are white ringed in navy, so they show where they cross a white line. A lesson's plane is about two thirds
+  of a line space long and never under about 90 px; its smoke is a yellow core in a soft white puff (and so is the smoke he traces after).
+- **Lessons**: b/d (p/q) is a cloud-white card with the yellow teaching glow, floating over the work on every screen (so the pad never
+  changes size under his finger), each letter big with its name in Andika; the one not being said is faded. While a lesson plays, the
+  answer being taught stays bright while the others fade. The ✓ after a right "Which line comes second?" is a green badge over the corner.
+- **Meeting a Family**: the letter cards are as big as the screen allows (fewer to a row when upright).
+- **Tall, Small, Tail L2**: the three writings share one scale tall enough for one that sinks or floats, so none is cut off.
+- **Round done**: his plane fills its button (a shared rule had shrunk it); the sky has the cloud bank and the runway.
+- **Airfield**: the stage spans the screen (sky with two contrails, runway with a centre line); the twelve tabs are two even rows of six
+  (one row of twelve on an iPad sideways; pictures only on a phone); every tile is white, the price on a tag (grey while he saves, yellow
+  when he can buy it).
+- **Show**: places are round patches; Free Sky's label says "Free Sky".
+- **Wall**: a cork board: postcards taped up a little crooked (gold-framed with Gold Frames), section names on red tape, planes in sky
+  frames, patches stitched (an empty stitched ring for a place not flown), Wall things as round badges.
 
 ## Look (pass 1)
 
@@ -296,8 +328,8 @@ What the review found and changed (the sections above are updated to match):
 
 Left as they are, for the parent: a t cross or a capital's bar drawn right to left is a wrong-way miss (Zaner-Bloser slides right; some
 programs accept either, and left-handed children often cross right to left); in Write It a stroke written backwards that starts at the
-height the right one does (v, w, c, e) only rubs out; when the Wall is full, keeping a new postcard means leaving Free Sky to take one
-down, so that drawing is lost.
+height the right one does (v, w, c, e) only rubs out. (When the Wall was full, keeping a new postcard meant leaving Free Sky to take one
+down, losing the drawing; pass 3 fixed it: see Look.)
 
 ## Open questions for the parent
 

@@ -14,7 +14,7 @@ import { SHOWS } from '../show/places';
 import { drawPostcard, strokesOf } from '../show/postcard';
 import { useVoiceScope } from '../voice';
 
-function Card({ card, replay = false, gold }: { card: Postcard; replay?: boolean; gold: boolean }) {
+export function Card({ card, replay = false, gold }: { card: Postcard; replay?: boolean; gold: boolean }) {
   const ref = useRef<HTMLCanvasElement>(null);
   useEffect(() => {
     const cv = ref.current!, box = cv.getBoundingClientRect(), dpr = Math.min(2, devicePixelRatio || 1);

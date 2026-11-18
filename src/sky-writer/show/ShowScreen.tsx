@@ -14,8 +14,10 @@ import { lookOf } from '../art/PlanePic';
 import { drawPlane, EMOJI_FONT } from '../art/plane';
 import { chatter, useCanvasLoop } from '../art/loop';
 import { SHAPES, TRICKS, type TrickId } from '../airfield/parts';
-import { flight, hasGear, MAX_POSTCARDS, openShows, specialTrick } from '../airfield/state';
-import { keepCard, player, settleShow } from '../game';
+import { flight, hasGear, isOwned, MAX_POSTCARDS, openShows, specialTrick } from '../airfield/state';
+import { keyOf } from '../airfield/parts';
+import { keepCard, player, settleShow, swapCard } from '../game';
+import { Card } from '../wall/WallScreen';
 import { flying, screen } from '../nav';
 import type { Phrase } from '../phrases';
 import { useVoiceScope } from '../voice';
@@ -34,6 +36,8 @@ export function ShowScreen() {
   const quip = useMemo(() => chatter((line: Phrase) => voice.sayMore(line)), [voice]);
   const [at, setAt] = useState<ShowId>(flying.value!.at), [phase, setPhase] = useState<Phase>('pick');
   const [passed, setPassed] = useState(0), [armed, setArmed] = useState(false), [kept, setKept] = useState<'no' | 'yes' | 'full'>('no'), [drawn, setDrawn] = useState(0);
+  /** When the Wall is full: the postcard he has tapped once to swap for this one (a second tap swaps it). */
+  const [swap, setSwap] = useState<number | null>(null);
   const look = lookOf(a), fl = flight(a), special = specialTrick(a), here = show(at);
   const smokeId = a.fitted.smoke, shape = SHAPES.find(s => s.id === a.fitted.shape) ?? SHAPES[0];
   const gear = { magnet: hasGear(a, 'magnet'), shield: hasGear(a, 'shield'), turbo: hasGear(a, 'turbo'), autopilot: hasGear(a, 'autopilot') };
@@ -221,8 +225,15 @@ export function ShowScreen() {
     if (!w || !voice.active || kept === 'yes') return;
     const pts = postcardPoints(w);
     if (pts.length < 4) { sNope(); void voice.say('Draw something first!'); return; }
-    if (player.state.peek().airfield.postcards.length >= MAX_POSTCARDS) { sNope(); setKept('full'); void voice.say('Your Wall is full!'); return; }
+    if (player.state.peek().airfield.postcards.length >= MAX_POSTCARDS) { sNope(); setKept('full'); setSwap(null); void voice.say('Your Wall is full!'); return; }
     if (keepCard(player, { show: at, smoke: smokeId, shape: shape.id, pts })) { setKept('yes'); sChime(); confetti(25, voice.signal); void voice.say('You kept a postcard!'); }
+  }
+  /** The Wall is full: he picks a postcard to take down for this one, right here, so the drawing isn't lost (two taps, as on the Wall). */
+  function swapFor(i: number) {
+    const w = world.current;
+    if (!w || !voice.active) return;
+    if (swap !== i) { setSwap(i); sPop(); void voice.say('Tap again to take it down.'); return; }
+    if (swapCard(player, i, { show: at, smoke: smokeId, shape: shape.id, pts: postcardPoints(w) })) { setKept('yes'); setSwap(null); sChime(); confetti(25, voice.signal); void voice.say('You kept a postcard!'); }
   }
 
   const open = openShows(a);
@@ -231,7 +242,7 @@ export function ShowScreen() {
       <div class="show-hud">
         <IconButton label={armed ? 'Tap again to leave' : 'Airfield'} class={armed ? 'armed' : ''} onClick={leave}>🛫</IconButton>
         {phase === 'fly' && <span class="show-rings" aria-label={`${passed} rings`}>⭕ {passed}/{RINGS}</span>}
-        {phase === 'free' && <span class="show-rings">🎨 {drawn ? '✏️' : ''}</span>}
+        {phase === 'free' && <span class="show-rings">🎨 Free Sky{drawn ? ' ✏️' : ''}</span>}
         <span class="show-place">{here.patch} {here.name}</span>
       </div>
       <div class="show-field">
@@ -261,6 +272,17 @@ export function ShowScreen() {
             <button class="show-btn" aria-label="Roll" onPointerDown={e => { e.preventDefault(); trick('roll'); }}>🌀</button>
             {special && <button class="show-btn" aria-label={TRICKS.find(x => x.id === special)!.name} onPointerDown={e => { e.preventDefault(); trick(special); }}>{TRICKS.find(x => x.id === special)!.pic}</button>}
             {gear.turbo && <button class="show-btn" aria-label="Turbo" onPointerDown={e => { e.preventDefault(); if (world.current) turbo(world.current); }}>⚡</button>}
+          </div>
+        )}
+        {phase === 'free' && kept === 'full' && (
+          <div class="show-card-wrap">
+            <div class="show-card show-swap">
+              <h2>Your Wall is full!</h2>
+              <div class="swap-cards" role="group" aria-label="Your postcards">
+                {a.postcards.map((card, i) => <button key={i} class={`wall-card-btn ${swap === i ? 'armed' : ''}`} aria-label={swap === i ? 'Tap again to take it down' : `Postcard ${i + 1}`} onClick={() => swapFor(i)}><Card card={card} gold={isOwned(a, keyOf('wall', 'frames'))} /></button>)}
+              </div>
+              <button class="big-btn garage" aria-label="Back to drawing" onClick={() => { setKept('no'); setSwap(null); }}>🎨</button>
+            </div>
           </div>
         )}
         {phase === 'free' && (

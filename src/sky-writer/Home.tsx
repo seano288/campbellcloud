@@ -1,5 +1,5 @@
 // Home: one Play tile, the biggest thing on the screen (a strip of sky with the three writing lines as contrails and his biplane
-// finishing a smoke "a", the ▶ over it; every Round mixes the kinds he has opened), the Airfield tile with his plane, the Show tile with
+// finishing a smoke "a" on the left, the ▶ on the right; every Round mixes the kinds he has opened), the Airfield tile with his plane, the Show tile with
 // how many Shows he has, the Wall, and his Level in each kind. Tapping a kind says its name, and a locked one says what opens it.
 import { useEffect } from 'preact/hooks';
 import type { ComponentChildren } from 'preact';
@@ -33,7 +33,7 @@ export function Home({ status }: { status: ComponentChildren }) {
       <header class="home-head"><h1>Sky Writer</h1>{status}</header>
       <div class="home sw-home">
         <button class="tile t-play" aria-label="Play" onClick={() => { if (voice.active) startRound(); }}>
-          <span class="sw-sky" aria-hidden="true" dangerouslySetInnerHTML={{ __html: playArt() }} />
+          <span class="sw-art" aria-hidden="true" dangerouslySetInnerHTML={{ __html: playArt() }} />
           <span class="spot"><span class="e">▶</span></span>
         </button>
         <button class="tile t-airfield" aria-label="Airfield" onClick={() => { if (voice.active) screen.value = 'airfield'; }}>

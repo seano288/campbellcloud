@@ -246,13 +246,18 @@ function SizeView({ current, q, waiting }: { current: Current<Asking>; q: SizeQ;
       </div>
     </Shell>
   );
-  if (q.step === 'line') return (
+  if (q.step === 'line') {
+    // every writing on the same scale, tall enough for the one that floats highest or sinks lowest
+    const ys = q.rows!.flatMap(r => r.flatMap(p => letter(p.ch).strokes.flatMap(s => s.pts.map(pt => pt[1] + (p.dy ?? 0)))));
+    const span = [Math.min(-0.35, Math.min(...ys) - 0.25), Math.max(3.35, Math.max(...ys) + 0.25)] as const;
+    return (
     <Shell current={current} kind="size line" text="Which one sits on the line?" speech={speech} ready={ready && !waiting}>
       <div class="sw-choices n3 rows" role="group" aria-label="Writings">
-        {q.rows!.map((r, i) => <button key={i} class={cls('sw-choice sw-rowbtn', c.state(String(i)))} aria-label={`Writing ${i + 1}`} data-key={String(i)} onClick={() => c.tap(String(i))}><Glyph parts={r} /></button>)}
+        {q.rows!.map((r, i) => <button key={i} class={cls('sw-choice sw-rowbtn', c.state(String(i)))} aria-label={`Writing ${i + 1}`} data-key={String(i)} onClick={() => c.tap(String(i))}><Glyph parts={r} span={span} /></button>)}
       </div>
     </Shell>
-  );
+    );
+  }
   return (
     <Shell current={current} kind="size odd" text="Which letter floats or sinks?" speech={speech} ready={ready && !waiting}>
       <Row parts={q.rows![0]!} c={c} />
@@ -267,6 +272,9 @@ export function MeetView({ current }: { current: Current }) {
   const q = current.problem.q as MeetQ, voice = useVoice(), chars = FAMILIES[q.family];
   const [count, setCount] = useState(0), [ready, setReady] = useState(false);
   const fast = chars.length > 6;
+  // how many cards to a row (and on a narrow screen): six to twenty letters, as big as the card's room allows
+  const n = chars.length, per = n <= 6 ? n : n <= 10 ? 5 : 7, perN = n <= 6 ? 3 : n <= 10 ? 4 : 5;
+  const grid = { '--per-w': per, '--rows-w': Math.ceil(n / per), '--per-n': perN, '--rows-n': Math.ceil(n / perN) };
   useEffect(() => {
     void (async () => {
       await voice.say('A new letter family!', FAMILY_LINES[q.family]);
@@ -280,7 +288,7 @@ export function MeetView({ current }: { current: Current }) {
         <button class="say-btn" aria-label="Say it again" onClick={() => void voice.say(FAMILY_LINES[q.family])}>🔊</button>
         <h2>A new letter family!</h2>
       </div>
-      <div class={cls('sw-family', fast && 'many')}>
+      <div class={cls('sw-family', fast && 'many')} style={grid}>
         {chars.map((ch, k) => (
           <button key={ch} class={cls('sw-famletter', k < count && 'shown')} aria-label={ch} onClick={() => { if (k < count) void voice.say(nameOf(ch)); }}>
             {k < count && <Glyph parts={[{ ch }]} cls="drawn" />}
