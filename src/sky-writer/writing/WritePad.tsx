@@ -186,7 +186,7 @@ export function WritePad({ chars, tuning, guide, signal, active, flash, smoke, l
         c.beginPath(); pts.forEach((p, i) => (i ? c.lineTo(X(p[0]), Y(p[1])) : c.moveTo(X(p[0]), Y(p[1])))); c.stroke();
         c.setLineDash([]); c.globalAlpha = 1;
       };
-      const dot = (p: Pt, r: number, color: string, alpha = 1) => { c.globalAlpha = alpha; c.fillStyle = color; c.beginPath(); c.arc(X(p[0]), Y(p[1]), r, 0, Math.PI * 2); c.fill(); c.globalAlpha = 1; };
+      const dot = (p: Pt, r: number, color: string, alpha = 1) => { c.globalAlpha = alpha; c.fillStyle = color; c.beginPath(); c.arc(X(p[0]), Y(p[1]), Math.max(0, r), 0, Math.PI * 2); c.fill(); c.globalAlpha = 1; };
       // the lines, as contrails
       const lx0 = Math.min(-0.1, -ox / s), lx1 = Math.max(st.width + 0.1, (W - ox) / s);
       for (const [y, w, a, dash] of [[0, 0.05, 0.9, []], [1, 0.04, 0.85, [0.16 * s, 0.12 * s]], [2, 0.07, 1, []], [3, 0.035, 0.55, [0.08 * s, 0.14 * s]]] as const) {
