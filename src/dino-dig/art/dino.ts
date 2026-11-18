@@ -50,12 +50,14 @@ export type Rig = ReturnType<typeof rig>;
 /** How big it is, in units: from the tail tip to the snout, and from the ground to its highest point. */
 export function bounds(d: Dino) {
   const r = rig(d), hl = HEAD_LEN[d.head];
-  const xs = [...r.tail.map(p => p.x), r.head.x + hl, r.centre.x + d.body.rx], top = Math.min(r.head.y - hl * .6, r.centre.y - d.body.ry * (d.id === 'spino' ? 2.2 : d.id === 'stego' ? 1.8 : 1.1), d.id === 'ptero' ? -1.2 : 0);
+  const wings = d.id === 'ptero' ? [wingPoints(r, 0), wingPoints(r, 0, true)] : [];
+  const xs = [...r.tail.map(p => p.x), r.head.x + hl, r.centre.x + d.body.rx, ...wings.map(w => w.tip.x)];
+  const top = Math.min(r.head.y - hl * (d.head === 'beak' ? .9 : .6), r.centre.y - d.body.ry * (d.id === 'spino' ? 2.2 : d.id === 'stego' ? 1.8 : 1.1), ...wings.map(w => Math.min(w.wrist.y, w.tip.y) - .03));
   return { left: Math.min(...xs), right: Math.max(...xs), top, width: Math.max(...xs) - Math.min(...xs), height: -top };
 }
 
 const HEAD_LEN: Record<Dino['head'], number> = {
-  small: .26, raptor: .32, beak: .42, dome: .3, stego: .21, duck: .3, horns: .4, armor: .27, allo: .42, croc: .46, rex: .56, long: .22,
+  small: .28, raptor: .34, beak: .44, dome: .32, stego: .23, duck: .32, horns: .4, armor: .29, allo: .44, croc: .48, rex: .6, long: .26,
 };
 
 // ---------- the paths ----------
@@ -76,7 +78,7 @@ function tailPath(c: CanvasRenderingContext2D, pts: readonly P[], w0: number) {
   const left: P[] = [], right: P[] = [];
   pts.forEach((p, i) => {
     const q = pts[Math.min(i + 1, pts.length - 1)]!, o = pts[Math.max(i - 1, 0)]!, ang = Math.atan2(q.y - o.y, q.x - o.x);
-    const w = w0 * (1 - i / (pts.length - 1)) * .5 + .006;
+    const w = w0 * .5 * Math.pow(1 - i / (pts.length - 1), .8) + .006;
     left.push({ x: p.x - Math.sin(ang) * w, y: p.y + Math.cos(ang) * w });
     right.push({ x: p.x + Math.sin(ang) * w, y: p.y - Math.cos(ang) * w });
   });
@@ -116,7 +118,7 @@ function headShape(c: CanvasRenderingContext2D, d: Dino, hl: number, jaw: number
 /** The bits that make each dinosaur itself, drawn in the head's frame (crest, horns, frill, dome, beak crest). */
 function headExtras(c: CanvasRenderingContext2D, d: Dino, hl: number) {
   if (d.head === 'duck') { c.moveTo(0, -hl * .2); c.quadraticCurveTo(-hl * .9, -hl * .7, -hl * 1.5, -hl * .55); c.lineTo(-hl * 1.45, -hl * .4); c.quadraticCurveTo(-hl * .8, -hl * .45, hl * .1, -hl * .05); c.closePath(); }
-  if (d.head === 'beak') { c.moveTo(0, -hl * .1); c.lineTo(-hl * .75, -hl * .42); c.lineTo(-hl * .1, hl * .08); c.closePath(); }
+  if (d.head === 'beak') { c.moveTo(hl * .15, -hl * .12); c.quadraticCurveTo(-hl * .4, -hl * .3, -hl * .95, -hl * .55); c.quadraticCurveTo(-hl * .5, -hl * .1, -hl * .1, hl * .08); c.closePath(); }
   if (d.head === 'dome') { c.ellipse(hl * .1, -hl * .28, hl * .42, hl * .32, 0, Math.PI, 0); c.closePath(); }
   if (d.head === 'allo') { c.moveTo(hl * .3, -hl * .2); c.lineTo(hl * .38, -hl * .38); c.lineTo(hl * .48, -hl * .18); c.closePath(); }
 }
@@ -150,12 +152,19 @@ function clubPath(c: CanvasRenderingContext2D, r: Rig) {
 function armorPath(c: CanvasRenderingContext2D, r: Rig) {
   for (let i = 0; i < 6; i++) { const p = r.onBody(-.75 + i * .3, -.85); c.moveTo(p.x + .04, p.y); c.arc(p.x, p.y, .04, 0, Math.PI * 2); }
 }
-function wingPath(c: CanvasRenderingContext2D, r: Rig, d: Dino, flap: number) {
-  const s = r.onBody(.35, -.4), lift = flap * .5;
+/** The wing: a long bony leading edge up to the wrist, a big swept membrane out to the tip, and a curved trailing edge back to the hip. */
+function wingPoints(r: Rig, flap: number, far = false) {
+  const s = r.onBody(.3, -.45), lift = flap * .35;
+  return far
+    ? { s, wrist: { x: s.x + .2, y: s.y - .44 - lift }, tip: { x: s.x - .5, y: s.y - .86 - lift * 1.3 }, hip: r.onBody(-.55, .25) }
+    : { s, wrist: { x: s.x + .16, y: s.y - .3 - lift }, tip: { x: s.x - .78, y: s.y - .6 - lift * 1.3 }, hip: r.onBody(-.55, .25) };
+}
+function wingPath(c: CanvasRenderingContext2D, r: Rig, d: Dino, flap: number, far = false) {
+  const { s, wrist, tip, hip } = wingPoints(r, flap, far);
   c.moveTo(s.x, s.y);
-  c.lineTo(s.x - .12, s.y - .42 - lift);
-  c.lineTo(s.x - .72, s.y - .1 - lift * .6);
-  c.quadraticCurveTo(s.x - .5, s.y + .05, r.onBody(-.6, .2).x, r.onBody(-.6, .2).y);
+  c.lineTo(wrist.x, wrist.y);
+  c.quadraticCurveTo(wrist.x - .25, wrist.y - .3, tip.x, tip.y);
+  c.quadraticCurveTo(s.x - .3, s.y - .3, hip.x, hip.y);
   c.closePath();
   void d;
 }
@@ -180,6 +189,8 @@ function armPath(c: CanvasRenderingContext2D, r: Rig, d: Dino, a: number) {
 // ---------- drawing it ----------
 
 const INK = '#1b1410', BONE = '#f4ecd6', BONE_SHADE = '#cbbd98';
+/** The heads that show a row of teeth. */
+const TEETH: ReadonlySet<Dino['head']> = new Set(['raptor', 'allo', 'rex', 'croc', 'small']);
 
 export interface DrawOpts {
   mode: 'skin' | 'bones';
@@ -200,16 +211,34 @@ function markings(c: CanvasRenderingContext2D, id: string, b: { left: number; ri
   const rnd = (i: number) => { const x = Math.sin(i * 127.1) * 43758.5453; return x - Math.floor(x); };
   const dot = (x: number, y: number, r: number) => { c.beginPath(); c.arc(x, y, r, 0, Math.PI * 2); c.fill(); };
   switch (id) {
-    case 'spots': case 'leopard': for (let i = 0; i < 40; i++) { const x = b.left + rnd(i) * w, y = -rnd(i + 99) * h, r = .03 + rnd(i + 7) * .03; if (id === 'leopard') { c.lineWidth = .018; c.beginPath(); c.arc(x, y, r, 0, Math.PI * 2); c.stroke(); } else dot(x, y, r); } break;
-    case 'dots': for (let x = b.left; x < b.right; x += .12) for (let y = -h; y < 0; y += .12) dot(x + ((y * 10) % 2 ? .06 : 0), y, .028); break;
-    case 'stripes': case 'tiger': c.lineWidth = id === 'tiger' ? .045 : .035; for (let x = b.left; x < b.right; x += .14) { c.beginPath(); c.moveTo(x, -h); c.lineTo(x + (id === 'tiger' ? .08 : 0), -h * .55); c.lineTo(x, 0); c.stroke(); } break;
-    case 'zigzag': c.lineWidth = .03; for (let y = -h + .08; y < 0; y += .16) { c.beginPath(); for (let x = b.left, k = 0; x < b.right; x += .06, k++) c.lineTo(x, y + (k % 2 ? .04 : -.04)); c.stroke(); } break;
-    case 'scales': c.lineWidth = .012; for (let y = -h; y < 0; y += .06) for (let x = b.left + ((y * 100) % 2 ? .03 : 0); x < b.right; x += .06) { c.beginPath(); c.arc(x, y, .03, 0, Math.PI); c.stroke(); } break;
-    case 'hearts': case 'stars': { for (let i = 0; i < 30; i++) { const x = b.left + rnd(i) * w, y = -rnd(i + 50) * h, k = .035; c.beginPath(); if (id === 'hearts') { c.moveTo(x, y + k); c.bezierCurveTo(x - k * 1.6, y - k * .2, x - k * .6, y - k * 1.3, x, y - k * .4); c.bezierCurveTo(x + k * .6, y - k * 1.3, x + k * 1.6, y - k * .2, x, y + k); } else for (let j = 0; j < 10; j++) { const a = -Math.PI / 2 + j * Math.PI / 5, rr = j % 2 ? k * .45 : k; c.lineTo(x + Math.cos(a) * rr, y + Math.sin(a) * rr); } c.fill(); } break; }
-    case 'camo': for (let i = 0; i < 26; i++) { c.globalAlpha = .55; c.beginPath(); c.ellipse(b.left + rnd(i) * w, -rnd(i + 31) * h, .06 + rnd(i + 3) * .05, .04, rnd(i) * 3, 0, Math.PI * 2); c.fill(); } c.globalAlpha = 1; break;
-    case 'flames': { const g = c.createLinearGradient(0, 0, 0, -h); g.addColorStop(0, '#ffd23f'); g.addColorStop(.5, '#ff7a00'); g.addColorStop(1, 'transparent'); c.fillStyle = g; c.beginPath(); c.moveTo(b.left, 0); for (let x = b.left; x <= b.right; x += .1) c.lineTo(x + .05, -h * (.35 + .15 * Math.sin(x * 30 + t * 6))); c.lineTo(b.right, 0); c.fill(); break; }
-    case 'galaxy': { c.fillStyle = '#1b1240cc'; c.fillRect(b.left, -h, w, h); c.fillStyle = '#fff'; for (let i = 0; i < 40; i++) dot(b.left + rnd(i) * w, -rnd(i + 9) * h, .008 + rnd(i + 2) * .01 * (1 + Math.sin(t * 3 + i) * .5)); break; }
-    case 'glow': { c.lineWidth = .03; c.strokeStyle = `hsl(${(t * 80) % 360} 100% 65%)`; c.shadowColor = c.strokeStyle; c.shadowBlur = 8; for (let x = b.left; x < b.right; x += .18) { c.beginPath(); c.moveTo(x, -h); c.lineTo(x + .1, 0); c.stroke(); } c.shadowBlur = 0; break; }
+    case 'spots': for (let i = 0; i < 46; i++) dot(b.left + rnd(i) * w, -rnd(i + 99) * h, .05 + rnd(i + 7) * .04); break;
+    case 'leopard': c.lineWidth = .028; for (let i = 0; i < 46; i++) { const x = b.left + rnd(i) * w, y = -rnd(i + 99) * h, r = .045 + rnd(i + 7) * .03; c.beginPath(); c.arc(x, y, r, .3, Math.PI * 1.7); c.stroke(); dot(x + r * .2, y, r * .35); } break;
+    case 'dots': for (let x = b.left, k = 0; x < b.right; x += .15, k++) for (let y = -h + (k % 2) * .075; y < 0; y += .15) dot(x, y, .04); break;
+    case 'stripes': case 'tiger': c.lineWidth = id === 'tiger' ? .06 : .05; for (let x = b.left; x < b.right; x += id === 'tiger' ? .16 : .15) { c.beginPath(); c.moveTo(x, -h); c.lineTo(x + (id === 'tiger' ? .09 : 0), -h * .55); c.lineTo(x, 0); c.stroke(); } break;
+    case 'zigzag': c.lineWidth = .04; for (let y = -h + .08; y < 0; y += .17) { c.beginPath(); for (let x = b.left, k = 0; x < b.right; x += .07, k++) c.lineTo(x, y + (k % 2 ? .045 : -.045)); c.stroke(); } break;
+    case 'scales': c.lineWidth = .016; for (let y = -h, k = 0; y < 0; y += .07, k++) for (let x = b.left + (k % 2) * .04; x < b.right; x += .08) { c.beginPath(); c.arc(x, y, .04, 0, Math.PI); c.stroke(); } break;
+    case 'hearts': case 'stars': {
+      // hearts are pink and stars yellow, each with a dark edge, so they show on any colour
+      c.fillStyle = id === 'hearts' ? '#ff5d8f' : '#ffd23f'; c.strokeStyle = '#1b1410'; c.lineWidth = .012;
+      for (let i = 0; i < 26; i++) {
+        const x = b.left + rnd(i) * w, y = -rnd(i + 50) * h, k = .055; c.beginPath();
+        if (id === 'hearts') { c.moveTo(x, y + k); c.bezierCurveTo(x - k * 1.6, y - k * .2, x - k * .6, y - k * 1.3, x, y - k * .4); c.bezierCurveTo(x + k * .6, y - k * 1.3, x + k * 1.6, y - k * .2, x, y + k); }
+        else for (let j = 0; j < 10; j++) { const a = -Math.PI / 2 + j * Math.PI / 5, rr = j % 2 ? k * .45 : k; c.lineTo(x + Math.cos(a) * rr, y + Math.sin(a) * rr); }
+        c.closePath(); c.fill(); c.stroke();
+      }
+      break;
+    }
+    case 'camo': for (let i = 0; i < 30; i++) { c.globalAlpha = i % 2 ? .75 : .5; c.beginPath(); c.ellipse(b.left + rnd(i) * w, -rnd(i + 31) * h, .09 + rnd(i + 3) * .06, .06, rnd(i) * 3, 0, Math.PI * 2); c.fill(); } c.globalAlpha = 1; break;
+    case 'flames': {
+      // flames licking up the body from its belly, flickering
+      const base = -h * .3, g = c.createLinearGradient(0, base, 0, -h * .9); g.addColorStop(0, '#e63946'); g.addColorStop(.45, '#ff7a00'); g.addColorStop(1, '#ffd23f');
+      c.fillStyle = g; c.beginPath(); c.moveTo(b.left, base);
+      for (let x = b.left, k = 0; x <= b.right + .1; x += .07, k++) c.lineTo(x, k % 2 ? base - h * (.14 + .04 * Math.sin(x * 17 + t * 7)) : base - h * (.4 + .1 * Math.sin(x * 23 + t * 6)));
+      c.lineTo(b.right + .1, 0); c.lineTo(b.left, 0); c.closePath(); c.fill();
+      break;
+    }
+    case 'galaxy': { c.fillStyle = '#1b1240e6'; c.fillRect(b.left, -h, w, h); c.fillStyle = '#7b5cff55'; for (let i = 0; i < 6; i++) dot(b.left + rnd(i + 40) * w, -rnd(i + 60) * h, .1); c.fillStyle = '#fff'; for (let i = 0; i < 50; i++) dot(b.left + rnd(i) * w, -rnd(i + 9) * h, .01 + rnd(i + 2) * .012 * (1 + Math.sin(t * 3 + i) * .5)); break; }
+    case 'glow': { c.lineWidth = .04; c.strokeStyle = `hsl(${(t * 80) % 360} 100% 65%)`; c.shadowColor = c.strokeStyle; c.shadowBlur = 8; for (let x = b.left; x < b.right; x += .18) { c.beginPath(); c.moveTo(x, -h); c.lineTo(x + .1, 0); c.stroke(); } c.shadowBlur = 0; break; }
   }
 }
 
@@ -238,13 +267,22 @@ export function drawDino(c: CanvasRenderingContext2D, d: Dino, o: DrawOpts) {
     if (rainbow) { const g = c.createLinearGradient(b.left, 0, b.right, 0); ['#e63946', '#ff9f1c', '#ffd23f', '#2bb673', '#3a72d0', '#8a4fc7'].forEach((k, i) => g.addColorStop(i / 5, k)); c.fillStyle = g; c.globalAlpha = dark < 1 ? .8 : 1; }
     else c.fillStyle = shade(skinCol, dark);
   };
-  const part = (path: () => void, dark = 1, stroke = true) => { c.beginPath(); path(); fill(dark); c.fill(); c.globalAlpha = 1; if (stroke) { c.strokeStyle = INK; c.lineWidth = lw; c.stroke(); } };
+  /** A piece of the body drawn as one shape: every path in it outlined (twice as thick, so half shows outside), then all filled over, so the
+   *  seams where they overlap (knee, hip, neck, tail) don't show: one outline round the whole piece, like a cartoon. */
+  const part = (path: (() => void) | readonly (() => void)[], dark = 1) => {
+    const paths = typeof path === 'function' ? [path] : path;
+    c.strokeStyle = INK; c.lineWidth = lw * 2;
+    for (const p of paths) { c.beginPath(); p(); c.stroke(); }
+    fill(dark);
+    for (const p of paths) { c.beginPath(); p(); c.fill(); }
+    c.globalAlpha = 1;
+  };
   const far = .78;
 
   // behind: far legs, wings, sail, plates, frill
   part(() => legPath(c, add(r.hip, { x: .03, y: 0 }), d.legs.back, -r.swing(0), d.legs.w, d.legs.stand), far);
   if (d.legs.stand) part(() => legPath(c, add(r.shoulder, { x: .03, y: 0 }), d.legs.front, r.swing(0), d.legs.w, true), far);
-  if (d.id === 'ptero') part(() => wingPath(c, r, d, -flap * .6), far);
+  if (d.id === 'ptero') part(() => wingPath(c, r, d, flap * .8, true), far);
   if (d.id === 'spino') part(() => sailPath(c, r, d), .9);
   if (d.id === 'stego') part(() => platesPath(c, r, d), .85);
   if (d.head === 'horns') headFrame(c, r, d, hAng, hl => part(() => frillPath(c, hl), .9));
@@ -255,30 +293,45 @@ export function drawDino(c: CanvasRenderingContext2D, d: Dino, o: DrawOpts) {
     c.moveTo(r.centre.x + d.body.rx, r.centre.y); c.ellipse(r.centre.x, r.centre.y, d.body.rx, d.body.ry, r.tilt, 0, Math.PI * 2);
     limb(c, r.neckBase, r.head, d.neck.w * 1.6, d.neck.w);
   };
-  part(() => tailPath(c, r.tail, d.tail.w * 2));
-  part(() => limb(c, r.neckBase, r.head, d.neck.w * 1.6, d.neck.w));
-  part(() => c.ellipse(r.centre.x, r.centre.y, d.body.rx, d.body.ry, r.tilt, 0, Math.PI * 2));
+  // the head's crest or dome sits behind it
+  headFrame(c, r, d, hAng, hl => { if (d.head === 'duck' || d.head === 'beak' || d.head === 'dome' || d.head === 'allo') part(() => headExtras(c, d, hl), d.head === 'dome' ? .85 : .95); });
+  // tail, body, neck and head: one shape with one outline
+  part([
+    () => tailPath(c, r.tail, d.tail.w * 2),
+    () => limb(c, r.neckBase, r.head, d.neck.w * 1.6, d.neck.w),
+    () => c.ellipse(r.centre.x, r.centre.y, d.body.rx, d.body.ry, r.tilt, 0, Math.PI * 2),
+    () => headFrame(c, r, d, hAng, hl => headShape(c, d, hl, jaw)),
+  ]);
   // the belly, lighter
   c.save(); c.beginPath(); c.ellipse(r.centre.x, r.centre.y, d.body.rx, d.body.ry, r.tilt, 0, Math.PI * 2); c.clip();
   c.fillStyle = bellyCol; c.beginPath(); c.ellipse(r.centre.x, r.centre.y + d.body.ry * .75, d.body.rx * .9, d.body.ry * .5, r.tilt, 0, Math.PI * 2); c.fill(); c.restore();
   if (look && look.marking !== 'none' && MARKINGS.some(m => m.id === look.marking)) {
-    c.save(); c.beginPath(); silhouette(); c.clip(); markings(c, look.marking, b, shade(skinCol === 'rainbow' ? '#333333' : skinCol, .55), t); c.restore();
-    // redraw the outlines the markings covered
-    c.strokeStyle = INK; c.lineWidth = lw;
-    c.beginPath(); c.ellipse(r.centre.x, r.centre.y, d.body.rx, d.body.ry, r.tilt, 0, Math.PI * 2); c.stroke();
+    // inside the outline only (the outline lies just outside the shape, so markings never cover it)
+    c.save(); c.beginPath(); silhouette(); c.clip(); markings(c, look.marking, b, shade(skinCol === 'rainbow' ? '#333333' : skinCol, skinCol === '#2b2b33' ? 2.2 : .5), t); c.restore();
   }
   if (d.id === 'anky') part(() => armorPath(c, r), .8);
   if (d.id === 'anky') part(() => clubPath(c, r), .85);
 
   // the head
   headFrame(c, r, d, hAng, hl => {
-    part(() => headExtras(c, d, hl), d.head === 'dome' ? .85 : .95);
-    part(() => headShape(c, d, hl, jaw));
     if (d.head === 'horns') part(() => hornsPath(c, hl), 1.25);
-    // eye and smile
-    c.fillStyle = '#fff'; c.beginPath(); c.arc(hl * .35, -hl * .12, hl * .1, 0, Math.PI * 2); c.fill(); c.strokeStyle = INK; c.lineWidth = lw * .7; c.stroke();
-    c.fillStyle = INK; c.beginPath(); c.arc(hl * .38, -hl * .11, hl * .05, 0, Math.PI * 2); c.fill();
-    if (jaw < .1) { c.beginPath(); c.moveTo(hl * .5, hl * .12); c.quadraticCurveTo(hl * .75, hl * .2, hl * .95, hl * .05); c.lineWidth = lw * .6; c.stroke(); }
+    if (d.head === 'stego' || d.head === 'armor') { // a little brow ridge
+      c.beginPath(); c.moveTo(hl * .18, -hl * .3); c.quadraticCurveTo(hl * .38, -hl * .4, hl * .55, -hl * .26); c.strokeStyle = INK; c.lineWidth = lw * .8; c.stroke();
+    }
+    // the meat-eaters show their teeth
+    if (TEETH.has(d.head)) {
+      const h = hl * (d.head === 'rex' ? .62 : d.head === 'allo' ? .52 : d.head === 'croc' ? .3 : .55), n = d.head === 'rex' ? 5 : 4, k = hl * (d.head === 'rex' ? .09 : .07);
+      c.fillStyle = '#fffaf0'; c.strokeStyle = INK; c.lineWidth = lw * .55; c.beginPath();
+      for (let i = 0; i < n; i++) { const x = hl * (.42 + (i / (n - 1)) * .48), y = h * (.22 - (i / (n - 1)) * .15); c.moveTo(x - k * .55, y); c.lineTo(x, y + k); c.lineTo(x + k * .55, y); c.closePath(); }
+      c.fill(); c.stroke();
+    }
+    // eye (big and bright, with a shine) and smile
+    const er = hl * (d.head === 'long' ? .14 : d.head === 'rex' || d.head === 'croc' || d.head === 'beak' ? .09 : .12);
+    c.fillStyle = '#fff'; c.beginPath(); c.arc(hl * .33, -hl * .14, er, 0, Math.PI * 2); c.fill(); c.strokeStyle = INK; c.lineWidth = lw * .7; c.stroke();
+    c.fillStyle = INK; c.beginPath(); c.arc(hl * .33 + er * .3, -hl * .14 + er * .05, er * .58, 0, Math.PI * 2); c.fill();
+    c.fillStyle = '#fff'; c.beginPath(); c.arc(hl * .33 + er * .45, -hl * .14 - er * .2, er * .2, 0, Math.PI * 2); c.fill();
+    if (d.head === 'rex' || d.head === 'allo') { c.beginPath(); c.moveTo(hl * .2, -hl * .28); c.lineTo(hl * .46, -hl * .22); c.strokeStyle = INK; c.lineWidth = lw * .9; c.stroke(); }
+    if (jaw < .1 && !TEETH.has(d.head)) { c.beginPath(); c.moveTo(hl * .5, hl * .12); c.quadraticCurveTo(hl * .75, hl * .2, hl * .95, hl * .05); c.strokeStyle = INK; c.lineWidth = lw * .6; c.stroke(); }
     if (look && look.hat !== 'none') {
       const hat = HATS.find(x => x.id === look.hat);
       if (hat) {
@@ -295,7 +348,12 @@ export function drawDino(c: CanvasRenderingContext2D, d: Dino, o: DrawOpts) {
   part(() => legPath(c, r.hip, d.legs.back, r.swing(0), d.legs.w, d.legs.stand));
   if (d.legs.stand) part(() => legPath(c, r.shoulder, d.legs.front, -r.swing(0), d.legs.w, true));
   else if (d.legs.front > 0) part(() => armPath(c, r, d, r.swing(1)));
-  if (d.id === 'ptero') part(() => wingPath(c, r, d, flap));
+  if (d.id === 'ptero') {
+    part(() => wingPath(c, r, d, flap));
+    const { s, wrist, tip } = wingPoints(r, flap);
+    c.beginPath(); c.moveTo(s.x, s.y); c.lineTo(wrist.x, wrist.y); c.quadraticCurveTo(wrist.x - .25, wrist.y - .3, tip.x, tip.y);
+    c.strokeStyle = INK; c.lineWidth = lw * 1.6; c.stroke();
+  }
   c.restore();
 }
 

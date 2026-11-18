@@ -112,8 +112,8 @@ export const DINOS = [
     skin: '#5e7f3c', belly: '#d3dfa8', size: 340, head: 'rex', body: B(.45, .3), neck: { len: .28, up: 25, w: .22 }, tail: { len: 1.0, w: .2, droop: 0 },
     legs: { back: .62, front: .12, w: .16, stand: false }, moves: { speed: 330, jump: 640, smash: true, shake: true } },
   { id: 'brachio', name: 'Brachiosaurus', line: 'Brachiosaurus! Its long neck reaches the tallest trees!', site: 'cliffs', bones: ['legs', 'arms', 'ribs', 'tail', 'neck', 'skull'],
-    skin: '#8aa0b7', belly: '#dbe5ee', size: 380, head: 'long', body: B(.42, .27), neck: { len: 1.05, up: 68, w: .14 }, tail: { len: .6, w: .15, droop: .1 },
-    legs: { back: .55, front: .7, w: .14, stand: true }, moves: { speed: 240, jump: 420, reach: true, smash: true } },
+    skin: '#8aa0b7', belly: '#dbe5ee', size: 380, head: 'long', body: B(.5, .3), neck: { len: .88, up: 54, w: .2 }, tail: { len: .7, w: .2, droop: .1 },
+    legs: { back: .52, front: .66, w: .17, stand: true }, moves: { speed: 240, jump: 420, reach: true, smash: true } },
 ] as const satisfies readonly Dino[];
 export type DinoId = (typeof DINOS)[number]['id'];
 export type DinoName = (typeof DINOS)[number]['name'];

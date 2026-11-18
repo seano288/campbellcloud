@@ -18,6 +18,7 @@ import { dino, type DinoId } from '../museum/dinos';
 import { hasGear, lookOf } from '../museum/state';
 import { GEAR, LANDS, type GearId } from '../shop/shop';
 import { abilities, AIR, createRun, HIGH, LENGTH, progress, stepRun, type Input, type RunWorld } from './run';
+import { paintBackdrop, strip, type Backdrop } from './backdrop';
 
 const VIEW_H = 760, GROUND = .8;
 const THING_PIC: Record<string, string> = { log: '🪵', crab: '🦀', puddle: '🟫', cactus: '🌵', snowman: '⛄', lava: '🔥', gumdrop: '🍬' };
@@ -40,7 +41,7 @@ export function RunScreen() {
   const canvas = useRef<HTMLCanvasElement>(null), wake = useRef(r.waking ? 0 : WAKE_S), frames = useRef(0);
   const parts = useRef<{ x: number; y: number; vx: number; vy: number; t: number; c: string; s: string }[]>([]);
   const [phase, setPhase] = useState<'wake' | 'run' | 'done'>(r.waking ? 'wake' : 'run'), [eaten, setEaten] = useState(0), [armed, setArmed] = useState(false);
-  const press = useRef<{ at: number; id: number } | null>(null);
+  const press = useRef<{ at: number; id: number } | null>(null), scenery = useRef<Backdrop | null>(null);
 
   useEffect(() => {
     if (r.waking) void voice.say('It is alive!', d.line as Phrase).then(() => { if (voice.active) void voice.say('Hold to walk!', 'Tap to jump!'); });
@@ -85,24 +86,19 @@ export function RunScreen() {
   }, (c, cw, ch) => {
     const w = world.current, sc = ch / VIEW_H, gy = ch * GROUND, camX = w.x - (cw / sc) * .3;
     const X = (x: number) => (x - camX) * sc, Y = (y: number) => gy + y * sc;
-    // sky and hills
-    const sky = c.createLinearGradient(0, 0, 0, gy); sky.addColorStop(0, land.sky[0]); sky.addColorStop(1, land.sky[1]);
-    c.fillStyle = sky; c.fillRect(0, 0, cw, gy);
-    for (const [k, col, amp] of [[.2, '#00000014', 90], [.45, '#00000020', 60]] as const) {
-      c.fillStyle = col; c.beginPath(); c.moveTo(0, gy);
-      for (let x = 0; x <= cw + 20; x += 20) c.lineTo(x, gy - (amp + Math.sin((x / sc + camX * k) / 260) * amp * .6) * sc);
-      c.lineTo(cw, gy); c.fill();
-    }
-    if (land.id === 'night') { c.fillStyle = '#fff'; for (let i = 0; i < 40; i++) c.fillRect((i * 97 + 13) % cw, (i * 53) % (gy * .6), 2, 2); }
-    // the ground, with stripes that move
-    c.fillStyle = land.ground; c.fillRect(0, gy, cw, ch - gy);
-    c.fillStyle = land.ground2; for (let x = -((camX * sc) % (80 * sc)); x < cw; x += 80 * sc) c.fillRect(x, gy + 10 * sc, 40 * sc, 8 * sc);
-    c.strokeStyle = '#1b1410'; c.lineWidth = 4; c.beginPath(); c.moveTo(0, gy); c.lineTo(cw, gy); c.stroke();
+    // the scenery: painted once for this size; the nearer hills slide slowly and the ground with him
+    const key = `${cw}x${ch}:${land.id}`;
+    if (scenery.current?.key !== key) scenery.current = { ...paintBackdrop(land, cw, ch, gy, sc), key };
+    const bd = scenery.current;
+    c.drawImage(bd.sky, 0, 0);
+    strip(c, bd.near, camX * sc * .4, bd.nearTop, cw);
+    strip(c, bd.ground, camX * sc, gy, cw);
     c.textAlign = 'center'; c.textBaseline = 'alphabetic';
     // ponds, trees, the nest
     for (const p of w.ponds) { if (X(p.x + p.w) < 0 || X(p.x) > cw) continue; c.fillStyle = '#4aa3df'; c.fillRect(X(p.x), gy - 2, p.w * sc, 40 * sc); c.fillStyle = '#ffffff66'; c.fillRect(X(p.x) + 10, gy + 6 * sc, p.w * sc * .5, 4 * sc); }
-    c.font = `${300 * sc}px ${EMOJI_FONT}`;
-    for (const t of w.trees) { if (X(t.x) < -200 || X(t.x) > cw + 200) continue; c.fillText(land.id === 'beach' || land.id === 'desert' ? '🌴' : land.id === 'snow' ? '🌲' : land.id === 'candy' ? '🍭' : '🌳', X(t.x), gy + 10 * sc); }
+    // trees stand on the ground line (an emoji's picture sits a little below its baseline, so it's lifted to stand on it)
+    c.font = `${250 * sc}px ${EMOJI_FONT}`;
+    for (const t of w.trees) { if (X(t.x) < -200 || X(t.x) > cw + 200) continue; c.fillText(land.id === 'beach' || land.id === 'desert' ? '🌴' : land.id === 'snow' ? '🌲' : land.id === 'candy' ? '🍭' : '🌳', X(t.x), gy - 22 * sc); }
     c.font = `${120 * sc}px ${EMOJI_FONT}`; c.fillText('🪺', X(LENGTH + 60), gy);
     // things in the way
     for (const b of w.blocks) {

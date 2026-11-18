@@ -248,13 +248,16 @@ async function playRun(name: string) {
     const r = await page.evaluate(() => (window as any).__run?.());
     if (!r || r.phase === 'done') break;
     if (r.phase !== 'run') { await page.waitForTimeout(500); continue; }
-    const c = await centre(walk);
-    await touch('touchStart', c.x, c.y);
+    const wb = await walk.boundingBox({ timeout: 500 }).catch(() => null);
+    if (!wb) continue;
+    await touch('touchStart', wb.x + wb.width / 2, wb.y + wb.height / 2);
     await page.waitForTimeout(700);
     await touch('touchEnd');
     if ((await page.evaluate(() => (window as any).__run?.()))?.phase !== 'run') continue;
-    if (i % 2 && await jump.count()) await tapEl(jump);
-    if (i === 4 && await jump.count()) { await tapEl(page.getByRole('button', { name: 'Roar' })); await shot(`${name}-running`); }
+    // the pad goes away the moment the run ends, so a button may be gone by the time it's read: then there's nothing to tap
+    const tapIfThere = async (l: Locator) => { const b = await l.boundingBox({ timeout: 500 }).catch(() => null); if (b) await tapAt(b.x + b.width / 2, b.y + b.height / 2); return !!b; };
+    if (i % 2) await tapIfThere(jump);
+    if (i === 4 && await tapIfThere(page.getByRole('button', { name: 'Roar' }))) await shot(`${name}-running`);
   }
   const r = await page.evaluate(() => (window as any).__run?.());
   if (r?.phase !== 'done') problems.push(`${name}: the run never reached the nest (${JSON.stringify(r)})`);

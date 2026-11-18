@@ -19,6 +19,7 @@ import { playRoar } from '../sounds';
 import { useVoiceScope } from '../voice';
 import { DECOS, keyOf, TOOLS } from '../shop/shop';
 import { dino, DINOS, FOSSILS, site, type DinoId } from './dinos';
+import { HALL_UNITS, paintHall } from './hall';
 import { bonesOf, complete, foundBones, isOwned, lookOf, openSites } from './state';
 
 /** A dinosaur on its plinth: the skeleton so far, or (alive) with its skin, standing. */
@@ -45,7 +46,7 @@ export function MuseumScreen() {
   const just = useRef(justFound.peek());
   const [shownBones, setShownBones] = useState<Partial<Record<DinoId, number>>>(() => (just.current ? { [just.current.dino]: just.current.had } : {}));
   const [flash, setFlash] = useState<DinoId | null>(null), [hop, setHop] = useState<string | null>(null);
-  const hall = useRef<HTMLCanvasElement>(null), walkers = useRef<Walker[]>([]), t = useRef(0);
+  const hall = useRef<HTMLCanvasElement>(null), walkers = useRef<Walker[]>([]), t = useRef(0), room = useRef<{ key: string; canvas: HTMLCanvasElement } | null>(null);
   const decos = DECOS.filter(x => isOwned(m, keyOf('deco', x.id)));
   const open = openSites(m);
 
@@ -84,29 +85,38 @@ export function MuseumScreen() {
       if (w.x < 80) w.dir = 1;
     }
   }, (c, cw, ch) => {
-    const sc = ch / 260, view = cw / sc, off = Math.max(0, (HALL_W - view) / 2);
-    // walls and floor
-    const g = c.createLinearGradient(0, 0, 0, ch); g.addColorStop(0, isOwned(m, 'deco:skylight') ? '#bfe6ff' : '#e9d9b8'); g.addColorStop(.72, '#d9c49a'); g.addColorStop(.72, '#a87c4f'); g.addColorStop(1, '#8a6238');
-    c.fillStyle = g; c.fillRect(0, 0, cw, ch);
-    c.fillStyle = '#00000014'; for (let x = 0; x < cw; x += 120 * sc) c.fillRect(x, 0, 6 * sc, ch * .72);
+    const sc = ch / HALL_UNITS, view = cw / sc, off = Math.max(0, (HALL_W - view) / 2), sky = isOwned(m, 'deco:skylight');
+    // the room, painted once for this size
+    const key = `${cw}x${ch}:${off}:${sky}`;
+    if (room.current?.key !== key) room.current = { key, canvas: paintHall(cw, ch, off, sky) };
+    c.drawImage(room.current.canvas, 0, 0);
     c.textAlign = 'center'; c.textBaseline = 'alphabetic';
     // decorations along the back wall
     decos.forEach((dc, i) => {
       const x = (60 + (i * 137) % Math.max(200, HALL_W - 120) - off) * sc, y = ch * (i % 3 === 0 ? .4 : .7), lift = hop === dc.id ? Math.abs(Math.sin(t.current * 10)) * 20 * sc : 0;
       c.font = `${(i % 3 === 0 ? 46 : 58) * sc}px ${EMOJI_FONT}`; c.fillText(dc.pic, x, y - lift);
     });
-    if (isOwned(m, 'deco:disco')) { for (let i = 0; i < 6; i++) { c.fillStyle = `hsla(${(t.current * 120 + i * 60) % 360} 90% 60% / .18)`; c.beginPath(); c.arc((cw / 6) * i + Math.sin(t.current + i) * 40, ch * .5, 60 * sc, 0, Math.PI * 2); c.fill(); } }
-    // the walkers, smallest in front
+    // the disco ball throws little spots of coloured light round the room
+    if (isOwned(m, 'deco:disco')) {
+      for (let i = 0; i < 12; i++) {
+        c.fillStyle = `hsla(${(t.current * 90 + i * 30) % 360} 95% 65% / .45)`;
+        const a = t.current * .6 + i * 1.7;
+        c.beginPath(); c.ellipse(cw / 2 + Math.cos(a) * cw * .45, ch * (.35 + .25 * Math.sin(a * 1.3 + i)), 9 * sc, 6 * sc, 0, 0, Math.PI * 2); c.fill();
+      }
+    }
+    // the walkers, smallest in front, each on its own soft shadow
     const order = [...walkers.current].sort((a, b) => dino(b.id).size - dino(a.id).size);
+    c.fillStyle = '#00000026';
+    for (const w of order) { c.beginPath(); c.ellipse((w.x - off) * sc, ch * .93, w.width * sc * .4, 7 * sc, 0, 0, Math.PI * 2); c.fill(); }
     for (const w of order) {
       c.save(); c.translate((w.x - off) * sc, ch * .93); c.scale(w.dir * sc, sc);
       drawDino(c, dino(w.id), { mode: 'skin', px: w.px, look: lookOf(m, w.id), pose: { phase: w.phase, stride: 1, jaw: w.roar > 0 ? 1 : 0 }, t: t.current });
       c.restore();
     }
-    if (!walkers.current.length) { c.font = `900 ${22 * sc}px Nunito, sans-serif`; c.fillStyle = '#6b4523'; c.fillText('🦴 Bring a dinosaur to life to see it here! 🦴', cw / 2, ch * .5); }
+    if (!walkers.current.length) { c.font = `900 ${Math.min(20 * sc, cw / 26)}px Nunito, sans-serif`; c.fillStyle = '#6b4523'; c.fillText('🦴 Bring a dinosaur to life to see it here! 🦴', cw / 2, ch * .45); }
   }, 1.5);
   function tapHall(e: MouseEvent) {
-    const cv = hall.current!, box = cv.getBoundingClientRect(), sc = box.height / 260, view = box.width / sc, off = Math.max(0, (HALL_W - view) / 2);
+    const cv = hall.current!, box = cv.getBoundingClientRect(), sc = box.height / HALL_UNITS, view = box.width / sc, off = Math.max(0, (HALL_W - view) / 2);
     const x = (e.clientX - box.left) / sc + off;
     const w = walkers.current.find(w => Math.abs(w.x - x) < Math.max(50, w.width / 2));
     if (w) { w.roar = .8; playRoar(lookOf(m, w.id).roar, dino(w.id).size); void voice.say(dino(w.id).name as Phrase); return; }
@@ -159,8 +169,10 @@ export function MuseumScreen() {
               <div key={id} id={`plinth-${id}`} class={`plinth ${alive ? 'alive' : ''} ${locked && !have ? 'locked' : ''}`}>
                 <button class="plinth-show" aria-label={d.name} onClick={() => tapPlinth(id)}>
                   <Plinth id={id} have={have} alive={alive} flash={flash === id} />
-                  <span class="plinth-name">{d.name}</span>
-                  <span class="plinth-bones">{alive ? '✨' : locked && !have ? `🔒 ${TOOLS.find(x => x.tier === site(d.site).tier)!.pic}` : `🦴 ${have}/${d.bones.length}`}</span>
+                  <span class="plinth-base">
+                    <span class="plinth-name">{d.name}</span>
+                    {!alive && <span class="plinth-bones">{locked && !have ? `🔒 ${TOOLS.find(x => x.tier === site(d.site).tier)!.pic}` : `🦴 ${have}/${d.bones.length}`}</span>}
+                  </span>
                 </button>
                 {whole && !alive && <button class="big-btn go plinth-go pulse" aria-label={`Bring ${d.name} to life`} onClick={() => bringToLife(id)}>✨ Alive!</button>}
                 {alive && <button class="big-btn go plinth-go" aria-label={`Play as ${d.name}`} onClick={() => play(id)}>▶</button>}

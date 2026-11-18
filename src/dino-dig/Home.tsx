@@ -1,11 +1,12 @@
-// Home: one Play tile, the biggest thing on the screen (a dig site: ▶ on a bone half out of the dirt; every Round mixes the kinds he
-// has opened), the Museum tile with his newest dinosaur (alive, or the skeleton so far), the Dig tile with how many Digs he has, the
+// Home: one Play tile, the biggest thing on the screen (a dig site in the sun, like the icon: the T. rex skull half out of the dirt, a
+// letter tile beside it and the ▶ over them; every Round mixes the kinds he has opened), the Museum tile with his newest dinosaur (alive, or the skeleton so far), the Dig tile with how many Digs he has, the
 // Shop, and his Level in each kind. Tapping a kind says its name, and a locked one says what opens it.
 import { useEffect } from 'preact/hooks';
 import type { ComponentChildren } from 'preact';
 import { sBad } from '../audio/sfx';
 import { LevelDots } from '../ui/bits';
 import { DinoPic } from './art/DinoPic';
+import { skullSvg } from './icon';
 import { player } from './game';
 import { LOCKED_HINTS, MODE_IDS, MODE_NAMES, type ModeId } from './learning';
 import { goDig, screen } from './nav';
@@ -31,7 +32,12 @@ export function Home({ status }: { status: ComponentChildren }) {
       <header class="home-head"><h1>Dino Dig</h1>{status}</header>
       <div class="home dd-home">
         <button class="tile t-play" aria-label="Play" onClick={() => { if (voice.active) startRound(); }}>
-          <span class="dd-dirt" aria-hidden="true"><span class="dd-bone">🦴</span><span class="dd-tile-a">a</span></span>
+          <span class="dd-site" aria-hidden="true">
+            <span class="dd-skull" dangerouslySetInnerHTML={{ __html: skullSvg() }} />
+            <span class="dd-strata" />
+            <span class="dd-tile-a">a</span>
+            <span class="dd-fern">🌿</span>
+          </span>
           <span class="spot"><span class="e">▶</span></span>
         </button>
         <button class="tile t-museum" aria-label="Museum" onClick={() => { if (voice.active) screen.value = 'museum'; }}>

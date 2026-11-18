@@ -17,6 +17,7 @@ import { seeded } from '../../game/rng';
 import { IconButton } from '../../ui/bits';
 import { CurrencyIcon } from '../../ui/currency';
 import { drawLooseBone } from '../art/dino';
+import { DinoCanvas } from '../art/DinoCanvas';
 import { chatter, EMOJI_FONT, layer, useCanvasLoop } from '../art/loop';
 import { DINO_CURRENCY } from '../branding';
 import { player, settleDig, updateMuseum } from '../game';
@@ -361,6 +362,7 @@ export function DigScreen() {
               {next && <button class="dig-sitebtn locked" aria-label={`Locked: ${SITES[sites.length]?.name}`} onClick={() => void voice.say('You need the', next.name as Phrase, 'to dig here!')}>
                 <span class="nm">🔒 {SITES[sites.length]?.name}</span><span class="sub">{next.pic}</span></button>}
             </div>
+            {dig.dino && <DinoCanvas id={dig.dino} have={bonesOf(m, dig.dino)} class="dig-dino" />}
             <p class="dig-what">{d ? `${d.name}` : dig.deeper ? 'Get a better tool to dig deeper!' : 'Just for fun!'}</p>
             <button class="big-btn go dig-go pulse" aria-label="Dig" onClick={start}>{tool.pic} Dig!</button>
           </div>

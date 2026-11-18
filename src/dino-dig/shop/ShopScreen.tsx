@@ -9,6 +9,7 @@ import { confetti } from '../../celebrate/effects';
 import { IconButton } from '../../ui/bits';
 import { CurrencyIcon, CurrencyPile } from '../../ui/currency';
 import { bounds, drawDino } from '../art/dino';
+import { DinoCanvas } from '../art/DinoCanvas';
 import { EMOJI_FONT } from '../art/loop';
 import { DINO_CURRENCY } from '../branding';
 import { buy, player, updateMuseum } from '../game';
@@ -18,9 +19,15 @@ import { playRoar } from '../sounds';
 import { useVoiceScope } from '../voice';
 import { dino, type DinoId } from '../museum/dinos';
 import { goalOf, isOwned, lookOf, toggle, wear, type Look } from '../museum/state';
-import { item, keyOf, TAB_ICONS, TAB_NAMES, TABLES, TABS, type Item, type ItemKey, type RoarId, type Tab } from './shop';
+import { item, keyOf, LANDS, TAB_ICONS, TAB_NAMES, TABLES, TABS, type Item, type ItemKey, type RoarId, type Tab } from './shop';
 
 const LOOK_TABS: readonly Tab[] = ['color', 'marking', 'hat', 'roar'];
+
+/** The picture's backdrop: the sky and ground of his land for the run (or the one he's trying on). */
+function stageLand(id: string) {
+  const l = LANDS.find(x => x.id === id) ?? LANDS[0]!;
+  return { '--sky1': l.sky[0], '--sky2': l.sky[1], '--ground': l.ground, '--ground2': l.ground2 };
+}
 
 function Preview({ id, look, pic }: { id: DinoId | null; look: Look; pic: string | null }) {
   const ref = useRef<HTMLCanvasElement>(null);
@@ -102,7 +109,7 @@ export function ShopScreen() {
         <CurrencyPile kind={DINO_CURRENCY} count={balance} />
       </header>
       <div class="shop-top">
-        <div class="shop-stage">
+        <div class="shop-stage" style={stageLand(trying && trying.startsWith('land:') ? trying.slice(5) : m.land)}>
           <Preview id={pet} look={tryLook} pic={pic} />
           {affordable && <button class="big-btn go shop-buy pulse" aria-label="Buy" onClick={buyIt}>Buy <CurrencyIcon kind={DINO_CURRENCY} size={30} />{item(trying!).price}</button>}
         </div>
@@ -110,7 +117,7 @@ export function ShopScreen() {
           <div class="shop-pets" role="group" aria-label="Your dinosaurs">
             {m.alive.length ? m.alive.map(id => (
               <button key={id} class={`shop-pet ${id === pet ? 'on' : ''}`} aria-label={dino(id).name} onClick={() => { updateMuseum(s => ({ ...s, pet: id })); setTrying(null); void voice.say(dino(id).name as Phrase); }}>
-                {dino(id).name.split(' ')[0]!.slice(0, 6)}
+                <DinoCanvas id={id} look={lookOf(m, id)} />
               </button>
             )) : <p class="shop-none">🦴 Bring a dinosaur to life first!</p>}
           </div>
