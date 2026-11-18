@@ -13,8 +13,8 @@ export const WHO: Record<Who, string> = { person: '🧑', cat: '🐱', dog: '�
 export function viewOf(scene: SceneDef, w: number, h: number): W2S & { worldW: number; worldH: number } {
   const worldW = Math.max(scene.right + 0.4, 13), worldH = scene.top + 0.9;
   const k = Math.min(w / worldW, h / (worldH + 0.5));
-  // on a tall screen (a phone upright) the scene sits a little below the middle, with the street and kerb carried on underneath
-  return { k, ox: (w - worldW * k) / 2, oy: h - 0.5 * k - Math.max(0, (h - (worldH + 0.5) * k) * 0.42), worldW, worldH };
+  // on a tall screen (a phone upright) the scene sits below the middle, with the street, a hedge and the lawn carried on underneath
+  return { k, ox: (w - worldW * k) / 2, oy: h - 0.5 * k - Math.max(0, (h - (worldH + 0.5) * k) * 0.3), worldW, worldH };
 }
 export const toWorld = (m: W2S, sx: number, sy: number) => ({ x: (sx - m.ox) / m.k, y: (m.oy - sy) / m.k });
 
@@ -32,7 +32,8 @@ const BLOCK_COLORS: Record<string, [string, string]> = {
   airport: ['#dfe6ec', '#6b7a88'], lighthouse: ['#f4f4f0', '#c0392b'], hotel: ['#e8c07a', '#8a5a1a'], tower: ['#5b8fc7', '#24476e'], rocket: ['#9aa3ad', '#3a3f47'],
 };
 
-function block(ctx: CanvasRenderingContext2D, look: string, b: Block) {
+/** A block of windows. `lit`: the Town at night, every window warm with light but a few. */
+function block(ctx: CanvasRenderingContext2D, look: string, b: Block, lit = false) {
   const [fill, edge] = BLOCK_COLORS[look] ?? ['#ccc', '#666'], y0 = b.base ?? 0, h = b.floors;
   ctx.fillStyle = fill; ctx.strokeStyle = '#141414'; ctx.lineWidth = 0.07;
   if (look === 'lighthouse') {
@@ -66,7 +67,7 @@ function block(ctx: CanvasRenderingContext2D, look: string, b: Block) {
   for (let f = 0; f < h; f++) for (let c = 0; c < b.cols; c++) {
     const cx = b.x + (c + 0.5) * b.w / b.cols, cy = y0 + f + 0.5;
     if (f === 0 && y0 === 0 && c === Math.floor(b.cols / 2) && look !== 'rocket' && b.cols > 1) { ctx.fillStyle = '#5b3a1a'; ctx.fillRect(cx - 0.28, 0, 0.56, 0.8); ctx.strokeRect(cx - 0.28, 0, 0.56, 0.8); continue; }
-    ctx.fillStyle = look === 'tower' ? '#9fd0ff' : '#2a3a52';
+    ctx.fillStyle = lit ? ((f * 5 + c * 3 + Math.round(b.x)) % 7 === 3 ? '#2a3a52' : '#ffcf7a') : look === 'tower' ? '#9fd0ff' : '#2a3a52';
     ctx.fillRect(cx - 0.3, cy - 0.3, 0.6, 0.6); ctx.strokeStyle = '#141414'; ctx.strokeRect(cx - 0.3, cy - 0.3, 0.6, 0.6);
   }
   if (look === 'barn') { ctx.strokeStyle = '#fff'; ctx.lineWidth = 0.08; ctx.strokeRect(b.x + b.w / 2 - 0.6, 0.02, 1.2, 1.1); ctx.beginPath(); ctx.moveTo(b.x + b.w / 2 - 0.6, 0.02); ctx.lineTo(b.x + b.w / 2 + 0.6, 1.12); ctx.moveTo(b.x + b.w / 2 + 0.6, 0.02); ctx.lineTo(b.x + b.w / 2 - 0.6, 1.12); ctx.stroke(); }
@@ -112,7 +113,16 @@ export function drawBackdrop(ctx: CanvasRenderingContext2D, scene: SceneDef, m: 
   ctx.fillStyle = sky; ctx.fillRect(0, 0, w, h);
   world(ctx, m);
   if (scene.night) { ctx.fillStyle = '#fff'; for (let i = 0; i < 40; i++) ctx.fillRect(((i * 7.31) % 20) - 1, 3 + ((i * 3.7) % (scene.top)), 0.05, 0.05); ctx.fillStyle = '#f4f1e8'; ctx.beginPath(); ctx.arc(2, scene.top - 0.5, 0.45, 0, 7); ctx.fill(); }
-  // the far town
+  // the far town, in two layers: on a tall screen (a phone or iPad upright) the back one rises to fill the sky over the scene; at
+  // night its windows are lit
+  const above = m.oy / m.k, back = Math.max(3.5, above * 0.62), left = -m.ox / m.k - 1, right = left + w / m.k + 2;
+  ctx.fillStyle = scene.night ? '#16224a' : '#c4def2';
+  for (let i = 0, x = left; x < right; i++) {
+    const bw = 1.3 + (i % 4) * 0.35, bh = back * (0.45 + ((i * 0.37) % 0.55));
+    ctx.fillRect(x, 0, bw, bh);
+    if (scene.night) { ctx.fillStyle = '#ffcf7a'; for (let f = 0.6; f < bh - 0.4; f += 0.7) for (let c = 0; c < 2; c++) if ((i * 3 + Math.round(f * 10) + c * 5) % 4 === 0) ctx.fillRect(x + 0.25 + c * 0.55, f, 0.22, 0.28); ctx.fillStyle = '#16224a'; }
+    x += bw + 0.15;
+  }
   ctx.fillStyle = scene.night ? '#1d2a50' : '#a9cde8';
   for (let i = 0; i < 12; i++) { const bw = 1.1 + (i % 3) * 0.4, bh = 1.5 + ((i * 1.7) % 3); ctx.fillRect(-1 + i * 1.7, 0, bw, bh); }
   // the street and the kerb
@@ -122,8 +132,19 @@ export function drawBackdrop(ctx: CanvasRenderingContext2D, scene: SceneDef, m: 
   // the far pavement and the grass below the street, down to the bottom of the screen
   ctx.fillStyle = '#9aa3ad'; ctx.fillRect(-2, -1.1, 40, 0.5);
   ctx.fillStyle = scene.night ? '#24452a' : '#5f8f3a'; ctx.fillRect(-2, -60, 40, 58.9);
+  // a hedge along the far pavement, and the lawn mown in stripes
+  ctx.fillStyle = scene.night ? '#1c3820' : '#4f7f30'; for (let y = -1.9; y > -60; y -= 1.6) ctx.fillRect(-2, y, 40, 0.8);
+  ctx.fillStyle = scene.night ? '#2f5a34' : '#3f7a32'; ctx.beginPath(); for (let x = -2; x < 40; x += 0.7) { ctx.moveTo(x + 0.45, -1.1); ctx.arc(x + 0.35, -1.1, 0.35, 0, Math.PI, true); } ctx.fill();
+  drawSceneBody(ctx, scene, m, false);
+  ctx.setTransform(1, 0, 0, 1, 0, 0);
+}
+
+/** The scene itself (its buildings, props and signs) in world units through `m`: the Call's backdrop draws it once per size, and
+ *  the Town draws it small on each lot, `lit` with warm windows. */
+export function drawSceneBody(ctx: CanvasRenderingContext2D, scene: SceneDef, m: W2S, lit: boolean) {
+  world(ctx, m);
   for (const p of scene.props) if (p.kind === 'water' || p.kind === 'plane' || p.kind === 'rocket') prop(ctx, m, p);
-  for (const b of scene.blocks) block(ctx, scene.look, b);
+  for (const b of scene.blocks) block(ctx, scene.look, b, lit);
   for (const p of scene.props) if (p.kind !== 'water' && p.kind !== 'plane' && p.kind !== 'rocket') prop(ctx, m, p);
   if (scene.look === 'shop') emoji(ctx, m, '🥐', scene.blocks[0]!.x + scene.blocks[0]!.w / 2, 2.55, 0.6);
   if (scene.look === 'hotel') emoji(ctx, m, '🏨', scene.blocks[0]!.x + scene.blocks[0]!.w / 2, scene.blocks[0]!.floors + 0.6, 0.7);
@@ -221,14 +242,15 @@ export function drawDrive(ctx: CanvasRenderingContext2D, look: TruckLook, w: num
   const sky = ctx.createLinearGradient(0, 0, 0, h);
   sky.addColorStop(0, night ? '#0b1433' : '#5fb0ef'); sky.addColorStop(1, night ? '#2b3a6b' : '#cfe9fb');
   ctx.fillStyle = sky; ctx.fillRect(0, 0, w, h);
-  const k = Math.min(w / 13, h / 6.5), m: W2S = { k, ox: 0, oy: h - 0.9 * k }, worldW = w / k;
+  // his truck is the star: about half the width of the screen, whichever way up it's held
+  const k = Math.min(w / 10, h / 6.5), m: W2S = { k, ox: 0, oy: h - 0.9 * k }, worldW = w / k, tall = Math.min(1.9, Math.max(1, (h / k - 1) / 6));
   world(ctx, m);
   const go = t * 7;
   // the town going by, two layers
   for (let layer = 0; layer < 2; layer++) {
     const speed = layer ? 0.5 : 0.25, span = 26;
     for (let i = 0; i < 14; i++) {
-      const x = ((i * 2.1 - go * speed) % span + span) % span - 2, bh = 1.8 + ((i * 1.3 + layer) % 3) * (layer ? 1 : 1.4);
+      const x = ((i * 2.1 - go * speed) % span + span) % span - 2, bh = (1.8 + ((i * 1.3 + layer) % 3) * (layer ? 1 : 1.4)) * tall;
       ctx.fillStyle = layer ? ['#e8c07a', '#8fa6bf', '#c8553d', '#f4d58d'][i % 4]! : night ? '#1d2a50' : '#a9cde8';
       ctx.fillRect(x, 0, 1.6, bh);
       if (layer) { ctx.fillStyle = night ? '#ffe9a8' : '#2a3a52'; for (let f = 0.5; f < bh - 0.4; f += 0.9) ctx.fillRect(x + 0.35, f, 0.35, 0.4), ctx.fillRect(x + 0.95, f, 0.35, 0.4); }
@@ -248,7 +270,7 @@ export function drawDrive(ctx: CanvasRenderingContext2D, look: TruckLook, w: num
     ctx.fillStyle = '#1c1c1e'; for (const dx of [-0.5, 0.5]) { ctx.beginPath(); ctx.arc(dx, 0.18, 0.18, 0, 7); ctx.fill(); }
     ctx.restore();
   }
-  drawTruck(ctx, m, look, Math.min(2.2, -5 + t * 6), { t, flash: siren > 0 || true, bounce: Math.abs(Math.sin(t * 13)) * 0.04 });
+  drawTruck(ctx, m, look, Math.min(worldW * 0.08, -5 + t * 6), { t, flash: siren > 0 || true, bounce: Math.abs(Math.sin(t * 13)) * 0.04 });
   ctx.setTransform(1, 0, 0, 1, 0, 0);
 }
 export { NOZZLE_AT };

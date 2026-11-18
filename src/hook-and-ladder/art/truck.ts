@@ -120,8 +120,9 @@ function lightBar(ctx: CanvasRenderingContext2D, look: TruckLook, x: number, y: 
     ctx.fillStyle = lit ? lightColor(look.lights, t, side) : '#5a2222';
     rr(ctx, x + side * 0.32, y, 0.28, 0.16, 0.06); ctx.fill(); ctx.lineWidth = 0.04; ctx.strokeStyle = OUT; ctx.stroke();
     if (lit && pose.flash) {
-      ctx.save(); ctx.globalAlpha = 0.35; ctx.fillStyle = lightColor(look.lights, t, side);
-      ctx.beginPath(); ctx.arc(x + side * 0.32 + 0.14, y + 0.08, look.lights === 'star' || look.lights === 'sparkle' ? 0.55 : 0.4, 0, 7); ctx.fill(); ctx.restore();
+      // a small flash round the lit lamp (a big one read as a pink blob over the ladder)
+      ctx.save(); ctx.globalAlpha = 0.3; ctx.fillStyle = lightColor(look.lights, t, side);
+      ctx.beginPath(); ctx.arc(x + side * 0.32 + 0.14, y + 0.08, look.lights === 'star' || look.lights === 'sparkle' ? 0.36 : 0.26, 0, 7); ctx.fill(); ctx.restore();
     }
   }
 }

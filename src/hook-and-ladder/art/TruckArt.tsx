@@ -13,7 +13,7 @@ export function TruckArt({ look, label, pose, class: cls = '' }: { look: TruckLo
       c!.width = Math.round(r.width * dpr); c!.height = Math.round(r.height * dpr);
       const k = Math.min(c!.width / 6.2, c!.height / 3.0);
       ctx.clearRect(0, 0, c!.width, c!.height);
-      drawTruck(ctx, { k, ox: (c!.width - 5.4 * k) / 2 - 0.3 * k, oy: c!.height - 0.08 * k }, look, 0, { flash: true, t: 0.1, ...pose });
+      drawTruck(ctx, { k, ox: (c!.width - 5.4 * k) / 2 - 0.3 * k, oy: c!.height - 0.08 * k }, look, 0, { t: 0.1, ...pose }); // a picture: both lamps lit, no flash
     }
     draw();
     const ro = new ResizeObserver(draw);

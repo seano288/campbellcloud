@@ -1,10 +1,12 @@
-// The Town: a lot for each of the sixteen Calls. A Call he has answered stands there as its building with a thank-you sign; the
-// rest are building sites. Tapping a building says its thank-you and makes it his next Call, so he can go back to a favourite. The
+// The Town at night: a lot for each of the sixteen Calls, in streets. A Call he has answered stands there as its building, drawn in
+// code as he saw it at the Call with its windows lit, and a thank-you sign; the rest are building sites behind a wooden fence. Tapping a building says its thank-you and makes it his next Call, so he can go back to a favourite. The
 // things he bought for the Town stand in the park along the bottom.
 import { useEffect } from 'preact/hooks';
 import { sChime, sNope } from '../../audio/sfx';
 import { IconButton } from '../../ui/bits';
 import { CurrencyPile } from '../../ui/currency';
+import { CanvasArt } from '../art/CanvasArt';
+import { drawLot, lotScale } from '../art/town';
 import { LADDER_CURRENCY } from '../branding';
 import { SCENES } from '../call/scenes';
 import { player, updateStation } from '../game';
@@ -38,7 +40,7 @@ export function TownScreen() {
           const got = st.answered.includes(s.id);
           return (
             <button key={s.id} class={`lot ${got ? 'built' : 'site'} ${got && next.id === s.id ? 'next' : ''}`} aria-label={got ? s.name : 'Building site'} onClick={() => tap(s.id)}>
-              <span class="lot-art" aria-hidden="true">{got ? s.badge : '🏗️'}</span>
+              <CanvasArt class="lot-art" k={`${s.id}${got}`} paint={(ctx, w, h) => drawLot(ctx, s, got, 0, w, h, lotScale(h))} />
               {got && <span class="thanks-sign">Thank you!</span>}
               {got && next.id === s.id && <span class="next-flag" aria-hidden="true">🚒</span>}
             </button>

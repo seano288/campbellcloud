@@ -123,8 +123,10 @@ export function StationScreen() {
               })}
             </div>
             <div class="bay-floor">
+              <span class="hl-pole" aria-hidden="true" />
+              {/* the things he bought for his Station stand on its shelves, the one he's trying lit up */}
+              {things.length > 0 && <div class="station-things hl-shelf" aria-hidden="true">{things.map(t => <span key={t.id} class={trial === keyOf('station', t.id) ? 'trying' : ''}>{t.emoji}</span>)}</div>}
               <TruckArt look={look} label="Your fire engine" class={trial && tabOf(trial) !== 'station' && tabOf(trial) !== 'town' ? 'trying' : ''} />
-              <div class="station-things" aria-hidden="true">{things.map(t => <span key={t.id} class={trial === keyOf('station', t.id) ? 'trying' : ''}>{t.emoji}</span>)}</div>
             </div>
           </div>
           <div class="bay-go">

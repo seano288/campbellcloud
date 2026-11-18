@@ -1,10 +1,12 @@
-// Home: one Play tile, the biggest thing on the screen (a fire-alarm call box whose big green button is ▶; every Round mixes the
-// kinds he has opened), the Station tile (his truck in its bay, and his Calls), the Town tile (the buildings he has saved), and a
-// board with his Level in each kind. Tapping a kind says its name, and a locked one says what opens it.
+// Home: one Play tile, the biggest thing on the screen (a fire-alarm call box on a brick wall, whose big green button is ▶; every
+// Round mixes the kinds he has opened), the Station tile (the firehouse, his truck in its lit bay, and his Calls), the Town tile (the
+// last buildings he has saved, drawn in code, lit at night), and a board with his Level in each kind. Tapping a kind says its name, and a locked one says what opens it.
 import { useEffect } from 'preact/hooks';
 import type { ComponentChildren } from 'preact';
 import { sBad } from '../audio/sfx';
 import { LevelDots } from '../ui/bits';
+import { CanvasArt } from './art/CanvasArt';
+import { drawStreet } from './art/town';
 import { TruckArt } from './art/TruckArt';
 import { SCENES } from './call/scenes';
 import { player } from './game';
@@ -28,7 +30,9 @@ export function Home({ status }: { status: ComponentChildren }) {
     sBad();
     if (id in LOCKED_HINTS) void voice.say(LOCKED_HINTS[id as keyof typeof LOCKED_HINTS]);
   }
-  const town = SCENES.filter(s => st.answered.includes(s.id));
+  // the Town tile's street: the last four buildings he saved, and building sites to make up three
+  const built = SCENES.filter(s => st.answered.includes(s.id)).slice(-4).map(scene => ({ scene, built: true }));
+  const street = [...built, ...SCENES.filter(s => !st.answered.includes(s.id)).slice(0, Math.max(0, 3 - built.length)).map(scene => ({ scene, built: false }))];
   return (
     <div class="screen home-screen">
       <header class="home-head"><h1>Hook and Ladder</h1>{status}</header>
@@ -37,13 +41,12 @@ export function Home({ status }: { status: ComponentChildren }) {
           <span class="callbox" aria-hidden="true"><span class="callbox-top">FIRE</span><span class="spot"><span class="e">▶</span></span></span>
         </button>
         <button class="tile t-station" aria-label="Station" onClick={() => { if (voice.active) screen.value = 'station'; }}>
-          <span class="nm">Station</span>
+          <span class="hl-signrow"><span class="nm hl-sign">Station</span>{st.calls > 0 && <span class="call-badge" aria-hidden="true">🚒{st.calls}</span>}</span>
           <span class="bay-door" aria-hidden="true"><TruckArt look={lookOf(st)} /></span>
-          {st.calls > 0 && <span class="call-badge" aria-hidden="true">🚒{st.calls}</span>}
         </button>
         <button class="tile t-town" aria-label="Town" onClick={() => { if (voice.active) screen.value = 'town'; }}>
-          <span class="mini-town" aria-hidden="true">{town.length ? town.slice(-6).map(s => <span key={s.id}>{s.badge}</span>) : <span class="empty">🏗️</span>}</span>
-          <span class="nm">Town</span>
+          <span class="hl-signrow"><span class="nm hl-sign">Town</span></span>
+          <CanvasArt class="hl-street" k={street.map(l => l.scene.id + l.built).join()} paint={(ctx, w, h) => drawStreet(ctx, street, w, h)} />
         </button>
         <div class="tile t-kinds" role="group" aria-label="My Levels">
           <h2 class="kinds-head">My Levels</h2>
