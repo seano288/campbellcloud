@@ -45,11 +45,12 @@ export function Money({ amount, label = 'You have' }: { amount: number; label?: 
 export function PriceTag({ price }: { price: number }) {
   return <span class="ft-tag">${price}</span>;
 }
-/** A lesson's rows of $1 coins, lined up one to one. */
+/** A lesson's rows of $1 coins, lined up one to one. Days of earning (Save Up) are short rows, one a day, laid side by side and wrapped,
+ *  so ten days still fit a phone on its side. */
 export function CoinRows({ rows }: { rows: readonly CoinRow[] }) {
-  const width = Math.max(...rows.map(r => r.coins + (r.empty ?? 0)));
+  const width = Math.max(...rows.map(r => r.coins + (r.empty ?? 0))), days = rows.some(r => r.tone === 'day');
   return (
-    <div class="ft-rows" style={{ '--cols': Math.max(width, 1) } as Record<string, number>}>
+    <div class={cls('ft-rows', days && 'days')} style={{ '--cols': Math.max(width, 1) } as Record<string, number>}>
       {rows.map(r => (
         <div key={r.key} class={cls('ft-row', `t-${r.tone}`)}>
           <span class="ft-row-tag" aria-hidden="true">{r.tone === 'his' ? '👛' : r.tone === 'day' ? '📅' : '🏷️'}</span>

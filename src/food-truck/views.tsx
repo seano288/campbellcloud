@@ -7,7 +7,7 @@ import { sClink } from '../audio/sfx';
 import type { ProblemInstance } from '../learning/round';
 import { Bill, Coin, CoinRows, Money, PriceTag } from './art/Money';
 import { help, lessonFor, n, type Lesson } from './econ/teach';
-import { readSort, sortAnswer, type EnoughProblem, type GoodsProblem, type JobProblem, type NeedProblem, type SaveProblem, type Shelf, type TotalProblem, type Worker } from './econ/problems';
+import { readSort, sortAnswer, type Question, type EnoughProblem, type GoodsProblem, type JobProblem, type NeedProblem, type SaveProblem, type Shelf, type TotalProblem, type Worker } from './econ/problems';
 import { ALL_PRICED, BUY_NEEDS, GOODS, jobOf, MADE, NEEDS, SERVICES, WANTS, workerEmoji, type Look } from './econ/things';
 import type { Asking, Meet } from './mix';
 import { thingName } from './econ/teach';
@@ -15,6 +15,32 @@ import { toolQ, userQ, type Phrase } from './phrases';
 import { useVoice, type Item } from './voice';
 
 type Current = ProblemInstance<Asking, string>;
+
+/** Everything a question says aloud, in one place so the tests can check it: the question and its givens, never the choices. */
+export function questionSpeech(q: Question): Item[] {
+  const $ = (x: number, end: 'dollar.' | 'dollars.' = 'dollars.'): Item[] => [n(x), x === 1 ? 'dollar.' : end];
+  switch (q.form) {
+    case 'pick': {
+      const line: Phrase = q.kind === 'need' ? (q.ask === 'need' ? 'Tap the one you need.' : 'A want is nice to have. Tap the want.') : q.ask === 'good' ? 'A good is a thing you can hold. Tap the good.' : 'A service is a job someone does for you. Tap the service.';
+      return [line];
+    }
+    case 'sort': {
+      const line: Phrase = q.kind === 'need' ? 'Put the needs on the heart shelf and the wants on the star shelf.' : 'Put the goods in the basket and the services by the helping hands.';
+      return [line];
+    }
+    case 'first': return ['You have', ...$(q.have), 'You need', thingName(q.need), 'and you want', thingName(q.want), 'Which do you buy first?'];
+    case 'who': return [q.kind === 'goods' ? (q.ask === 'service' ? 'Who gives a service?' : 'Who makes a good?') : jobOf(q.asked).ask];
+    case 'tool': return [toolQ(jobOf(q.asked))];
+    case 'user': return [userQ(jobOf(q.asked))];
+    case 'role': { const m = MADE.find(x => x.id === q.good)!; return [q.ask === 'made' ? m.ask : m.bought]; }
+    case 'sum': return [q.order.length === 3 ? 'How much for all three?' : 'How much for both?'];
+    case 'which': return ['You have', ...$(q.have), 'Which one can you buy?'];
+    case 'yesno': case 'left': return ['You have', ...$(q.have), priced(q.item).costs as Phrase, ...$(q.price), q.form === 'yesno' ? 'Do you have enough?' : 'How much is left?'];
+    case 'more': return [priced(q.item).costs as Phrase, ...$(q.price), 'You have', ...$(q.have), 'How many more do you need?'];
+    case 'days': return [...(q.start ? ['You have' as const, ...$(q.start)] : []), 'You earn', n(q.perDay), q.perDay === 1 ? 'dollar a day.' : 'dollars a day.', 'How many days until you have', n(q.goal), 'dollars?'];
+    case 'both': return ['You have', ...$(q.have), priced(q.a.id).costs as Phrase, ...$(q.a.price), priced(q.b.id).costs as Phrase, ...$(q.b.price), 'Can you buy both?'];
+  }
+}
 const cls = (...xs: (string | false | null | undefined)[]) => xs.filter(Boolean).join(' ');
 const priced = (id: string) => ALL_PRICED.find(p => p.id === id)!;
 
@@ -115,8 +141,8 @@ const SHELVES: Record<'need' | 'goods', readonly [Shelf, string, string][]> = {
 };
 
 function PickView({ current, q, waiting }: { current: Current; q: Extract<NeedProblem | GoodsProblem, { form: 'pick' }>; waiting: boolean }) {
-  const line: Phrase = q.kind === 'need' ? (q.ask === 'need' ? 'Tap the one you need.' : 'Tap the one you want.') : q.ask === 'good' ? 'A good is a thing you can hold. Tap the good.' : 'A service is a job someone does for you. Tap the service.';
-  const speech = [line], ready = useAsked(current, speech), l = lessonFor(current.signal), c = useChoice(current, ready, waiting);
+  const line = questionSpeech(q)[0] as Phrase;
+  const speech = questionSpeech(q), ready = useAsked(current, speech), l = lessonFor(current.signal), c = useChoice(current, ready, waiting);
   const looks = q.kind === 'goods' ? q.looks : {};
   const shelves = q.kind === 'need' && l.show.value === 'shelves';
   const need = q.things.find(id => NEEDS.some(t => t.id === id))!, want = q.things.find(id => id !== need)!;
@@ -137,8 +163,7 @@ function PickView({ current, q, waiting }: { current: Current; q: Extract<NeedPr
 }
 
 function SortView({ current, q, waiting }: { current: Current; q: Extract<NeedProblem | GoodsProblem, { form: 'sort' }>; waiting: boolean }) {
-  const line: Phrase = q.kind === 'need' ? 'Put the needs on the heart shelf and the wants on the star shelf.' : 'Put the goods in the basket and the services by the helping hands.';
-  const speech = [line], ready = useAsked(current, speech), l = lessonFor(current.signal);
+  const speech = questionSpeech(q), line = speech[0] as Phrase, ready = useAsked(current, speech), l = lessonFor(current.signal);
   const [placed, setPlaced] = useState<[string, Shelf][]>([]), [picked, setPicked] = useState<string | null>(null), [bounced, setBounced] = useState<string | null>(null), [done, setDone] = useState(false);
   const left = q.things.filter(id => !placed.some(([p]) => p === id)), sel = picked && left.includes(picked) ? picked : left[0] ?? null;
   const can = ready && !waiting && !done;
@@ -178,7 +203,7 @@ function SortView({ current, q, waiting }: { current: Current; q: Extract<NeedPr
 }
 
 function FirstView({ current, q, waiting }: { current: Current; q: Extract<NeedProblem, { form: 'first' }>; waiting: boolean }) {
-  const speech: Item[] = ['You have', n(q.have), 'dollars.', 'You need', thingName(q.need), 'and you want', thingName(q.want), 'Which do you buy first?'];
+  const speech = questionSpeech(q);
   const ready = useAsked(current, speech), l = lessonFor(current.signal), c = useChoice(current, ready, waiting);
   const need = BUY_NEEDS.find(t => t.id === q.need)!, want = WANTS.find(t => t.id === q.want)!;
   return (
@@ -199,8 +224,7 @@ function FirstView({ current, q, waiting }: { current: Current; q: Extract<NeedP
 }
 
 function WhoView({ current, q, waiting }: { current: Current; q: Extract<GoodsProblem, { form: 'who' }>; waiting: boolean }) {
-  const line: Phrase = q.ask === 'service' ? 'Who gives a service?' : 'Who makes a good?';
-  const speech = [line], ready = useAsked(current, speech), l = lessonFor(current.signal), c = useChoice(current, ready, waiting);
+  const speech = questionSpeech(q), line = speech[0] as Phrase, ready = useAsked(current, speech), l = lessonFor(current.signal), c = useChoice(current, ready, waiting);
   return (
     <Shell current={current} ready={c.can} kind="goods form-who" text={line} speech={speech}
       stage={<div class="ft-workers n3">{q.workers.map(w => (
@@ -217,8 +241,7 @@ function JobView({ current, q, waiting }: { current: Current; q: JobProblem; wai
   const l = lessonFor(current.signal);
   if (q.form === 'role') return <RoleView current={current} q={q} waiting={waiting} />;
   const j = jobOf(q.asked);
-  const line: Phrase = q.form === 'who' ? j.ask : q.form === 'tool' ? toolQ(j) : userQ(j);
-  const speech = [line], ready = useAsked(current, speech), c = useChoice(current, ready, waiting);
+  const speech = questionSpeech(q), line = speech[0] as Phrase, ready = useAsked(current, speech), c = useChoice(current, ready, waiting);
   const tool = l.show.value === 'tool';
   if (q.form === 'tool') {
     return (
@@ -243,8 +266,8 @@ function JobView({ current, q, waiting }: { current: Current; q: JobProblem; wai
 }
 
 function RoleView({ current, q, waiting }: { current: Current; q: Extract<JobProblem, { form: 'role' }>; waiting: boolean }) {
-  const m = MADE.find(x => x.id === q.good)!, line: Phrase = q.ask === 'made' ? m.ask : m.bought;
-  const speech = [line], ready = useAsked(current, speech), l = lessonFor(current.signal), c = useChoice(current, ready, waiting);
+  const m = MADE.find(x => x.id === q.good)!, speech = questionSpeech(q), line = speech[0] as Phrase;
+  const ready = useAsked(current, speech), l = lessonFor(current.signal), c = useChoice(current, ready, waiting);
   const maker = (
     <button key="maker" class={cls('ft-card', 'role', state('maker', c, l))} aria-label="maker" onClick={() => c.tap('maker')}>
       <WorkerPic w={q.maker} tool={l.show.value === 'tool' && l.focus.value === 'maker'} /><span class="ft-apron" aria-hidden="true">{m.emoji}</span>
@@ -273,8 +296,7 @@ function LessonRows({ l }: { l: Lesson }) {
 }
 
 function TotalView({ current, q, waiting }: { current: Current; q: TotalProblem; waiting: boolean }) {
-  const line: Phrase = q.order.length === 3 ? 'How much for all three?' : 'How much for both?';
-  const speech = [line], ready = useAsked(current, speech), l = lessonFor(current.signal), c = useChoice(current, ready, waiting);
+  const speech = questionSpeech(q), line = speech[0] as Phrase, ready = useAsked(current, speech), l = lessonFor(current.signal), c = useChoice(current, ready, waiting);
   return (
     <Shell current={current} ready={c.can} kind="total" text={line} speech={speech}
       stage={<div class="ft-menu-wrap">
@@ -293,8 +315,7 @@ function ItemPrice({ id, price, lit }: { id: string; price: number; lit?: boolea
 }
 
 function EnoughView({ current, q, waiting }: { current: Current; q: EnoughProblem; waiting: boolean }) {
-  const speech: Item[] = q.form === 'which' ? ['You have', n(q.have), 'dollars.', 'Which one can you buy?']
-    : ['You have', n(q.have), 'dollars.', priced(q.item).costs as Phrase, n(q.price), q.price === 1 ? 'dollar.' : 'dollars.', q.form === 'yesno' ? 'Do you have enough?' : 'How much is left?'];
+  const speech = questionSpeech(q);
   const text = q.form === 'which' ? 'Which one can you buy?' : q.form === 'yesno' ? 'Do you have enough?' : 'How much is left?';
   const ready = useAsked(current, speech), l = lessonFor(current.signal), c = useChoice(current, ready, waiting);
   if (q.form === 'which') {
@@ -314,9 +335,7 @@ function EnoughView({ current, q, waiting }: { current: Current; q: EnoughProble
 }
 
 function SaveView({ current, q, waiting }: { current: Current; q: SaveProblem; waiting: boolean }) {
-  const speech: Item[] = q.form === 'more' ? [priced(q.item).costs as Phrase, n(q.price), 'dollars.', 'You have', n(q.have), q.have === 1 ? 'dollar.' : 'dollars.', 'How many more do you need?']
-    : q.form === 'days' ? [...(q.start ? ['You have', n(q.start), q.start === 1 ? 'dollar.' : 'dollars.'] as Item[] : []), 'You earn', n(q.perDay), q.perDay === 1 ? 'dollar a day.' : 'dollars a day.', 'How many days until you have', n(q.goal), 'dollars?']
-    : ['You have', n(q.have), 'dollars.', priced(q.a.id).costs as Phrase, n(q.a.price), q.a.price === 1 ? 'dollar.' : 'dollars.', priced(q.b.id).costs as Phrase, n(q.b.price), q.b.price === 1 ? 'dollar.' : 'dollars.', 'Can you buy both?'];
+  const speech = questionSpeech(q);
   const text = q.form === 'more' ? 'How many more do you need?' : q.form === 'days' ? `You earn $${q.perDay} a day. How many days until you have $${q.goal}?` : 'Can you buy both?';
   const ready = useAsked(current, speech), l = lessonFor(current.signal), c = useChoice(current, ready, waiting);
   if (q.form === 'days') {

@@ -36,8 +36,8 @@ export const NEEDS = [
   { id: 'socks', emoji: '🧦', name: 'socks', cat: 'clothes' },
   { id: 'shirt', emoji: '👕', name: 'a shirt', cat: 'clothes' },
   { id: 'pants', emoji: '👖', name: 'pants', cat: 'clothes' },
+  // a bandage was here: it isn't medicine, so "You need medicine to get well" would be wrong for it, and some call it first aid
   { id: 'medicine', emoji: '💊', name: 'medicine', cat: 'medicine' },
-  { id: 'bandage', emoji: '🩹', name: 'a bandage', cat: 'medicine' },
 ] as const satisfies readonly Thing<NeedCategory>[];
 
 export const WANTS = [
@@ -115,7 +115,8 @@ export const SERVICES = [
   { id: 'dentist', who: 'doctor', on: '🦷', name: 'a check-up at the dentist' },
   { id: 'carfix', who: 'mechanic', on: '🚗', name: 'fixing a car' },
   { id: 'fire', who: 'firefighter', on: '🔥', name: 'putting out a fire' },
-  { id: 'teach', who: 'teacher', on: '🧮', name: 'teaching a class' },
+  // a child being taught: an abacus would be a thing you can hold, a good inside the service's own picture
+  { id: 'teach', who: 'teacher', on: '🧒', name: 'teaching a class' },
   { id: 'dogwalk', who: 'walker', on: '🐕', name: 'walking a dog' },
   { id: 'windows', who: 'cleaner', on: '🪟', name: 'washing windows' },
 ] as const satisfies readonly Service[];
@@ -157,6 +158,10 @@ export const JOBS = [
 ] as const satisfies readonly Job[];
 export type JobId = (typeof JOBS)[number]['id'];
 export const jobOf = (id: JobId) => JOBS.find(j => j.id === id)!;
+/** Jobs a child could fairly mix up, never asked side by side: a builder and a mechanic both use a hammer and a screwdriver, and an
+ *  astronaut flies (and wears a headset) like a pilot. */
+export const CLASHES: readonly (readonly [JobId, JobId])[] = [['builder', 'mechanic'], ['pilot', 'astronaut']];
+export const clash = (a: JobId, b: JobId) => CLASHES.some(([x, y]) => (x === a && y === b) || (x === b && y === a));
 
 /** Jobs Level 3: a maker and a buyer with the good between them. */
 export const MADE = [
@@ -195,7 +200,7 @@ export const MENU = [
   { id: 'taco', emoji: '🌮', costs: 'The taco costs' }, { id: 'pizza', emoji: '🍕', costs: 'The pizza costs' }, { id: 'burger', emoji: '🍔', costs: 'The burger costs' }, { id: 'hotdog', emoji: '🌭', costs: 'The hot dog costs' },
   { id: 'juice', emoji: '🧃', costs: 'The juice costs' }, { id: 'icecream', emoji: '🍦', costs: 'The ice cream costs' }, { id: 'cookie', emoji: '🍪', costs: 'The cookie costs' }, { id: 'donut', emoji: '🍩', costs: 'The donut costs' },
   { id: 'smoothie', emoji: '🥤', costs: 'The smoothie costs' }, { id: 'salad', emoji: '🥗', costs: 'The salad costs' }, { id: 'sandwich', emoji: '🥪', costs: 'The sandwich costs' }, { id: 'pretzel', emoji: '🥨', costs: 'The pretzel costs' },
-  { id: 'corn', emoji: '🌽', costs: 'The corn costs' }, { id: 'muffin', emoji: '🧁', costs: 'The muffin costs' },
+  { id: 'corn', emoji: '🌽', costs: 'The corn costs' }, { id: 'cupcake', emoji: '🧁', costs: 'The cupcake costs' },
 ] as const satisfies readonly Priced[];
 /** Things he saves up for (Save Up, Enough?). */
 export const TOYS = [

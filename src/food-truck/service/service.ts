@@ -91,6 +91,8 @@ export interface Piece {
   /** Where it came from: a tray, or a grill spot (food being handed over). */
   home: Pt; spot: number | null;
   state: 'held' | 'back' | 'fly';
+  /** The finger holding it. */
+  pointer?: number;
   /** Where it's flying to, and what lands there. */
   to?: Pt; land?: () => void; t: number;
   wrong?: boolean;
@@ -138,12 +140,21 @@ export function createService(setup: Setup, w: number, h: number, rng: Rng = Mat
     nextArrive: 0.4, nextId: 1, fed: 0, metRegular: null, regularDue: !!setup.regular, idle: 0, hinted: null, events: [], rng, bubbles: [],
   };
 }
-/** The screen changed size: everything moves to its new place. */
+/** The screen changed size (the iPad turned): everything moves to its new place. Anything already flying lands where it was going at
+ *  once, so food on its way to a customer still feeds them (sent back home, it would stay "sent" and nobody could serve them). */
 export function resize(s: Service, w: number, h: number) {
   const old = s.layout;
   s.layout = layoutFor(w, h, trayIdsOf(s.kind), s.setup.grills, s.setup.line);
   for (const c of s.customers) c.x = c.x * (w / old.w);
+  const flying = s.pieces.filter(p => p.state === 'fly');
+  s.pieces = s.pieces.filter(p => p.state !== 'fly');
+  for (const p of flying) p.land?.();
   for (const p of s.pieces) { p.state = 'back'; p.x *= w / old.w; p.y *= h / old.h; p.home = p.spot !== null ? s.layout.spots[p.spot]! : trayPt(s, p.kind === 'base' ? 'base' : p.id); }
+  s.hold = null; s.press = null;
+}
+/** His finger is gone without a lift (the tab was left, the app switched): whatever he held goes home and the cooking stops. */
+export function release(s: Service) {
+  for (const p of s.pieces) if (p.state === 'held') { p.state = 'back'; p.t = 0; }
   s.hold = null; s.press = null;
 }
 export const takeEvents = (s: Service) => s.events.splice(0);
@@ -323,7 +334,7 @@ export function pointerDown(s: Service, pointer: number, x: number, y: number) {
   const tray = L.trays.findIndex(t => near(at, t) <= L.r * 1.25);
   if (tray >= 0) {
     const id = L.trays[tray]!.id;
-    s.pieces.push({ kind: id === 'base' ? 'base' : 'topping', id, x, y, home: L.trays[tray]!, spot: null, state: 'held', t: 0 });
+    s.pieces.push({ kind: id === 'base' ? 'base' : 'topping', id, x, y, home: L.trays[tray]!, spot: null, state: 'held', pointer, t: 0 });
     s.press = { pointer, x, y, on: 'tray', index: tray };
     return;
   }
@@ -332,7 +343,7 @@ export function pointerDown(s: Service, pointer: number, x: number, y: number) {
   if (i === null) return;
   const f = s.foods[i] ?? null, need = nextNeed(s, f);
   if (f && !f.sent && need === 'ready') {
-    s.pieces.push({ kind: 'food', id: s.kind.id, x, y, home: L.spots[i]!, spot: i, state: 'held', t: 0 });
+    s.pieces.push({ kind: 'food', id: s.kind.id, x, y, home: L.spots[i]!, spot: i, state: 'held', pointer, t: 0 });
     s.press = { pointer, x, y, on: 'food', index: i };
     return;
   }
@@ -344,17 +355,19 @@ export function pointerDown(s: Service, pointer: number, x: number, y: number) {
 }
 export function pointerMove(s: Service, pointer: number, x: number, y: number) {
   if (s.press?.pointer === pointer && near(s.press, { x, y }) > 12) s.press = null;
-  const held = s.pieces.find(p => p.state === 'held');
-  if (held && (!s.press || s.press.pointer === pointer)) { held.x = x; held.y = y; }
+  // only the finger that picked it up moves it: a second finger on the glass doesn't
+  const held = s.pieces.find(p => p.state === 'held' && p.pointer === pointer);
+  if (held) { held.x = x; held.y = y; }
   // sliding off the spot stops the cooking; it stays as cooked as it got
   if (s.hold?.pointer === pointer && near({ x, y }, s.layout.spots[s.hold.spot]!) > s.layout.sr * 1.6) s.hold = null;
 }
 export function pointerUp(s: Service, pointer: number, x: number, y: number) {
   if (s.hold?.pointer === pointer) { s.hold = null; return; }
-  const held = s.pieces.find(p => p.state === 'held');
+  // a second finger lifting doesn't drop what the first one holds
+  const held = s.pieces.find(p => p.state === 'held' && p.pointer === pointer);
+  if (!held) return;
   const tap = s.press?.pointer === pointer ? s.press : null;
   s.press = null;
-  if (!held) return;
   held.x = x; held.y = y;
   if (held.kind === 'food') { dropFood(s, held, tap !== null); return; }
   if (tap) { tapTray(s, held); return; }

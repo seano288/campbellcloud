@@ -47,7 +47,7 @@ is a tap; a sort is a tap on a picture (the first one left is picked for him) an
 
 | Kind | Opens | Level 1 | Level 2 | Level 3 |
 |---|---|---|---|---|
-| **Need or Want** `need` | start | two pictures, a need and a want: "Tap the one you need." (from Stretch 1, one time in three "Tap the one you want.") | four to sort onto the heart shelf and the star shelf (two and two; from Stretch 2, one to three needs) | "You have $7. You need lunch and you want a kite. Which do you buy first?" Each price is within his money, the two together are not |
+| **Need or Want** `need` | start | two pictures, a need and a want: "Tap the one you need." (from Stretch 1, one time in three "A want is nice to have. Tap the want.") | four to sort onto the heart shelf and the star shelf (two and two; from Stretch 2, one to three needs) | "You have $7. You need lunch and you want a kite. Which do you buy first?" Each price is within his money, the two together are not |
 | **Goods and Services** `goods` | start | "A good is a thing you can hold. Tap the good." (from Stretch 1, sometimes "Tap the service.") | four to sort into the basket and by the helping hands | "Who gives a service?" / "Who makes a good?" from three workers |
 | **Jobs** `job` | Goods and Services L2 | "Who helps when you are sick?" from two workers | "What does the farmer use?" from three tools; from Stretch 1, also "Who uses a hammer?" from three workers | one picture of a market stall, a maker and a shopper: "Who baked the bread?" / "Who bought the bread?" |
 | **Add It Up** `total` | start | the order circled on a menu board of four: two things, total to $10 (to $8 at Stretch 0) | two things, total $11 to $20 | three things, total to $20 |
@@ -101,7 +101,7 @@ Mastery credit. Bolts: one per first-try answer plus one for finishing (`boltsFo
 | bread, an apple, a carrot, rice, milk, eggs, a banana, broccoli | 🍞 🍎 🥕 🍚 🥛 🥚 🍌 🥦 | You need food to live and grow. |
 | a home | 🏠 | You need a home to stay safe and warm. |
 | a coat, shoes, socks, a shirt, pants | 🧥 👟 🧦 👕 👖 | You need clothes to stay warm. |
-| medicine, a bandage | 💊 🩹 | You need medicine to get well. |
+| medicine | 💊 | You need medicine to get well. |
 | *Level 3 only:* lunch, a coat, shoes, medicine, water, bread, socks | 🥪 🧥 👟 💊 💧 🍞 🧦 | (the same, by kind) |
 
 | Want | Picture | Kind |
@@ -111,8 +111,10 @@ Mastery credit. Bolts: one per first-try answer plus one for finishing (`boltsFo
 | candy, a lollipop, chocolate, a cupcake, a cookie, a birthday cake | 🍬 🍭 🍫 🧁 🍪 🎂 | sweet |
 
 Each want's lesson line is "*a kite* is fun, but you can live without it." Left out as arguable: a phone, a car, a bike, a pet, a book,
-glasses, a bed, soap, a toothbrush, juice, a bus ride. Open question 2: is a bandage clearly medicine to him, and is a birthday cake
-clearly a want?
+glasses, a bed, soap, a toothbrush, juice, a bus ride. The bug pass decided the builder's two doubtful rows: **a bandage is out** (it isn't
+medicine, so its lesson line "You need medicine to get well" was wrong for it, and some families call it first aid); **a birthday cake
+stays** a want (it is a sweet, and nobody needs one to live). The bug pass also changed Level 1's want prompt from "Tap the one you want."
+(which a child can fairly answer with what he'd like) to "A want is nice to have. Tap the want.", which only the idea decides.
 
 ### The Goods and Services table (every row)
 
@@ -127,7 +129,7 @@ clearly a want?
 | a check-up at the dentist | a doctor 🧑‍⚕️ and 🦷 (never in the same sort as the doctor's check-up) |
 | fixing a car | a mechanic 🧑‍🔧 and 🚗 |
 | putting out a fire | a firefighter 🧑‍🚒 and 🔥 |
-| teaching a class | a teacher 🧑‍🏫 and 🧮 |
+| teaching a class | a teacher 🧑‍🏫 and a child 🧒 (an abacus, first drawn here, is itself a good you can hold) |
 | walking a dog | a person and 🐕 |
 | washing windows | a person and 🪟 |
 
@@ -149,6 +151,10 @@ lesson the worker moves while it's said "...is a service. Someone does it for yo
 | artist 🧑‍🎨 | Who paints pictures? | a paintbrush 🖌️ | makes a good |
 | builder 👷 | Who builds houses? | a hammer 🔨 | left out (arguable) |
 | astronaut 🧑‍🚀 | Who flies to space? | a telescope 🔭 | left out |
+
+**Never side by side** (bug pass): a builder and a mechanic (each uses a hammer and a screwdriver, so "What does the builder use?" had
+two right answers), and a pilot and an astronaut (both fly, both wear headsets). `CLASHES` in `econ/things.ts`; a test checks every
+Level 1 and Level 2 Jobs question. The astronaut's telescope is kept but is the weakest tool in the table (open question 4).
 
 Level 3's pictures: the baker baked the bread / the cake; the farmer grew the carrots / the apples; the artist painted the picture; the
 shopper (a person with a shopping bag and two coins) bought it. Every worker and shopper is drawn as an emoji with a random gender and
@@ -322,13 +328,39 @@ the single words, the kind names in sentences, the tools and toppings) again wit
   as "play around" (the same clip text the other games use), Hana as Hannah, Mei as May, Zib as Zeb, Grandma Lu as Lou, Captain Fin as
   Finn, "Grill" as "Grille", "gives a service" as "gives the service".
 
+## Bug and sound pass (pass 2, 2026-11-18)
+
+Played in Chromium at the four sizes with a scripted child (every kind × Level × size, each question missed once, missed twice or
+🔎, then answered; 108 runs plus gap runs), a Service mashed, rotated and left alone, reloads mid-Service and mid-Round, and the voice
+logged clip by clip through a Round and a Service. What changed:
+
+- **The Service could be left unable to end.** Turning the iPad (any resize) while food was flying to a customer sent it back home
+  still marked as sent, so no step and no help could ever serve that customer, and the Service stayed at "Closing time!" for good.
+  Anything in flight now lands where it was going when the screen turns. A second finger lifting no longer drops what the first holds,
+  and leaving the tab or app mid-drag lets go for him.
+- **Lesson coins were cut off** on a phone on its side (Add It Up's count-on row, Enough?'s line-up): coins sized to the screen, not to
+  their box. They now size to the rows' own box. **Save Up's days** stacked a row a day (up to eleven) off the bottom of a sideways
+  phone; the days now sit side by side and wrap.
+- **Content:** the bandage is out of Need or Want and the birthday cake stays (see the table); "Tap the one you want." is now "A want is
+  nice to have. Tap the want."; the teacher's service picture is a child, not an abacus; the builder never sits beside the mechanic and
+  the pilot never beside the astronaut in Jobs; the 🧁 on the menu is called a cupcake (it was "muffin"); "1 dollar left." no longer
+  stops between "dollar" and "left"; "loves smoothies!" (heard as "love smoothies") is "loves fruit smoothies!".
+- **Tests added:** the screen turning mid-flight, a second finger, a lost lift (`service.test.ts`); needs named for what their lesson
+  says, service pictures holding no good, no mixed-up jobs side by side, and a question's speech never saying its choices
+  (`problems.test.ts`, through `questionSpeech` in `views.tsx`). The heavy test blocks have a 60-second timeout, as other games' do.
+
+**Clips for the parent to hear** (both speech-to-text models, or the larger, heard a near-homophone, or they are single names):
+"You opened Jobs!", "You opened Save Up!", "Play a Round to earn Bolts!", the names Hana (heard Hannah), Mei (May), Zib, Grandma Lu,
+Captain Fin (Finn), Aisha (Ayesha), Malik (Malek), and "Grill" / "Mega Grill" (heard Grille, the same sound).
+
 ## Open questions for the parent
 
 1. Does a food truck appeal to him at all? (The brief's own question; the kinds would fit a bike shop or a space trading post too.)
 2. Read every row of the Need or Want and Goods and Services tables above. Especially: a bandage as medicine, a birthday cake as a want,
    rice and broccoli as food he'd recognise, and the service pictures (a car or a dog in a service picture).
 3. Is "bill" right (the brief said notes)? Monster Truck Money says bill.
-4. The baker is drawn as the cook emoji 🧑‍🍳 (there's no baker emoji). Clear enough?
+4. The baker is drawn as the cook emoji 🧑‍🍳 (there's no baker emoji). Clear enough? And is a telescope a fair tool for the astronaut
+   (astronauts are not astronomers), or should the astronaut leave the tool questions?
 5. Should tapping a tray (instead of dragging) stay? It's there for slipping fingers; it makes the Service quicker.
 6. Is one Add It Up a Round right, and is a Tune-Up for it (and no other kind) right?
 7. Is 2,491 Bolts of shop right? More can be added without raising payouts; the Taco Truck's four Regulars come quickly, then he needs

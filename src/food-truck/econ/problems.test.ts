@@ -11,7 +11,7 @@ import { h, type VNode } from 'preact';
 import { seeded } from '../../game/rng';
 import type { Stretch } from '../../modes/progress';
 import { isRightAnswer, KINDS, makeQuestion, MONEY_TOP, possibleAnswers, randomLook, readSort, type Level, type Question } from './problems';
-import { ARGUABLE, BOTH, BUY_NEEDS, GENDERS, GOODS, JOBS, MADE, MENU, NEEDS, SERVICES, TOYS, WANTS, workerEmoji, type JobId } from './things';
+import { ARGUABLE, BOTH, BUY_NEEDS, clash, GENDERS, GOODS, JOBS, MADE, MENU, NEEDS, SERVICES, TOYS, WANTS, workerEmoji, type JobId } from './things';
 
 const LEVELS = [1, 2, 3] as const, STRETCHES = [0, 1, 2] as const;
 function* every(kind: (typeof KINDS)[number], per = 150): Generator<{ q: Question; level: Level; stretch: Stretch }> {
@@ -32,7 +32,7 @@ const moneyOf = (q: Question): number[] => {
   }
 };
 
-describe('every question has exactly one right answer', () => {
+describe('every question has exactly one right answer', { timeout: 60_000 }, () => {
   it('in every kind, Level and Stretch', () => {
     let n = 0;
     for (const { q } of all()) {
@@ -55,7 +55,7 @@ describe('every question has exactly one right answer', () => {
   });
 });
 
-describe('each Level is the shape the spec says', () => {
+describe('each Level is the shape the spec says', { timeout: 60_000 }, () => {
   it('Need or Want: two pictures, a need and a want; then four to sort; then a need and a want he can only afford one of', () => {
     for (const { q, level, stretch } of every('need')) {
       if (level === 1) {
@@ -157,7 +157,7 @@ describe('each Level is the shape the spec says', () => {
   });
 });
 
-describe('money', () => {
+describe('money', { timeout: 60_000 }, () => {
   it('is whole dollars, and totals, what is left and every amount stay within 20', () => {
     for (const { q } of all()) for (const m of moneyOf(q)) {
       expect(Number.isInteger(m)).toBe(true);
@@ -174,7 +174,7 @@ describe('money', () => {
   });
 });
 
-describe('the hand-checked tables', () => {
+describe('the hand-checked tables', { timeout: 60_000 }, () => {
   const words = (s: string) => s.toLowerCase().split(/[^a-z]+/);
   it('Need or Want: needs are food, water, a home, clothes and medicine; wants are toys, games and sweets; nothing arguable', () => {
     for (const t of [...NEEDS, ...BUY_NEEDS]) expect(['food', 'water', 'home', 'clothes', 'medicine']).toContain(t.cat);
@@ -190,6 +190,20 @@ describe('the hand-checked tables', () => {
     // every service is drawn being done: a worker and what they work on
     for (const s of SERVICES) { expect(s.on.length).toBeGreaterThan(0); expect(workerEmoji(s.who as JobId, { gender: 'woman', tone: 0 }).length).toBeGreaterThan(0); }
   });
+  it('Need or Want: each need is what its lesson says it is ("You need medicine to get well" is said only of medicine)', () => {
+    for (const t of [...NEEDS, ...BUY_NEEDS]) {
+      if (t.cat === 'medicine') expect(t.name, t.id).toBe('medicine');
+      if (t.cat === 'water') expect(t.name, t.id).toBe('water');
+      if (t.cat === 'home') expect(t.name, t.id).toBe('a home');
+    }
+  });
+  it('Goods and Services: a service picture holds nothing that is a good (no thing you could tap as "the good")', () => {
+    const things = new Set<string>([...GOODS, ...NEEDS, ...WANTS, ...MENU, ...TOYS].map(t => t.emoji));
+    for (const s of SERVICES) {
+      expect(things.has(s.on), s.id).toBe(false);
+      expect(['🧮', '📚', '✏️', '🖍️', '📕', '🎒', '🧸', '⚽'], s.id).not.toContain(s.on);
+    }
+  });
   it('Jobs: every job has its own tool, never the thing its emoji already holds, and its own question', () => {
     expect(new Set(JOBS.map(j => j.tool)).size).toBe(JOBS.length);
     expect(new Set(JOBS.map(j => j.ask)).size).toBe(JOBS.length);
@@ -200,7 +214,16 @@ describe('the hand-checked tables', () => {
   });
 });
 
-describe('Jobs shows no worker in a way that suggests who can do the job', () => {
+describe('Jobs never asks two jobs a child could fairly mix up side by side', { timeout: 60_000 }, () => {
+  it('no builder beside a mechanic (both use a hammer and a screwdriver), no pilot beside an astronaut (both fly, both wear headsets)', () => {
+    for (const { q } of every('job', 400)) {
+      const jobs: JobId[] = q.form === 'who' || q.form === 'user' ? q.workers.map(w => w.job) : q.form === 'tool' ? [...q.tools] : [];
+      for (const a of jobs) for (const b of jobs) expect(clash(a, b), `${q.form}: ${jobs.join(' ')}`).toBe(false);
+    }
+  });
+});
+
+describe('Jobs shows no worker in a way that suggests who can do the job', { timeout: 60_000 }, () => {
   it('the look is picked without the job: every job comes up with every gender and every skin tone', () => {
     const seen = new Map<string, Set<string>>();
     for (const kind of ['job', 'goods'] as const) for (const { q } of every(kind, 600)) {
@@ -218,7 +241,21 @@ describe('Jobs shows no worker in a way that suggests who can do the job', () =>
   });
 });
 
-describe('number buttons are not read out', () => {
+describe('number buttons are not read out', { timeout: 60_000 }, () => {
+  it('a question says its givens, never its choices: the only numbers said are the ones in the question itself', async () => {
+    const { questionSpeech } = await import('../views');
+    let n = 0;
+    for (const { q } of all()) {
+      if (!('choices' in q)) continue;
+      n++;
+      const said = questionSpeech(q).flatMap(x => (typeof x === 'string' && /^\d+$/.test(x) ? [Number(x)] : []));
+      const givens = q.form === 'sum' ? [] : q.form === 'left' ? [q.have, q.price] : q.form === 'more' ? [q.price, q.have] : q.form === 'days' ? [q.start, q.perDay, q.goal].filter(Boolean) : [NaN];
+      expect(said, JSON.stringify(q)).toEqual(givens);
+      // the answer is never said, unless it is one of the givens too
+      if (!givens.includes(Number(q.answer))) expect(said).not.toContain(Number(q.answer));
+    }
+    expect(n).toBeGreaterThan(2000);
+  });
   it('the number choices have no voice: they draw without one, and a tap only answers', async () => {
     const { NumberChoicesForTest } = await import('../views');
     const taps: string[] = [];

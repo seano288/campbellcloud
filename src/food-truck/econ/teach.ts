@@ -207,7 +207,7 @@ async function teachEnough(q: EnoughProblem, answer: string, v: VoiceScope, l: L
       // the coins left over are what's left: they light up and are counted
       l.rows.value = l.rows.value!.map(r => (r.key === 'his' ? { ...r, lit: q.price, litFrom: q.price } : r));
       await countRow(v, l, 'his', q.price + 1, q.have, i => i - q.price);
-      if (q.form === 'left') await v.say('That makes', n(q.have - q.price), q.have - q.price === 1 ? 'dollar.' : 'dollars', 'left.');
+      if (q.form === 'left') await v.say('That makes', n(q.have - q.price), q.have - q.price === 1 ? 'dollar' : 'dollars', 'left.');
     }
   }
   l.hint.value = q.answer;

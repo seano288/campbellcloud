@@ -153,10 +153,16 @@ button.ft-card:active{transform:translateY(4px);box-shadow:0 2px 0 #000}
 .choice.item-choice .ft-item .ft-pic{font-size:max(36px,calc(56px*var(--u)))}
 .ft-pair.items{align-items:center;gap:calc(8px*var(--u))}
 .plus{font:900 max(30px,calc(44px*var(--u))) Nunito,sans-serif}
-.ft-rows{display:flex;flex-direction:column;gap:6px;padding:8px;background:#fff8e1;border:3px solid #000;border-radius:14px;max-width:100%;overflow:hidden}
+/* the coins size to the rows' own box, not the screen, so every coin shows wherever the rows sit (beside the menu on a phone on its
+   side, under his money): as wide as the coins need, never wider than the stage, and each coin shrinks to fit (one to one, row to row) */
+.ft-rows{display:flex;flex-direction:column;gap:6px;padding:8px;background:#fff8e1;border:3px solid #000;border-radius:14px;overflow:hidden;
+  box-sizing:border-box;container-type:inline-size;width:min(100%,calc(var(--cols) * 33px + 52px));max-width:100%;flex:none}
 .ft-row{display:flex;align-items:center;gap:3px;min-height:30px}
-.ft-row .ft-coin{width:min(30px,calc((min(92vw,640px) - 60px) / var(--cols)));height:auto;aspect-ratio:1}
+.ft-row .ft-coin{width:min(30px,calc((100cqw - 30px) / var(--cols) - 3px));height:auto;aspect-ratio:1}
 .ft-row-tag{font-size:22px;width:30px;flex:none}
+.ft-rows.days{flex-direction:row;flex-wrap:wrap;align-content:flex-start;column-gap:14px;width:min(100%,560px)}
+.ft-rows.days .ft-row{min-height:0}
+.ft-rows.days .ft-row .ft-coin{width:min(26px,calc((100cqw - 30px) / 6 - 3px))}
 .ft-row.t-price{border-top:2px dashed #0003;padding-top:4px}
 .ft-earn{display:flex;align-items:center;gap:12px;font:900 max(26px,calc(38px*var(--u))) Nunito,sans-serif;background:#fff;border:4px solid #000;border-radius:16px;padding:6px 16px;box-shadow:0 5px 0 #000}
 .ft-earn .day{font-size:1.2em}.ft-earn .goal{color:var(--ketchup)}
@@ -308,7 +314,7 @@ button.ft-card:active{transform:translateY(4px);box-shadow:0 2px 0 #000}
   .ft-shop{gap:6px}.ft-item .ft-pic{font-size:40px}.ft-tag{font-size:20px}
   .ft-menu{padding:4px 10px 6px;min-width:0}.menu-line{font-size:18px;padding:0 6px}.menu-head{font-size:13px}
   .ft-menu-wrap{flex-direction:row;align-items:center;justify-content:center}
-  .ft-menu-wrap .ft-rows{flex:1;min-width:0}
+  .ft-menu-wrap .ft-rows{flex:1 1 0;min-width:0}
   .ft-shop{flex-wrap:wrap;flex-direction:row;align-content:center}
   .ft-rows{padding:4px}.ft-row{min-height:22px}
   .ft-stall .good{font-size:36px}

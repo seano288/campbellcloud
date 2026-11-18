@@ -70,6 +70,9 @@ async function fits(name: string) {
       }
       if (r.right > innerWidth + 1 || r.bottom > innerHeight + 1 || r.left < -1 || r.top < -1) out.push(`off screen: ${el.getAttribute('aria-label') ?? el.className}`);
       if (r.height < 43 || r.width < 43) out.push(`small ${Math.round(r.width)}x${Math.round(r.height)}: ${el.getAttribute('aria-label') ?? el.className}`);
+      // in the Service, where he drags, the bottom 56px belong to iPadOS (a swipe up there opens the Dock): no control reaches into
+      // them (the build guide's floor for the action reward; the canvas pieces are checked in service.test.ts)
+      if (el.closest('.service-screen') && r.bottom > innerHeight - 56 + 1) out.push(`in the bottom band (${Math.round(innerHeight - r.bottom)}px up): ${el.getAttribute('aria-label') ?? el.className}`);
     }
     return [...new Set(out)];
   });

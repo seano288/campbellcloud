@@ -14,7 +14,7 @@
 // Number choices come from real mistakes and near misses; where the right one sits among the sorted choices is picked first.
 import { int, pick, shuffle, type Rng } from '../../game/rng';
 import type { Stretch } from '../../modes/progress';
-import { BUY_NEEDS, GENDERS, GOODS, JOBS, MADE, MENU, NEEDS, SERVICES, TOYS, WANTS, type JobId, type Look, type MadeId, type Tone } from './things';
+import { BUY_NEEDS, clash, GENDERS, GOODS, JOBS, MADE, MENU, NEEDS, SERVICES, TOYS, WANTS, type JobId, type Look, type MadeId, type Tone } from './things';
 
 export type Level = 1 | 2 | 3;
 export const KINDS = ['need', 'goods', 'job', 'total', 'enough', 'save'] as const;
@@ -112,14 +112,20 @@ export type JobProblem =
   | { readonly kind: 'job'; readonly form: 'user'; readonly asked: JobId; readonly workers: readonly Worker[]; readonly answer: string }
   | { readonly kind: 'job'; readonly form: 'role'; readonly ask: 'made' | 'bought'; readonly good: MadeId; readonly maker: Worker; readonly buyer: Look; readonly makerLeft: boolean; readonly answer: 'maker' | 'buyer' };
 
+/** `n` jobs, none of them one a child could mix up with another (CLASHES). */
+function apart(rng: Rng, n: number): JobId[] {
+  const out: JobId[] = [];
+  for (const id of shuffle(rng, JOBS.map(j => j.id))) if (out.length < n && !out.some(o => clash(o, id))) out.push(id);
+  return out;
+}
+
 export function makeJob(level: Level, stretch: Stretch, rng: Rng): JobProblem {
-  const ids = JOBS.map(j => j.id);
   if (level === 1) {
-    const [a, b] = shuffle(rng, ids);
+    const [a, b] = apart(rng, 2);
     return { kind: 'job', form: 'who', asked: a!, workers: shuffle(rng, [a!, b!]).map(j => worker(rng, j)), answer: a! };
   }
   if (level === 2) {
-    const three = shuffle(rng, ids).slice(0, 3), asked = three[0]!;
+    const three = apart(rng, 3), asked = three[0]!;
     // tools are named by whose they are: each job has its own, so exactly one fits
     if (stretch > 0 && rng() < .5) return { kind: 'job', form: 'user', asked, workers: shuffle(rng, three).map(j => worker(rng, j)), answer: asked };
     return { kind: 'job', form: 'tool', asked, worker: worker(rng, asked), tools: shuffle(rng, three), answer: asked };

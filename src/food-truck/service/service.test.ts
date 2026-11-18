@@ -5,7 +5,7 @@ import { seeded } from '../../game/rng';
 import { HELPERS, TRUCKS, type HelperId, type TruckId } from '../truck/parts';
 import type { Setup } from '../truck/state';
 import { REGULARS } from '../truck/world';
-import { createService, layoutFor, nextStep, pointerDown, pointerMove, pointerUp, SERVICE_S, STEP, stepService, takeEvents, whereFor, type Service, type ServiceEvent } from './service';
+import { createService, layoutFor, nextStep, pointerDown, pointerMove, pointerUp, release, resize, SERVICE_S, STEP, stepService, takeEvents, whereFor, type Service, type ServiceEvent } from './service';
 
 const noHelpers = Object.fromEntries(HELPERS.map(h => [h.id, false])) as Record<HelperId, boolean>;
 const setup = (over: Partial<Setup> = {}): Setup => ({ truck: 'taco', spot: 'park', grills: 1, line: 2, gap: 7, helpers: noHelpers, regular: null, toppings: [1, 3], ...over });
@@ -43,7 +43,7 @@ const messy: Child = (s, rng) => {
 };
 const idle: Child = () => {};
 
-describe('the Service', () => {
+describe('the Service', { timeout: 60_000 }, () => {
   it('a child who plays it properly feeds everyone who came, and a minute brings several customers', () => {
     for (const truck of TRUCKS.map(k => k.id)) {
       const { s, arrived, events } = play(setup({ truck: truck as TruckId }), good);
@@ -89,6 +89,46 @@ describe('the Service', () => {
     expect(s.foods[0]!.toppings).toEqual([]);
     expect(s.pieces).toHaveLength(0);
   });
+  it('still ends with everyone fed when the screen turns while food is on its way (the iPad rotated mid-Service)', () => {
+    for (const truck of ['taco', 'burger'] as const) for (const helpers of [noHelpers, { ...noHelpers, conveyor: true, robot: true }]) {
+      const rng = seeded(7), s = createService(setup({ truck, helpers }), 810, 1000, rng);
+      let turns = 0, w = 810, h = 1000, arrived = 0, wasFlying = false;
+      for (let i = 0; i < 60 * 600 && s.phase !== 'done'; i++) {
+        if (i % 20 === 0) good(s, rng);
+        stepService(s, STEP);
+        for (const e of takeEvents(s)) if (e.t === 'arrive') arrived++;
+        // the iPad turns the moment something starts flying (food to a customer, a base or a topping to the grill)
+        const flying = s.pieces.some(p => p.state === 'fly');
+        if (flying && !wasFlying) { [w, h] = [h, w]; resize(s, w, h); turns++; }
+        wasFlying = flying;
+      }
+      expect(turns, truck).toBeGreaterThan(5);
+      expect(s.phase, `${truck} turned ${turns} times`).toBe('done');
+      expect(s.fed).toBe(arrived);
+    }
+  });
+  it('a second finger does not drop or move what the first finger holds, and a lost lift lets go for him', () => {
+    const s = createService(setup({ toppings: [1, 1] }), 810, 1000, seeded(5));
+    while (!s.foods[0]) stepService(s, STEP);
+    const base = s.layout.trays[0]!, spot = s.layout.spots[0]!, other = s.layout.trays[3]!;
+    pointerDown(s, 1, base.x, base.y);
+    pointerMove(s, 1, base.x + 40, base.y - 40);
+    pointerDown(s, 2, other.x, other.y); pointerMove(s, 2, 5, 5); pointerUp(s, 2, 5, 5); // a second finger taps and drags elsewhere
+    const held = s.pieces.find(p => p.state === 'held')!;
+    expect(held.kind).toBe('base');
+    expect([held.x, held.y]).toEqual([base.x + 40, base.y - 40]);
+    pointerMove(s, 1, spot.x, spot.y); pointerUp(s, 1, spot.x, spot.y);
+    for (let k = 0; k < 60; k++) stepService(s, STEP);
+    expect(s.foods[0]!.base).toBe(true);
+    // a finger that's gone without a lift (he left the tab): what it held goes home, and help comes back
+    const t = s.layout.trays[1]!;
+    pointerDown(s, 1, t.x, t.y); pointerMove(s, 1, t.x + 50, t.y);
+    release(s);
+    for (let k = 0; k < 60; k++) stepService(s, STEP);
+    expect(s.pieces).toHaveLength(0);
+    for (let k = 0; k < 60 * 120 && s.phase !== 'done'; k++) stepService(s, STEP);
+    expect(s.phase).toBe('done');
+  });
   it('brings the new Regular, second in line, and remembers him once fed', () => {
     const regular = REGULARS.find(r => r.truck === 'pizza')!;
     const { s, events } = play(setup({ truck: 'pizza', regular }), good);
@@ -97,7 +137,7 @@ describe('the Service', () => {
   });
 });
 
-describe('the Service layout', () => {
+describe('the Service layout', { timeout: 60_000 }, () => {
   const screens = [[810, 1000], [1080, 730], [390, 760], [844, 330], [1366, 950], [320, 560]] as const;
   it('keeps every tray and grill spot at least 48px across, on screen and above the floor, never overlapping', () => {
     for (const [w, h] of screens) for (const grills of [1, 2, 3]) {

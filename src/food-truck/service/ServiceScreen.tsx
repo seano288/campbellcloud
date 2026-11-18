@@ -21,7 +21,7 @@ import { regularOf, SPOTS, spotOf, type SpotId } from '../truck/world';
 import { updateTruck } from '../game';
 import { useVoiceScope, type VoiceScope } from '../voice';
 import { drawService } from './render';
-import { createService, nextStep, pointerDown, pointerMove, pointerUp, resize, SERVICE_S, STEP, stepService, takeEvents, whereFor, type Service } from './service';
+import { createService, nextStep, pointerDown, pointerMove, pointerUp, release, resize, SERVICE_S, STEP, stepService, takeEvents, whereFor, type Service } from './service';
 
 type Phase = 'card' | 'live' | 'end';
 const THANKS = ['Yum!', 'Thank you!', 'Delicious!'] as const;
@@ -73,6 +73,10 @@ export function ServiceScreen() {
     if (import.meta.env.DEV) Object.assign(window, { __service: s, __next: () => { const step = nextStep(s); return step && { step, ...whereFor(s, step) }; } });
     const onResize = () => { const nb = fit(); resize(s, nb.width, nb.height); };
     addEventListener('resize', onResize);
+    // leaving the tab or the app mid-drag may never send a lift: let go for him, so nothing stays stuck to a finger that's gone
+    const letGo = () => release(s);
+    addEventListener('blur', letGo);
+    document.addEventListener('visibilitychange', letGo);
     // Safari's own touch handling stays out of it: no scroll, zoom or callout while he drags
     const stop = new AbortController();
     const hold = (e: TouchEvent) => { if ((e.target as Element).closest('canvas')) e.preventDefault(); };
@@ -113,7 +117,7 @@ export function ServiceScreen() {
       }
     };
     raf = requestAnimationFrame(loop);
-    return () => { cancelAnimationFrame(raf); removeEventListener('resize', onResize); stop.abort(); };
+    return () => { cancelAnimationFrame(raf); removeEventListener('resize', onResize); removeEventListener('blur', letGo); document.removeEventListener('visibilitychange', letGo); stop.abort(); };
   }, [phase]);
 
   // the end card, said aloud

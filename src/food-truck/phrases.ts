@@ -16,12 +16,12 @@ const GAME = ['Food Truck!', "Let's go!", 'Round done!', 'Level up!', 'You kept 
 export const CHEERS = ['Great job!', 'You got it!', 'Awesome!', 'Way to go!', 'Super shopper!', 'Nice thinking!'] as const;
 
 // ---------- money ----------
-const MONEY = ['dollar.', 'dollars.', 'dollars', 'You have', 'That makes', 'in all.', 'left.', 'Each coin is one dollar.'] as const;
+const MONEY = ['dollar.', 'dollar', 'dollars.', 'dollars', 'You have', 'That makes', 'in all.', 'left.', 'Each coin is one dollar.'] as const;
 
 // ---------- the questions ----------
 const QUESTIONS = [
   // Need or Want
-  'Tap the one you need.', 'Tap the one you want.', 'Put the needs on the heart shelf and the wants on the star shelf.', 'You need', 'and you want', 'Which do you buy first?',
+  'Tap the one you need.', 'A want is nice to have. Tap the want.', 'Put the needs on the heart shelf and the wants on the star shelf.', 'You need', 'and you want', 'Which do you buy first?',
   // Goods and Services
   'A good is a thing you can hold. Tap the good.', 'A service is a job someone does for you. Tap the service.',
   'Put the goods in the basket and the services by the helping hands.', 'Who gives a service?', 'Who makes a good?',
@@ -80,7 +80,7 @@ const SERVICE = [
 type Truck = (typeof TRUCKS)[number];
 type DragLine = `Drag the ${Truck['baseName']} over!`;
 export const dragLine = (k: Truck) => `Drag the ${k.baseName} over!` as DragLine;
-const LOVES = { taco: 'loves tacos!', pizza: 'loves pizza!', burger: 'loves burgers!', icecream: 'loves ice cream!', hotdog: 'loves hot dogs!', noodles: 'loves noodles!', donut: 'loves donuts!', pancake: 'loves pancakes!', smoothie: 'loves smoothies!', popcorn: 'loves popcorn!' } as const;
+const LOVES = { taco: 'loves tacos!', pizza: 'loves pizza!', burger: 'loves burgers!', icecream: 'loves ice cream!', hotdog: 'loves hot dogs!', noodles: 'loves noodles!', donut: 'loves donuts!', pancake: 'loves pancakes!', smoothie: 'loves fruit smoothies!', popcorn: 'loves popcorn!' } as const;
 export const lovesLine = (k: Truck['id']) => LOVES[k];
 
 type EarnedPhrase = EarnedLine<typeof TRUCK_CURRENCY>;
