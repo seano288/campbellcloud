@@ -47,7 +47,9 @@ const isLit = (key: string) => speaking.value === key;
 function Shell({ current, kind, text, speech, children, ready }: { current: Current; kind: string; text: ComponentChildren; speech: readonly Item[]; children: ComponentChildren; ready: boolean }) {
   const voice = useVoice();
   return (
-    <div class={cls('game', 'hl', kind)} data-ready={ready ? 'yes' : 'no'}>
+    // the kind and form go on as q-join, q-pic: bare, they matched rules meant for other things (.pic, .sentence, and the shared .fact,
+    // which turned the "Which animal can fly?" card yellow and boxed)
+    <div class={cls('game', 'hl', ...kind.split(' ').map(k => `q-${k}`))} data-ready={ready ? 'yes' : 'no'}>
       <div class="ask">
         <button class="say-btn" aria-label="Say it again" onClick={() => void voice.say(...speech)}>🔊</button>
         <h2>{text}</h2>
@@ -71,6 +73,13 @@ function useSubmit(current: Current, waiting: boolean, ready: boolean) {
     return verdict;
   }
   return { can, right, wrong, submit };
+}
+
+/** State whose newest value a tap can read even before the view has redrawn: two quick taps (or a tap on ✓ straight after a pick)
+ *  on a busy iPad can both land on the same render, and building the next value from that render loses the first tap. */
+function useLive<T>(initial: T): [T, () => T, (next: T) => void] {
+  const [value, setValue] = useState(initial), live = useRef(value);
+  return [value, () => live.current, next => { live.current = next; setValue(next); }];
 }
 
 /** A row of choices: words on tiles, or pictures with their words under them. */
@@ -148,12 +157,15 @@ function JoinView({ current, q, waiting }: { current: Current; q: JoinQ; waiting
 
 // ---------- Opposites ----------
 
+/** Level 3: "The towel is not wet. It is... Tap the opposite of wet." Without the last part soft, dirty or long would be true too. */
+export const oppSentenceAsk = (say: Phrase, word: string, choices: readonly string[]): Item[] => [say, 'It is...', 'Tap the opposite of', w(word), ...readOut(choices)];
+
 function OppView({ current, q, waiting }: { current: Current; q: OppQ; waiting: boolean }) {
   const o = opposite(q.word), lesson = lessonFor(current.signal), show = lesson.show.value, glow = lesson.glow.value;
   const say = 'say' in o ? o.say : undefined;
   const speech: Item[] = q.form === 'pic' ? ['Tap the opposite of', w(q.word), ...readOut(q.choices)]
     : q.form === 'say' ? ['What is the opposite of', w(q.word), ...readOut(q.choices)]
-    : [say as Phrase, 'It is...', ...readOut(q.choices)];
+    : oppSentenceAsk(say as Phrase, q.word, q.choices);
   const ready = useAsked(current, speech), { right, wrong, submit } = useSubmit(current, waiting, ready);
   const pair = show?.kind === 'pair' || !!right;
   return (
@@ -178,12 +190,12 @@ function SortView({ current, q, waiting }: { current: Current; q: SortQ; waiting
     : q.form === 'name' ? [w(q.items[0]!), w(q.items[1]!), 'and', w(q.items[2]!), 'are all...', ...q.choices.map(g => ({ parts: [w(groupName(g))], light: g }))]
     : [FACTS[q.fact]!.ask as Phrase, ...readOut(q.choices)];
   const ready = useAsked(current, speech), { can, right, wrong, submit } = useSubmit(current, waiting, ready);
-  const [picked, setPicked] = useState<string[]>([]);
+  const [picked, livePicked, setPicked] = useLive<string[]>([]);
   const box = show?.kind === 'box' ? show.items : null;
   useEffect(() => { if (waiting) setPicked([]); }, [waiting]);
 
   if (q.form === 'all') {
-    const toggle = (x: string) => { if (!can) return; sClink(); setPicked(p => (p.includes(x) ? p.filter(y => y !== x) : [...p, x])); };
+    const toggle = (x: string) => { if (!can) return; sClink(); const p = livePicked(); setPicked(p.includes(x) ? p.filter(y => y !== x) : [...p, x]); };
     return (
       <Shell current={current} kind="sort all" text={<>Tap all the {groupName(q.group)}!</>} speech={speech} ready={ready && !waiting}>
         {box && <div class="sort-box" aria-label={groupName(q.group)}>{box.map(x => <span key={x} class="boxed"><Pic word={x} /></span>)}</div>}
@@ -195,7 +207,7 @@ function SortView({ current, q, waiting }: { current: Current; q: SortQ; waiting
             </button>
           ))}
         </div>
-        <button class={cls('big-btn', 'go', 'check-btn', picked.length > 0 && can && 'pulse')} aria-label="Check" disabled={!picked.length} onPointerUp={() => { if (picked.length) submit([...picked].sort().join(SEP)); }} onClick={e => e.preventDefault()}>✓</button>
+        <button class={cls('big-btn', 'go', 'check-btn', picked.length > 0 && can && 'pulse')} aria-label="Check" disabled={!picked.length} onPointerUp={() => { const p = livePicked(); if (p.length) submit([...p].sort().join(SEP)); }} onClick={e => e.preventDefault()}>✓</button>
       </Shell>
     );
   }
@@ -278,7 +290,7 @@ function StrongView({ current, q, waiting }: { current: Current; q: StrongQ; wai
     : q.form === 'most' ? [mostAsk(scale!.most), ...readOut(q.words.slice(0, 2)), 'or', ...readOut(q.words.slice(2))]
     : [scale!.order as Phrase, ...readOut(q.words)];
   const ready = useAsked(current, speech), { can, right, wrong, submit } = useSubmit(current, waiting, ready);
-  const [order, setOrder] = useState<string[]>([]);
+  const [order, liveOrder, setOrder] = useLive<string[]>([]);
   useEffect(() => { if (waiting) setOrder([]); }, [waiting]);
   const barShow = show?.kind === 'bar' ? show : null;
   const barEl = barShow && (
@@ -289,9 +301,10 @@ function StrongView({ current, q, waiting }: { current: Current; q: StrongQ; wai
   );
   if (q.form === 'order') {
     const place = (x: string) => {
-      if (!can || order.includes(x)) return;
+      const now = liveOrder();
+      if (!can || now.includes(x) || now.length >= q.words.length) return;
       sClink();
-      const next = [...order, x];
+      const next = [...now, x];
       setOrder(next);
       if (next.length === q.words.length) submit(next.join(SEP));
     };
@@ -307,7 +320,10 @@ function StrongView({ current, q, waiting }: { current: Current; q: StrongQ; wai
               onPointerUp={() => place(x)} onClick={e => e.preventDefault()}><Word text={x} /></button>
           ))}
         </div>
-        {order.length > 0 && !right && can && <button class="undo-btn" aria-label="Start again" onClick={() => setOrder([])}>↺</button>}
+        {/* always laid out, only shown once there's something to undo: appearing under his finger, it moved the words, and the click
+            from the very tap that placed the first word landed on it and took the word away again */}
+        <button class={cls('undo-btn', !(order.length > 0 && !right && can) && 'off')} aria-label="Start again" disabled={!(order.length > 0 && !right && can)}
+          onPointerUp={() => { if (liveOrder().length && can) setOrder([]); }} onClick={e => e.preventDefault()}>↺</button>
       </Shell>
     );
   }

@@ -5,7 +5,8 @@
 // - Two Words, One Word (join). L1: two words are shown and said; he taps the picture of the word they make. L2: a compound is shown;
 //   he taps where it splits. L3: "rain and what makes a real word?": bow, or two silly halves.
 // - Opposites (opposite). L1: "Tap the opposite of hot", two pictures. L2: three words, no pictures. L3: "The soup is not hot. It
-//   is...", three words that each could describe soup.
+//   is... Tap the opposite of hot.", three describing words. It must say "opposite": "The towel is not wet. It is..." alone would let
+//   soft or dirty be true too.
 // - Sort It (sort). L1: "Tap all the animals!" among six pictures, then ✓. L2: "Which one does not belong?" among four. L3: "A dog,
 //   a cat and a cow are all...", three groups; or a question about one thing in a group ("Which animal can fly?").
 // - Endings (ending). L1: a picture of one dog or more; "dog" or "dogs". L2: "Yesterday he...": jump, jumped or jumping. L3:
@@ -77,11 +78,14 @@ export const compound = (word: string) => COMPOUNDS.find(c => c.word === word)!;
 
 // ---------- Opposites ----------
 
-const kinOf = (g: string) => KIN.find(k => k.includes(g)) ?? [g];
+/** The group and every group it is kin to (a group can be in more than one KIN list: all of them count). */
+export const kinOf = (g: string) => [...new Set([g, ...KIN.filter(k => k.includes(g)).flat()])];
 /** Words that could be offered as a wrong opposite of this entry: from a group that isn't its own or its kin, never a fair one. */
 export function oppWrongs(o: Opposite, describing = false): string[] {
   const kin = kinOf(o.group);
-  const fair = new Set([o.word, o.opp, ...(o.also ?? [])]);
+  const fair = new Set<string>([o.word, o.opp, ...(o.also ?? [])]);
+  // a word in a kin group is kept out even when another group has it too (light: dark and light, heavy and light)
+  for (const x of OPPOSITES) if (kin.includes(x.group)) { fair.add(x.word); fair.add(x.opp); }
   const words = OPPOSITES.filter(x => !kin.includes(x.group)).flatMap(x => [x.word, x.opp]);
   return [...new Set(words)].filter(w => !fair.has(w) && (!describing || DESCRIBING.has(w)));
 }

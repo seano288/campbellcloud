@@ -110,8 +110,11 @@ COLLECTION_SPEECH = {
         # alone, Aria says cat as "Kate", key as "he" and duck as "dack" however they're written (speech-to-text heard each that way);
         # Jenny says all three plainly, and before, bear and grapes too (Aria's came back "the four", "there", "crepes"). A lone "bow"
         # comes out rhyming with cow; the bow in rainbow rhymes with go, which "beau" gets. "owl." keeps its l.
+        # cats, keys and ducks are Jenny's too, so Endings' pairs (cat / cats) are one voice: a change of voice between the two choices
+        # would tell them apart by the voice, not the ending. (Pass 2 tried Aria with "Cat.", "cat?", "kat", "Key!", "kee", "Bear?",
+        # "bair": large-v3-turbo still heard Kate, he and there.)
         'said_as': {'cat': 'cat', 'bow': 'beau', 'owl': 'owl.'},
-        'voice_for': {w: 'en-US-JennyNeural' for w in ['cat', 'key', 'duck', 'before', 'bear', 'grapes']},
+        'voice_for': {w: 'en-US-JennyNeural' for w in ['cat', 'cats', 'key', 'keys', 'duck', 'ducks', 'before', 'bear', 'grapes']},
     },
 }
 

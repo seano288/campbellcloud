@@ -20,7 +20,7 @@ export const PICTURES = {
   // Sort It: animals
   dog: '🐕', cat: '🐈', pig: '🐖', horse: '🐎', sheep: '🐑', frog: '🐸', lion: '🦁', bear: '🐻', rabbit: '🐰', mouse: '🐁',
   elephant: '🐘', monkey: '🐒', giraffe: '🦒', zebra: '🦓', snake: '🐍', turtle: '🐢', tiger: '🐅', fox: '🦊', owl: '🦉', bee: '🐝',
-  duck: '🦆', bird: '🐦', eagle: '🦅', parrot: '🦜', whale: '🐋', octopus: '🐙', shark: '🦈', ant: '🐜', camel: '🐫',
+  duck: '🦆', bird: '🐦', eagle: '🦅', parrot: '🦜', whale: '🐋', octopus: '🐙', shark: '🦈', camel: '🐫',
   // food
   apple: '🍎', banana: '🍌', grapes: '🍇', carrot: '🥕', bread: '🍞', cookie: '🍪', egg: '🥚', cheese: '🧀', pizza: '🍕', pear: '🍐',
   strawberry: '🍓', lemon: '🍋', donut: '🍩', sandwich: '🥪', pie: '🥧', cherries: '🍒', broccoli: '🥦',

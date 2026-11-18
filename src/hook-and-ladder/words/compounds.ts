@@ -72,14 +72,14 @@ export const COMPOUNDS = [
 ] as const satisfies readonly Compound[];
 
 /** Wrong second halves for Level 3: short words he can read, none of them the second half of a compound in the table. */
-export const SILLY_HALVES = ['dog', 'cat', 'pig', 'hat', 'cup', 'bus', 'sock', 'egg', 'bug', 'pen', 'jam', 'mop', 'fox', 'van', 'leg', 'nut', 'hen', 'map', 'jet', 'fan'] as const;
+export const SILLY_HALVES = ['dog', 'cat', 'pig', 'hat', 'cup', 'bus', 'sock', 'egg', 'bug', 'pen', 'jam', 'fox', 'van', 'leg', 'nut', 'hen', 'map', 'jet', 'fan'] as const;
 
 /**
  * Real words (and two-word names said as one) that a first half makes beyond the table, so they are never offered as wrong halves.
  * Erring wide on purpose: a wrong half that is only nearly a word is still kept out.
  */
 export const ALSO_REAL: readonly string[] = [
-  'firedog', 'firefox', 'fireman', 'firepan', 'firebug', 'firecap',
+  'firedog', 'firefox', 'fireman', 'firepan', 'firebug', 'firecap', 'firehat',
   'raincap', 'rainhat',
   'football', 'footman', 'footcap',
   'snowcap', 'snowcat', 'snowmen', 'snowpup',
@@ -95,16 +95,16 @@ export const ALSO_REAL: readonly string[] = [
   'headcap', 'headset', 'headpin', 'headman', 'headnut',
   'aircap', 'airbus', 'airman', 'airjet', 'airgun', 'airhen', 'airbag', 'airfan',
   'wheelcap', 'wheelnut',
-  'waterhen', 'waterbug', 'waterjet', 'waterfan', 'watermap',
+  'waterhen', 'waterbug', 'waterjet', 'waterfan', 'watermap', 'waterbus',
   'bluejay', 'bluecap', 'bluefox',
   'basketcap',
-  'cowpat', 'cowpen', 'cowcat',
-  'seadog', 'seacat', 'seapig', 'seahen', 'seacap', 'seafox', 'seaegg', 'seabug',
-  'handcap', 'handbug',
-  'bedbug', 'bedpan', 'bedcap',
-  'goldbug', 'goldcap',
+  'cowpat', 'cowpen', 'cowcat', 'cowdog',
+  'seadog', 'seacat', 'seapig', 'seahen', 'seacap', 'seafox', 'seaegg', 'seabug', 'seafan', 'seapen', 'sealeg', 'seabus',
+  'handcap', 'handbug', 'handfan',
+  'bedbug', 'bedpan', 'bedcap', 'bedsock',
+  'goldbug', 'goldcap', 'goldcup', 'goldegg',
   'dogcat', 'dogleg', 'dogfox', 'dogvan',
-  'birddog', 'birdcap',
+  'birddog', 'birdcap', 'birdegg',
   'campvan', 'campmop',
   'treehen', 'treefox', 'treebug', 'treecat', 'treenut', 'treefan',
   'sandhen', 'sandbug', 'sandcap', 'sanddog',

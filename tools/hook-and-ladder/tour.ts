@@ -2,7 +2,7 @@
 // (with one deliberate miss in every kind it meets, so a lesson runs, and then the same question answered again: it must still take
 // taps), the end of the Round, a purchase at the Station, a whole Call (the drive and the siren, then holding a finger on each fire
 // until it's out and tapping each person at a window for the ladder, to the thank-you), the Town, and leaving a Round with 🏠 twice,
-// with screenshots. Answers are read from the page (window.__round in dev), as a child reads them from the screen. It fails on a page
+// with screenshots. TOUR_MISS=2 misses twice before the right answer (the fuller lesson); TOUR_MISS=0 never misses. Answers are read from the page (window.__round in dev), as a child reads them from the screen. It fails on a page
 // wider than the screen, a question that scrolls, or a button off screen or under 44px.
 //   npm run dev:hook-and-ladder   (in another shell)
 //   npx tsx tools/hook-and-ladder/tour.ts <url> <outDir>
@@ -92,6 +92,8 @@ async function fits(name: string) {
     if (document.documentElement.scrollWidth - innerWidth > 1) out.push('wider than the screen');
     const game = document.querySelector('.game.hl');
     if (game && game.scrollHeight - game.clientHeight > 2) out.push(`question scrolls ${game.scrollHeight - game.clientHeight}px`);
+    // a rule meant for something else landing on the question (the shared .fact once boxed the whole card in yellow)
+    if (game) { const g = getComputedStyle(game); if (g.backgroundColor !== 'rgba(0, 0, 0, 0)' || g.borderTopWidth !== '0px') out.push(`the question card has a background or border of its own (${game.className})`); }
     for (const el of document.querySelectorAll('button, [role=button]')) {
       const r = el.getBoundingClientRect(), style = getComputedStyle(el);
       if (!r.width || style.visibility === 'hidden' || el.closest('.asleep') || (el as HTMLButtonElement).disabled) continue;
@@ -188,6 +190,8 @@ for (let guard = 0; guard < 30; guard++) {
     await page.waitForTimeout(1800);
     await shot(`q${asked}-lesson`);
     await ready(60000);
+    // TOUR_MISS=2: a second miss, so the fuller lesson runs too, and the question must still take taps after it
+    if (process.env.TOUR_MISS === '2') { await answer(p, true); await page.waitForTimeout(1800); await shot(`q${asked}-lesson2`); await ready(60000); }
     await answer(p, false);
   }
   for (let i = 0; i < 160; i++) { const now = await question(); if (now !== null && JSON.stringify(now) !== JSON.stringify(p)) break; if (await page.locator('.reward h2').isVisible()) break; await page.waitForTimeout(150); }

@@ -123,6 +123,9 @@ describe('Strong Words', () => {
     expect(SCALES.find(s => s.id === 'voice')!.words).toEqual(['whisper', 'talk', 'shout']);
     expect(ALL_PAIRS).toContainEqual({ words: ['big', 'huge'], more: 'bigger' });
   });
+  it('Level 3\'s instruction never names a word he has to put in order (no "from cool to freezing")', () => {
+    for (const s of SCALES) for (const w of s.words) expect(s.order, s.id).not.toMatch(new RegExp(`\\b${w}\\b`, 'i'));
+  });
   it('no word is the stronger of one pair and the weaker of another in the same sense', () => {
     for (const a of ALL_PAIRS) for (const b of ALL_PAIRS) if (a.more === b.more) expect(a.words[0] === b.words[1] && a.words[1] === b.words[0]).toBe(false);
   });

@@ -17,12 +17,12 @@ export interface Scale {
 export interface Pair { readonly words: readonly [string, string]; readonly more: string }
 
 export const SCALES = [
-  { id: 'size', words: ['little', 'big', 'huge'], more: 'bigger', most: 'biggest', order: 'Put them in order, from little to huge.' },
-  { id: 'hot', words: ['warm', 'hot', 'boiling'], more: 'hotter', most: 'hottest', order: 'Put them in order, from warm to boiling.' },
-  { id: 'cold', words: ['cool', 'cold', 'freezing'], more: 'colder', most: 'coldest', order: 'Put them in order, from cool to freezing.' },
+  { id: 'size', words: ['little', 'big', 'huge'], more: 'bigger', most: 'biggest', order: 'Put them in order, from smallest to biggest.' },
+  { id: 'hot', words: ['warm', 'hot', 'boiling'], more: 'hotter', most: 'hottest', order: 'Put them in order, from coolest to hottest.' },
+  { id: 'cold', words: ['cool', 'cold', 'freezing'], more: 'colder', most: 'coldest', order: 'Put them in order, from warmest to coldest.' },
   { id: 'voice', words: ['whisper', 'talk', 'shout'], more: 'louder', most: 'loudest', order: 'Put them in order, from quiet to loud.' },
   { id: 'move', words: ['walk', 'jog', 'run'], more: 'faster', most: 'fastest', order: 'Put them in order, from slow to fast.' },
-  { id: 'wet', words: ['damp', 'wet', 'soaked'], more: 'wetter', most: 'wettest', order: 'Put them in order, from damp to soaked.' },
+  { id: 'wet', words: ['damp', 'wet', 'soaked'], more: 'wetter', most: 'wettest', order: 'Put them in order, from driest to wettest.' },
   { id: 'door', words: ['tap', 'knock', 'bang'], more: 'louder', most: 'loudest', order: 'Put them in order, from quiet to loud.' },
   { id: 'look', words: ['peek', 'look', 'stare'], more: 'longer', most: 'longest', order: 'Put them in order, from short to long.' },
 ] as const satisfies readonly Scale[];

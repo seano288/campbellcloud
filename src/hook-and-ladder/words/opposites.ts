@@ -95,12 +95,18 @@ OPPOSITES satisfies readonly Opposite[];
 
 /**
  * Groups too close to give each other wrong choices: the opposite of high is low, and "down" beside it would be a fair answer too.
- * A wrong choice comes only from a group that is not the question's own and not its kin.
+ * A wrong choice comes only from a group that is not the question's own and not its kin (from every list the group is in).
  */
 export const KIN: readonly (readonly string[])[] = [
   ['updown', 'level', 'topbottom', 'overunder'], ['inout', 'insideout'], ['size', 'height', 'length', 'thick', 'weight'],
   ['feeling', 'face', 'face2'], ['when', 'beforeafter', 'order', 'time'], ['door', 'onoff'], ['feel', 'work'], ['water', 'water2'],
   ['comego', 'givetake', 'pushpull'],
+  // near misses a child could fairly pick (pass 2): the opposite of laugh is not quiet, of happy not bad, of day not dark, of float not
+  // heavy or down, of sit or asleep not up, of on not out or under, of tall not low, of long not near, of yes not never, of win or
+  // front not last, of dark not white
+  ['feeling', 'face', 'face2', 'goodness', 'sound'], ['time', 'shine', 'colour'], ['water2', 'weight', 'updown', 'overunder'],
+  ['updown', 'sitstand', 'sleep'], ['onoff', 'inout', 'overunder'], ['height', 'level'], ['length', 'distance'], ['yesno', 'often'],
+  ['game', 'order', 'frontback'],
 ];
 
 /** Words that describe something, the only ones used in a Level 3 sentence, so every choice fits "It is ___." */

@@ -24,6 +24,8 @@ import { chop, createHose, ding, gurgle, siren, sizzle, whirr } from './sounds';
 import { aim, dropWater, release, startCall, step, tapRescue, takeEvents, type CallState } from './sim';
 
 const DRIVE_S = 4.2;
+/** Seconds with no finger on the scene before he's reminded what to do. */
+const IDLE_S = 9;
 
 export function CallScreen() {
   const voice = useVoice(), start = player.state.peek().station;
@@ -32,7 +34,7 @@ export function CallScreen() {
   const canvas = useRef<HTMLCanvasElement>(null), tankBar = useRef<HTMLSpanElement>(null);
   const [phase, setPhase] = useState<'drive' | 'work' | 'done'>('drive');
   const [pay, setPay] = useState<CallPay | null>(null), [awake, setAwake] = useState(false), [armed, setArmed] = useState(false);
-  const live = useRef({ phase: 'drive' as 'drive' | 'work' | 'done', driveT: 0, siren: 0, fps: [] as number[], told: new Set<string>(), pointer: null as number | null });
+  const live = useRef({ phase: 'drive' as 'drive' | 'work' | 'done', driveT: 0, siren: 0, fps: [] as number[], told: new Set<string>(), pointer: null as number | null, idle: 0, nudges: 0 });
 
   useEffect(() => {
     const c = canvas.current!, ctx = c.getContext('2d')!, hose = createHose(gear.hose);
@@ -66,6 +68,13 @@ export function CallScreen() {
         }
       } else {
         step(sim, dt);
+        // a child who does nothing is told again what to do, a few times (nothing happens to him for waiting)
+        L.idle = L.pointer === null && sim.phase === 'work' && L.nudges < 3 ? L.idle + dt : 0;
+        if (L.idle > IDLE_S) {
+          L.idle = 0; L.nudges++;
+          const fire = sim.fires.some(f => !f.out && f.reach), person = sim.rescues.some(r => r.state === 'waiting' && r.reach);
+          if (fire || person) void voice.say(fire ? 'Drag your finger to spray!' : 'Tap them to send the ladder!');
+        }
         const spraying = !!sim.aim && sim.refill <= 0 && sim.phase === 'work';
         if (spraying !== wasSpraying) { hose.set(spraying); wasSpraying = spraying; }
         for (const e of takeEvents(sim)) react(e);
@@ -121,6 +130,7 @@ export function CallScreen() {
     const p = toWorld(viewOf(scene, c.width, c.height), (e.clientX - r.left) * dpr, (e.clientY - r.top) * dpr);
     if (kind === 'down') {
       if (L.pointer !== null) return;
+      L.idle = 0;
       if (tapRescue(sim, p.x, p.y)) { whirr(); return; }
       L.pointer = e.pointerId;
       c.setPointerCapture?.(e.pointerId);

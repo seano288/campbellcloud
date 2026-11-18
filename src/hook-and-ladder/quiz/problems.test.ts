@@ -9,6 +9,8 @@ import { FACTS, GROUPS } from '../words/sorting';
 import { SCALES } from '../words/strong';
 import { answersOf, groupOf, isAnswer, isRightAnswer, makeQuestion, oppWrongs, REAL_JOINS, SEP, type Kind, type Level, type Question } from './problems';
 import { picOf } from '../words/pictures';
+import { OPPOSITES } from '../words/opposites';
+import { oppSentenceAsk } from './views';
 
 const KINDS: Kind[] = ['join', 'opposite', 'sort', 'ending', 'strong'];
 const LEVELS: Level[] = [1, 2, 3];
@@ -73,6 +75,32 @@ describe('the ambiguities the brief names', () => {
     for (const x of q.choices.filter(c => c !== q.answer)) { expect(fair).not.toContain(x); expect(oppWrongs(o)).toContain(x); }
     if (q.form === 'pic') for (const x of q.choices) expect(picOf(x) !== null || x === 'big' || x === 'little', x).toBe(true);
   }));
+  it('Opposites: no wrong choice is a near miss a child could fairly pick (the opposite of float is not heavy)', () => {
+    // judged by hand in the review pass: each of these sits close enough to the word that a six-year-old picking it isn't wrong
+    const NEAR: Record<string, string[]> = {
+      float: ['heavy', 'down', 'under'], day: ['dark', 'light'], night: ['light', 'dark'], dark: ['day', 'night', 'white', 'black'],
+      tall: ['low'], long: ['near', 'far'], sit: ['up', 'down'], asleep: ['up', 'down'], awake: ['up', 'down'], laugh: ['quiet', 'loud'],
+      cry: ['quiet', 'loud'], happy: ['good', 'bad'], sad: ['good', 'bad'], good: ['sad', 'happy'], on: ['out', 'under', 'in'], in: ['off', 'on'],
+      yes: ['never', 'always'], no: ['never', 'always'], win: ['last', 'first'], front: ['last', 'first'], first: ['back', 'front', 'win', 'lose'],
+      high: ['short'], up: ['sit', 'stand', 'asleep', 'awake', 'sink', 'float'],
+    };
+    each(q => {
+      if (q.kind !== 'opposite') return;
+      expect(q.choices.filter(c => c !== q.answer && (NEAR[q.word] ?? []).includes(c)), JSON.stringify(q)).toEqual([]);
+    });
+    for (const [w, near] of Object.entries(NEAR)) if (OPPOSITES.some(o => o.word === w)) for (const x of near) expect(oppWrongs(entry(w)), `${w}: ${x}`).not.toContain(x);
+  });
+  it('every question offers as many choices as its Level promises', () => each((q, _kind, level) => {
+    if (q.kind === 'opposite') expect(q.choices.length, JSON.stringify(q)).toBe(level === 1 ? (q.choices.length === 3 ? 3 : 2) : 3);
+    if (q.kind === 'join' && q.form !== 'split') expect(q.choices.length).toBeGreaterThanOrEqual(2);
+    if (q.kind === 'join' && q.form === 'half') expect(q.choices.length).toBe(3);
+    if (q.kind === 'sort' && q.form !== 'all') expect(q.form === 'odd' ? q.items.length : q.choices.length).toBe(q.form === 'odd' ? 4 : 3);
+    if (q.kind === 'ending') expect(q.choices.length).toBe(q.form === 'count' ? 2 : 3);
+  }));
+  it('Opposites Level 3 asks for the opposite, so a true but other word (the towel is soft) is not right too', () => {
+    const asked = oppSentenceAsk('The towel is not wet.', 'wet', ['dry', 'soft', 'long']);
+    expect(asked.slice(0, 4)).toEqual(['The towel is not wet.', 'It is...', 'Tap the opposite of', 'wet']);
+  });
   it('Sort It: the odd one is the only one from another group; a question about a group offers one true thing', () => each(q => {
     if (q.kind !== 'sort') return;
     if (q.form === 'odd') expect(q.items.filter(x => groupOf(x) !== q.group)).toEqual([q.answer]);
