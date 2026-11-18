@@ -563,3 +563,57 @@ _Avoid_: level, map, location
 **Regular**: one of forty named customers, four for each truck, each with a favourite order from that truck's toppings. A new one comes to every Service while the truck he drives has one he hasn't met; once fed, their sticker goes in the Sticker Book.
 
 **Sticker Book**: the screen he shows off: a sticker for every Regular (❔ and the truck's food for the ones still to meet), a postcard for every Spot, and his row of trucks wearing his parts.
+## Deep Light
+
+Deep Light reuses Math Bots', Rover Code's and Hook and Ladder's terms where they mean the same thing (Mixed Round, Mastery, Stretch,
+Bolt, Goal, Paint, Rung). It has no Tune-Up and no Meetings. These are its own:
+
+**Game Modes (Deep Light)**: the six kinds of question, about light and sound (NGSS 1-PS4): Light to See (which cave can you see the
+crab in; tap everything that makes its own light; why can't you see it), Through or Not (which lets the light through; sort three by
+how much light they let through; what will the wall look like), Shake and Sound (which is loud or quiet; tap the one that is shaking;
+what happens when the string stops), Shadows (which shadow is this thing's; where will the shadow be; which lamp made it), Mirrors (which
+one bounces the light; turn the mirror to light the gem; two mirrors, or which spot) and Signals (how to say hello far away; copy the
+lighthouse's flashes; count the flashes and read the key). Light to See, Through or Not and Shake and Sound are open from the start;
+Shadows opens at Through or Not Level 2, Mirrors at Light to See Level 2, Signals once both Mirrors and Shake and Sound reach Level 2.
+
+**Makes its own light**: a light source (the sun, a flashlight, a candle, a campfire, a light bulb, an anglerfish's lure). The moon is
+not one, and is never offered in "makes its own light" before Level 3, where it has its own lesson.
+_Avoid_: glows (a thing lit up glows too), luminous
+
+**Lets all the light through / lets some light through / blocks the light**: the three things a material can do to a beam, said in
+plain words. The school words (transparent, translucent, opaque) are met only in a Level 3 lesson. "Lets some light through" is only
+ever wax paper, frosted glass or tissue paper (the hand-checked table).
+_Avoid_: see-through, clear (for the "some" ones)
+
+**Lab**: the grid a Mirrors question is played on: a lamp, a gem, and mirrors that turn in steps of an eighth of a turn. Every beam on
+it is traced by the same ray code (`science/optics.ts`) that decides the answer.
+
+**Rings**: the circles drawn round a sound, big for loud and small for quiet, so a sound question never depends on the iPad's volume.
+
+**Dock**: Deep Light's Garage: his submarine out of the water, the things he has bought for the Dock along the pier, the map of the
+eight zones, the big Dive button, and the tray of parts.
+_Avoid_: garage, harbour (fine to say, but the screen is the Dock)
+
+**Part (Deep Light)**: one Rung on a slot that changes the Dive: the **Hull** (how deep he can go: each Rung opens deeper zones), the
+**Headlights** (how far and how wide his light reaches), the **Sonar** (how far its ping reaches and how often it goes), the **Motor**
+(how fast), the **Claw** (how near treasure must be to grab it) and the **Camera Flash** (lights the whole sea for a moment and
+photographs everything near). **Paint**, **Glow Stripes**, **Light Colors**, **Horns**, the **Buddy** in the window and **Bubble
+Trails** change how he looks and sounds; **Dock things** stand on the pier.
+
+**Zone**: one of eight places to dive, each darker than the last: the Sunlit Reef, the Twilight Zone, the Shipwreck, the Midnight Zone,
+the Crystal Cave, the Hot Vents, Under the Ice and the Deep Trench. Each opens when his submarine has the parts it needs (a Hull Rung,
+and for the Shipwreck, the Crystal Cave and Under the Ice a Claw, Sonar or Headlights Rung).
+_Avoid_: level, world
+
+**Dive**: what a finished Round earns (he starts with one): about a minute in a zone's dark sea, steering with a held finger, seeing only
+what his headlights touch and the animals that make their own light. Holding the light on an animal takes its **photo**; passing close
+to **treasure**, the Claw picks it up (a Bolt each). Then the submarine rises by itself. It can't be failed: nothing chases him and the
+edges of the sea only nudge him back. It's used, and paid, only when it ends.
+_Avoid_: trip, mission, level
+
+**Ping**: Sonar's sound going out in a ring; everything it passes, lit or not, shows its **outline** for a moment. Sound finding what
+light can't.
+
+**Logbook**: every animal he has photographed, a page for each zone; tapping one says its name and one true fact. About sixty real
+animals, each fact checked against the page in `sea/animals.ts`.
+_Avoid_: collection, album

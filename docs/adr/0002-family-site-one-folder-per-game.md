@@ -21,7 +21,7 @@ Truck Money alone into `dist/` for the existing browser checks.
 - **Saves carry over**: `localStorage` is per origin, so `mtm2-save` is still there at the new path. Time Flies uses its own
   key, `time-flies-save`, Chop Chop `chop-chop-save`, Sight Squad `sight-squad-save`, Math Bots `math-bots-save`, Rover Code `rover-code-save`, Treasure Fleet `treasure-fleet-save`, Wild Rescue `wild-rescue-save`, and Purrdoku `purrdoku-save`.
   Sentence Express uses `sentence-express-save` (and `sentence-express-place`), Dino Dig `dino-dig-save` (and `dino-dig-place`),
-  Food Truck `food-truck-save` (and `food-truck-place`).
+  Food Truck `food-truck-save` (and `food-truck-place`), Deep Light `deep-light-save` (and `deep-light-place`).
 - **Home Screen**: the app already installed from the site root now opens the landing page, which works offline. Each game
   becomes available offline after its first online visit at its new folder.
 - **Word Wreckers** (`/word-wreckers/`) has a tile in **Learning Games** and saves under its own key, `word-wreckers-save` (with
@@ -33,7 +33,7 @@ Truck Money alone into `dist/` for the existing browser checks.
 
 ## Learning games and games just for fun
 
-The landing page groups its tiles into sections: **Learning Games** (Monster Truck Money, Time Flies, Chop Chop, Sight Squad, Math Bots, Rover Code, Treasure Fleet, Wild Rescue, Sentence Express, Word Wreckers, Turbo Tally, Hook and Ladder, Dino Dig, Food Truck) and
+The landing page groups its tiles into sections: **Learning Games** (Monster Truck Money, Time Flies, Chop Chop, Sight Squad, Math Bots, Rover Code, Treasure Fleet, Wild Rescue, Sentence Express, Word Wreckers, Turbo Tally, Hook and Ladder, Dino Dig, Food Truck, Deep Light) and
 **Just for Fun**. A fun game still gets its own folder, manifest, icons and worker, but it doesn't have to use the learning engine,
 voice clips or `staticBuild()`. Hunch (`/hunch/`, a five-letter word guessing game) is a plain DOM page with its own
 small build (`tools/hunch-build.ts`) and its own save key, `hunch-save`.
@@ -43,3 +43,5 @@ the screen and the Round in progress). It shares Word Wreckers' word list (`src/
 in `public/dino-dig-voice/`.
 Food Truck (`/food-truck/`) is a tile in **Learning Games**, after Dino Dig, and saves under `food-truck-save` (with `food-truck-place` for
 the screen and the Round in progress). Its voice clips are in `public/food-truck-voice/`.
+Deep Light (`/deep-light/`) is a tile in **Learning Games**, after Food Truck, and saves under `deep-light-save` (with `deep-light-place`
+for the screen and the Round in progress). Its voice clips are in `public/deep-light-voice/`.

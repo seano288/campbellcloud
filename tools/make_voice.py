@@ -16,6 +16,7 @@
   .venv/bin/python tools/make_voice.py --collection hook-and-ladder --out public/hook-and-ladder-voice --index src/hook-and-ladder/voice.gen.ts
   .venv/bin/python tools/make_voice.py --collection dino-dig --out public/dino-dig-voice --index src/dino-dig/voice.gen.ts
   .venv/bin/python tools/make_voice.py --collection food-truck --out public/food-truck-voice --index src/food-truck/voice.gen.ts
+  .venv/bin/python tools/make_voice.py --collection deep-light --out public/deep-light-voice --index src/deep-light/voice.gen.ts
 
 Select phrases through tools/phrases.ts and write recordings and a typed index to explicit locations.
 Only missing clips are recorded. Cleanup touches only the selected directory, whose .voice-collection
@@ -50,7 +51,9 @@ VOICES = {'purrdoku': ('en-GB-RyanNeural', '-5%'),
           # Dino Dig says every list word alone and slowly (reading by sound), where Ava blurs short vowels
           'dino-dig': ('en-US-AriaNeural', '-8%'),
           # Food Truck chains dollar amounts from number clips ("You have", "8", "dollars.") and says names, foods and things alone
-          'food-truck': ('en-US-AriaNeural', '-8%')}
+          'food-truck': ('en-US-AriaNeural', '-8%'),
+          # Deep Light says whole science sentences and an animal's name and fact, and reads its sentence choices aloud, as Wild Rescue
+          'deep-light': ('en-US-AriaNeural', '-8%')}
 ROOT = Path(__file__).resolve().parent.parent
 
 
@@ -148,6 +151,19 @@ COLLECTION_SPEECH = {
             'Arrow Sign': 'Arrow, Sign', 'You got Arrow Sign!': 'You got Arrow, Sign!',
             # as Turbo Tally found, a breath keeps "Grape" from becoming "Great"
             'Grape Purple': 'Grape, Purple', 'You got Grape Purple!': 'You got Grape, Purple!',
+        },
+    },
+    # Deep Light: small.en heard the end of this hint run together ("...shake and sound openness"), and both models heard "Deep Hull"
+    # end in "hole", "You opened Shadows!" as "You open shadows" and "Barreleye" as "Baralife"; a breath before the word (as Turbo
+    # Tally's) or the word split in two keeps each one. ("Abyss Hull" and "Trench Hull" still came out "hole" with a breath, so those
+    # Rungs are named Super Hull and Ultra Hull instead; "Mega Hull" came out "Make a hole".)
+    'deep-light': {
+        'said_as': {
+            'Play more Mirrors and Shake and Sound to open this!': 'Play more Mirrors and Shake and Sound, to open this!',
+            'Deep Hull': 'Deep, Hull',
+            'You opened Shadows!': 'You opened, Shadows!', 'You opened Signals!': 'You opened, Signals!', 'You opened Shake and Sound!': 'You opened, Shake and Sound!',
+            'Barreleye Fish': 'Barrel eye Fish',
+            'A barreleye fish has a see-through head, and its eyes look up through it.': 'A barrel eye fish has a see-through head, and its eyes look up through it.',
         },
     },
 }
