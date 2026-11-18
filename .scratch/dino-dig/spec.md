@@ -1,7 +1,7 @@
 # Spec: Dino Dig (phonics: sounding words out, a fossil dig, a dinosaur museum)
 
 Status: built on 2026-11-17 from `brief.md` (pass 1 of 3: build), playable at `/dino-dig/` with a tile on the landing page (Learning
-Games, after Turbo Tally). Every decision below is a **default for the parent to confirm**. Not yet run on a real iPad. The bug pass and
+Games, after Hook and Ladder). Every decision below is a **default for the parent to confirm**. Not yet run on a real iPad. The bug pass and
 the visual design pass follow; the look is the family look, not yet designed.
 
 A new learning game on the family site, built the same way as Word Wreckers and Rover Code (`src/word-wreckers/`, `src/rover-code/`),
