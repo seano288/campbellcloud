@@ -65,8 +65,10 @@ export function makeScenery(s: DiveState): Scenery {
   const rng = seeded(s.zone.length * 97 + 5), z = s.zone;
   const coral = ['#ff7a9a', '#ffb02e', '#9a5aff', '#ff5a5a', '#5af0d0'];
   return {
-    rocks: Array.from({ length: 14 }, (_, i) => ({ x: i * 180 + rng() * 120, w: 60 + rng() * 120, h: 30 + rng() * 70, c: z === 'reef' ? coral[i % coral.length]! : z === 'vents' ? '#3a1c14' : z === 'ice' ? '#3a5068' : '#2a3040' })),
-    weeds: Array.from({ length: z === 'reef' ? 22 : z === 'wreck' || z === 'twilight' ? 10 : 0 }, () => ({ x: rng() * WORLD.w, h: 80 + rng() * 140, c: z === 'reef' ? '#3aa860' : '#2a6a48' })),
+    rocks: Array.from({ length: z === 'open' ? 0 : 14 }, (_, i) => ({ x: i * 180 + rng() * 120, w: 60 + rng() * 120, h: 30 + rng() * 70, c: z === 'reef' ? coral[i % coral.length]! : z === 'vents' ? '#3a1c14' : z === 'ice' ? '#3a5068' : '#2a3040' })),
+    weeds: z === 'kelp'
+      ? Array.from({ length: 16 }, (_, i) => ({ x: 60 + i * 150 + rng() * 90, h: 700 + rng() * 520, c: i % 3 ? '#8a7a2a' : '#6a7a2a' }))
+      : Array.from({ length: z === 'reef' ? 22 : z === 'wreck' || z === 'twilight' ? 10 : 0 }, () => ({ x: rng() * WORLD.w, h: 80 + rng() * 140, c: z === 'reef' ? '#3aa860' : '#2a6a48' })),
     motes: Array.from({ length: 46 }, () => ({ x: rng(), y: rng(), z: 0.3 + rng() * 0.7 })),
     seed: rng(),
   };
@@ -80,8 +82,29 @@ function drawScenery(ctx: C, s: DiveState, sc: Scenery, t: number) {
   for (let x = -50; x <= WORLD.w + 50; x += 100) ctx.lineTo(x, WORLD.floor + Math.sin(x * 0.013 + sc.seed * 9) * 12);
   ctx.lineTo(WORLD.w + 50, WORLD.h + 50); ctx.closePath(); ctx.fill();
   ctx.lineWidth = 4; ctx.strokeStyle = '#00000055'; ctx.stroke();
+  // the open ocean: the sun's light coming down in long rays
+  if (s.zone === 'open') {
+    ctx.fillStyle = 'rgba(255,255,255,0.07)';
+    for (let i = 0; i < 7; i++) {
+      const x = 150 + i * 340 + Math.sin(t * 0.3 + i) * 40;
+      ctx.beginPath(); ctx.moveTo(x, -200); ctx.lineTo(x + 120, -200); ctx.lineTo(x + 420, WORLD.floor); ctx.lineTo(x + 250, WORLD.floor); ctx.closePath(); ctx.fill();
+    }
+  }
+  // the kelp forest: tall kelp from the floor nearly to the top, swaying, with leaves and little floats
+  if (s.zone === 'kelp') for (const w of sc.weeds) {
+    const sway = (f: number) => Math.sin(t * 0.7 + w.x * 0.01 + f * 2) * 40 * f;
+    ctx.beginPath(); ctx.moveTo(w.x, WORLD.floor + 6);
+    for (let f = 0.1; f <= 1.001; f += 0.1) ctx.lineTo(w.x + sway(f), WORLD.floor - w.h * f);
+    ctx.lineWidth = 12; ctx.strokeStyle = w.c; ctx.lineCap = 'round'; ctx.stroke();
+    ctx.fillStyle = w.c;
+    for (let f = 0.15; f < 1; f += 0.12) {
+      const x = w.x + sway(f), y = WORLD.floor - w.h * f, side = Math.round(f * 25) % 2 ? 1 : -1;
+      ctx.beginPath(); ctx.ellipse(x + side * 34, y - 10, 38, 11, side * -0.5, 0, 7); ctx.fill();
+      ctx.beginPath(); ctx.arc(x + side * 6, y, 7, 0, 7); ctx.fillStyle = '#b8a040'; ctx.fill(); ctx.fillStyle = w.c;
+    }
+  }
   // sea weed swaying
-  for (const w of sc.weeds) {
+  for (const w of s.zone === 'kelp' ? [] : sc.weeds) {
     ctx.beginPath(); ctx.moveTo(w.x, WORLD.floor + 6);
     ctx.quadraticCurveTo(w.x + Math.sin(t + w.x) * 24, WORLD.floor - w.h / 2, w.x + Math.sin(t * 0.8 + w.x) * 30, WORLD.floor - w.h);
     ctx.lineWidth = 10; ctx.strokeStyle = w.c; ctx.lineCap = 'round'; ctx.stroke();
@@ -161,11 +184,21 @@ export function drawDive(ctx: C, s: DiveState, v: View, look: SubLook, sprites: 
   const dark = z.dark * (s.flash > 0 ? 1 - Math.min(1, (s.flash / FLASH_S) * 1.6) : 1);
   const sub = toScreen(v, s.sub.x, s.sub.y), reach = s.gear.reach * k, a0 = s.sub.aim - s.gear.half, a1 = s.sub.aim + s.gear.half;
   if (dark > 0.01 && !skip('dark')) {
-    const shade = `rgba(2,6,20,${dark.toFixed(3)})`;
+    const shade = `rgba(2,6,20,${dark.toFixed(3)})`, ring = s.gear.ring * k;
+    // a submarine with a light all around it (the Bubble Sub): the dark leaves a circle round it too, softened at its edge
+    if (ring > 0) { ctx.save(); ctx.beginPath(); ctx.rect(0, 0, v.w, v.h); ctx.moveTo(sub.x + ring, sub.y); ctx.arc(sub.x, sub.y, ring, 0, Math.PI * 2); ctx.clip('evenodd'); }
     ctx.fillStyle = shade;
     ctx.beginPath(); ctx.rect(0, 0, v.w, v.h);
     ctx.moveTo(sub.x, sub.y); ctx.arc(sub.x, sub.y, reach, a0, a1); ctx.closePath();
     ctx.fill('evenodd');
+    if (ring > 0) {
+      ctx.restore();
+      const soft = ctx.createRadialGradient(sub.x, sub.y, ring * 0.55, sub.x, sub.y, ring);
+      soft.addColorStop(0, tint(look.beam, 0.08)); soft.addColorStop(1, shade);
+      ctx.save(); ctx.beginPath(); ctx.rect(0, 0, v.w, v.h); ctx.moveTo(sub.x, sub.y); ctx.arc(sub.x, sub.y, reach, a0, a1); ctx.closePath(); ctx.clip('evenodd');
+      ctx.fillStyle = soft; ctx.beginPath(); ctx.arc(sub.x, sub.y, ring, 0, Math.PI * 2); ctx.fill();
+      ctx.restore();
+    }
     // the far end of the cone fades into the dark, tinted his headlight's colour: a gradient over only the outer band of the cone
     // (an annulus), since the measurements found a gradient over the whole cone, or an extra additive wash, cost as much as the rest
     const inner = reach * 0.68, fade = ctx.createRadialGradient(sub.x, sub.y, inner, sub.x, sub.y, reach);

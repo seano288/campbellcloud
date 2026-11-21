@@ -315,7 +315,7 @@ img.thing-pic{width:max(64px,calc(120px*var(--u)))}
 .dock-bay .sub-art.trying{filter:drop-shadow(0 0 12px #ffd23f)}
 .dock-things{position:absolute;left:3%;right:3%;top:36%;display:flex;flex-wrap:wrap;gap:2px;font-size:max(20px,calc(30px*var(--u)));line-height:1;pointer-events:none;justify-content:space-between}
 .dock-things>.trying{filter:drop-shadow(0 0 6px #ffd23f)}
-.zone-map{display:grid;grid-template-columns:repeat(8,minmax(0,1fr));gap:4px}
+.zone-map{display:grid;grid-template-columns:repeat(10,minmax(0,1fr));gap:4px}
 .zone{min-height:max(48px,calc(56px*var(--u)));min-width:44px;border-radius:12px;border:3px solid #000;padding:0;display:grid;place-items:center;font-size:calc(26px*var(--u));box-shadow:0 3px 0 #000}
 .zone{position:relative}
 /* a place he can't dive yet still shows what it is, dimmed, with a little lock on it */
@@ -326,7 +326,11 @@ img.thing-pic{width:max(64px,calc(120px*var(--u)))}
 .bay-go .dive-btn{flex:1;min-width:0;min-height:max(64px,calc(84px*var(--u)))}
 .bay-go .icon-btn{flex:none;width:max(60px,calc(72px*var(--u)));height:max(60px,calc(72px*var(--u)));font-size:calc(32px*var(--u));color:#fff}
 .parts-side{position:relative;display:grid;grid-template-rows:auto minmax(0,1fr);gap:calc(8px*var(--u));min-height:0;min-width:0}
-.dl-tabs{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:5px}
+.dl-tabs{display:grid;grid-template-columns:repeat(9,minmax(0,1fr));gap:5px}
+/* the first row builds the submarine (which one, its nose, tail, fins and top): a teal of their own, so the two rows read as two jobs */
+.dl-tab.build{background:#0f5a66;border-color:#5af0ff55}
+.dl-tab.build.on{background:var(--yellow);border-color:#000}
+.dl-tab .tab-sub{width:88%;height:auto;max-height:100%;display:block;margin:auto;pointer-events:none}
 .dl-tab{min-width:44px;min-height:max(46px,calc(54px*var(--u)));border-radius:14px;background:var(--deep-2);border:3px solid #fff3;font-size:calc(26px*var(--u));padding:0}
 .dl-tab.on{background:var(--yellow);border-color:#000;box-shadow:0 4px 0 #000}
 .dl-tray{display:grid;grid-template-columns:repeat(auto-fill,minmax(max(100px,calc(124px*var(--u))),1fr));grid-auto-rows:max-content;gap:calc(8px*var(--u));overflow-y:auto;overscroll-behavior:contain;touch-action:pan-y;padding-bottom:calc(84px*var(--u) + var(--floor));min-height:0}
@@ -352,7 +356,7 @@ img.thing-pic{width:max(64px,calc(120px*var(--u)))}
 .big-btn.short{background:#5d6b78}
 @media (orientation:landscape) and (max-height:520px){
   .dock-body{grid-template-columns:minmax(0,.9fr) minmax(0,1.1fr)}
-  .dl-tabs{grid-template-columns:repeat(7,minmax(0,1fr));gap:3px}
+  .dl-tabs{grid-template-columns:repeat(9,minmax(0,1fr));gap:3px}
   .dl-tab{min-height:44px;font-size:20px}
   .bay-go .icon-btn{width:52px;height:52px;font-size:24px}
   .dl-tile{padding:3px 4px}
@@ -361,11 +365,12 @@ img.thing-pic{width:max(64px,calc(120px*var(--u)))}
   .mt-name{min-height:0}
   .bay-go .dive-btn{min-height:52px}
   .zone{min-height:44px;font-size:18px}
+  .zone-map{grid-template-columns:repeat(5,minmax(0,1fr))}
   .bay-side{grid-template-rows:minmax(0,1fr) auto auto}
 }
 @media (max-width:430px) and (orientation:portrait){
-  .zone-map{grid-template-columns:repeat(4,minmax(0,1fr))}
-  .dl-tabs{grid-template-columns:repeat(7,minmax(0,1fr));gap:3px}
+  .zone-map{grid-template-columns:repeat(5,minmax(0,1fr))}
+  .dl-tabs{grid-template-columns:repeat(6,minmax(0,1fr));gap:3px}
   .dl-tab{font-size:20px}
 }
 

@@ -8,7 +8,7 @@ import { ZONES } from '../sea/zones';
 import { flash, hold, inBeam, release, startDive, step, takeEvents, WORLD, type DiveState } from './sim';
 
 const STARTER: Gear = gearOf(freshDock());
-const BEST: Gear = { reach: LIGHT_REACH.at(-1)!, half: LIGHT_HALF.at(-1)!, sonarRange: SONAR_RANGE.at(-1)!, sonarEvery: SONAR_EVERY.at(-1)!, speed: MOTOR_SPEED.at(-1)!, claw: CLAW_REACH.at(-1)!, flashes: FLASH_COUNT.at(-1)! };
+const BEST: Gear = { ...STARTER, reach: LIGHT_REACH.at(-1)!, half: LIGHT_HALF.at(-1)!, sonarRange: SONAR_RANGE.at(-1)!, sonarEvery: SONAR_EVERY.at(-1)!, speed: MOTOR_SPEED.at(-1)!, claw: CLAW_REACH.at(-1)!, flashes: FLASH_COUNT.at(-1)! };
 
 /** A child playing: holds a finger on the nearest animal he hasn't photographed, or on the nearest treasure. */
 function play(s: DiveState, idle = false) {
@@ -103,5 +103,23 @@ describe('the submarine he steers', () => {
     let turned = false;
     for (let i = 0; i < 240; i++) { step(s, 1 / 60); if (Math.cos(s.sub.aim) < 0) turned = true; }
     expect(turned).toBe(false);
+  });
+});
+
+describe('every submarine', () => {
+  it('finishes a Dive in every zone, with the starter parts and with the best, whatever its trick', async () => {
+    const { SUBS } = await import('../dock/subs');
+    const { fit } = await import('../dock/dock');
+    const { ALL_KEYS } = await import('../dock/parts');
+    for (const sub of SUBS) for (const best of [false, true]) {
+      let d = { ...freshDock(), owned: [...ALL_KEYS] };
+      d = fit(d, `sub:${sub.id}`);
+      if (best) for (const t of ['hull', 'lights', 'sonar', 'motor', 'claw', 'flash'] as const) d = fit(d, `${t}:r${t === 'hull' ? 6 : t === 'flash' ? 4 : 5}`);
+      for (const z of ZONES) {
+        const s = startDive(z.id, gearOf(d), [], 7);
+        play(s);
+        expect(s.phase, `${sub.id} ${z.id}`).toBe('done');
+      }
+    }
   });
 });

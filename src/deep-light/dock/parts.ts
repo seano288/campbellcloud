@@ -4,16 +4,24 @@
 // the outline of things his light can't reach (sound finding what light can't), a stronger Hull goes deeper, the Motor goes faster,
 // the Claw reaches further for treasure, and the Camera Flash lights the whole sea for a moment. The rest is how his submarine looks
 // and sounds, who rides in the window, and things for the Dock. No price is over 100 Bolts, the most the recorded numbers say.
+//
+// Since 2026-11-21 he also chooses which submarine he dives in (dock/subs.ts) and builds each one: a nose, a tail, fins and a top,
+// each drawn to fit every submarine (art/pieces.ts). Each submarine keeps its own build and its own looks; the parts are shared.
+import { SUBS, type SubName } from './subs';
 
-export const TABS = ['hull', 'lights', 'sonar', 'motor', 'claw', 'flash', 'paint', 'stripes', 'beam', 'horn', 'buddy', 'trail', 'dock'] as const;
+export const TABS = ['sub', 'nose', 'tail', 'fins', 'top', 'hull', 'lights', 'sonar', 'motor', 'claw', 'flash', 'paint', 'stripes', 'beam', 'horn', 'buddy', 'trail', 'dock'] as const;
 export type Tab = (typeof TABS)[number];
 export const TAB_NAMES = {
+  sub: 'Submarines', nose: 'Noses', tail: 'Tails', fins: 'Fins', top: 'Tops',
   hull: 'Hull', lights: 'Headlights', sonar: 'Sonar', motor: 'Motor', claw: 'Claw', flash: 'Camera Flash', paint: 'Paint',
   stripes: 'Glow Stripes', beam: 'Light Colors', horn: 'Horns', buddy: 'Buddy', trail: 'Bubble Trails', dock: 'The Dock',
 } as const satisfies Record<Tab, string>;
-/** The tabs whose items go on his submarine (one at a time); the Dock tab collects things. */
-export const FITTED = ['hull', 'lights', 'sonar', 'motor', 'claw', 'flash', 'paint', 'stripes', 'beam', 'horn', 'buddy', 'trail'] as const satisfies readonly Tab[];
+/** The tabs whose items go on his submarine (one at a time); the Submarines tab picks which one, and the Dock tab collects things. */
+export const FITTED = ['nose', 'tail', 'fins', 'top', 'hull', 'lights', 'sonar', 'motor', 'claw', 'flash', 'paint', 'stripes', 'beam', 'horn', 'buddy', 'trail'] as const satisfies readonly Tab[];
 export type FitTab = (typeof FITTED)[number];
+/** What each submarine keeps for itself (its build and its looks); the rest is shared by all of them. */
+export const OWN_TABS = ['nose', 'tail', 'fins', 'top', 'paint', 'stripes', 'beam', 'horn', 'buddy', 'trail'] as const satisfies readonly FitTab[];
+export type OwnTab = (typeof OWN_TABS)[number];
 /** The parts that change the Dive, in Rungs: 0 is the free starter. */
 export const RUNGED = ['hull', 'lights', 'sonar', 'motor', 'claw', 'flash'] as const satisfies readonly Tab[];
 export type RungTab = (typeof RUNGED)[number];
@@ -29,6 +37,67 @@ export interface ItemDef {
   readonly pattern?: string;
   readonly emoji?: string;
 }
+
+/** The submarines, as things to buy (dock/subs.ts says what each does). */
+export const SUB_ITEMS = SUBS.map(({ id, name, price }) => ({ id, name, price }));
+
+/** What goes on the front of his submarine. */
+export const NOSES = [
+  { id: 'round', name: 'Round Nose', price: 0 },
+  { id: 'bumper', name: 'Bumper', price: 5 },
+  { id: 'pointy', name: 'Pointy Nose', price: 8 },
+  { id: 'scoop', name: 'Scoop Net', price: 12 },
+  { id: 'drill', name: 'Drill Nose', price: 15 },
+  { id: 'saw', name: 'Saw Nose', price: 20 },
+  { id: 'narwhal', name: 'Narwhal Tusk', price: 25 },
+  { id: 'hammer', name: 'Hammerhead', price: 30 },
+  { id: 'rocket', name: 'Rocket Nose', price: 35 },
+  { id: 'crystal', name: 'Crystal Nose', price: 45 },
+  { id: 'icebreaker', name: 'Ice Breaker', price: 50 },
+  { id: 'unicorn', name: 'Unicorn Horn', price: 60 },
+] as const satisfies readonly ItemDef[];
+/** What pushes him along at the back. */
+export const TAILS = [
+  { id: 'prop', name: 'Propeller', price: 0 },
+  { id: 'twin', name: 'Twin Propellers', price: 8 },
+  { id: 'ring', name: 'Ring Propeller', price: 12 },
+  { id: 'fish', name: 'Fish Tail', price: 15 },
+  { id: 'whale', name: 'Whale Tail', price: 20 },
+  { id: 'jet', name: 'Jet Engine', price: 25 },
+  { id: 'paddle', name: 'Paddle Wheel', price: 30 },
+  { id: 'mermaid', name: 'Mermaid Tail', price: 35 },
+  { id: 'bubblejets', name: 'Bubble Jets', price: 40 },
+  { id: 'boosters', name: 'Rocket Boosters', price: 50 },
+  { id: 'rainbowjet', name: 'Rainbow Jet', price: 65 },
+] as const satisfies readonly ItemDef[];
+/** The fins at the back, above and below. */
+export const FINS = [
+  { id: 'little', name: 'Little Fins', price: 0 },
+  { id: 'big', name: 'Big Fins', price: 6 },
+  { id: 'round', name: 'Round Fins', price: 8 },
+  { id: 'wing', name: 'Wing Fins', price: 10 },
+  { id: 'spiky', name: 'Spiky Fins', price: 14 },
+  { id: 'shark', name: 'Shark Fins', price: 18 },
+  { id: 'ray', name: 'Ray Wings', price: 24 },
+  { id: 'butterfly', name: 'Butterfly Fins', price: 30 },
+  { id: 'dragon', name: 'Dragon Wings', price: 40 },
+  { id: 'gold', name: 'Gold Fins', price: 50 },
+  { id: 'glow', name: 'Glow Fins', price: 60 },
+] as const satisfies readonly ItemDef[];
+/** What sits on top (the sonar dish and the camera go on top of it). */
+export const TOPS = [
+  { id: 'tower', name: 'Tower', price: 0 },
+  { id: 'hatch', name: 'Little Hatch', price: 5 },
+  { id: 'dome', name: 'Glass Dome', price: 10 },
+  { id: 'tall', name: 'Tall Tower', price: 12 },
+  { id: 'flag', name: 'Flag Tower', price: 15 },
+  { id: 'nest', name: "Crow's Nest", price: 20 },
+  { id: 'antenna', name: 'Big Antenna', price: 25 },
+  { id: 'castle', name: 'Castle Tower', price: 30 },
+  { id: 'lighthouse', name: 'Lighthouse Top', price: 35 },
+  { id: 'party', name: 'Party Hat', price: 40 },
+  { id: 'crown', name: 'Crown', price: 50 },
+] as const satisfies readonly ItemDef[];
 
 const rungs = <const N extends readonly string[]>(names: N, prices: readonly number[]) =>
   names.map((name, i) => ({ id: `r${i}`, name: name as N[number], price: i === 0 ? 0 : prices[i - 1]!, rung: i }));
@@ -55,6 +124,8 @@ export const FLASHES = rungs(['No Flash', 'Camera Flash', 'Double Flash', 'Tripl
 
 export const PAINTS = [
   { id: 'yellow', name: 'Sub Yellow', price: 0, color: '#ffd23f' },
+  /** Each submarine in its own colours (dock/subs.ts): a new submarine wears this. */
+  { id: 'own', name: 'Its Own Colors', price: 0, color: '#ffd23f', pattern: 'own' },
   { id: 'orange', name: 'Orange', price: 4, color: '#ff8a1a' },
   { id: 'red', name: 'Red', price: 4, color: '#e8323a' },
   { id: 'lime', name: 'Lime', price: 4, color: '#8fe03a' },
@@ -79,6 +150,16 @@ export const PAINTS = [
   { id: 'rainbow', name: 'Rainbow', price: 18, color: '#e8323a', pattern: 'rainbow' },
   { id: 'galaxy', name: 'Galaxy', price: 20, color: '#2a1550', color2: '#ffffff', pattern: 'galaxy' },
   { id: 'chrome', name: 'Chrome', price: 20, color: '#d8dee6', color2: '#7a8a9a', pattern: 'chrome' },
+  { id: 'polka', name: 'Polka Dots', price: 12, color: '#ff6fb5', color2: '#ffffff', pattern: 'polka' },
+  { id: 'camo', name: 'Camo', price: 16, color: '#6a7a3a', color2: '#3a4a24', pattern: 'camo' },
+  { id: 'tiger', name: 'Tiger Stripes', price: 18, color: '#ff8a1a', color2: '#141414', pattern: 'tiger' },
+  { id: 'candy', name: 'Candy Cane', price: 20, color: '#ffffff', color2: '#e8323a', pattern: 'candy' },
+  { id: 'flames', name: 'Flames', price: 22, color: '#2a2a34', color2: '#ff8a1a', pattern: 'flames' },
+  { id: 'sunset', name: 'Sunset', price: 24, color: '#ff8a1a', color2: '#9a5aff', pattern: 'sunset' },
+  { id: 'starry', name: 'Starry Night', price: 26, color: '#1a2a6a', color2: '#ffe95a', pattern: 'starry' },
+  { id: 'lava', name: 'Lava', price: 30, color: '#3a1410', color2: '#ff5a1a', pattern: 'lava' },
+  { id: 'goldchrome', name: 'Gold Chrome', price: 40, color: '#f0c840', color2: '#a07810', pattern: 'chrome' },
+  { id: 'diamond', name: 'Diamond', price: 50, color: '#d8f4ff', color2: '#ffffff', pattern: 'diamond' },
 ] as const satisfies readonly ItemDef[];
 
 /** Glow Stripes: lines on his submarine that glow in the dark sea. */
@@ -99,6 +180,10 @@ export const STRIPES = [
   { id: 'rainbow', name: 'Rainbow Glow', price: 22, color: '#ff5a5a', pattern: 'rainbow' },
   { id: 'firefly', name: 'Firefly Sparkle', price: 25, color: '#c8ff5a', pattern: 'sparkle' },
   { id: 'aurora', name: 'Aurora', price: 30, color: '#5affb0', pattern: 'aurora' },
+  { id: 'gold', name: 'Gold Stripe', price: 20, color: '#ffd23f', pattern: 'band' },
+  { id: 'icewave', name: 'Ice Wave', price: 24, color: '#d8f4ff', pattern: 'wave' },
+  { id: 'purpledots', name: 'Purple Dots', price: 26, color: '#c89aff', pattern: 'dots' },
+  { id: 'redbolt', name: 'Red Lightning', price: 35, color: '#ff5a5a', pattern: 'bolt' },
 ] as const satisfies readonly ItemDef[];
 
 /** The colour of his headlight beam. */
@@ -117,6 +202,10 @@ export const BEAMS = [
   { id: 'gold', name: 'Gold Light', price: 14, color: '#ffd27a' },
   { id: 'ice', name: 'Ice Light', price: 16, color: '#d8f4ff' },
   { id: 'rainbow', name: 'Rainbow Light', price: 25, color: '#ffb0f0', pattern: 'rainbow' },
+  { id: 'mint', name: 'Mint Light', price: 18, color: '#b0ffe0' },
+  { id: 'sunset', name: 'Sunset Light', price: 20, color: '#ff9a6a' },
+  { id: 'moon', name: 'Moon Light', price: 22, color: '#e8e8ff' },
+  { id: 'lava', name: 'Lava Light', price: 28, color: '#ff6a3a' },
 ] as const satisfies readonly ItemDef[];
 
 /** His horn: what it sounds like (dive/sounds.ts plays each). On a Dive a toot makes the animals near him wiggle: sound makes things move. */
@@ -133,6 +222,11 @@ export const HORNS = [
   { id: 'robot', name: 'Robot Beeps', price: 18 },
   { id: 'tune', name: 'Sea Tune', price: 22 },
   { id: 'silly', name: 'Silly Horn', price: 25 },
+  { id: 'siren', name: 'Siren', price: 28 },
+  { id: 'laser', name: 'Laser Zap', price: 30 },
+  { id: 'drum', name: 'Drum Roll', price: 32 },
+  { id: 'sealion', name: 'Sea Lion Bark', price: 35 },
+  { id: 'icecream', name: 'Ice Cream Song', price: 40 },
 ] as const satisfies readonly ItemDef[];
 
 /** Who rides in the window. */
@@ -154,6 +248,16 @@ export const BUDDIES = [
   { id: 'robot', name: 'Robot', price: 45, emoji: '🤖' },
   { id: 'alien', name: 'Alien', price: 55, emoji: '👽' },
   { id: 'dragon', name: 'Dragon', price: 75, emoji: '🐲' },
+  { id: 'bunny', name: 'Bunny', price: 36, emoji: '🐰' },
+  { id: 'fox', name: 'Fox', price: 40, emoji: '🦊' },
+  { id: 'panda', name: 'Panda', price: 45, emoji: '🐼' },
+  { id: 'koala', name: 'Koala', price: 48, emoji: '🐨' },
+  { id: 'monkey', name: 'Monkey', price: 50, emoji: '🐵' },
+  { id: 'owl', name: 'Owl', price: 55, emoji: '🦉' },
+  { id: 'lion', name: 'Lion', price: 60, emoji: '🦁' },
+  { id: 'tiger', name: 'Tiger', price: 65, emoji: '🐯' },
+  { id: 'dino', name: 'Dinosaur', price: 80, emoji: '🦖' },
+  { id: 'unicorn', name: 'Unicorn', price: 90, emoji: '🦄' },
 ] as const satisfies readonly ItemDef[];
 
 /** What streams out behind him. */
@@ -170,6 +274,10 @@ export const TRAILS = [
   { id: 'notes', name: 'Music Notes', price: 20, color: '#c89aff', pattern: 'notes' },
   { id: 'fish', name: 'Little Fish', price: 25, color: '#ffb02e', pattern: 'fish' },
   { id: 'comet', name: 'Comet Tail', price: 30, color: '#ffe95a', pattern: 'comet' },
+  { id: 'gold', name: 'Gold Bubbles', price: 22, color: '#ffd23f', pattern: 'sparkle' },
+  { id: 'purple', name: 'Purple Bubbles', price: 16, color: '#c89aff' },
+  { id: 'ice', name: 'Ice Bubbles', price: 18, color: '#e8f8ff', pattern: 'sparkle' },
+  { id: 'fire', name: 'Fire Bubbles', price: 35, color: '#ff7a3a', pattern: 'comet' },
 ] as const satisfies readonly ItemDef[];
 
 /** Things for the Dock, where his submarine waits. */
@@ -204,9 +312,20 @@ export const DOCK_THINGS = [
   { id: 'rocket', name: 'Rocket', price: 40, emoji: '🚀' },
   { id: 'ship', name: 'Big Ship', price: 50, emoji: '🚢' },
   { id: 'castle', name: 'Sand Castle', price: 60, emoji: '🏰' },
+  { id: 'stonehead', name: 'Stone Head', price: 35, emoji: '🗿' },
+  { id: 'island', name: 'Little Island', price: 40, emoji: '🏝️' },
+  { id: 'heli', name: 'Helicopter', price: 45, emoji: '🚁' },
+  { id: 'tent', name: 'Circus Tent', price: 50, emoji: '🎪' },
+  { id: 'volcano', name: 'Volcano', price: 55, emoji: '🌋' },
+  { id: 'cruise', name: 'Cruise Ship', price: 65, emoji: '🛳️' },
+  { id: 'carousel', name: 'Carousel', price: 70, emoji: '🎠' },
+  { id: 'ufo', name: 'Flying Saucer', price: 75, emoji: '🛸' },
+  { id: 'ferris', name: 'Ferris Wheel', price: 85, emoji: '🎡' },
+  { id: 'coaster', name: 'Roller Coaster', price: 100, emoji: '🎢' },
 ] as const satisfies readonly ItemDef[];
 
 export const CATALOGUE: Readonly<Record<Tab, readonly ItemDef[]>> = {
+  sub: SUB_ITEMS, nose: NOSES, tail: TAILS, fins: FINS, top: TOPS,
   hull: HULLS, lights: LIGHTS, sonar: SONARS, motor: MOTORS, claw: CLAWS, flash: FLASHES, paint: PAINTS, stripes: STRIPES, beam: BEAMS,
   horn: HORNS, buddy: BUDDIES, trail: TRAILS, dock: DOCK_THINGS,
 };
@@ -222,5 +341,5 @@ export const infoOf = (k: ItemKey): ItemDef => BY_KEY.get(k)!;
 /** What he starts with: every free thing. */
 export const STARTERS: readonly ItemKey[] = ALL_KEYS.filter(k => infoOf(k).price === 0);
 type Named = typeof HULLS | typeof LIGHTS | typeof SONARS | typeof MOTORS | typeof CLAWS | typeof FLASHES;
-export type ItemName = (typeof PAINTS | typeof STRIPES | typeof BEAMS | typeof HORNS | typeof BUDDIES | typeof TRAILS | typeof DOCK_THINGS)[number]['name'] | Named[number]['name'];
+export type ItemName = SubName | (typeof NOSES | typeof TAILS | typeof FINS | typeof TOPS)[number]['name'] | (typeof PAINTS | typeof STRIPES | typeof BEAMS | typeof HORNS | typeof BUDDIES | typeof TRAILS | typeof DOCK_THINGS)[number]['name'] | Named[number]['name'];
 export const ALL_NAMES = ALL_KEYS.map(k => infoOf(k).name);

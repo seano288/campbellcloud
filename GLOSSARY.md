@@ -597,7 +597,7 @@ it is traced by the same ray code (`science/optics.ts`) that decides the answer.
 **Rings**: the circles drawn round a sound, big for loud and small for quiet, so a sound question never depends on the iPad's volume.
 
 **Dock**: Deep Light's Garage: his submarine out of the water, the things he has bought for the Dock along the pier, the map of the
-eight zones, the big Dive button, and the tray of parts.
+ten zones, the big Dive button, and the tray of parts.
 _Avoid_: garage, harbour (fine to say, but the screen is the Dock)
 
 **Part (Deep Light)**: one Rung on a slot that changes the Dive: the **Hull** (how deep he can go: each Rung opens deeper zones), the
@@ -606,9 +606,15 @@ _Avoid_: garage, harbour (fine to say, but the screen is the Dock)
 photographs everything near). **Paint**, **Glow Stripes**, **Light Colors**, **Horns**, the **Buddy** in the window and **Bubble
 Trails** change how he looks and sounds; **Dock things** stand on the pier.
 
-**Zone**: one of eight places to dive, each darker than the last: the Sunlit Reef, the Twilight Zone, the Shipwreck, the Midnight Zone,
-the Crystal Cave, the Hot Vents, Under the Ice and the Deep Trench. Each opens when his submarine has the parts it needs (a Hull Rung,
-and for the Shipwreck, the Crystal Cave and Under the Ice a Claw, Sonar or Headlights Rung).
+**Submarine (Deep Light)**: which one he dives in: the free Explorer Sub or one of eleven he buys (Mini, Duck, Bubble, Torpedo, Turtle,
+Manta, Whale, Shark, Angler, Octo, Dragon), each with its own **trick** on a Dive. He **builds** each from a **Nose**, **Tail**,
+**Fins** and **Top**, and each keeps its own build and looks; the Parts that open zones are shared by all of them.
+_Avoid_: boat, ship, vehicle
+
+**Zone**: one of ten places to dive: the Sunlit Reef, the Kelp Forest, the Twilight Zone, the Shipwreck, the Open Ocean, the Midnight
+Zone, the Crystal Cave, the Hot Vents, Under the Ice and the Deep Trench. Each opens when his submarine has the parts it needs (a Hull
+Rung to go deeper, and for the Shipwreck, the Crystal Cave and Under the Ice a Claw, Sonar or Headlights Rung; the Kelp Forest and the
+Open Ocean are shallow but far, so they need a Motor Rung instead).
 _Avoid_: level, world
 
 **Dive**: what a finished Round earns (he starts with one): about a minute in a zone's dark sea, steering with a held finger, seeing only
@@ -620,7 +626,7 @@ _Avoid_: trip, mission, level
 **Ping**: Sonar's sound going out in a ring; everything it passes, lit or not, shows its **outline** for a moment. Sound finding what
 light can't.
 
-**Logbook**: every animal he has photographed, a page for each zone; tapping one says its name and one true fact. About sixty real
+**Logbook**: every animal he has photographed, a page for each zone; tapping one says its name and one true fact. About seventy-five real
 animals, each fact checked against the page in `sea/animals.ts`.
 _Avoid_: collection, album
 

@@ -4,7 +4,7 @@ import { useEffect, useRef } from 'preact/hooks';
 import type { SubLook } from '../dock/dock';
 import { animal } from '../sea/animals';
 import { CREATURE_BOX, drawCreature, glowAt } from './creatures';
-import { drawSub, SUB_BOX } from './sub';
+import { drawSub } from './sub';
 
 /** A picture drawn on a canvas at the size it's shown, and drawn again when that size (or `k`, what it shows) changes. */
 export function CanvasArt({ paint, k, class: cls = '', label }: { paint(ctx: CanvasRenderingContext2D, w: number, h: number): void; k: string; class?: string; label?: string }) {
@@ -28,10 +28,32 @@ export function CanvasArt({ paint, k, class: cls = '', label }: { paint(ctx: Can
   return <canvas ref={ref} class={cls} role={label ? 'img' : undefined} aria-label={label} aria-hidden={label ? undefined : 'true'} />;
 }
 
+const subBounds = new Map<string, { cx: number; cy: number; w: number; h: number }>();
+/**
+ * Where a submarine's drawing actually is, in its own units: drawn once small and the pixels it covered measured, as the animals are,
+ * since a Torpedo Sub with a Narwhal Tusk is far longer than a Mini Sub with a Round Nose. A little room is kept round it, and never less
+ * than the Explorer Sub's box, so a small submarine isn't blown up bigger than the one he started with.
+ */
+function boundsOfSub(look: SubLook, key: string) {
+  let b = subBounds.get(key);
+  if (b) return b;
+  const S = 0.5, W = 640, H = 560, c = document.createElement('canvas');
+  c.width = W * S; c.height = H * S;
+  const ctx = c.getContext('2d', { willReadFrequently: true })!;
+  ctx.scale(S, S); ctx.translate(W / 2, H / 2); drawSub(ctx, look, 0.4);
+  const px = ctx.getImageData(0, 0, c.width, c.height).data;
+  let x0 = c.width, y0 = c.height, x1 = 0, y1 = 0;
+  for (let y = 0; y < c.height; y++) for (let x = 0; x < c.width; x++) if (px[(y * c.width + x) * 4 + 3]! > 24) { if (x < x0) x0 = x; if (x > x1) x1 = x; if (y < y0) y0 = y; if (y > y1) y1 = y; }
+  const raw = x1 > x0 ? { cx: (x0 + x1 + 1) / 2 / S - W / 2, cy: (y0 + y1 + 1) / 2 / S - H / 2, w: (x1 - x0 + 1) / S, h: (y1 - y0 + 1) / S } : { cx: 0, cy: 10, w: 300, h: 260 };
+  b = { ...raw, w: Math.max(260, raw.w + 24), h: Math.max(200, raw.h + 24) };
+  subBounds.set(key, b);
+  return b;
+}
+
 /** Draws the submarine to fit a w×h box, centred. */
 export function paintSub(ctx: CanvasRenderingContext2D, look: SubLook, w: number, h: number, t = 0) {
-  const k = Math.min(w / SUB_BOX.w, h / SUB_BOX.h);
-  ctx.save(); ctx.translate(w / 2, h / 2 + SUB_BOX.cy * k); ctx.scale(k, k);
+  const b = boundsOfSub(look, JSON.stringify(look)), k = Math.min(w / b.w, h / b.h);
+  ctx.save(); ctx.translate(w / 2, h / 2); ctx.scale(k, k); ctx.translate(-b.cx, -b.cy);
   drawSub(ctx, look, t);
   ctx.restore();
 }

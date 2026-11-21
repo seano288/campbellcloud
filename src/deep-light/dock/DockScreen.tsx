@@ -1,8 +1,9 @@
 // The Dock: his submarine out of the water (the one he'll dive in), the things he has bought for the Dock along the pier, the map of
-// the eight places to dive (each opens when his submarine has the parts it needs), the big Dive button and the parts tray. He picks a
+// the ten places to dive (each opens when his submarine has the parts it needs), the big Dive button and the parts tray. He picks a
 // tab and taps a tile: one he owns goes on his submarine; one he doesn't goes on it to try (the submarine on the Dock shows it), with
 // Buy beside it, so he sees it before he spends. As in Hook and Ladder's Station, the Goal is the cheapest part that helps on a Dive,
-// or the one he tapped and couldn't afford.
+// or the one he tapped and couldn't afford. The first tab picks which submarine he dives in (each says its trick), and the next four
+// build it; each submarine keeps its own build.
 import { useEffect, useMemo, useState } from 'preact/hooks';
 import { sChime, sClink, sFanfare, sNope } from '../../audio/sfx';
 import { confetti } from '../../celebrate/effects';
@@ -18,16 +19,20 @@ import { horn } from '../sounds';
 import { useVoice } from '../voice';
 import { ZONES, type ZoneId } from '../sea/zones';
 import { allOwned, diveZone, fit, goalOf, isFitted, isOwned, lookOf, openZones, pickZone, priceOf, selectGoal, zoneOpen, type DockState } from './dock';
+import { isSubId, subDef } from './subs';
 import { CATALOGUE, CLAW_REACH, DOCK_THINGS, FLASH_COUNT, idOf, infoOf, keyOf, LIGHT_REACH, MOTOR_SPEED, SONAR_RANGE, TAB_NAMES, TABS, tabOf, type ItemKey, type Tab } from './parts';
 
-export const TAB_ICONS: Record<Tab, string> = { hull: '🛡️', lights: '🔦', sonar: '📡', motor: '⚙️', claw: '🦾', flash: '📸', paint: '🎨', stripes: '✨', beam: '💡', horn: '📯', buddy: '🐠', trail: '🫧', dock: '⚓' };
+export const TAB_ICONS: Record<Tab, string> = { sub: '🚢', nose: '👃', tail: '🌀', fins: '🦈', top: '🎩', hull: '🛡️', lights: '🔦', sonar: '📡', motor: '⚙️', claw: '🦾', flash: '📸', paint: '🎨', stripes: '✨', beam: '💡', horn: '📯', buddy: '🐠', trail: '🫧', dock: '⚓' };
 const n = (x: number): Phrase => `${Math.min(x, NUMBERS_TO)}` as Phrase;
+/** What a submarine does, said with its name. */
+const trickOf = (k: ItemKey): Phrase[] => { const id = idOf(k); return tabOf(k) === 'sub' && isSubId(id) && subDef(id).trick ? [subDef(id).trick!] : []; };
+const BUILD_TABS: readonly Tab[] = ['sub', 'nose', 'tail', 'fins', 'top'];
 const bars = (rung: number, of: number) => <b class="rung-bars">{Array.from({ length: of }, (_, i) => <i class={i <= rung ? 'on' : ''} />)}</b>;
 
 /** What a tile shows: his submarine wearing it (paint and stripes), a swatch, or the part's icon and how good it is. */
 function TilePic({ k, st }: { k: ItemKey; st: DockState }) {
   const tab = tabOf(k), info = infoOf(k), rung = info.rung ?? 0;
-  if (tab === 'paint' || tab === 'stripes') return <img class="part-pic" src={subImage(lookOf(st, k))} alt="" draggable={false} />;
+  if (tab === 'paint' || tab === 'stripes' || tab === 'sub' || tab === 'nose' || tab === 'tail' || tab === 'fins' || tab === 'top') return <img class="part-pic" src={subImage(lookOf(st, k))} alt="" draggable={false} />;
   if (tab === 'beam') return <span class="swatch beam" style={{ background: info.color, boxShadow: `0 0 16px 6px ${info.color}` }} />;
   if (tab === 'trail') return <span class="swatch trail" style={{ borderColor: info.color }} />;
   if (tab === 'hull') return <span class="tile-emo">🛡️{bars(rung, CATALOGUE.hull.length)}</span>;
@@ -42,7 +47,7 @@ function TilePic({ k, st }: { k: ItemKey; st: DockState }) {
 
 export function DockScreen() {
   const voice = useVoice(), state = player.state.value, balance = state.currency.balance, st = state.dock;
-  const [tab, setTab] = useState<Tab>('hull'), [trial, setTrial] = useState<ItemKey | null>(null), [blocked, setBlocked] = useState(false), [wiggle, setWiggle] = useState(false);
+  const [tab, setTab] = useState<Tab>('sub'), [trial, setTrial] = useState<ItemKey | null>(null), [blocked, setBlocked] = useState(false), [wiggle, setWiggle] = useState(false);
   const look = useMemo(() => lookOf(st, trial), [st, trial]), goal = goalOf(st), next = diveZone(st);
   const things = DOCK_THINGS.filter(t => isOwned(st, keyOf('dock', t.id)) || trial === keyOf('dock', t.id));
 
@@ -61,7 +66,7 @@ export function DockScreen() {
   function celebrate(k: ItemKey, before: readonly ZoneId[]) {
     setBlocked(true); sFanfare(); confetti(36, voice.signal);
     const better = BETTER[tabOf(k) as keyof typeof BETTER], opened = openZones(player.state.peek().dock).some(z => !before.includes(z));
-    void voice.say('You got', infoOf(k).name as Phrase, ...(better ? [better] : []), ...(opened ? ['A new place to dive!' as const] : [])).then(() => { if (voice.active) setBlocked(false); });
+    void voice.say('You got', infoOf(k).name as Phrase, ...trickOf(k), ...(better ? [better] : []), ...(opened ? ['A new place to dive!' as const] : [])).then(() => { if (voice.active) setBlocked(false); });
     setTimeout(() => { if (voice.active) setBlocked(false); }, 3500); // a stalled voice never freezes the screen
   }
   function tap(k: ItemKey) {
@@ -71,13 +76,13 @@ export function DockScreen() {
       setTrial(null);
       if (!isFitted(st, k)) updateDock(s => fit(s, k));
       if (tabOf(k) !== 'horn') sClink();
-      void voice.say(infoOf(k).name as Phrase);
+      void voice.say(infoOf(k).name as Phrase, ...trickOf(k));
       return;
     }
     setTrial(k);
     if (tabOf(k) !== 'horn') sChime();
     const price = priceOf(k);
-    void voice.say(infoOf(k).name as Phrase, 'It costs', n(price), 'Bolts.', ...(balance < price ? ['You need' as const, n(price - balance), 'more Bolts.' as const] : []));
+    void voice.say(infoOf(k).name as Phrase, ...trickOf(k), 'It costs', n(price), 'Bolts.', ...(balance < price ? ['You need' as const, n(price - balance), 'more Bolts.' as const] : []));
   }
   function buyTrial() {
     if (!trial || !voice.active || blocked) return;
@@ -147,7 +152,7 @@ export function DockScreen() {
         </section>
         <section class="parts-side">
           <div class="dl-tabs" role="tablist">
-            {TABS.map(t => <button key={t} role="tab" aria-selected={t === tab} aria-label={TAB_NAMES[t]} class={`dl-tab ${t === tab ? 'on' : ''}`} onClick={() => pickTab(t)}><span aria-hidden="true">{TAB_ICONS[t]}</span></button>)}
+            {TABS.map(t => <button key={t} role="tab" aria-selected={t === tab} aria-label={TAB_NAMES[t]} class={`dl-tab ${t === tab ? 'on' : ''} ${BUILD_TABS.includes(t) ? 'build' : ''}`} onClick={() => pickTab(t)}>{t === 'sub' ? <img class="tab-sub" src={subImage(lookOf(st), 96, 64)} alt="" draggable={false} /> : <span aria-hidden="true">{TAB_ICONS[t]}</span>}</button>)}
           </div>
           <div class="dl-tray">
             {keys.map(k => {

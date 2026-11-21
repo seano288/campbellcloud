@@ -101,7 +101,7 @@ export function flash(s: DiveState): boolean {
 }
 /** The horn: the animals near him wiggle (sound makes things move). */
 export function horn(s: DiveState) {
-  for (const m of s.animals) if (Math.hypot(m.x - s.sub.x, m.y - s.sub.y) < 520) m.wiggle = 1;
+  for (const m of s.animals) if (Math.hypot(m.x - s.sub.x, m.y - s.sub.y) < s.gear.horn) m.wiggle = 1;
 }
 
 // ---------- the light ----------
@@ -111,7 +111,7 @@ const wrap = (a: number) => Math.atan2(Math.sin(a), Math.cos(a));
 export function inBeam(s: Pick<DiveState, 'sub' | 'gear'>, x: number, y: number, pad = 0): boolean {
   const dx = x - s.sub.x, dy = y - s.sub.y, d = Math.hypot(dx, dy);
   if (d > s.gear.reach + pad) return false;
-  if (d < 60 + pad) return true; // right against the window
+  if (d < Math.max(60, s.gear.ring) + pad) return true; // right against the window, or in the light all around it
   return Math.abs(wrap(Math.atan2(dy, dx) - s.sub.aim)) < s.gear.half + Math.atan2(pad, d);
 }
 
@@ -137,14 +137,14 @@ export function step(s: DiveState, dt: number) {
     // it slows as it nears his finger, sooner the faster its Motor, so a fast submarine doesn't overshoot and turn round
     if (d > 8) { const v = g.speed * Math.min(1, d / Math.max(140, g.speed * 0.5)); want = { x: (dx / d) * v, y: (dy / d) * v }; }
   }
-  const k = Math.min(1, dt * 3.2);
+  const k = Math.min(1, dt * 3.2 * g.turn);
   sub.vx += (want.x - sub.vx) * k; sub.vy += (want.y - sub.vy) * k;
   sub.x += sub.vx * dt; sub.y += sub.vy * dt;
   // the light points where he's heading (where his finger is), and stays put while he's still
   const sp = Math.hypot(sub.vx, sub.vy);
   if (s.target && s.phase === 'dive') {
     const toward = Math.atan2(s.target.y - sub.y, s.target.x - sub.x);
-    if (Math.hypot(s.target.x - sub.x, s.target.y - sub.y) > 30) sub.aim += wrap(toward - sub.aim) * Math.min(1, dt * 6);
+    if (Math.hypot(s.target.x - sub.x, s.target.y - sub.y) > 30) sub.aim += wrap(toward - sub.aim) * Math.min(1, dt * 6 * g.turn);
   } else if (sp > 40) sub.aim += wrap(Math.atan2(sub.vy, sub.vx) - sub.aim) * Math.min(1, dt * 3);
   // the submarine faces where its light points (its headlights are on its nose): facing by its speed, it could be drawn looking one
   // way with its beam coming out of its tail
@@ -174,7 +174,7 @@ export function step(s: DiveState, dt: number) {
     if (lit && !m.lit && !m.done) s.events.push(`lit:${m.a.id}`);
     m.lit = lit;
     if (m.done || s.phase === 'done') continue;
-    if (lit && s.phase === 'dive') { m.photo += dt / HOLD_S; if (m.photo >= 1) snap(s, m); }
+    if (lit && s.phase === 'dive') { m.photo += dt / (HOLD_S * s.gear.snap); if (m.photo >= 1) snap(s, m); }
     else m.photo = Math.max(0, m.photo - dt * 0.6);
   }
 

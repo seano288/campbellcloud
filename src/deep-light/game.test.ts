@@ -12,6 +12,7 @@ import {
   allOwned, diveAnimals, diveZone, finishDive, fit, freshDock, gearOf, goalOf, isFitted, lookOf, openZones, pickZone, proposePurchase, readDock, TREASURE_BOLTS, TREASURES, zoneOpen,
 } from './dock/dock';
 import { ALL_KEYS, ALL_NAMES, CATALOGUE, FITTED, infoOf, keyOf, RUNGED, STARTERS, TABS, type ItemKey } from './dock/parts';
+import { SUBS, subDef } from './dock/subs';
 import { seeded } from '../game/rng';
 
 const store = (state: DeepGame = deepSave.fresh()) => ({
@@ -67,11 +68,14 @@ describe('a Round', () => {
 });
 
 describe('the Dock', () => {
-  it('has about 150 things to earn, every price under the 100 the voice can say, and every starter free', () => {
+  it('has much more than the 150 things for 2,775 Bolts it started with (now about 250 for over 6,000), every price under the 100 the voice can say, and every starter free', () => {
     const buyable = ALL_KEYS.filter(k => infoOf(k).price > 0);
-    expect(buyable.length).toBeGreaterThanOrEqual(140);
+    expect(buyable.length).toBeGreaterThanOrEqual(240);
+    expect(buyable.reduce((n, k) => n + infoOf(k).price, 0)).toBeGreaterThanOrEqual(2 * 2775);
     for (const k of ALL_KEYS) { expect(infoOf(k).price).toBeLessThanOrEqual(NUMBERS_TO); expect(Number.isInteger(infoOf(k).price)).toBe(true); }
-    for (const t of FITTED) expect(STARTERS.filter(k => k.startsWith(`${t}:`)).length).toBe(1);
+    // one free thing in each tab, and in Paint a second: Its Own Colors, which a new submarine wears
+    for (const t of FITTED) expect(STARTERS.filter(k => k.startsWith(`${t}:`)).length).toBe(t === 'paint' ? 2 : 1);
+    expect(STARTERS.filter(k => k.startsWith('sub:'))).toEqual(['sub:explorer']);
   });
   it('names every item once (each is said aloud on its own)', () => {
     expect(new Set(ALL_NAMES).size).toBe(ALL_NAMES.length);
@@ -123,6 +127,12 @@ describe('zones and Dives', () => {
     expect(zoneOpen(hull(3), 'cave')).toBe(false);
     expect(zoneOpen(hull(5), 'ice')).toBe(false);
     expect(zoneOpen(hull(6), 'trench')).toBe(true);
+    // the Kelp Forest and the Open Ocean are shallow but far: a faster Motor opens them, not a Hull
+    const motor = (n: number) => ({ ...freshDock(), owned: [...STARTERS, ...Array.from({ length: n }, (_, i) => `motor:r${i + 1}` as ItemKey)] });
+    expect(zoneOpen(hull(6), 'kelp')).toBe(false);
+    expect(zoneOpen(motor(1), 'kelp')).toBe(true);
+    expect(zoneOpen(motor(2), 'open')).toBe(false);
+    expect(zoneOpen(motor(3), 'open')).toBe(true);
   });
   it('dives where he picked, else the deepest open zone with animals he has not met', () => {
     const d = { ...freshDock(), owned: [...STARTERS, 'hull:r1', 'hull:r2'] as ItemKey[] };
@@ -158,8 +168,78 @@ describe('zones and Dives', () => {
     expect(settleDive(s, ['turtle'], 3)).toBeNull();
     expect(s.state.dock.photos).toEqual(['clownfish']);
   });
-  it('has about sixty animals to find, in every zone', () => {
-    expect(ANIMALS.length).toBeGreaterThanOrEqual(58);
+  it('has about seventy-five animals to find, in every zone', () => {
+    expect(ANIMALS.length).toBeGreaterThanOrEqual(74);
     for (const z of ZONES) expect(animalsIn(z.id).length).toBeGreaterThanOrEqual(6);
+  });
+});
+
+describe('his submarines', () => {
+  const rich = (d = freshDock()) => ({ ...d, owned: [...ALL_KEYS] });
+  it('he starts in the Explorer Sub, and every other one costs Bolts and does something of its own', () => {
+    expect(freshDock().sub).toBe('explorer');
+    for (const s of SUBS.slice(1)) { expect(s.price).toBeGreaterThan(0); expect(s.trick).not.toBeNull(); }
+    expect(new Set(SUBS.map(s => s.trick)).size).toBe(SUBS.length);
+  });
+  it('buying one puts him in it, in its own colours, with the starter pieces', () => {
+    const d = { ...freshDock(), fitted: { ...freshDock().fitted, hull: 'r1' }, owned: [...STARTERS, 'hull:r1', 'nose:drill'] as ItemKey[] };
+    const bought = proposePurchase(fit(d, 'nose:drill'), 'sub:shark', 100);
+    if (bought.kind !== 'ready') throw new Error('not bought');
+    expect(bought.state.sub).toBe('shark');
+    expect(bought.state.fitted.paint).toBe('own');
+    expect(bought.state.fitted.nose).toBe('round');
+    expect(bought.state.fitted.hull).toBe('r1'); // the parts are shared
+    expect(lookOf(bought.state).kind).toBe('shark');
+    expect(lookOf(bought.state).paint).toBe(subDef('shark').own.color);
+  });
+  it('each one keeps its own build when he switches between them', () => {
+    let d = rich();
+    d = fit(fit(fit(d, 'sub:duck'), 'top:party'), 'paint:red');
+    d = fit(fit(d, 'sub:shark'), 'nose:saw');
+    expect(d.fitted.top).toBe('tower');
+    d = fit(d, 'sub:duck');
+    expect(d.fitted.top).toBe('party');
+    expect(d.fitted.paint).toBe('red');
+    expect(d.fitted.nose).toBe('round');
+    expect(isFitted(d, 'sub:duck')).toBe(true);
+    d = fit(d, 'sub:shark');
+    expect(d.fitted.nose).toBe('saw');
+    // trying one shows it in its own build
+    expect(lookOf(d, 'sub:duck').top).toBe('party');
+    expect(lookOf(d, 'sub:duck').kind).toBe('duck');
+  });
+  it('can only pick one he owns', () => {
+    expect(fit(freshDock(), 'sub:dragon').sub).toBe('explorer');
+  });
+  it('its trick changes the Dive as it says, and never the zones', () => {
+    const in_ = (id: (typeof SUBS)[number]['id']) => gearOf(fit(rich(), keyOf('sub', id)));
+    const g = gearOf(rich());
+    expect(in_('torpedo').speed).toBeGreaterThan(g.speed);
+    expect(in_('mini').turn).toBeGreaterThan(g.turn);
+    expect(in_('duck').horn).toBeGreaterThan(g.horn);
+    expect(in_('bubble').ring).toBeGreaterThan(0);
+    expect(in_('turtle').flashes).toBe(g.flashes + 1);
+    expect(in_('manta').half).toBeGreaterThan(g.half);
+    expect(in_('whale').sonarRange).toBeGreaterThan(g.sonarRange);
+    expect(in_('shark').claw).toBeGreaterThan(g.claw);
+    expect(in_('angler').reach).toBeGreaterThan(g.reach);
+    expect(in_('octo').snap).toBeLessThan(g.snap);
+    const d = { ...freshDock(), owned: [...STARTERS, 'sub:dragon'] as ItemKey[] };
+    expect(openZones(fit(d, 'sub:dragon'))).toEqual(openZones(d));
+  });
+  it('the save keeps which one he dives in and every build, and forgets what he does not own', () => {
+    const d = fit(fit(fit(fit(rich(), 'sub:whale'), 'tail:jet'), 'sub:octo'), 'fins:glow');
+    const back = readDock(JSON.parse(JSON.stringify(d)));
+    expect(back.sub).toBe('octo');
+    expect(back.fitted.fins).toBe('glow');
+    expect(back.builds.whale?.tail).toBe('jet');
+    const poor = readDock({ ...JSON.parse(JSON.stringify(d)), owned: STARTERS });
+    expect(poor.sub).toBe('explorer');
+    expect(Object.keys(poor.builds)).toEqual(['explorer']); // the free one is always his
+    // a save from before there were submarines reads as the Explorer Sub, looking as it did
+    const old = readDock({ owned: [...STARTERS, 'paint:red'], fitted: { hull: 'r0', paint: 'red' } });
+    expect(old.sub).toBe('explorer');
+    expect(old.fitted.paint).toBe('red');
+    expect(old.fitted.nose).toBe('round');
   });
 });

@@ -132,6 +132,43 @@ Buddy) plus its extras (light colours, glow patterns, horns, camera flash); Bubb
 4), Under the Ice (Hull 5 and Headlights 3), the Deep Trench (Hull 6, 0.97). A Dive goes where he picked on the map, else the deepest
 open zone with an animal he hasn't photographed. Cheapest path to the trench: 268 Bolts of Hull; every zone needs 268 + 12 + 16 + 26.
 
+### More rewards, and his own submarines (2026-11-21)
+
+The parent asked to "increase the rewards and allow him to choose and build his own submarines". As in Rover Code, Treasure Fleet and
+the others, that was taken as **more to earn, not bigger payouts**: Round pay, treasure and every old price are unchanged. Defaults for
+the parent to confirm are marked ⚑.
+
+**Now: 249 things for 6,418 Bolts (was 150 for 2,775), 76 animals in ten zones (was 60 in eight), and 12 submarines to build.**
+
+- **Submarines** (`dock/subs.ts`, the first tab): the free Explorer Sub (the one he had), then Mini 15, Duck 20, Bubble 30, Torpedo 40,
+  Turtle 50, Manta 60, Whale 70, Shark 80, Angler 85, Octo 90 and Dragon 100. Each is drawn with its own body (`art/sub.ts`, a Frame of
+  where every piece joins it) and has a **trick** on a Dive, said when he taps it ⚑: Mini turns twice as quickly, Duck's horn reaches
+  twice as far, Bubble has a soft light all around it (210 units), Torpedo is 25% faster, Turtle has one more camera flash (even with
+  No Flash), Manta's light is 30% wider, Whale's sonar reaches 35% farther, Shark's claw 40% farther, Angler's light 25% farther, Octo
+  takes pictures in about half the time, Dragon is 15% faster and its light 15% farther. A trick never opens a zone and never pays more.
+- **Building** (`art/pieces.ts`): four new tabs, each piece drawn to fit every submarine. **Noses** 12 (Round free, Bumper 5 … Unicorn
+  Horn 60), **Tails** 11 (Propeller free … Rainbow Jet 65), **Fins** 11 (Little free … Glow Fins 60), **Tops** 11 (Tower free … Crown
+  50). Jets, boosters, the Crystal Nose, the Antenna, the Lighthouse Top and Glow Fins shine in the dark on a Dive.
+- **Each submarine keeps its own build and looks** (nose, tail, fins, top, paint, stripes, light colour, horn, buddy, bubbles): switching
+  submarines swaps them (`DockState.sub`, `builds`; `fitted` is always the one he dives in). The parts that open zones (Hull,
+  Headlights, Sonar, Motor, Claw, Flash) are shared by all. A new submarine comes in **Its Own Colors** (a new free Paint) with the
+  starter pieces ⚑. Buying a submarine puts him in it.
+- **More of the rest**: 11 paints (Polka Dots … Diamond 50), 4 glow stripes, 4 light colours, 5 horns (Siren, Laser Zap, Drum Roll, Sea
+  Lion Bark, Ice Cream Song), 10 buddies (Bunny 36 … Unicorn 90), 4 bubble trails, 10 Dock things (Stone Head 35 … Roller Coaster 100).
+- **Two zones** (`sea/zones.ts`), shallow and sunlit but far from the Dock, so they need a **faster Motor, not a Hull** ⚑ (a stronger
+  Hull still means deeper): **the Kelp Forest** (Motor 1, swaying kelp; Sea Otter, Garibaldi, Leopard Shark, California Sea Lion, Bat
+  Ray, Wolf Eel, Giant Sea Bass, California Sheephead) and **the Open Ocean** (Motor 3, sun rays and no rocks; Blue Whale, Whale Shark,
+  Sailfish, Ocean Sunfish, Flying Fish, Portuguese Man o' War, Leatherback Turtle, Yellowfin Tuna). Facts checked on 2026-11-21 against
+  the pages in `sea/animals.ts` (Monterey Bay Aquarium, NOAA, Oceana, the National Park Service, Wikipedia). New line: "You need a
+  faster Motor to go there!"
+- **Dock**: 18 tabs in two rows (the build row teal, the Submarines tab showing his submarine), the zone map ten wide (five on a phone).
+  Tiles and the Dock fit each submarine to its own size (`art/Pics.tsx` measures each drawing once).
+- **Save**: still version 1; an old save reads as the Explorer Sub looking exactly as it did. 156 new clips (Aria), not yet heard by a
+  person and not machine-transcribed (no recogniser on the Mac): listen first to the new animal names (Garibaldi, California Sheephead,
+  Portuguese Man o' War), Narwhal Tusk, Crow's Nest and Its Own Colors.
+- **Checks**: a test plays a Dive in every zone with every submarine, starter and best parts; `tools/deep-light/subs-sheet.ts` draws every
+  submarine and piece for checking by eye.
+
 **The Dive** (`dive/sim.ts`, `dive/draw.ts`, `dive/DiveScreen.tsx`): 2D canvas, about 60 seconds, then the submarine rises by itself.
 He holds a finger and the submarine follows it, its headlights pointing where it's going. Outside the cone the sea is dark (by the
 zone's darkness), so he sees only what his light touches, plus the animals that make their own light, whose glow shows in the dark (the

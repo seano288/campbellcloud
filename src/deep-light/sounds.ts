@@ -41,5 +41,10 @@ export function horn(id: (typeof HORNS)[number]['id']) {
   if (id === 'duck') { tone(620, 0.16, 'sawtooth', 0, 0.07, 380); tone(620, 0.16, 'sawtooth', 0.22, 0.07, 380); return; }
   if (id === 'robot') { [880, 660, 990, 550].forEach((f, i) => tone(f, 0.09, 'square', i * 0.1, 0.05)); return; }
   if (id === 'tune') { [392, 440, 494, 587, 494].forEach((f, i) => tone(f, 0.2, 'triangle', i * 0.18, 0.08)); return; }
+  if (id === 'siren') { for (let i = 0; i < 3; i++) tone(600, 0.3, 'sine', i * 0.3, 0.07, 1000); return; }
+  if (id === 'laser') { tone(1800, 0.25, 'square', 0, 0.05, 200); tone(1600, 0.2, 'sawtooth', 0.12, 0.03, 300); return; }
+  if (id === 'drum') { for (let i = 0; i < 8; i++) noise({ dur: 0.05, vol: 0.25 + i * 0.03, f: 300, when: i * 0.06 }); noise({ dur: 0.3, vol: 0.5, f: 200, when: 0.5 }); return; }
+  if (id === 'sealion') { for (let i = 0; i < 3; i++) { tone(260, 0.14, 'sawtooth', i * 0.22, 0.08, 180); noise({ dur: 0.1, vol: 0.15, f: 400, when: i * 0.22 }); } return; }
+  if (id === 'icecream') { [659, 784, 880, 784, 659, 523].forEach((f, i) => tone(f, 0.16, 'sine', i * 0.15, 0.07)); return; }
   tone(300, 0.25, 'triangle', 0, 0.08, 900); tone(900, 0.25, 'triangle', 0.25, 0.08, 250);
 }

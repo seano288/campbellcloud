@@ -7,6 +7,7 @@
 // and so are pictures whose name he needs ("wax paper", "a horn"); a picture that says itself (a lit cave, a shadow) is not.
 import { BOLT, earnedLine, type EarnedLine } from '../currency/kind';
 import { ALL_NAMES, TAB_NAMES, type ItemName } from './dock/parts';
+import { TRICKS, type Trick } from './dock/subs';
 import { LOCKED_HINTS, MODE_IDS, MODE_NAMES, type ModeName } from './learning';
 import {
   COPY_Q, FLASH_SAID, HELLO, KEY, KEY_LINE, KEY_Q, LIGHT_THINGS, LOUD_Q, MATERIALS, MIRROR_LINES, MIRROR_Q, MOON, OWN_ASK, PASS_SAID,
@@ -34,6 +35,7 @@ const DOCK = [
   'The Dock!', 'It costs', 'Bolts.', 'You need', 'more Bolts.', 'Play a Round to earn Bolts!', 'You got', 'You have everything!',
   'You have 1 Dive!', 'Dives!', 'Tap Dive!', 'Play a Round to earn a Dive!', 'You earned a Dive!', 'Next dive:', 'A new place to dive!',
   'You need a stronger Hull to go there!', 'You need a better Claw to go there!', 'You need better Sonar to go there!', 'You need brighter Headlights to go there!',
+  'You need a faster Motor to go there!',
   'You can dive deeper!', 'Your light reaches farther!', 'Your sonar reaches farther!', 'You go faster!', 'Your claw reaches farther!', 'Tap the camera to light up the sea!',
 ] as const;
 export const BETTER = {
@@ -42,6 +44,7 @@ export const BETTER = {
 } as const;
 export const NEEDS_LINE = {
   hull: 'You need a stronger Hull to go there!', claw: 'You need a better Claw to go there!', sonar: 'You need better Sonar to go there!', lights: 'You need brighter Headlights to go there!',
+  motor: 'You need a faster Motor to go there!',
 } as const;
 const DIVE = [
   'Down we go!', 'Hold your finger where you want to go!', 'Hold your light on it!', 'Click!', 'A new animal!', 'Treasure!', 'Time to go up!',
@@ -74,7 +77,7 @@ export type Phrase = (typeof GAME)[number] | (typeof CHEERS)[number] | EarnedPhr
   | typeof KEY_Q | typeof KEY_LINE | V<typeof SIGNAL_LINES>
   | (typeof TEACHING)[number]
   // the reward
-  | (typeof DOCK)[number] | (typeof DIVE)[number] | (typeof LOGBOOK)[number] | ItemName | V<typeof TAB_NAMES> | ZoneName | AnimalName | AnimalFact;
+  | (typeof DOCK)[number] | (typeof DIVE)[number] | (typeof LOGBOOK)[number] | Trick | ItemName | V<typeof TAB_NAMES> | ZoneName | AnimalName | AnimalFact;
 
 const uniq = <T,>(xs: readonly T[]) => [...new Set(xs)];
 const vals = <T extends object>(o: T) => Object.values(o) as V<T>[];
@@ -93,5 +96,5 @@ export const PHRASES = uniq<Phrase>([
   ...vals(HELLO).flatMap(h => [h.q, h.lesson]), ...SIGNAL_ITEMS.map(s => s.said), COPY_Q, ...vals(FLASH_SAID), ...KEY.map(k => k.said), KEY_Q, KEY_LINE, ...vals(SIGNAL_LINES),
   ...TEACHING,
   // the reward
-  ...DOCK, ...DIVE, ...LOGBOOK, ...(ALL_NAMES as ItemName[]), ...vals(TAB_NAMES), ...ZONES.map(z => z.name), ...ANIMALS.flatMap(a => [a.name, a.fact]),
+  ...DOCK, ...DIVE, ...LOGBOOK, ...TRICKS, ...(ALL_NAMES as ItemName[]), ...vals(TAB_NAMES), ...ZONES.map(z => z.name), ...ANIMALS.flatMap(a => [a.name, a.fact]),
 ]);
