@@ -55,6 +55,8 @@ export interface Car {
   readonly player: boolean;
   /** How far the motion points away from where the car does: skids when big. */
   slip: number;
+  /** A rival boxed in behind another car steers round it: the lane it swings out to, and for how long. */
+  dodge: number; dodgeT: number;
 }
 
 export type RaceEvent =
@@ -69,9 +71,11 @@ export interface Race {
   /** Car indexes in finishing order, filled as they cross. */
   order: number[];
   events: RaceEvent[];
-  /** His place now, 1 to 4. */
+  /** His place now, 1 to the number of cars. */
   place: number;
   readonly laps: number;
+  /** How the Rivals ease off when far ahead of him. */
+  readonly ease: Ease;
 }
 
 export interface Driver { readonly stats: CarStats; readonly pace?: number }
@@ -80,7 +84,7 @@ export interface Driver { readonly stats: CarStats; readonly pace?: number }
 export const progressOf = (r: Pick<Race, 'track'>, c: Car) => c.lap * r.track.length + c.along;
 
 /** Grid: his car at the back, rivals ahead of it in two lanes, all pointing round the track. */
-export function createRace(def: TrackDef, you: Driver, rivals: readonly Driver[], laps = LAPS): Race {
+export function createRace(def: TrackDef, you: Driver, rivals: readonly Driver[], laps = LAPS, ease: Ease = EASE): Race {
   const track = laid(def), n = track.pts.length;
   const cars: Car[] = [you, ...rivals].map((d, k) => {
     const back = (rivals.length - k) * 70 + 60; // he starts last, a car's length behind the one in front
@@ -89,10 +93,10 @@ export function createRace(def: TrackDef, you: Driver, rivals: readonly Driver[]
     return {
       x: p.x, y: p.y, vx: 0, vy: 0, heading: Math.atan2(dir.y, dir.x), spd: 0, i, lap: -1, along: track.at[i]!,
       boosts: d.stats.boosts, boosting: 0, finished: null, stats: d.stats, top, pace: d.pace ?? 1, lane: k === 0 ? 0 : (k % 2 ? -1 : 1) * (26 + k * 6),
-      boostAt: k === 0 ? Infinity : track.length * (.55 + k * .4), bumpCd: 0, player: k === 0, slip: 0,
+      boostAt: k === 0 ? Infinity : track.length * (.55 + k * .4), bumpCd: 0, player: k === 0, slip: 0, dodge: 0, dodgeT: 0,
     };
   });
-  const r: Race = { track, cars, t: 0, over: false, order: [], events: [], place: cars.length, laps };
+  const r: Race = { track, cars, t: 0, over: false, order: [], events: [], place: cars.length, laps, ease };
   r.place = placeOf(r, 0);
   return r;
 }
@@ -117,8 +121,12 @@ export interface Input {
 const wrap = (a: number) => { while (a > Math.PI) a -= Math.PI * 2; while (a < -Math.PI) a += Math.PI * 2; return a; };
 const surfaceOf = (r: Race): Surface => r.track.def.surface;
 
-/** A rival's ease-off: far ahead of him, it lifts. */
-export const EASE = { gap: 500, far: 1100, near: .86, farPace: .74 } as const;
+/** A rival's ease-off: far ahead of him, it lifts. `lastLap` false: it races flat out on the last lap. */
+export interface Ease { readonly gap: number; readonly far: number; readonly near: number; readonly farPace: number; readonly lastLap?: boolean }
+export const EASE: Ease = { gap: 500, far: 1100, near: .86, farPace: .74, lastLap: true };
+/** The later Cups, Star Races and Mystery Races: Rivals lift only when a long way ahead, and never on the last lap, so he has to be
+ *  fast to win, though he's still never left alone. */
+export const LIGHT_EASE: Ease = { gap: 1300, far: 2400, near: .93, farPace: .85, lastLap: false };
 
 function steer(r: Race, c: Car, input: Input | null, dt: number) {
   let want: number | null = null, rate = TURN;
@@ -132,7 +140,7 @@ function steer(r: Race, c: Car, input: Input | null, dt: number) {
       rate = LAZY_TURN;
     }
   } else {
-    const p = pointAhead(r.track, c.i, 120 + c.spd * .3, c.lane);
+    const p = pointAhead(r.track, c.i, 120 + c.spd * .3, c.dodgeT > 0 ? c.dodge : c.lane);
     want = Math.atan2(p.y - c.y, p.x - c.x);
   }
   if (want !== null) {
@@ -141,13 +149,32 @@ function steer(r: Race, c: Car, input: Input | null, dt: number) {
   }
 }
 
+/** How far a car is to the right of the centre line (as pointAhead's `lane`). */
+const sideOf = (r: Race, c: Car) => { const p = r.track.pts[c.i]!, d = r.track.dir[c.i]!; return (c.x - p.x) * -d.y + (c.y - p.y) * d.x; };
+/** A rival with a car just ahead of it in its lane swings out to the side with more room, for a moment. */
+function dodge(r: Race, c: Car, k: number, dt: number) {
+  c.dodgeT = Math.max(0, c.dodgeT - dt);
+  const mine = progressOf(r, c), side = sideOf(r, c), room = r.track.half - CAR_R - 8;
+  for (const [j, o] of r.cars.entries()) {
+    if (j === k || o.finished !== null) continue;
+    const gap = progressOf(r, o) - mine, os = sideOf(r, o);
+    if (gap <= 0 || gap > 70 + c.spd * .25 || Math.abs(os - side) > CAR_R * 2.2) continue;
+    const go = os > side ? -1 : os < side ? 1 : -Math.sign(c.lane) || 1, want = os + go * CAR_R * 2.6;
+    c.dodge = Math.abs(want) <= room ? want : os - go * CAR_R * 2.6;
+    c.dodge = Math.max(-room, Math.min(room, c.dodge));
+    c.dodgeT = .8;
+    return;
+  }
+}
+
 function drive(r: Race, c: Car, k: number, input: Input | null, you: Car, dt: number) {
   if (r.t < COUNT_S) return;
+  if (!c.player) dodge(r, c, k, dt);
   steer(r, c, input, dt);
   let pace = c.pace;
-  if (!c.player && c.finished === null && you.finished === null) {
-    const ahead = progressOf(r, c) - progressOf(r, you);
-    if (ahead > EASE.far) pace *= EASE.farPace; else if (ahead > EASE.gap) pace *= EASE.near;
+  if (!c.player && c.finished === null && you.finished === null && (r.ease.lastLap !== false || c.lap < r.laps - 1)) {
+    const ahead = progressOf(r, c) - progressOf(r, you), e = r.ease;
+    if (ahead > e.far) pace *= e.farPace; else if (ahead > e.gap) pace *= e.near;
   }
   // a boost: press for him, at a set distance for a rival
   const boostNow = c.player ? !!input?.boost : progressOf(r, c) >= c.boostAt;
@@ -207,7 +234,7 @@ function clash(r: Race, a: Car, b: Car, ka: number, kb: number) {
   if (closing > 0) {
     const j = closing * .6;
     a.vx -= j * nx; a.vy -= j * ny; b.vx += j * nx; b.vy += j * ny;
-    a.spd *= .96; b.spd *= .96;
+    if (closing > 60) { a.spd *= .96; b.spd *= .96; } // a real bump costs speed; a nudge doesn't
     if ((a.player || b.player) && closing > 60 && Math.min(a.bumpCd, b.bumpCd) <= 0) { r.events.push({ t: 'bump', a: ka, b: kb, x: (a.x + b.x) / 2, y: (a.y + b.y) / 2 }); a.bumpCd = b.bumpCd = .4; }
   }
 }

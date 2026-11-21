@@ -2,24 +2,29 @@
 // there's room, dark until won), with "Watch it go" beside it (his
 // car alone driving a lap of the last track he raced). Below, one shelf per Cup: its trophy (gold once he has won the Cup Final, an
 // outline until then) and its four tracks, each a flag once he has beaten its Rival, open to race, or locked until the track before is
-// beaten. Tapping an open track picks it for the next Race.
+// beaten. Tapping an open track picks it for the next Race. A beaten track shows its Stars (☆ to ★★★), won in Star Races; the Mystery
+// card at the top (open with the Tarmac Cup) shows his Mystery Level and the next Mystery part, and tapping it picks the Mystery Race.
 import { sChime, sClink, sNope } from '../../audio/sfx';
 import { IconButton } from '../../ui/bits';
 import { CurrencyPile } from '../../ui/currency';
 import { CarView } from '../art/Art';
 import { TALLY_CURRENCY } from '../branding';
-import { isOpen, nextTrack, pickTrack, record } from '../garage/garage';
+import { isOpen, mysteryOpen, MYSTERY_PICK, nextMysteryPrize, nextTrack, pickTrack, record, starCount } from '../garage/garage';
+import { carPic } from '../art/Art';
+import { nameOf, partOf } from '../garage/parts';
 import { player, updateGarage } from '../game';
 import { race, screen, watch } from '../nav';
 import type { Phrase } from '../phrases';
-import { featuredOn } from '../race/rivals';
-import { CUPS, tracksIn } from '../race/tracks';
+import { featuredOn, STARS } from '../race/rivals';
+import { CUPS, isMystery, TRACKS, tracksIn } from '../race/tracks';
 import { placeText } from '../tally/problems';
 import { useVoice } from '../voice';
 import { useEffect } from 'preact/hooks';
 
 export function CupsScreen() {
   const voice = useVoice(), state = player.state.value, g = state.garage, to = nextTrack(g);
+  const mOpen = mysteryOpen(g), mNext = nextMysteryPrize(g), mHere = isMystery(to), stars = starCount(g);
+  const num = (x: number) => `${Math.min(100, x)}` as Phrase;
   useEffect(() => { void voice.say('Cups!', ...(g.cups.length === CUPS.length ? ['You won every Cup!' as const] : [])); }, []);
   return (
     <div class="screen cups-screen">
@@ -42,10 +47,22 @@ export function CupsScreen() {
               if (!voice.active) return;
               if (g.races <= 0) { sNope(); void voice.say('Play a Round to earn a Race!'); return; }
               race();
-            }}><span class="race-flag" aria-hidden="true">🏁</span><span class="race-word">{to.name}</span><span class="race-count">{g.races}</span></button>
+            }}><span class="race-flag" aria-hidden="true">{mHere ? '🎲' : '🏁'}</span><span class="race-word">{mHere ? `Level ${g.mystery.level}` : to.name}</span><span class="race-count">{g.races}</span></button>
           </div>
+          <button class="star-total" aria-label={`${stars} stars`} onClick={() => { if (voice.active) void voice.say(num(stars), 'Stars!'); }}>⭐ {stars}<small>/{TRACKS.length * STARS}</small></button>
         </section>
         <section class="shelves">
+          <button class={`mystery-card ${mOpen ? 'open' : 'locked'} ${mHere ? 'here' : ''}`} aria-label="Mystery Race" onClick={() => {
+            if (!voice.active) return;
+            if (!mOpen) { sNope(); void voice.say('Mystery Race!', 'Win the Tarmac Cup to open it!'); return; }
+            sClink();
+            updateGarage(x => pickTrack(x, MYSTERY_PICK));
+            void voice.say('Mystery Race!', 'Level', num(g.mystery.level), ...(mNext ? ['Win level' as const, num(mNext.level), 'to win' as const, nameOf(mNext.prize)] : []));
+          }}>
+            <span class="mc-icon" aria-hidden="true">{mOpen ? '🎲' : '🔒'}</span>
+            <span class="mc-text"><b>Mystery Race</b><span>{mOpen ? `Level ${g.mystery.level}` : '🏆 Tarmac Cup'}</span></span>
+            {mOpen && mNext && <span class="mc-prize"><img src={carPic({ ...g.car, [partOf(mNext.prize).slot]: mNext.prize })} alt="" /><small>Level {mNext.level}</small></span>}
+          </button>
           {CUPS.map(cup => {
             const won = g.cups.includes(cup.id);
             return (
@@ -63,11 +80,14 @@ export function CupsScreen() {
                         if (!open) { sNope(); void voice.say(t.name, 'Win the track before to open it!'); return; }
                         sClink();
                         updateGarage(x => pickTrack(x, t.id));
-                        void voice.say(t.name, 'Next up', featuredOn(t).name as Phrase);
+                        if (!rec.beaten) void voice.say(t.name, 'Next up', featuredOn(t).name as Phrase);
+                        else void voice.say(t.name, rec.stars < STARS ? 'Star Race!' : 'Just for fun!');
                       }}>
                         <span class="tb-icon" aria-hidden="true">{!open ? '🔒' : rec.beaten ? '🚩' : '🏁'}</span>
                         <span class="tb-name">{t.name}</span>
-                        {rec.best > 0 && <span class="tb-best">{placeText(rec.best)}</span>}
+                        {rec.beaten
+                          ? <span class="tb-stars" aria-label={`${rec.stars} stars`}>{Array.from({ length: STARS }, (_, i) => <i key={i} class={i < rec.stars ? 'won' : ''}>★</i>)}</span>
+                          : rec.best > 0 && <span class="tb-best">{placeText(rec.best)}</span>}
                       </button>
                     );
                   })}

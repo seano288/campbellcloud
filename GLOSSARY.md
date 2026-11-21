@@ -420,6 +420,12 @@ _Avoid_: power, stats (to him)
 **Race**: the reward he drives: three laps of a Track from above, against three Rivals, about a minute. A finished Round earns one (he starts with one). It is used only when he crosses the line; leaving halfway costs nothing. Every finish pays Bolts and is cheered; a Race can't be lost.
 _Avoid_: lap (for the whole Race), match
 
+**Star Race (Turbo Tally)**: a Race on a track he has already beaten, for one of its three Stars. Every Rival races at full pace and faster with each Star, and only first place wins it. After three Stars a track is "Just for fun".
+_Avoid_: rematch, replay
+
+**Mystery Race (Turbo Tally)**: the endless ladder of Races on tracks made on the spot from a Level number, against five Rivals from every Cup. It opens with the Tarmac Cup. First place goes up a Level, and every fifth Level wins a Mystery part, which is never sold.
+_Avoid_: random race, endless mode (to him)
+
 **Track**: one circuit, a closed centre line and a width, on one surface (tarmac, dirt, sand or snow) that a Tyre suits or doesn't. There are 24, four to a Cup. A Track opens when he beats the Rival on the one before.
 _Avoid_: course, level (Level means a kind's difficulty)
 

@@ -12,19 +12,22 @@ import { CarView, carPic } from '../art/Art';
 import { TALLY_CURRENCY } from '../branding';
 import { buy, player, updateGarage } from '../game';
 import { race, screen, watch } from '../nav';
-import { gotLine, NUMBERS_TO, type Phrase } from '../phrases';
+import { gotLine, needLine, NUMBERS_TO, sayable, type Phrase } from '../phrases';
 import { RIVALS } from '../race/rivals';
 import { honk } from '../race/sounds';
 import { startRound } from '../round';
 import { useVoice } from '../voice';
-import { allBought, allowed, fitOwned, goalOf, isOwned, nextTrack, selectGoal, setNumber } from './garage';
-import { fit, forSale, keysIn, nameOf, partOf, priceOf, SLOT_NAMES, slotOf, statsOf, type HornPart, type PartKey, type Slot, type Stats, type TyrePart } from './parts';
+import { allBought, allowed, fitOwned, goalOf, isOwned, MYSTERY_PRIZE_EVERY, nextTrack, selectGoal, setNumber } from './garage';
+import { fit, forSale, isMysteryPart, keysIn, MYSTERY_KEYS, nameOf, partOf, priceOf, SLOT_NAMES, slotOf, statsOf, type HornPart, type PartKey, type Slot, type Stats, type TyrePart } from './parts';
 
 type Tab = Slot | 'number';
 const TABS: readonly Tab[] = ['engine', 'tyres', 'wing', 'booster', 'body', 'paint', 'rims', 'decal', 'flame', 'horn', 'number'];
 const TAB_ICONS: Record<Tab, string> = { body: '🚗', engine: '⚙️', tyres: '🛞', wing: '🪽', booster: '🚀', paint: '🎨', rims: '⭕', decal: '⭐', horn: '📯', flame: '🔥', number: '#' };
 const n = (x: number): Phrase => `${Math.min(x, NUMBERS_TO)}` as Phrase;
-const STAT_TOP = { speed: 100, grip: 100, boosts: 5 } as const;
+/** A price: any number to 100, whole tens above it. */
+const price$ = (x: number): Phrase => sayable(x).said;
+/** The bars fill at the best car there is (about 137 Speed, 125 Grip, 8 boosts), so there's always room to grow. */
+const STAT_TOP = { speed: 140, grip: 125, boosts: 8 } as const;
 
 /** What a tyre is good on, said after its name. */
 function tyreLine(k: PartKey): Phrase[] {
@@ -34,6 +37,10 @@ function tyreLine(k: PartKey): Phrase[] {
   return good.length ? [`Good on ${good[0]!}!` as Phrase] : [];
 }
 const rivalFor = (k: PartKey) => RIVALS.find(r => r.prize === k) ?? null;
+/** The Mystery Level that wins a Mystery part. */
+const levelFor = (k: PartKey) => (MYSTERY_KEYS.indexOf(k) + 1) * MYSTERY_PRIZE_EVERY;
+/** Where a part that isn't sold is won: "Beat Zippy to win it!", or "Win Level 10 in the Mystery Race!". */
+const wonBy = (k: PartKey): Phrase[] => isMysteryPart(k) ? ['Win level', n(levelFor(k)), 'in the Mystery Race!'] : ['Beat', rivalFor(k)!.name, 'to win it!'];
 
 function StatBar({ label, value, was, top, onTap }: { label: 'Speed' | 'Grip' | 'Boost'; value: number; was: number; top: number; onTap(): void }) {
   return (
@@ -85,19 +92,18 @@ export function GarageScreen() {
     }
     setTrial(k);
     if (slotOf(k) !== 'horn') sChime();
-    const rival = rivalFor(k);
-    if (!forSale(k)) { void voice.say(nameOf(k), 'Beat', rival!.name, 'to win it!'); return; }
+    if (!forSale(k)) { void voice.say(nameOf(k), ...wonBy(k)); return; }
     const price = priceOf(k)!;
-    void voice.say(nameOf(k), ...tyreLine(k), 'It costs', n(price), 'Bolts.', ...(balance < price ? ['You need' as const, n(price - balance), 'more Bolts.' as const] : []));
+    void voice.say(nameOf(k), ...tyreLine(k), 'It costs', price$(price), 'Bolts.', ...(balance < price ? needLine(price - balance) : []));
   }
   function buyTrial() {
     if (!trial || !voice.active || blocked) return;
     const k = trial, price = priceOf(k);
-    if (price === null) { nope(); void voice.say('Beat', rivalFor(k)!.name, 'to win it!'); return; }
+    if (price === null) { nope(); void voice.say(...wonBy(k)); return; }
     if (balance < price) {
       nope();
       updateGarage(x => selectGoal(x, k));
-      void voice.say('You need', n(price - balance), 'more Bolts.', 'Play a Round to earn Bolts!');
+      void voice.say(...needLine(price - balance), 'Play a Round to earn Bolts!');
       return;
     }
     const before = statsOf(g.car);
@@ -168,7 +174,7 @@ export function GarageScreen() {
                     <button key={k} class={`tt-tile ${on ? 'on' : ''} ${owned ? 'owned' : 'locked'} ${can ? 'can' : ''} ${trial === k ? 'trying' : ''} ${rival ? 'rival' : ''}`} aria-label={nameOf(k)} aria-pressed={on} onClick={() => tap(k)}>
                       <img class="part-pic" src={carPic(fit(g.car, k), tab === 'wing' || tab === 'booster' ? 'top' : 'side')} alt="" draggable={false} />
                       <span class="mt-name">{nameOf(k)}</span>
-                      <span class="mt-tag">{owned ? (on ? '✓' : '') : price === null ? `🏁 ${rival!.name}` : <>{price}<CurrencyIcon kind={TALLY_CURRENCY} size={18} /></>}</span>
+                      <span class="mt-tag">{owned ? (on ? '✓' : '') : price === null ? (rival ? `🏁 ${rival.name}` : `🎲 ${levelFor(k)}`) : <>{price}<CurrencyIcon kind={TALLY_CURRENCY} size={18} /></>}</span>
                     </button>
                   );
                 })}
@@ -178,7 +184,7 @@ export function GarageScreen() {
               <button class="x" aria-label="Put it back" onClick={() => setTrial(null)}>✕</button>
               <span class="buy-name">{nameOf(trial)}</span>
               {priceOf(trial) === null
-                ? <span class="buy-rival">🏁 {rivalFor(trial)!.name}</span>
+                ? <span class="buy-rival">{isMysteryPart(trial) ? `🎲 Level ${levelFor(trial)}` : `🏁 ${rivalFor(trial)!.name}`}</span>
                 : <button class={`big-btn go buy ${balance >= priceOf(trial)! ? 'pulse' : 'short'}`} aria-label="Buy" onClick={buyTrial}>{priceOf(trial)}<CurrencyIcon kind={TALLY_CURRENCY} size={30} /></button>}
             </div>
           )}

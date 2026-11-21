@@ -101,6 +101,46 @@ His feedback on Math Bots decided the shape: he builds from parts, the parts cha
 - **Pacing is in one table** (each Rival's Speed and Grip numbers, its boosts, the Final's extra speed, the pack's share, the mercy step and floor, and the ease-off gaps in `sim.ts`). Measured against scripted children: the first Rival (Zippy, Speed 20) loses to the starter car every time, hands on or off; a plausible car for each point in the ladder beats every featured Rival within three tries; and every Rival falls to the starter car in the end.
 - **A Rival who beats him gets slower** on that track: 7% a loss, down to 40% of its pace, until he wins (as Math Bots' League). Rivals far ahead of him ease off (to 86% at 500 units ahead, 74% at 1,100), so he's never left alone on the track.
 
+**More races and rewards, 2026-11-21.** He beat all 24 tracks and the six Cups in about 90 minutes, and then there was nothing left to
+race for. The parent asked for more rewards, higher prices at the top end, more vehicles, more and harder races, re-racing, races made
+on the fly, and more competition. What changed:
+
+- **Four more Cups, 16 more tracks** (40 in all): Jungle (dirt), Candy (snow: slippery icing), Moon (sand: moon dust) and Rainbow
+  (tarmac, a rainbow-striped road), each with its own ground and scenery (palms, lollipops, craters under a dark wash, clouds). Their
+  tracks are bigger, narrower and twistier. **Six cars race** in them: five Rivals a Cup (three who feature and have prizes, two more
+  in the pack; 20 new Rivals, 12 new Rival parts). Their Rivals are faster than anything before (Speed 92 to 132) and slow less after
+  a win (`TOUGH`: 4% a loss, down to 75%). Measured with the scripted child: each Cup takes the previous Cup's car several tries, and
+  the car that beat the Volcano Cup can't win a Rainbow track first time.
+- **The Rivals race properly.** With six cars they used to rear-end each other every frame and lose speed, and they eased off so hard
+  when ahead that a much slower car still won. Now a Rival boxed in behind a car steers round it, only a real bump costs speed, and in
+  everything harder than the first six Cups' first races the ease-off is light and stops on the last lap (`LIGHT_EASE` in `sim.ts`).
+  The first six Cups' own tuning is unchanged and their tests still pass.
+- **Stars: re-racing every track.** A beaten track is raced again for three Stars, each won only by **coming first**, against every
+  Rival at full pace and faster with each Star (own Speed + 8 a Star, at least 60/80/100, at most 140). The first win of each Star pays
+  3, 5 and 8 Bolts on top. After three Stars a track is "Just for fun!". 120 Stars; the Cups shelf shows ☆☆☆ on each beaten track and
+  the total under the podium. A Race he falls short in stays picked, so "Race again" retries it.
+- **The Mystery Race: races made on the spot.** Opens with the Tarmac Cup. Each Level is a new track generated from the Level number
+  (random Cup ground, random waves, checked never to cross itself, the same track every time for that Level), against five Rivals from
+  anywhere. Level 1 is about the Dirt Cup; each Level is 3 Speed faster, up to 140 from about Level 30. First place goes up a Level and
+  pays 3 to 8 Bolts more; **every fifth Level wins a Mystery part** (10, never sold, the best in each slot: paint, rims, Question Marks
+  decal, sparks, horn, wing, tyres, booster, engine, Mystery Racer body). Endless.
+- **Where Race goes**: the track he picked; else the next track to beat; else the next Star (every track's first Star before any
+  second); else the Mystery Race. The Cups shelf's purple Mystery card picks it any time.
+- **More vehicles**: 14 new Bodies, each drawn as itself in both views: Pickup Truck, Jeep, Taxi, Ice Cream Truck, Police Car, Fire Truck,
+  Monster Truck, Limo, Race Bike, Tank, Jet Car, Flying Saucer, Dragon Car, Star Cruiser (30 to 400 Bolts). Rivals drive them too.
+- **Pricier top end, and more of it.** Prices above 100 are whole tens up to 400 (the voice has a clip for each, `PRICE_TENS`; "You need
+  137 more" is said "You need about 140 more Bolts"). The old top parts went up (Rocket Engine 100 → 150, Gold Tyres and Mega Wing
+  90 → 130, Mega Boost 100 → 150, Rocket Car 100 → 160, Hover Car 85 → 120, Jet Engine 78 → 110...). New tiers: four Engines (to
+  Supernova, Speed 116, 400), three Tyres, three Wings, three Boosters (to 8 boosts), 8 paints, 6 rims, 8 decals (incl. Tally Marks),
+  4 horns, 6 boost trails (hearts, confetti, rainbow ribbon, comet). The Garage's bars now fill at Speed 140, Grip 125, Boost 8.
+- **How much**: the shop went from 110 parts costing 2,734 Bolts to 179 costing 11,507 (4.2×); about 380 things to earn (parts, 30 Rival
+  and 10 Mystery parts, 40 tracks, 10 Cups, 120 Stars) plus the endless Mystery ladder. What a Round pays is unchanged; a Race pays 2
+  plus 1 a car beaten (up to 7 with six cars), plus a Star or Mystery bonus, at most 15.
+- Save stays version 1: Stars, `mystery` and the new tracks read as fresh values on an old save (tested), and an old save with all 24
+  tracks beaten goes straight to the Jungle Cup. 262 new clips, transcribed back with Whisper; "You won a star" was heard as "You want
+  a star", so the line is "You got a star!", and Moon Cup gets a breath ("Moon, Cup").
+- Not yet: played on the iPad; the new horns not listened to by a person.
+
 **Show off.** The **Cups** screen is the trophy shelf: one shelf per Cup with its trophy (dark until won) and its four tracks (🔒 locked, 🏁 open, 🚩 beaten, with his best place), his car on the podium at the top, and **Watch it go**: his car alone, driving itself one lap of the last track he raced, boosting on its own, no Race used and nothing paid. Tapping an open track picks it for the next Race.
 
 **Economy defaults, for the parent to confirm.**

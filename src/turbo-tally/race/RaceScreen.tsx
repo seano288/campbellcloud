@@ -6,6 +6,9 @@
 //
 // "Watch it go" is the same screen with his car alone, driving itself one lap, for show: no Race used, nothing paid.
 //
+// A track he has beaten is raced again for Stars (come first), and the Mystery Race is a made-up track at his Level (come first to go
+// up). The grid card says which, and the four later Cups, Star Races and Mystery Races put six cars on the track.
+//
 // Controls stay clear of the screen's bottom edge and sides, which belong to iPadOS (a swipe that starts there opens the Dock or the
 // app switcher, and a page can't stop it). Keys work on a computer: the arrows steer, space boosts, H honks.
 import { useEffect, useMemo, useRef, useState } from 'preact/hooks';
@@ -17,15 +20,15 @@ import { CurrencyIcon } from '../../ui/currency';
 import { CarView, carPic } from '../art/Art';
 import type { Look } from '../art/car';
 import { TALLY_CURRENCY } from '../branding';
-import { record, type RacePay } from '../garage/garage';
+import { gridOf, lossesFor, mysteryPrizeAt, planFor, type RacePay } from '../garage/garage';
 import { nameOf, partOf, statsOf, type EnginePart, type HornPart } from '../garage/parts';
 import { player, settleRace } from '../game';
 import { race, raceShow, raceTrack, screen } from '../nav';
-import { cupLine, gotLine, ordinalSaid, type Phrase } from '../phrases';
+import { cupLine, gotLine, NUMBERS_TO, ordinalSaid, type Phrase } from '../phrases';
 import { startRound } from '../round';
 import { useVoiceScope, type VoiceScope } from '../voice';
 import { createStage, type Stage } from './render';
-import { featuredOn, gridFor, isFinal } from './rivals';
+import { easeFor, isFinal, STARS } from './rivals';
 import { COUNT_S, createRace, LAPS, placeOf, STEP, standings, stepRace, takeEvents, topSpeedOf, type Race } from './sim';
 import { boostSound, carBump, countBeep, engineSound, finishCheer, honk, passPing, wallBump, type Engine } from './sounds';
 import { cupOf, pointAhead, trackBy, type Pt } from './tracks';
@@ -33,7 +36,8 @@ import { placeText } from '../tally/problems';
 
 type Phase = 'grid' | 'live' | 'end';
 const reduced = () => typeof matchMedia === 'function' && matchMedia('(prefers-reduced-motion:reduce)').matches;
-const CAME = ['You came first!', 'You came second!', 'You came third!', 'You came fourth!'] as const;
+const CAME = ['You came first!', 'You came second!', 'You came third!', 'You came fourth!', 'You came fifth!', 'You came sixth!'] as const;
+const num = (x: number): Phrase => `${Math.min(x, NUMBERS_TO)}` as Phrase;
 
 /** Lines that don't matter are dropped while the voice is mid-sentence, so it never queues up behind the action. */
 function commentator(voice: VoiceScope) {
@@ -50,9 +54,12 @@ interface Result { order: number[]; place: number; pay: RacePay | null }
 export function RaceScreen() {
   const voice = useVoiceScope(), state = player.state.value, g = state.garage, show = raceShow.value;
   const track = trackBy(raceTrack.value), cup = cupOf(track.cup);
-  const start = useRef({ losses: record(g, track).losses, car: g.car, first: g.raced === 0, beaten: record(g, track).beaten }).current;
-  const grid = useMemo(() => (show ? [] : gridFor(track, start.losses)), []);
-  const featured = featuredOn(track), final = isFinal(track);
+  const plan = useMemo(() => planFor(g, track), []);
+  const start = useRef({ car: g.car, first: g.raced === 0, losses: lossesFor(g, plan) }).current;
+  const grid = useMemo(() => (show ? [] : gridOf(g, track)), []);
+  const lead = show ? null : grid[0]!.rival, mode = plan.mode, final = mode === 'cup' && isFinal(track);
+  const prizeKey = mode === 'cup' && !final ? lead?.prize ?? null : mode === 'mystery' ? mysteryPrizeAt(plan.level) : null;
+  const prizeNew = prizeKey !== null && !g.owned.includes(prizeKey);
   const looks: Look[] = useMemo(() => [start.car, ...grid.map(s => ({ ...s.rival.look, number: s.rival.number }))], []);
   const names: Phrase[] = ['You!', ...grid.map(s => s.rival.name)];
   const [phase, setPhase] = useState<Phase>(show ? 'live' : 'grid'), [armed, setArmed] = useState(false), [result, setResult] = useState<Result | null>(null);
@@ -64,15 +71,19 @@ export function RaceScreen() {
   // the grid card
   useEffect(() => {
     if (phase !== 'grid') return;
-    const win: Phrase[] = start.beaten ? [] : final ? ['Beat', featured.name, 'to win the', cup.name] : ['Beat', featured.name, 'to win', nameOf(featured.prize)];
-    void voice.say(...(final ? ['Cup Final!' as const] : []), track.name, 'Next up', featured.name, ...win);
+    if (!lead) return;
+    if (mode === 'mystery') { void voice.say('Mystery Race!', 'Level', num(plan.level), 'Come first to go up a level!', ...(prizeNew ? ['Come first to win' as const, nameOf(prizeKey!)] : [])); return; }
+    if (mode === 'star') { void voice.say('Star Race!', track.name, 'Come first to win a star!'); return; }
+    if (mode === 'fun') { void voice.say(track.name, 'Just for fun!'); return; }
+    const win: Phrase[] = final ? ['Beat', lead.name, 'to win the', cup.name] : prizeKey ? ['Beat', lead.name, 'to win', nameOf(prizeKey)] : [];
+    void voice.say(...(final ? ['Cup Final!' as const] : []), track.name, 'Next up', lead.name, ...win);
   }, [phase]);
 
   // the Race
   useEffect(() => {
     if (phase !== 'live') return;
     const stop = new AbortController();
-    const r = createRace(track, { stats: statsOf(start.car) }, grid.map(s => ({ stats: s.stats, pace: s.pace })), show ? 1 : LAPS);
+    const r = createRace(track, { stats: statsOf(start.car) }, grid.map(s => ({ stats: s.stats, pace: s.pace })), show ? 1 : LAPS, easeFor(plan));
     raceRef.current = r;
     const stage: Stage = createStage(canvas.current!, track, looks, reduced());
     // the browser tour steers as a finger would, toward a spot ahead on the track (tools/turbo-tally/tour.ts)
@@ -122,8 +133,8 @@ export function RaceScreen() {
       engine.current?.stop();
       const place = placeOf(r, 0), order = standings(r);
       if (show) { setResult({ order, place, pay: null }); setPhase('end'); return; }
-      const beat = placeOf(r, 0) < placeOf(r, 1);
-      const pay = settleRace(player, track, place, beat);
+      const beat = mode === 'cup' ? placeOf(r, 0) < placeOf(r, 1) : place === 1;
+      const pay = settleRace(player, plan, place, beat, r.cars.length);
       setResult({ order, place, pay });
       setPhase('end');
     };
@@ -170,12 +181,14 @@ export function RaceScreen() {
       for (const [i, k] of order.entries()) { if (!voice.active) return; await voice.say(ordinalSaid(i + 1), names[k]!); }
       if (!pay) return;
       await voice.say(earnedLine(TALLY_CURRENCY, pay.bolts));
-      if (pay.beat && !start.beaten) { sChime(); await voice.say('You beat', featured.name); }
+      if (pay.beat && mode === 'cup') { sChime(); await voice.say('You beat', lead!.name); }
+      if (pay.star) { sFanfare(); confetti(40, voice.signal); await voice.say(pay.star === STARS ? 'You won all three stars!' : 'You got a star!'); }
+      if (pay.level) { sChime(); await voice.say('Next level!', 'Level', num(pay.level)); }
       if (pay.cup) { sFanfare(); confetti(60, voice.signal); await voice.say(cupLine(cupOf(pay.cup).name)); }
       if (pay.prize) await voice.say('Open your prize!');
       if (pay.opened) { sChime(); await voice.say('A new track is open!'); }
-      if (!pay.beat) await voice.say(featured.name, 'is getting tired!', 'Great race!');
-      else if (!pay.prize && !pay.cup) await voice.say('What a race!');
+      if (!pay.beat && mode !== 'fun') await voice.say(lead!.name, 'is getting tired!', 'Great race!');
+      else if (!pay.prize && !pay.cup && !pay.star && !pay.level) await voice.say('What a race!');
     })();
   }, [phase, result]);
 
@@ -196,16 +209,20 @@ export function RaceScreen() {
   if (phase === 'grid') {
     return (
       <div class="race-screen grid-card" data-phase="grid">
-        <header class="race-head"><IconButton label="Garage" onClick={leave}>🏠</IconButton><h1>{track.name}</h1><span class="cup-chip">{cup.icon} {cup.name}</span></header>
+        <header class="race-head"><IconButton label="Garage" onClick={leave}>🏠</IconButton>
+          <h1>{mode === 'mystery' ? `Mystery Level ${plan.level}` : track.name}</h1>
+          <span class="cup-chip">{mode === 'mystery' ? `🎲 ${cup.icon}` : `${cup.icon} ${cup.name}`}</span></header>
         <div class="vs-row">
           <div class="vs-car you"><CarView car={start.car} live /><strong>You</strong></div>
           <div class="vs-mid">VS</div>
-          <div class="vs-car foe"><CarView car={{ ...featured.look, number: featured.number }} live label={featured.name} /><strong>{featured.name}</strong></div>
+          <div class="vs-car foe"><CarView car={{ ...lead!.look, number: lead!.number }} live label={lead!.name} /><strong>{lead!.name}{grid.length > 1 && <small class="vs-more"> +{grid.length - 1}</small>}</strong></div>
         </div>
         <div class="vs-foot">
-          {!start.beaten && (final
-            ? <span class="vs-prize"><span class="trophy-big" aria-hidden="true">🏆</span><span>{cup.name}</span></span>
-            : <span class="vs-prize"><img src={carPic({ ...start.car, [partOf(featured.prize).slot]: featured.prize })} alt="" /><span>{nameOf(featured.prize)}</span></span>)}
+          {mode === 'star' && <span class="vs-prize vs-stars" aria-label={`Star ${plan.star}`}><span class="star-row" aria-hidden="true">{Array.from({ length: STARS }, (_, i) => <i key={i} class={i < plan.star - 1 ? 'won' : i === plan.star - 1 ? 'next' : ''}>★</i>)}</span><span>1st!</span></span>}
+          {mode === 'fun' && <span class="vs-prize vs-stars"><span class="star-row" aria-hidden="true">{Array.from({ length: STARS }, (_, i) => <i key={i} class="won">★</i>)}</span><span>Just for fun!</span></span>}
+          {mode === 'mystery' && !prizeNew && <span class="vs-prize"><span class="trophy-big" aria-hidden="true">🎲</span><span>1st → Level {plan.level + 1}</span></span>}
+          {mode === 'cup' && final && <span class="vs-prize"><span class="trophy-big" aria-hidden="true">🏆</span><span>{cup.name}</span></span>}
+          {prizeNew && <span class="vs-prize"><img src={carPic({ ...start.car, [partOf(prizeKey!).slot]: prizeKey! })} alt="" /><span>{nameOf(prizeKey!)}</span></span>}
           <button class="big-btn go pulse" aria-label="Go" onClick={() => { if (voice.active) setPhase('live'); }}><span class="e">▶</span><span class="go-word">Go</span></button>
         </div>
       </div>
@@ -238,6 +255,8 @@ export function RaceScreen() {
           ))}</ol>}
           {result.pay && <div class="result-bolts"><CurrencyIcon kind={TALLY_CURRENCY} size={40} />+{result.pay.bolts}</div>}
           {result.pay?.cup && <div class="won-cup"><span aria-hidden="true">🏆</span>{cupOf(result.pay.cup).name}</div>}
+          {result.pay?.star && <div class="won-cup won-star"><span aria-hidden="true">⭐</span>{'★'.repeat(result.pay.star)}{'☆'.repeat(STARS - result.pay.star)}</div>}
+          {result.pay?.level && <div class="won-cup won-level"><span aria-hidden="true">🎲</span>Level {result.pay.level}</div>}
           {result.pay?.prize && (
             <button class={`crate ${prizeOpen ? 'open' : ''}`} aria-label={prizeOpen ? nameOf(result.pay.prize) : 'Open the prize'} onClick={() => {
               if (prizeOpen || !result.pay?.prize) return;

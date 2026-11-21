@@ -1,4 +1,4 @@
-// The Race's sounds and the ten horns, made in code with Web Audio like the family's other effects (src/audio/sfx.ts). The engine runs
+// The Race's sounds and the fifteen horns, made in code with Web Audio like the family's other effects (src/audio/sfx.ts). The engine runs
 // the whole race and revs with his speed (deeper and louder with a bigger Engine); the rest are one-shots: the countdown beeps, a bump
 // off a wall or a car, a boost's whoosh, the crowd at the finish. The engine goes quiet while the page is hidden and fades out when
 // stopped, so leaving the screen never cuts it off with a click. (Rover Code's trip sounds are the pattern; they're copied, not imported.)
@@ -50,7 +50,7 @@ export const boostSound = () => { sWhoosh(.9); tone(140, .8, 'sawtooth', 0, .08,
 export const finishCheer = () => sCheer();
 export const passPing = () => { tone(988, .1, 'triangle', 0, .08); tone(1319, .16, 'triangle', .08, .08); };
 
-/** The ten horns, by the Horn part's `sound`. */
+/** The fifteen horns, by the Horn part's `sound`. */
 export const HORN_SOUNDS: readonly (() => void)[] = [
   () => tone(880, .18, 'square', 0, .14), // beep
   () => { tone(392, .45, 'sawtooth', 0, .12); tone(494, .45, 'sawtooth', 0, .12); }, // honk
@@ -62,5 +62,20 @@ export const HORN_SOUNDS: readonly (() => void)[] = [
   () => { for (const k of [0, .45, .9]) { tone(700, .45, 'sawtooth', k, .06, 1300); } }, // siren
   () => [523, 659, 784, 659, 784, 1047].forEach((f, i) => tone(f, .14, 'square', i * .13, .08)), // tune
   () => { tone(98, 1.1, 'sawtooth', 0, .18); tone(147, 1.1, 'sawtooth', 0, .12); noise({ dur: 1, vol: .12, f: 400 }); }, // big rig
+  () => { // lion roar: a growl that swells, then a low roar sliding down, rough with noise
+    noise({ dur: .35, vol: .14, f: 380, beat: .03, grow: true });
+    tone(150, 1.1, 'sawtooth', .2, .2, 62); tone(112, 1.1, 'square', .2, .07, 48); tone(225, .8, 'sawtooth', .2, .05, 90);
+    noise({ dur: 1.1, vol: .24, type: 'bandpass', f: 520, f2: 180, when: .2, beat: .028 });
+  },
+  () => { for (const [k, w] of [[1, 0], [.85, .2], [.7, .4]] as const) { tone(2400 * k, .18, 'square', w, .06, 260); tone(1800 * k, .18, 'sine', w, .08, 200); } }, // laser: pew pew pew
+  () => { for (let i = 0; i < 6; i++) tone(i % 2 ? 1500 : 700, .2, 'square', i * .2, .055, i % 2 ? 700 : 1500); }, // car alarm: whoop-whoop
+  () => { // fanfare: ta-ta-ta-taaa, brassy (a saw and a square together)
+    [392, 523, 659].forEach((f, i) => { tone(f, .13, 'sawtooth', i * .13, .09); tone(f, .13, 'square', i * .13, .04); });
+    for (const f of [784, 988]) { tone(f, .75, 'sawtooth', .39, .08); tone(f * 1.003, .75, 'square', .39, .03); }
+  },
+  () => { // mystery: a spooky theremin wobble that climbs, then a sparkle
+    for (let i = 0; i < 8; i++) { const f = 330 * Math.pow(1.09, i); tone(f, .2, 'sine', i * .13, .09, f * (i % 2 ? .9 : 1.14)); tone(f / 2, .2, 'triangle', i * .13, .03); }
+    tone(1568, .5, 'triangle', 1.05, .06); tone(2093, .5, 'sine', 1.12, .04);
+  },
 ];
 export const honk = (sound: number) => HORN_SOUNDS[Math.max(0, Math.min(HORN_SOUNDS.length - 1, sound))]!();

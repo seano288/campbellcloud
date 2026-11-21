@@ -10,8 +10,23 @@ import { CUPS, TRACK_NAMES, type CupName, type TrackName } from './race/tracks';
 import { CAR_COLOURS, CHART_COLOURS, ORDINALS, type CarColour, type ChartColour, type Ordinal } from './tally/problems';
 
 export const NUMBERS_TO = 100;
-/** The most Bolts said in one "You earned" line: a perfect Round pays 6, a Race 5. */
-export const MOST_EARNED = 6;
+/** Prices above 100 are whole tens up to 400 (garage/parts.ts), and each has its own clip. */
+export const PRICE_TOP = 400;
+export const PRICE_TENS = Array.from({ length: (PRICE_TOP - NUMBERS_TO) / 10 }, (_, i) => `${NUMBERS_TO + 10 * (i + 1)}` as `${number}`);
+/** A number the voice can say: itself up to 100, else the whole ten at or above it (up to 400). `exact` says whether that's it. */
+export function sayable(x: number): { said: `${number}`; exact: boolean } {
+  const n = Math.max(0, Math.round(x));
+  if (n <= NUMBERS_TO) return { said: `${n}`, exact: true };
+  const ten = Math.min(PRICE_TOP, Math.ceil(n / 10) * 10);
+  return { said: `${ten}`, exact: ten === n };
+}
+/** "You need 12 more Bolts.", or "You need about 130 more Bolts." when it isn't a number the voice has. */
+export function needLine(x: number): Phrase[] {
+  const { said, exact } = sayable(x);
+  return [exact ? 'You need' : 'You need about', said, 'more Bolts.'];
+}
+/** The most Bolts said in one "You earned" line: a perfect Round pays 6, a Race up to 15 (garage.ts, MOST_RACE_BOLTS). */
+export const MOST_EARNED = 15;
 
 const GAME = ["Turbo Tally!", "Let's go!", 'Round done!', 'Level up!', 'You kept trying!', 'Tap again to go home.', 'Garage', 'Cups'] as const;
 export const CHEERS = ['Great job!', 'You got it!', 'Super counting!', 'Awesome!', 'Way to go!', 'Nice driving!'] as const;
@@ -76,7 +91,7 @@ const GARAGE = [
   'Garage!', 'Race number', 'It costs', 'Bolts.', 'You need', 'more Bolts.', 'Play a Round to earn Bolts!',
   'Speed', 'Grip', 'Boost', 'You have 1 Race ready!', 'Races ready!', 'Tap Race!', 'Play a Round to earn a Race!', 'You earned a Race!',
   'You built everything!', 'Your car got faster!', 'Your car grips better!', 'You get more boosts!', 'Beat', 'to win it!', 'Your number is',
-  'Good on tarmac!', 'Good on dirt!', 'Good on sand!', 'Good on snow!', 'Good everywhere!',
+  'Good on tarmac!', 'Good on dirt!', 'Good on sand!', 'Good on snow!', 'Good everywhere!', 'You need about', 'Win level', 'in the Mystery Race!',
 ] as const;
 type GotLine = `You got ${PartName}!`;
 export const gotLine = (name: PartName) => `You got ${name}!` as GotLine;
@@ -87,6 +102,9 @@ const RACE = [
   'Lap 2!', 'Last lap!', 'You passed a car!', 'Bump!', 'Finish!', 'You!', 'You came first!', 'You came second!', 'You came third!', 'You came fourth!',
   'You beat', 'is getting tired!', 'Great race!', 'What a race!', 'Tap again to leave.', 'A new track is open!', 'Race again!',
   'Watch it go!', 'Open your prize!', 'Cups!', 'Win the track before to open it!', 'You won it!', 'Win the Cup Final to get it!', 'You won every Cup!',
+  // more races (2026-11-21): six-car grids, Star Races and the Mystery Race
+  'You came fifth!', 'You came sixth!', 'Star Race!', 'Come first to win a star!', 'You got a star!', 'You won all three stars!', 'Just for fun!',
+  'Mystery Race!', 'Level', 'Come first to go up a level!', 'Next level!', 'Win the Tarmac Cup to open it!', 'Come first to win', 'Stars!',
 ] as const;
 type CupLine = `You won the ${CupName}!`;
 export const cupLine = (name: CupName) => `You won the ${name}!` as CupLine;
@@ -107,7 +125,7 @@ export type Phrase = (typeof GAME)[number] | (typeof CHEERS)[number] | EarnedPhr
 const each = <T, R>(xs: readonly T[], f: (x: T) => R) => xs.map(f);
 export const PHRASES = [
   ...GAME, ...CHEERS, ...Array.from({ length: MOST_EARNED }, (_, i) => earnedLine(TALLY_CURRENCY, i + 1)), ...modePhrases(), ...Object.values(LOCKED_HINTS),
-  ...numberPhrases(), ...QUESTIONS, ...TEACHING, ...MEETING, ...GARAGE, ...RACE,
+  ...numberPhrases(), ...PRICE_TENS, ...QUESTIONS, ...TEACHING, ...MEETING, ...GARAGE, ...RACE,
   ...ORDINALS.map((_, i) => ordinalSaid(i + 1)), ...ORDINALS.map((_, i) => placeLine(i + 1)), ...[1, 2, 3, 4, 5].map(tapPlaceLine),
   ...each(CAR_COLOURS, whichPlaceLine), ...each(CAR_COLOURS, passesLine), ...each(CAR_COLOURS, passedLine),
   ...each(CHART_COLOURS, howManyWonLine), ...CHART_COLOURS.flatMap(a => CHART_COLOURS.filter(b => b !== a).map(b => howManyMoreLine(a, b))),

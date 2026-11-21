@@ -7,7 +7,7 @@ import { credit, readCurrency, type CurrencyState, type EarningsPolicy } from '.
 import { boltsFor } from '../round/rules';
 import { browserStorage, createStore, type SaveAdapter } from '../save/storage';
 import { earnRace, finishRace, freshGarage, payFor, proposePurchase, readGarage, type GarageState, type RacePay } from './garage/garage';
-import type { TrackDef } from './race/tracks';
+import type { RacePlan } from './race/rivals';
 import { freshLearning, readLearning, recordSolved, startPractice, type Asked, type LearningChange, type LearningState } from './learning';
 
 export const SAVE_KEY = 'turbo-tally-save';
@@ -59,14 +59,15 @@ export const buy = createRewardPurchases(player, { proposePurchase }, {
 export const updateGarage = (change: (g: GarageState) => GarageState | null) =>
   player.commit(state => { const garage = change(state.garage); return garage ? { ...state, garage } : null; });
 
-/** The Race ended at the line: pay the finish, use the Race, keep the record, give the prize. Null if he had no Race to use. */
-export function settleRace(store: Pick<typeof player, 'commit'>, track: TrackDef, place: number, beat: boolean): RacePay | null {
+/** The Race ended at the line: pay the finish, use the Race, keep the record, give the prize. Null if he had no Race to use. `beat`
+ *  is whether he did what the Race was for (rivals.ts, RacePlan); `cars` how many raced, his included. */
+export function settleRace(store: Pick<typeof player, 'commit'>, plan: RacePlan, place: number, beat: boolean, cars = 4): RacePay | null {
   let pay: RacePay | null = null;
   store.commit(s => {
     if (s.garage.races <= 0) return null;
-    pay = payFor(s.garage, track, place, beat);
+    pay = payFor(s.garage, plan, place, beat, cars);
     const paid = credit(s.currency, pay.bolts);
-    return { ...s, garage: finishRace(s.garage, track, pay), currency: paid.kind === 'accepted' ? paid.state : s.currency };
+    return { ...s, garage: finishRace(s.garage, plan, pay), currency: paid.kind === 'accepted' ? paid.state : s.currency };
   });
   return pay;
 }

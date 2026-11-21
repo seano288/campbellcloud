@@ -10,7 +10,7 @@ export const MAX_SKIDS = 140, MAX_PUFFS = 60;
 const VIEW = 760;
 const TAU = Math.PI * 2;
 
-interface Theme { ground: string; ground2: string; road: string; edge: string; kerb: readonly [string, string]; line: string | null; deco: 'tree' | 'rock' | 'cactus' | 'pine' | 'building' | 'lava' }
+interface Theme { ground: string; ground2: string; road: string; edge: string; kerb: readonly [string, string]; line: string | null; deco: 'tree' | 'rock' | 'cactus' | 'pine' | 'building' | 'lava' | 'palm' | 'lollipop' | 'crater' | 'cloud'; bands?: readonly string[] }
 export const THEMES: Record<CupId, Theme> = {
   tarmac: { ground: '#4caf50', ground2: '#43a047', road: '#5b5f66', edge: '#e6e9ef', kerb: ['#e63946', '#ffffff'], line: '#ffffffaa', deco: 'tree' },
   dirt: { ground: '#8d9440', ground2: '#7f8638', road: '#9a6b3f', edge: '#6e4a2a', kerb: ['#e63946', '#ffd23f'], line: null, deco: 'rock' },
@@ -18,6 +18,11 @@ export const THEMES: Record<CupId, Theme> = {
   snow: { ground: '#eef6fb', ground2: '#e1edf5', road: '#b9d6ea', edge: '#8fb5d1', kerb: ['#2f6fd6', '#ffffff'], line: '#ffffffcc', deco: 'pine' },
   night: { ground: '#1b1f33', ground2: '#22273d', road: '#3a3f4b', edge: '#ffd23f', kerb: ['#ff3ccf', '#39ff88'], line: '#ffd23faa', deco: 'building' },
   volcano: { ground: '#3b2320', ground2: '#46291f', road: '#5a4038', edge: '#2a1a16', kerb: ['#ff5a10', '#2a1a16'], line: null, deco: 'lava' },
+  jungle: { ground: '#2f7d3a', ground2: '#2a7034', road: '#8a5a32', edge: '#5a3a1e', kerb: ['#ffd23f', '#1f6b3a'], line: null, deco: 'palm' },
+  candy: { ground: '#ffd6ec', ground2: '#ffc4e3', road: '#fff4fa', edge: '#ff7ac8', kerb: ['#ff3c8a', '#ffffff'], line: '#8ed8ffcc', deco: 'lollipop' },
+  moon: { ground: '#2a2d3a', ground2: '#30334a', road: '#8a8d99', edge: '#5b5f6e', kerb: ['#bfe8ff', '#2a2d3a'], line: null, deco: 'crater' },
+  rainbow: { ground: '#7cc8ff', ground2: '#86cdff', road: '#ffffff', edge: '#ffffff', kerb: ['#ffffff', '#ffd23f'], line: null, deco: 'cloud',
+    bands: ['#e63946', '#ff8a1f', '#ffd23f', '#3cb15b', '#3a8dde', '#8e5bd8'] },
 };
 
 interface Skid { x1: number; y1: number; x2: number; y2: number; life: number }
@@ -56,6 +61,32 @@ function drawDeco(c: CanvasRenderingContext2D, d: Deco, kind: Theme['deco'], t: 
       const w = d.r * 2, h = d.r * 1.6;
       c.fillStyle = '#2c3350'; c.fillRect(d.x - w / 2, d.y - h / 2, w, h); c.strokeRect(d.x - w / 2, d.y - h / 2, w, h);
       for (let i = 0; i < 3; i++) for (let j = 0; j < 2; j++) { c.fillStyle = (i + j + Math.floor(d.k * 9)) % 3 ? '#ffd23f' : '#3d4570'; c.fillRect(d.x - w / 2 + 6 + i * (w - 12) / 3, d.y - h / 2 + 6 + j * (h - 12) / 2, (w - 12) / 3 - 5, (h - 12) / 2 - 5); }
+      break;
+    }
+    case 'palm': {
+      c.fillStyle = '#7a4a26'; c.beginPath(); c.arc(d.x, d.y, d.r * .22, 0, TAU); c.fill();
+      c.fillStyle = '#3cb15b';
+      for (let i = 0; i < 6; i++) { const a = (i / 6) * TAU + d.k * 3; c.beginPath(); c.ellipse(d.x + Math.cos(a) * d.r * .55, d.y + Math.sin(a) * d.r * .55, d.r * .6, d.r * .2, a, 0, TAU); c.fill(); c.stroke(); }
+      c.fillStyle = '#7a4a26'; c.beginPath(); c.arc(d.x, d.y, d.r * .2, 0, TAU); c.fill(); c.stroke();
+      break;
+    }
+    case 'lollipop': {
+      const cols = ['#ff3c8a', '#3a8dde', '#ffd23f', '#3cb15b', '#8e5bd8'], col = cols[Math.floor(d.k * cols.length)]!;
+      c.fillStyle = col; c.beginPath(); c.arc(d.x, d.y, d.r * .8, 0, TAU); c.fill(); c.stroke();
+      c.strokeStyle = '#ffffff'; c.lineWidth = d.r * .12; c.beginPath();
+      for (let a = 0; a < TAU * 2; a += .25) c.lineTo(d.x + Math.cos(a + d.k * 6) * a * d.r * .055, d.y + Math.sin(a + d.k * 6) * a * d.r * .055);
+      c.stroke();
+      break;
+    }
+    case 'crater': {
+      c.fillStyle = '#1d2030'; c.beginPath(); c.ellipse(d.x, d.y, d.r, d.r * .85, d.k * 3, 0, TAU); c.fill();
+      c.strokeStyle = '#4a4e63'; c.lineWidth = d.r * .18; c.stroke();
+      if (d.k > .6) { c.fillStyle = '#ffffff'; c.beginPath(); c.arc(d.x + d.r * 1.6, d.y - d.r, 2.5, 0, TAU); c.fill(); }
+      break;
+    }
+    case 'cloud': {
+      c.fillStyle = '#ffffff';
+      for (const [dx, dy, rr] of [[-.6, .1, .55], [0, -.15, .75], [.6, .1, .55], [0, .25, .6]] as const) { c.beginPath(); c.arc(d.x + dx * d.r, d.y + dy * d.r, rr * d.r, 0, TAU); c.fill(); }
       break;
     }
     case 'lava': {
@@ -130,6 +161,8 @@ export function createStage(canvas: HTMLCanvasElement, def: TrackDef, looks: rea
       c.setLineDash([36, 36]); c.strokeStyle = theme.kerb[1]; c.stroke(road); c.setLineDash([]);
       c.strokeStyle = theme.edge; c.lineWidth = def.width + 6; c.stroke(road);
       c.strokeStyle = theme.road; c.lineWidth = def.width - 4; c.stroke(road);
+      // the Rainbow Cup's road is striped in rainbow bands, side to side
+      if (theme.bands) theme.bands.forEach((col, i) => { c.strokeStyle = col; c.lineWidth = (def.width - 4) * (1 - i / theme.bands!.length); c.stroke(road); });
       if (theme.line) { c.setLineDash([30, 40]); c.strokeStyle = theme.line; c.lineWidth = 5; c.stroke(road); c.setLineDash([]); }
       // the start line, chequered across the track
       const p0 = track.pts[0]!, d0 = track.dir[0]!, nx = -d0.y, ny = d0.x, sq = 18, rows = Math.ceil(def.width / sq);
@@ -165,8 +198,8 @@ export function createStage(canvas: HTMLCanvasElement, def: TrackDef, looks: rea
         drawCarTop(c, looks[i]!, { boosting: car.boosting > 0, t });
         c.restore();
       }
-      // night city: a dark wash with light round each car
-      if (def.cup === 'night') {
+      // night city and the moon: a dark wash with light round each car
+      if (def.cup === 'night' || def.cup === 'moon') {
         c.setTransform(1, 0, 0, 1, 0, 0);
         const grd = c.createRadialGradient(w / 2, h / 2, Math.min(w, h) * .25, w / 2, h / 2, Math.max(w, h) * .7);
         grd.addColorStop(0, '#00000000'); grd.addColorStop(1, '#000000aa');

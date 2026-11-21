@@ -1,12 +1,14 @@
 import { describe, expect, it } from 'vitest';
 import type { SolvedProblem } from '../learning/session';
-import { allBought, EARNABLE, finishRace, FIRST_RACES, fitOwned, freshGarage, frontier, goalOf, isOpen, nextTrack, payFor, pickTrack, proposePurchase, readGarage, record, setNumber } from './garage/garage';
-import { ALL_KEYS, BODIES, BOOSTERS, DECALS, ENGINES, FLAMES, fit, forSale, HORNS, keysIn, PAINTS, partOf, priceOf, RIMS, RIVAL_PARTS, SLOTS, slotOf, starterCar, statsOf, TYRES, WINGS, type PartKey } from './garage/parts';
+import { allBought, EARNABLE, finishRace, FIRST_RACES, fitOwned, freshGarage, frontier, goalOf, isOpen, MOST_RACE_BOLTS, MYSTERY_PICK, mysteryOpen, nextMysteryPrize, nextStar, nextTrack, payFor, pickTrack, planFor, proposePurchase, readGarage, record, setNumber, starCount, type GarageState } from './garage/garage';
+import { ALL_KEYS, BODIES, BOOSTERS, DECALS, ENGINES, FLAMES, fit, forSale, HORNS, keysIn, MYSTERY_KEYS, MYSTERY_PARTS, PAINTS, partOf, priceOf, RIMS, RIVAL_PARTS, SLOTS, slotOf, starterCar, statsOf, TYRES, WINGS, type PartKey } from './garage/parts';
 import { createPractice, SAVE_KEY, SAVE_VERSION, settleRace, tallySave, type TallyState } from './game';
 import { freshLearning } from './learning';
-import { MOST_EARNED, NUMBERS_TO, PHRASES } from './phrases';
-import { featuredOn, RIVALS } from './race/rivals';
-import { TRACKS } from './race/tracks';
+import { MOST_EARNED, needLine, NUMBERS_TO, PHRASES, PRICE_TENS, PRICE_TOP, sayable } from './phrases';
+import { featuredOn, RIVALS, STARS, type RacePlan } from './race/rivals';
+import { mysteryTrack, TRACKS, type TrackDef } from './race/tracks';
+
+const cupPlan = (track: TrackDef): RacePlan => ({ track, mode: 'cup', star: 0, level: 0 });
 import { CLIPS } from './voice.gen';
 
 const store = (state: TallyState = tallySave.fresh()) => ({
@@ -18,16 +20,28 @@ describe('the save', () => {
   it('has its own key and a version', () => { expect(SAVE_KEY).toBe('turbo-tally-save'); expect(SAVE_VERSION).toBe(1); });
   it('round-trips', () => {
     const garage = { ...freshGarage(), owned: [...freshGarage().owned, 'engine:v8' as PartKey, 'wing:zippy' as PartKey], car: { ...fit(starterCar(), 'engine:v8'), number: 42 }, races: 3, raced: 2,
-      tracks: { t1: { best: 2, losses: 0, beaten: true }, t2: { best: 4, losses: 2, beaten: false } }, cups: ['tarmac' as const], picked: 't1', last: 't2', goal: 'engine:turbo' as PartKey };
+      tracks: { t1: { best: 2, losses: 0, beaten: true, stars: 2 }, t2: { best: 4, losses: 2, beaten: false, stars: 0 } }, cups: ['tarmac' as const], picked: 't1', last: 'm7', goal: 'engine:turbo' as PartKey,
+      mystery: { level: 7, losses: 1 } };
     const s: TallyState = { learning: freshLearning(), currency: { balance: 17 }, garage };
     expect(tallySave.decode(JSON.parse(JSON.stringify(tallySave.encode(s))))).toEqual(s);
   });
   it('starts fresh from a version it does not know', () => expect(tallySave.decode({ version: 99, balance: 5 }).currency.balance).toBe(0));
   it('never fits a part he does not own, whatever the save says', () => {
-    const g = readGarage({ owned: ['engine:putt'], car: { engine: 'engine:rocket', body: 'wing:big', number: 300 }, tracks: { t1: { best: 1, beaten: true }, t99: { best: 1 } }, cups: ['tarmac', 'moon'] });
+    const g = readGarage({ owned: ['engine:putt'], car: { engine: 'engine:rocket', body: 'wing:big', number: 300 }, tracks: { t1: { best: 1, beaten: true }, t99: { best: 1 } }, cups: ['tarmac', 'mars'] });
     expect(g.car).toEqual(starterCar());
     expect(Object.keys(g.tracks)).toEqual(['t1']);
     expect(g.cups).toEqual(['tarmac']);
+  });
+  it('reads a save from before Stars and the Mystery Race with everything kept: no Stars yet, Mystery Level 1', () => {
+    const old = { owned: ['engine:putt', 'engine:rocket', 'wing:zippy'], car: { engine: 'engine:rocket', number: 9 }, races: 2, raced: 40,
+      tracks: Object.fromEntries(TRACKS.slice(0, 24).map(t => [t.id, { best: 1, losses: 0, beaten: true }])), cups: ['tarmac', 'dirt', 'sand', 'snow', 'night', 'volcano'], picked: null, last: 't24' };
+    const g = readGarage(old);
+    expect(g.owned).toContain('engine:rocket');
+    expect(g.car.engine).toBe('engine:rocket');
+    expect(record(g, TRACKS[23]!)).toEqual({ best: 1, losses: 0, beaten: true, stars: 0 });
+    expect(g.mystery).toEqual({ level: 1, losses: 0 });
+    expect(nextTrack(g).id).toBe('t25'); // straight on to the Jungle Cup
+    expect(g.cups).toHaveLength(6);
   });
 });
 
@@ -49,18 +63,33 @@ describe('a Round', () => {
 });
 
 describe('the Garage', () => {
-  it('has about 160 things to earn: parts in every slot, Rival parts, tracks and Cup trophies', () => {
-    expect([BODIES, ENGINES, TYRES, WINGS, BOOSTERS, PAINTS, RIMS, DECALS, HORNS, FLAMES].map(x => x.length)).toEqual([12, 8, 8, 8, 8, 24, 12, 20, 10, 10]);
-    expect(RIVAL_PARTS).toHaveLength(18);
-    const total = EARNABLE.parts + EARNABLE.tracks + EARNABLE.cups;
-    expect(total).toBeGreaterThanOrEqual(150);
+  it('has about 380 things to earn: parts in every slot, Rival and Mystery parts, tracks, Cup trophies and Stars', () => {
+    expect([BODIES, ENGINES, TYRES, WINGS, BOOSTERS, PAINTS, RIMS, DECALS, HORNS, FLAMES].map(x => x.length)).toEqual([26, 12, 11, 11, 11, 32, 18, 28, 14, 16]);
+    expect(RIVAL_PARTS).toHaveLength(30);
+    expect(MYSTERY_PARTS).toHaveLength(10);
+    const total = EARNABLE.parts + EARNABLE.tracks + EARNABLE.cups + EARNABLE.stars;
+    expect(total).toBeGreaterThanOrEqual(375);
+    // the shop alone costs more than four times what it did (2,734 Bolts)
+    expect(ALL_KEYS.filter(forSale).reduce((n, k) => n + priceOf(k)!, 0)).toBeGreaterThan(4 * 2734);
     expect(new Set(ALL_KEYS).size).toBe(ALL_KEYS.length);
     expect(new Set(ALL_KEYS.map(k => partOf(k).name)).size).toBe(ALL_KEYS.length); // every name is its own clip
   });
-  it('prices every part so the voice can say it: at most 100, a free starter in every slot, Rival parts never for sale', () => {
-    for (const k of ALL_KEYS) { const p = priceOf(k); if (p !== null) { expect(p).toBeLessThanOrEqual(NUMBERS_TO); expect(p).toBeGreaterThanOrEqual(0); } }
+  it('prices every part so the voice can say it: any number to 100, whole tens to 400; a free starter in every slot; prizes never for sale', () => {
+    for (const k of ALL_KEYS) {
+      const p = priceOf(k);
+      if (p === null) continue;
+      expect(p).toBeGreaterThanOrEqual(0);
+      expect(p).toBeLessThanOrEqual(PRICE_TOP);
+      if (p > NUMBERS_TO) { expect(p % 10, k).toBe(0); expect(PRICE_TENS).toContain(`${p}`); }
+      expect(sayable(p)).toEqual({ said: `${p}`, exact: true });
+    }
     for (const s of SLOTS) expect(keysIn(s).filter(k => priceOf(k) === 0)).toHaveLength(1);
-    for (const r of RIVALS) { expect(forSale(r.prize)).toBe(false); expect(priceOf(r.prize)).toBeNull(); }
+    for (const r of RIVALS) if (r.prize) { expect(forSale(r.prize)).toBe(false); expect(priceOf(r.prize)).toBeNull(); }
+    for (const k of MYSTERY_KEYS) expect(forSale(k)).toBe(false);
+    expect(new Set(RIVALS.flatMap(r => r.prize ?? [])).size).toBe(RIVAL_PARTS.length);
+    // "You need 137 more Bolts" isn't a clip: it's "about 140"
+    expect(needLine(137)).toEqual(['You need about', '140', 'more Bolts.']);
+    expect(needLine(37)).toEqual(['You need', '37', 'more Bolts.']);
     expect(proposePurchase(freshGarage(), 'wing:zippy', 1000)).toEqual({ kind: 'rejected', reason: 'not-for-sale' });
   });
   it('makes the numbers real: an Engine adds Speed, Tyres and a Wing add Grip, a Booster adds boosts', () => {
@@ -83,7 +112,7 @@ describe('the Garage', () => {
     const cheapest = Math.min(...ALL_KEYS.filter(k => forSale(k) && priceOf(k)! > 0).map(k => priceOf(k)!));
     // a Round pays at least 1 (finishing), the free first Race at least 2
     expect(cheapest).toBeLessThanOrEqual(1 + 1 + 2);
-    expect(MOST_EARNED).toBeGreaterThanOrEqual(6);
+    expect(MOST_EARNED).toBeGreaterThanOrEqual(Math.max(6, MOST_RACE_BOLTS));
   });
   it('buys a part, fits it, and saves toward the cheapest part that changes a number', () => {
     const buy = proposePurchase(freshGarage(), 'engine:zoom', 20);
@@ -113,38 +142,96 @@ describe('Races and Cups', () => {
   });
   it('pays every finish, at most 5, and wins the Rival\'s part only by finishing ahead of it', () => {
     const t1 = TRACKS[0]!;
-    expect(payFor(freshGarage(), t1, 4, false)).toMatchObject({ bolts: 2, prize: null, opened: null });
-    const won = payFor(freshGarage(), t1, 3, true);
+    expect(payFor(freshGarage(), cupPlan(t1), 4, false)).toMatchObject({ bolts: 2, prize: null, opened: null });
+    const won = payFor(freshGarage(), cupPlan(t1), 3, true);
     expect(won).toMatchObject({ bolts: 3, prize: featuredOn(t1).prize, opened: TRACKS[1] });
-    expect(payFor(freshGarage(), t1, 1, true).bolts).toBe(5);
+    expect(payFor(freshGarage(), cupPlan(t1), 1, true).bolts).toBe(5);
+    expect(payFor(freshGarage(), cupPlan(TRACKS[30]!), 1, true, 6).bolts).toBe(7); // six cars: one for each beaten
     expect(5).toBeLessThanOrEqual(MOST_EARNED);
   });
   it('settles a Race: uses it, keeps the record, fits the prize, opens the next track; a loss slows that Rival next time', () => {
     const s = store();
-    const lost = settleRace(s, TRACKS[0]!, 4, false)!;
+    const lost = settleRace(s, cupPlan(TRACKS[0]!), 4, false)!;
     expect(lost.beat).toBe(false);
     expect(s.state.garage.races).toBe(0);
-    expect(record(s.state.garage, TRACKS[0]!)).toEqual({ best: 4, losses: 1, beaten: false });
-    expect(settleRace(s, TRACKS[0]!, 1, true)).toBeNull(); // no Race left: nothing happens
+    expect(record(s.state.garage, TRACKS[0]!)).toEqual({ best: 4, losses: 1, beaten: false, stars: 0 });
+    expect(settleRace(s, cupPlan(TRACKS[0]!), 1, true)).toBeNull(); // no Race left: nothing happens
     s.commit(st => ({ ...st, garage: { ...st.garage, races: 1 } }));
-    settleRace(s, TRACKS[0]!, 2, true);
+    settleRace(s, cupPlan(TRACKS[0]!), 2, true);
     const g = s.state.garage;
     expect(g.owned).toContain(featuredOn(TRACKS[0]!).prize);
     expect(g.car.wing).toBe(featuredOn(TRACKS[0]!).prize);
-    expect(record(g, TRACKS[0]!)).toEqual({ best: 2, losses: 0, beaten: true });
+    expect(record(g, TRACKS[0]!)).toEqual({ best: 2, losses: 0, beaten: true, stars: 0 });
     expect(isOpen(g, TRACKS[1]!)).toBe(true);
     expect(frontier(g)!.id).toBe('t2');
     expect(s.state.currency.balance).toBe(2 + 4);
   });
   it('wins the Cup at the Cup Final, and the prize is never given twice', () => {
     let g = freshGarage();
-    for (const t of TRACKS.slice(0, 4)) { const pay = payFor(g, t, 1, true); g = finishRace({ ...g, races: 1 }, t, pay); }
+    for (const t of TRACKS.slice(0, 4)) { const pay = payFor(g, cupPlan(t), 1, true); g = finishRace({ ...g, races: 1 }, cupPlan(t), pay); }
     expect(g.cups).toEqual(['tarmac']);
     expect(g.owned.filter(k => RIVALS.some(r => r.prize === k))).toHaveLength(3);
-    const again = payFor(g, TRACKS[0]!, 1, true);
+    const again = payFor(g, cupPlan(TRACKS[0]!), 1, true);
     expect(again.prize).toBeNull();
     expect(again.opened).toBeNull();
-    expect(payFor(g, TRACKS[3]!, 1, true).cup).toBeNull();
+    expect(payFor(g, cupPlan(TRACKS[3]!), 1, true).cup).toBeNull();
+  });
+  it('races a beaten track again for three Stars, each won only by coming first, then just for fun', () => {
+    let g: GarageState = { ...freshGarage(), tracks: { t1: { best: 2, losses: 0, beaten: true, stars: 0 } } };
+    const t1 = TRACKS[0]!;
+    expect(planFor(g, t1)).toMatchObject({ mode: 'star', star: 1 });
+    expect(nextTrack(g).id).toBe('t2'); // the next track to beat comes first
+    const second = payFor(g, planFor(g, t1), 2, false);
+    expect(second).toMatchObject({ bolts: 4, star: null });
+    g = finishRace({ ...g, races: 1, picked: 't1' }, planFor(g, t1), second);
+    expect(record(g, t1)).toMatchObject({ stars: 0, losses: 1, best: 2 });
+    expect(g.picked).toBe('t1'); // "Race again" tries the same Star
+    for (const [star, bonus] of [[1, 3], [2, 5], [3, 8]] as const) {
+      const plan = planFor(g, t1);
+      expect(plan).toMatchObject({ mode: 'star', star });
+      const pay = payFor(g, plan, 1, true);
+      expect(pay).toMatchObject({ star, bolts: 5 + bonus });
+      g = finishRace({ ...g, races: 1 }, plan, pay);
+      expect(record(g, t1)).toMatchObject({ stars: star, losses: 0 });
+    }
+    expect(planFor(g, t1).mode).toBe('fun');
+    expect(payFor(g, planFor(g, t1), 1, true)).toMatchObject({ bolts: 5, star: null, prize: null });
+    expect(starCount(g)).toBe(STARS);
+  });
+  it('sends the Race button to the next track to beat, then the Stars (every first Star before any second), then the Mystery Race', () => {
+    const all = Object.fromEntries(TRACKS.map(t => [t.id, { best: 1, losses: 0, beaten: true, stars: 0 }]));
+    let g: GarageState = { ...freshGarage(), tracks: { ...all, t2: { ...all.t2!, stars: 1 } }, cups: ['tarmac'] };
+    expect(nextStar(g)!.id).toBe('t1');
+    g = { ...g, tracks: { ...g.tracks, t1: { ...g.tracks.t1!, stars: 1 } } };
+    expect(nextStar(g)!.id).toBe('t3');
+    g = { ...g, tracks: Object.fromEntries(TRACKS.map(t => [t.id, { best: 1, losses: 0, beaten: true, stars: 3 }])) };
+    expect(nextTrack(g).id).toBe('m1');
+    expect(nextTrack(pickTrack(g, 't5')!).id).toBe('t5');
+    expect(nextTrack(pickTrack(g, MYSTERY_PICK)!).id).toBe('m1');
+  });
+  it('opens the Mystery Race with the Tarmac Cup; first place goes up a Level, and every fifth Level wins a Mystery part', () => {
+    expect(mysteryOpen(freshGarage())).toBe(false);
+    expect(pickTrack(freshGarage(), MYSTERY_PICK)).toBeNull();
+    let g: GarageState = { ...freshGarage(), cups: ['tarmac'] };
+    expect(nextMysteryPrize(g)).toEqual({ level: 5, prize: MYSTERY_KEYS[0] });
+    for (let level = 1; level <= 5; level++) {
+      const plan = planFor(g, mysteryTrack(g.mystery.level));
+      expect(plan).toMatchObject({ mode: 'mystery', level });
+      const lost = payFor(g, plan, 2, false, 6);
+      expect(lost).toMatchObject({ bolts: 6, level: null, prize: null });
+      g = finishRace({ ...g, races: 1 }, plan, lost);
+      expect(g.mystery).toEqual({ level, losses: 1 });
+      const won = payFor(g, plan, 1, true, 6);
+      expect(won.level).toBe(level + 1);
+      expect(won.bolts).toBeGreaterThan(7);
+      expect(won.prize).toBe(level === 5 ? MYSTERY_KEYS[0] : null);
+      g = finishRace({ ...g, races: 1 }, plan, won);
+      expect(g.mystery).toEqual({ level: level + 1, losses: 0 });
+    }
+    expect(g.owned).toContain(MYSTERY_KEYS[0]);
+    expect(g.car.paint).toBe(MYSTERY_KEYS[0]);
+    expect(nextMysteryPrize(g)).toEqual({ level: 10, prize: MYSTERY_KEYS[1] });
+    expect(readGarage(JSON.parse(JSON.stringify(g))).mystery).toEqual({ level: 6, losses: 0 });
   });
 });
 

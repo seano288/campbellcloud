@@ -117,6 +117,11 @@ COLLECTION_SPEECH = {
             'Grape Purple': 'Grape, Purple', 'You got Grape Purple!': 'You got Grape, Purple!',
             'Mega Wing': 'Mega, Wing', 'No Wing': 'No, Wing', 'Snowball Bends': 'Snowball, Bends',
             'Play more Faster Car to open this!': 'Play more Faster Car, to open this!', 'Neon': 'Neon!',
+            # added with the four later Cups: names alone, said as names
+            'Jojo': 'Jo-Jo!', 'Tiki': 'Tiki!', 'Kong': 'Kong!', 'Nova': 'Nova!', 'Luna': 'Luna!', 'Prism': 'Prism!', 'Orbit': 'Orbit!',
+            'Flash': 'Flash!', 'Fudge': 'Fudge!', 'Jelly': 'Jelly!', 'Astro': 'Astro!', 'Cosmo': 'Cosmo!', 'Taffy': 'Taffy!',
+            'Moon Cup': 'Moon, Cup', 'You won the Moon Cup!': 'You won the Moon, Cup!',
+            'Level': 'Level', 'Win level': 'Win level,', 'Come first to win': 'Come first, to win',
         },
     },
     'hook-and-ladder': {
