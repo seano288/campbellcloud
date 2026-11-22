@@ -5,6 +5,7 @@ import { createPracticeCoordinator } from '../app/coordination';
 import { createRewardPurchases } from '../app/purchaseCoordination';
 import { credit, readCurrency, type CurrencyState, type EarningsPolicy } from '../currency/currency';
 import { boltsFor } from '../round/rules';
+import type { SceneDef } from './call/scenes';
 import { browserStorage, createStore, type SaveAdapter } from '../save/storage';
 import { freshLearning, readLearning, recordSolved, startPractice, type Asked, type LearningChange, type LearningState } from './learning';
 import { earnCall, finishCall, freshStation, proposePurchase, readStation, type CallPay, type StationState } from './station/station';
@@ -58,12 +59,12 @@ export const buy = createRewardPurchases(player, { proposePurchase }, {
 export const updateStation = (change: (s: StationState) => StationState | null) =>
   player.commit(state => { const station = change(state.station); return station ? { ...state, station } : null; });
 
-/** The Call is finished: pay the Town's thank-you, use the Call, add the badge and the building. */
-export function settleCall(store: Pick<typeof player, 'commit'>, id: string): CallPay | null {
+/** The Call is finished: pay the Town's thank-you, use the Call, add the badge and the building (or the star, or the Level). */
+export function settleCall(store: Pick<typeof player, 'commit'>, scene: Pick<SceneDef, 'id' | 'heat'>): CallPay | null {
   let pay: CallPay | null = null;
   store.commit(s => {
     if (s.station.calls <= 0) return null;
-    const done = finishCall(s.station, id);
+    const done = finishCall(s.station, scene);
     pay = done.pay;
     const paid = credit(s.currency, done.pay.bolts);
     return { ...s, station: done.state, currency: paid.kind === 'accepted' ? paid.state : s.currency };

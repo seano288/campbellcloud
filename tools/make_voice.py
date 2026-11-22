@@ -132,7 +132,8 @@ COLLECTION_SPEECH = {
         # would tell them apart by the voice, not the ending. (Pass 2 tried Aria with "Cat.", "cat?", "kat", "Key!", "kee", "Bear?",
         # "bair": large-v3-turbo still heard Kate, he and there.)
         'said_as': {'cat': 'cat', 'bow': 'beau', 'owl': 'owl.'},
-        'voice_for': {w: 'en-US-JennyNeural' for w in ['cat', 'cats', 'key', 'keys', 'duck', 'ducks', 'before', 'bear', 'grapes']},
+        # the Grape paint, as grapes: Aria's came back "crepe"
+        'voice_for': {w: 'en-US-JennyNeural' for w in ['cat', 'cats', 'key', 'keys', 'duck', 'ducks', 'before', 'bear', 'grapes', 'Grape']},
     },
     # Dino Dig says the same words the same way as Word Wreckers (its own clips, so the two games' folders stay their own): slowly at
     # -40% while the sound boxes light, and "cat" and "grab" in Jenny's voice, which Aria says as "Kate" and "crab". Its own voice test

@@ -330,3 +330,39 @@ html,body{background:var(--night)}
   .choice.hint,.split-word.hint,.pulse{outline:5px solid var(--yellow);outline-offset:3px}
   .bar-word,.split-word .letter,.end-tiles .end-tile{transition:none}
 }
+
+/* ---------- more to earn: fifteen tabs, gadgets switched off, prizes, stars and the Mystery Call ---------- */
+.hl-tabs{grid-template-columns:repeat(8,minmax(0,1fr))}
+.hl-tab{min-height:max(44px,calc(50px*var(--u)));font-size:calc(24px*var(--u))}
+.hl-tile.prize{background:linear-gradient(160deg,#3b2a6b,#241a45);border-color:#b98cff}
+.hl-tile.prize .mt-tag{color:#e2c8ff}
+.hl-tile.owned:not(.on) .mt-tag{color:#ffffff80;font-size:max(13px,.9em)}
+.buy.prize-chip{background:linear-gradient(#8a5cff,#5a2fd0);color:#fff;font:900 calc(26px*var(--u)) Nunito,sans-serif}
+/* thirty-two badges, with the stars won going back there: three rows upright, one scrolling row on its side (as on a phone) */
+.badge-wall{grid-template-columns:repeat(11,minmax(0,1fr));gap:3px;padding:5px 6px}
+.badge-wall .badge{position:relative;min-height:44px;min-width:44px;max-height:48px;max-width:48px;font-size:max(18px,calc(22px*var(--u)))}
+@media (orientation:landscape){
+  .badge-wall{display:flex;overflow-x:auto;overscroll-behavior:contain;touch-action:pan-x;scrollbar-width:none;gap:4px;padding:5px 6px}
+  .badge-wall .badge{flex:none;width:46px;height:46px}
+}
+.badge-stars{position:absolute;left:50%;bottom:-4px;transform:translateX(-50%);font-size:9px;line-height:1;white-space:nowrap;letter-spacing:-2px}
+.call-badge-next{position:relative}
+.next-star{position:absolute;right:-.5em;top:-.35em;font-style:normal;font-size:.6em}
+/* the Town: thirty-two lots and the Mystery Call's, scrolling once they no longer fit */
+.town-map{overflow-y:auto;overscroll-behavior:contain;touch-action:pan-y;grid-auto-rows:minmax(max(84px,calc(118px*var(--u))),1fr)}
+.lot-stars{position:absolute;left:50%;top:3px;transform:translateX(-50%);display:flex;gap:1px;font-size:max(11px,calc(14px*var(--u)));line-height:1}
+.lot-stars i{font-style:normal;filter:grayscale(1) brightness(.45);opacity:.7}
+.lot-stars i.won{filter:none;opacity:1;text-shadow:0 0 6px #ffd23f}
+.lot-stars.none{opacity:.75}
+.mystery-lot{display:grid;place-items:center;background:radial-gradient(circle at 50% 45%,#5a2fd0,#24124f 70%);border:3px solid #b98cff}
+.mystery-lot.site{background:#1a1633;border-color:#ffffff30}
+.mystery-q{font-size:max(34px,calc(48px*var(--u)));line-height:1;font-family:"Apple Color Emoji","Segoe UI Emoji","Noto Color Emoji",sans-serif}
+.mystery-lot.built .mystery-q{animation:hl-bob 1.6s ease-in-out infinite}
+@keyframes hl-bob{50%{transform:translateY(-4px) rotate(-6deg)}}
+/* the Call: the bucket fills up between drops; the thank-you's stars, Level and prize */
+.drop-btn b{font:900 14px Nunito,sans-serif;margin-left:1px}
+.drop-btn.filling{filter:grayscale(.7) brightness(.8)}
+.done-stars{font-size:calc(34px*var(--u));letter-spacing:2px;filter:drop-shadow(0 2px 0 #000)}
+.done-level{font:400 calc(26px*var(--u)) Bungee,sans-serif;color:#d9c2ff}
+.done-prize{font:900 calc(22px*var(--u)) Nunito,sans-serif;color:#fff;background:linear-gradient(#8a5cff,#5a2fd0);border:3px solid #000;border-radius:14px;padding:4px 12px;box-shadow:0 4px 0 #000}
+@media (prefers-reduced-motion:reduce){.mystery-lot.built .mystery-q{animation:none}}

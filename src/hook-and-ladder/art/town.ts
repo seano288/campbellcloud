@@ -6,7 +6,10 @@ import type { Prop, SceneDef } from '../call/scenes';
 
 const OUT = '#141414';
 /** How far above its top floor each kind of building reaches (roofs, flags, signs), in floors. */
-const ROOF: Partial<Record<SceneDef['look'], number>> = { house: 1.15, treehouse: 1.15, barn: 1.45, castle: 1.55, lighthouse: 1.25, airport: 0.65, hotel: 1.05, school: 0.8 };
+const ROOF: Partial<Record<SceneDef['look'], number>> = {
+  house: 1.15, treehouse: 1.15, barn: 1.45, castle: 1.55, lighthouse: 1.25, airport: 0.65, hotel: 1.05, school: 0.8,
+  cabin: 1.15, zoo: 1.5, windmill: 1.35, library: 1.6, museum: 1.7, hospital: 1.7, stadium: 1.5, giant: 1.75, volcano: 1.25, station: 1.1, pizza: 1, toystore: 1,
+};
 /** Left, right and top of a prop, in world units. Water lies under the ground and doesn't count. */
 function extent(p: Prop): [number, number, number] | null {
   switch (p.kind) {
@@ -17,6 +20,17 @@ function extent(p: Prop): [number, number, number] | null {
     case 'car': return [p.x - 1.05, p.x + 1.05, 1.12];
     case 'plane': return [p.x - 2.45, p.x + 2.05, 2.12];
     case 'rocket': return [p.x - 1.05, p.x + 1.05, 8.8];
+    case 'tent': return [p.x - 1.05, p.x + 1.05, 1.55];
+    case 'campfire': return [p.x - 0.75, p.x + 0.75, 0.4];
+    case 'hay': { const n = p.h ?? 1; return [p.x - n * 0.55, p.x + n * 0.55, 0.5 + (n - 1) * 0.95 + 0.55]; }
+    case 'tractor': return [p.x - 0.98, p.x + 0.85, 1.75];
+    case 'train': return [p.x - 0.35, p.x + (p.w ?? 4.6) + 0.35, 1.75];
+    case 'blades': return [p.x - 2.1, p.x + 2.1, (p.h ?? 4) + 2.1];
+    case 'rock': return [p.x - 0.45, p.x + (p.w ?? 4) + 0.45, p.h ?? 1.5];
+    case 'bigtop': return [p.x - (p.w ?? 5.6) / 2 - 0.05, p.x + (p.w ?? 5.6) / 2 + 0.5, (p.h ?? 4.4) + 0.65];
+    case 'pole': return [p.x - 1.45, p.x + 1.45, (p.h ?? 3) + 0.2];
+    case 'volcano': { const h = p.h ?? 6; return [p.x - h * 0.75, p.x + h * 0.75, h + 1.4]; }
+    case 'palm': { const h = p.h ?? 3; return [p.x - 1.3, p.x + 1.3, h + 0.5]; }
     default: return null;
   }
 }

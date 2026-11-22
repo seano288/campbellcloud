@@ -17,20 +17,29 @@ import { goCall, screen } from '../nav';
 import { NUMBERS_TO, type Phrase } from '../phrases';
 import { startRound } from '../round';
 import { useVoice } from '../voice';
-import { CATALOGUE, LADDER_FLOORS, PUMP_FLOORS, TAB_NAMES, TABS, TANK_SECONDS, idOf, infoOf, keyOf, tabOf, type ItemKey, type SirenId, type Tab } from './parts';
-import { allOwned, callOf, fit, goalOf, isFitted, isOwned, lookOf, priceOf, selectGoal, type StationState } from './station';
+import { MYSTERY_ID } from '../call/scenes';
+import { CATALOGUE, LADDER_FLOORS, PUMP_FLOORS, TAB_NAMES, TABS, TANK_SECONDS, idOf, infoOf, isPrize, keyOf, tabOf, type ItemKey, type SirenId, type Tab } from './parts';
+import { allOwned, callOf, fit, goalOf, isFitted, isOwned, lookOf, priceOf, selectGoal, starsOf, type StationState } from './station';
 
-export const TAB_ICONS: Record<Tab, string> = { truck: '🚒', pump: '⛲', hose: '🌀', ladder: '🪜', tank: '🛢️', nozzle: '💦', siren: '🚨', lights: '💡', paint: '🎨', buddy: '🐶', station: '🏠', town: '🏙️' };
-const NOZZLE_ICONS: Record<string, string> = { straight: '💧', fan: '🌬️', foam: '☁️', bubbles: '🫧', rainbow: '🌈', glitter: '✨', snow: '❄️', twin: '💧💧' };
-const BETTER: Partial<Record<Tab, Phrase>> = { pump: 'Your water reaches higher!', hose: 'Your spray is wider!', ladder: 'Your ladder reaches higher!', tank: 'Your tank holds more!' };
+export const TAB_ICONS: Record<Tab, string> = {
+  truck: '🚒', air: '🚁', engine: '⚙️', pump: '⛲', hose: '🌀', ladder: '🪜', tank: '🛢️', nozzle: '💦', gadget: '🔧', siren: '🚨', lights: '💡', paint: '🎨',
+  buddy: '🐶', station: '🏠', town: '🏙️',
+};
+const NOZZLE_ICONS: Record<string, string> = {
+  straight: '💧', fan: '🌬️', foam: '☁️', hearts: '💖', bubbles: '🫧', stars: '⭐', rainbow: '🌈', confetti: '🎊', slime: '🟢', glitter: '✨', chocolate: '🍫',
+  snow: '❄️', sprinkler: '🌧️', twin: '💧💧', cannon: '💥', triple: '💧💧💧', golden: '🌟',
+};
+const ENGINE_ICONS = ['⚙️', '🔩', '💨', '🏎️', '✈️', '🚀', '🌈'];
+const BETTER: Partial<Record<Tab, Phrase>> = { pump: 'Your water reaches higher!', hose: 'Your spray is wider!', ladder: 'Your ladder reaches higher!', tank: 'Your tank holds more!', engine: 'Your engine is faster!' };
 const n = (x: number): Phrase => `${Math.min(x, NUMBERS_TO)}` as Phrase;
 
 /** What a tile shows: his truck wearing it (trucks and paint), or its emoji and what it does. */
 function TilePic({ k, st }: { k: ItemKey; st: StationState }) {
   const tab = tabOf(k), id = idOf(k), info = infoOf(k);
-  if (tab === 'truck' || tab === 'paint') return <img class="part-pic" src={truckPic(lookOf(st, k), 200, 120)} alt="" draggable={false} />;
+  if (tab === 'truck' || tab === 'air' || tab === 'paint') return <img class="part-pic" src={truckPic(lookOf(st, k), 200, 120)} alt="" draggable={false} />;
   if (tab === 'lights') return <span class="swatch lights" style={{ background: info.color, boxShadow: `0 0 14px 4px ${info.color}` }} />;
   const rung = info.rung ?? 0;
+  if (tab === 'engine') return <span class="tile-emo">{ENGINE_ICONS[rung]}<b>{'⚡'.repeat(Math.ceil(rung / 2))}</b></span>;
   if (tab === 'pump') return <span class="tile-emo">⛲<b>⬆{PUMP_FLOORS[rung]}</b></span>;
   if (tab === 'ladder') return <span class="tile-emo">🪜<b>⬆{LADDER_FLOORS[rung]}</b></span>;
   if (tab === 'tank') return <span class="tile-emo">🛢️<b>{TANK_SECONDS[rung]}s</b></span>;
@@ -71,6 +80,13 @@ export function StationScreen() {
     if (tabOf(k) === 'siren') siren(idOf(k) as SirenId);
     if (isOwned(st, k)) {
       setTrial(null);
+      if (tabOf(k) === 'gadget') {
+        // a Gadget switches on or off
+        const on = !isFitted(st, k);
+        updateStation(s => fit(s, k)); sClink();
+        void voice.say(infoOf(k).name as Phrase, on ? 'On!' : 'Off!', ...(on ? trickOf(k) : []));
+        return;
+      }
       if (!isFitted(st, k)) updateStation(s => fit(s, k));
       if (tabOf(k) !== 'siren') sClink();
       void voice.say(infoOf(k).name as Phrase, ...trickOf(k));
@@ -78,12 +94,14 @@ export function StationScreen() {
     }
     setTrial(k);
     if (tabOf(k) !== 'siren') sChime();
+    if (isPrize(k)) { void voice.say(infoOf(k).name as Phrase, ...trickOf(k), 'Win it in a Mystery Call!'); return; }
     const price = priceOf(k);
     void voice.say(infoOf(k).name as Phrase, ...trickOf(k), 'It costs', n(price), 'Bolts.', ...(balance < price ? ['You need' as const, n(price - balance), 'more Bolts.' as const] : []));
   }
   function buyTrial() {
     if (!trial || !voice.active || blocked) return;
     const k = trial, price = priceOf(k);
+    if (isPrize(k)) { nope(); void voice.say('Win it in a Mystery Call!'); return; }
     if (balance < price) {
       nope();
       updateStation(s => selectGoal(s, k));
@@ -96,7 +114,7 @@ export function StationScreen() {
     if (!voice.active) return;
     if (!id) { sNope(); void voice.say('Answer more Calls to fill your wall!'); return; }
     sClink();
-    void voice.say(SCENES.find(s => s.id === id)!.name as Phrase);
+    void voice.say(SCENES.find(s => s.id === id)!.name as Phrase, ...(starsOf(st, id) ? ['Star Call!' as const] : []));
   }
 
   const keys = CATALOGUE[tab].map(i => keyOf(tab, i.id));
@@ -119,7 +137,8 @@ export function StationScreen() {
             <div class="badge-wall" role="group" aria-label="Badges">
               {SCENES.map(s => {
                 const got = st.answered.includes(s.id);
-                return <button key={s.id} class={`badge ${got ? 'got' : ''}`} aria-label={got ? s.name : 'Empty badge'} onClick={() => tapBadge(got ? s.id : null)}>{got ? s.badge : ''}</button>;
+                const stars = starsOf(st, s.id);
+                return <button key={s.id} class={`badge ${got ? 'got' : ''}`} aria-label={got ? s.name : 'Empty badge'} onClick={() => tapBadge(got ? s.id : null)}>{got ? s.badge : ''}{stars > 0 && <span class="badge-stars" aria-hidden="true">{'⭐'.repeat(stars)}</span>}</button>;
               })}
             </div>
             <div class="bay-floor">
@@ -131,7 +150,7 @@ export function StationScreen() {
           </div>
           <div class="bay-go">
             <button class={`big-btn go call-btn ${wiggle ? 'wiggle' : ''} ${st.calls > 0 ? (trial ? '' : 'pulse') : 'short'}`} aria-label={`Call to ${next.name}`} onClick={call}>
-              <span class="call-badge-next" aria-hidden="true">{next.badge}</span>
+              <span class="call-badge-next" aria-hidden="true">{next.badge}{next.id !== MYSTERY_ID && (next.heat ?? 0) > 0 && <i class="next-star">⭐</i>}</span>
               <span class="call-word">Call!</span>
               <span class="call-count">🚒{st.calls}</span>
             </button>
@@ -145,12 +164,12 @@ export function StationScreen() {
           </div>
           <div class="hl-tray">
             {keys.map(k => {
-              const info = infoOf(k), owned = isOwned(st, k), on = owned && isFitted(st, k), can = !owned && balance >= info.price;
+              const info = infoOf(k), owned = isOwned(st, k), on = owned && isFitted(st, k), prize = !owned && isPrize(k), can = !owned && !prize && balance >= info.price;
               return (
-                <button key={k} class={`hl-tile ${on ? 'on' : ''} ${owned ? 'owned' : 'locked'} ${can ? 'can' : ''} ${trial === k ? 'trying' : ''}`} aria-label={info.name} aria-pressed={on} onClick={() => tap(k)}>
+                <button key={k} class={`hl-tile ${on ? 'on' : ''} ${owned ? 'owned' : 'locked'} ${can ? 'can' : ''} ${prize ? 'prize' : ''} ${trial === k ? 'trying' : ''}`} aria-label={info.name} aria-pressed={on} onClick={() => tap(k)}>
                   <TilePic k={k} st={st} />
                   <span class="mt-name">{info.name}</span>
-                  <span class="mt-tag">{owned ? (on ? '✓' : '') : <>{info.price}<CurrencyIcon kind={LADDER_CURRENCY} size={18} /></>}</span>
+                  <span class="mt-tag">{owned ? (on ? '✓' : tab === 'gadget' ? 'off' : '') : prize ? <>❓{info.prize}</> : <>{info.price}<CurrencyIcon kind={LADDER_CURRENCY} size={18} /></>}</span>
                 </button>
               );
             })}
@@ -159,7 +178,9 @@ export function StationScreen() {
             <div class="buybar">
               <button class="x" aria-label="Put it back" onClick={() => setTrial(null)}>✕</button>
               <span class="buy-name">{infoOf(trial).name}</span>
-              <button class={`big-btn go buy ${balance >= priceOf(trial) ? 'pulse' : 'short'}`} aria-label="Buy" onClick={buyTrial}>{priceOf(trial)}<CurrencyIcon kind={LADDER_CURRENCY} size={30} /></button>
+              {isPrize(trial)
+                ? <button class="big-btn buy prize-chip short" aria-label="Mystery Call prize" onClick={buyTrial}>❓{infoOf(trial).prize}</button>
+                : <button class={`big-btn go buy ${balance >= priceOf(trial) ? 'pulse' : 'short'}`} aria-label="Buy" onClick={buyTrial}>{priceOf(trial)}<CurrencyIcon kind={LADDER_CURRENCY} size={30} /></button>}
             </div>
           )}
         </section>

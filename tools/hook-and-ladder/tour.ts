@@ -100,8 +100,9 @@ async function fits(name: string) {
       if (document.querySelector('.reward') && el.closest('.card')) continue; // the last question, under the end of the Round
       if (document.querySelector('.call-done') && !el.closest('.call-done')) continue; // under the thank-you card
       const label = el.getAttribute('aria-label') ?? el.className.toString();
-      // a tile in a scrolling tray (or a badge on a phone's scrolling wall) is reached by scrolling it: only the tray has to be on screen
-      const scroller = el.parentElement?.closest('.hl-tray,.badge-wall') as HTMLElement | null;
+      // a tile in a scrolling tray (a badge on a phone's scrolling wall, a lot in the Town) is reached by scrolling it: only the tray
+      // has to be on screen
+      const scroller = el.parentElement?.closest('.hl-tray,.badge-wall,.town-map') as HTMLElement | null;
       const box = scroller ? scroller.getBoundingClientRect() : r;
       if (box.right > innerWidth + 1 || box.bottom > innerHeight + 1 || box.left < -1 || box.top < -1) out.push(`off screen: ${label}`);
       if (r.height < 43.5 || r.width < 43.5) out.push(`small ${Math.round(r.width)}x${Math.round(r.height)}: ${label}`);

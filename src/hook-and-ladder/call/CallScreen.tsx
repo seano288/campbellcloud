@@ -16,13 +16,15 @@ import { player, settleCall } from '../game';
 import { goCall, screen } from '../nav';
 import { type Phrase } from '../phrases';
 import { startRound } from '../round';
-import { TANKS } from '../station/parts';
-import { callOf, gearOf, lookOf, sirenOf, type CallPay } from '../station/station';
+import { infoOf, TANKS } from '../station/parts';
+import { callOf, gearOf, lookOf, MYSTERY_OPENS, sirenOf, type CallPay } from '../station/station';
+import { MYSTERY_ID } from './scenes';
 import { useVoice } from '../voice';
 import { drawBackdrop, drawCall, drawDrive, toWorld, viewOf } from './draw';
 import { chop, createHose, ding, gurgle, siren, sizzle, whirr } from './sounds';
-import { aim, dropWater, release, startCall, step, tapRescue, takeEvents, type CallState } from './sim';
+import { aim, canDrop, dropWater, release, spraying, startCall, step, tapRescue, takeEvents, type CallState } from './sim';
 
+/** The drive's length with the Starter Engine; each Rung of Engine makes it quicker. */
 const DRIVE_S = 4.2;
 /** Seconds with no finger on the scene before he's reminded what to do. */
 const IDLE_S = 9;
@@ -31,10 +33,12 @@ export function CallScreen() {
   const voice = useVoice(), start = player.state.peek().station;
   const scene = useMemo(() => callOf(start), []), look = useMemo(() => lookOf(start), []), gear = useMemo(() => gearOf(start), []);
   const sim = useMemo<CallState>(() => startCall(scene, gear, Date.now() & 0xffff), []);
+  const plane = sim.stats.kind === 'plane', mystery = scene.id === MYSTERY_ID, level = start.mystery + 1, heat = scene.heat ?? 0;
+  const driveS = DRIVE_S / (1 + 0.15 * gear.engine), driveK = 1 + 0.15 * gear.engine;
   const canvas = useRef<HTMLCanvasElement>(null), tankBar = useRef<HTMLSpanElement>(null);
   const [phase, setPhase] = useState<'drive' | 'work' | 'done'>('drive');
-  const [pay, setPay] = useState<CallPay | null>(null), [awake, setAwake] = useState(false), [armed, setArmed] = useState(false);
-  const live = useRef({ phase: 'drive' as 'drive' | 'work' | 'done', driveT: 0, siren: 0, fps: [] as number[], told: new Set<string>(), pointer: null as number | null, idle: 0, nudges: 0 });
+  const [pay, setPay] = useState<CallPay | null>(null), [awake, setAwake] = useState(false), [armed, setArmed] = useState(false), [dropReady, setDropReady] = useState(true);
+  const live = useRef({ phase: 'drive' as 'drive' | 'work' | 'done', driveT: 0, dropReady: true, siren: 0, fps: [] as number[], told: new Set<string>(), pointer: null as number | null, idle: 0, nudges: 0 });
 
   useEffect(() => {
     const c = canvas.current!, ctx = c.getContext('2d')!, hose = createHose(gear.hose);
@@ -53,7 +57,9 @@ export function CallScreen() {
     const ro = new ResizeObserver(size);
     ro.observe(c);
     const L = live.current;
-    void voice.say('Wee-oo!', 'Off to', scene.name as Phrase, 'Tap the siren!');
+    const n = (x: number) => `${Math.min(100, x)}` as Phrase;
+    const where: Phrase[] = mystery ? ['Mystery Call!', 'Level', n(level)] : ['Off to', scene.name as Phrase, ...(heat ? ['Star Call!' as const] : [])];
+    void voice.say('Wee-oo!', ...where, 'Tap the siren!');
     function frame(now: number) {
       const dt = Math.min(0.05, (now - last) / 1000);
       last = now;
@@ -61,10 +67,11 @@ export function CallScreen() {
       L.siren = Math.max(0, L.siren - dt);
       if (L.phase === 'drive') {
         L.driveT += dt;
-        drawDrive(ctx, look, w, h, L.driveT, L.siren, !!scene.night);
-        if (L.driveT >= DRIVE_S) {
+        drawDrive(ctx, look, w, h, L.driveT * driveK, L.siren, !!scene.night);
+        if (L.driveT >= driveS) {
           L.phase = 'work'; setPhase('work');
-          void voice.say('Drag your finger to spray!', ...(scene.rescues.length ? ['Tap them to send the ladder!' as const] : []));
+          if (gear.gadgets.includes('bell')) ding();
+          void voice.say(plane ? 'Hold where you want the water!' : 'Drag your finger to spray!', ...(scene.rescues.length ? [plane ? 'Tap them to send a parachute!' as const : 'Tap them to send the ladder!' as const] : []));
         }
       } else {
         step(sim, dt);
@@ -73,10 +80,12 @@ export function CallScreen() {
         if (L.idle > IDLE_S) {
           L.idle = 0; L.nudges++;
           const fire = sim.fires.some(f => !f.out && f.reach), person = sim.rescues.some(r => r.state === 'waiting' && r.reach);
-          if (fire || person) void voice.say(fire ? 'Drag your finger to spray!' : 'Tap them to send the ladder!');
+          if (fire || person) void voice.say(fire ? (plane ? 'Hold where you want the water!' : 'Drag your finger to spray!') : plane ? 'Tap them to send a parachute!' : 'Tap them to send the ladder!');
         }
-        const spraying = !!sim.aim && sim.refill <= 0 && sim.phase === 'work';
-        if (spraying !== wasSpraying) { hose.set(spraying); wasSpraying = spraying; }
+        const wet = spraying(sim);
+        if (wet !== wasSpraying) { hose.set(wet); wasSpraying = wet; }
+        const ready = canDrop(sim);
+        if (ready !== L.dropReady) { L.dropReady = ready; setDropReady(ready); }
         for (const e of takeEvents(sim)) react(e);
         drawCall(ctx, backdrop, sim, view, look, w, h, true);
         if (tankBar.current) tankBar.current.style.width = `${sim.stats.tank === Infinity ? 100 : sim.refill > 0 ? (1 - sim.refill / 1.6) * 100 : (sim.tank / sim.stats.tank) * 100}%`;
@@ -92,16 +101,26 @@ export function CallScreen() {
       else if (e === 'empty') { gurgle(); void voice.say('Refilling!'); if (gear.tank < TANKS.length - 1) once('tank', 'A bigger Tank sprays longer!'); }
       else if (e === 'help') { chop(); void voice.say('Here comes help!'); }
       else if (e === 'drop') { chop(); void voice.say('Drop it!'); }
+      else if (e === 'flare') { sizzle(); once('flare', 'It came back!'); }
+      else if (e === 'drone') { whirr(); once('drone', 'Here comes the drone!'); }
+      else if (e === 'chute') sChime();
       else if (e === 'done') finish();
     }
     function finish() {
       if (L.phase === 'done') return;
       L.phase = 'done';
       hose.set(false);
-      const paid = settleCall(player, scene.id);
+      const paid = settleCall(player, scene);
       setPay(paid); setPhase('done');
-      sFanfare(); confetti(40, voice.signal);
-      const lines: Phrase[] = ['All the fires are out!', ...(paid ? [earnedLine(LADDER_CURRENCY, paid.bolts)] : []), ...(paid?.firstTime ? ['You got a new badge!', 'It is in your Town now!'] as const : [])];
+      sFanfare(); confetti(gear.gadgets.includes('confetti') ? 110 : 40, voice.signal);
+      const opened = !!paid?.firstTime && player.state.peek().station.answered.length === MYSTERY_OPENS;
+      const lines: Phrase[] = [
+        'All the fires are out!', ...(paid ? [earnedLine(LADDER_CURRENCY, paid.bolts)] : []),
+        ...(paid?.firstTime ? ['You got a new badge!', 'It is in your Town now!'] as const : []),
+        ...(paid?.star ? ['You got a star!' as const] : []),
+        ...(paid?.prize ? ['You won' as const, infoOf(paid.prize).name as Phrase] : []),
+        ...(opened ? ['You opened the Mystery Call!' as const] : []),
+      ];
       void voice.say(...lines).then(() => { if (voice.active) setAwake(true); });
       setTimeout(() => { if (voice.active) setAwake(true); }, 7000); // a stalled voice never keeps the buttons asleep
     }
@@ -158,7 +177,7 @@ export function CallScreen() {
         <IconButton label={armed ? 'Tap again to leave' : 'Leave'} class={armed ? 'armed' : ''} onClick={leave}>🏠</IconButton>
         {phase === 'work' && <div class="tank" aria-label="Water"><span class="tank-drop" aria-hidden="true">💧</span><span class="tank-track"><span ref={tankBar} class="tank-fill" /></span></div>}
         <span class="hud-gap" />
-        {phase === 'work' && gear.truck === 'heli' && <button class="hud-btn drop-btn" aria-label="Drop water" onClick={() => { if (dropWater(sim)) chop(); }}>🪣</button>}
+        {phase === 'work' && sim.stats.drop && <button class={`hud-btn drop-btn ${dropReady ? 'pulse' : 'filling'}`} aria-label="Drop water" onClick={() => { dropWater(sim); }}>🪣{sim.stats.drop.n > 1 && <b>×{sim.stats.drop.n}</b>}</button>}
         {phase === 'work' && <button class="hud-btn siren-btn small" aria-label="Siren" onClick={sirenTap}>🚨</button>}
       </div>
       {phase === 'drive' && <button class="big-btn siren-btn big pulse" aria-label="Siren" onClick={sirenTap}><span aria-hidden="true">🚨</span></button>}
@@ -167,6 +186,9 @@ export function CallScreen() {
           <div class="done-card">
             <h2>All the fires are out!</h2>
             <div class="done-badge" aria-hidden="true">{scene.badge}</div>
+            {pay?.star && <div class="done-stars" aria-label={`${pay.star} stars`}>{'⭐'.repeat(pay.star)}</div>}
+            {pay?.level && <div class="done-level">Level {pay.level}</div>}
+            {pay?.prize && <div class="done-prize"><span aria-hidden="true">🎁</span> {infoOf(pay.prize).name}</div>}
             <div class="thanks">Thank you!</div>
             {pay && <div class="done-pay">+{pay.bolts}<CurrencyIcon kind={LADDER_CURRENCY} size={32} /></div>}
             {pay?.firstTime && <div class="done-new">New badge!</div>}

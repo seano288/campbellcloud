@@ -4,7 +4,7 @@
 // "rainbow"; "It costs", "45", "Bolts."), as in Math Bots and Sentence Express.
 import { earnedLine, type EarnedLine } from '../currency/kind';
 import { BOLT } from '../currency/kind';
-import { SCENES } from './call/scenes';
+import { MYSTERY_NAME, SCENES } from './call/scenes';
 import { LOCKED_HINTS, MODE_IDS, MODE_NAMES, type ModeName } from './learning';
 import { ACTIONS, FRAMES, THINGS, type Action, type Thing } from './words/endings';
 import { COMPOUNDS, SILLY_HALVES } from './words/compounds';
@@ -86,15 +86,21 @@ const STATION = [
   'You have 1 Call!', 'Calls!', 'Tap Call!', 'Play a Round to earn a Call!', 'You earned a Call!',
   'Your water reaches higher!', 'Your spray is wider!', 'Your ladder reaches higher!', 'Your tank holds more!',
   'Next call:', 'Badges!', 'Answer more Calls to fill your wall!', 'Put it on!',
+  'On!', 'Off!', 'Win it in a Mystery Call!', 'Your engine is faster!',
 ] as const;
-const TOWN = ['The Town!', 'says thank you!', 'Answer a Call to build here!', 'Tap a building to go there again!'] as const;
+const TOWN = [
+  'The Town!', 'says thank you!', 'Answer a Call to build here!', 'Tap a building to go there again!', 'Tap a building for a Star Call!',
+  'Star Call!', 'More fires this time!', 'Mystery Call!', 'Level', 'Answer more Calls to open the Mystery Call!', 'You opened the Mystery Call!',
+  'Every fifth Level wins a prize!',
+] as const;
 const CALL = [
   'Off to', 'Tap the siren!', 'Drag your finger to spray!', 'Tap them to send the ladder!', 'Refilling!', 'Out!', 'Saved!',
   'Thank you!', 'Help!', 'Meow!', 'Woof!', 'A stronger Pump will reach that one!', 'A longer Ladder will reach them!',
   'A bigger Tank sprays longer!', 'Here comes help!', 'All the fires are out!', 'You got a new badge!', 'It is in your Town now!',
   'Tap again to leave.', 'Drop it!', 'Call done!', 'Wee-oo!',
+  'It came back!', 'You got a star!', 'You won', 'Hold where you want the water!', 'Tap them to send a parachute!', 'Here comes the drone!',
 ] as const;
-type SceneName = (typeof SCENES)[number]['name'];
+type SceneName = (typeof SCENES)[number]['name'] | typeof MYSTERY_NAME;
 export const sceneName = (id: string) => (SCENES.find(s => s.id === id)?.name ?? SCENES[0]!.name) as SceneName;
 type TabName = (typeof TAB_NAMES)[keyof typeof TAB_NAMES];
 
@@ -116,6 +122,6 @@ export const PHRASES = uniq<Phrase>([
   ...PAIRS.flatMap(p => [moreAsk(p.more), p.more]), ...FACTS.flatMap(f => [f.ask, f.says]),
   ...OPPOSITES.flatMap(o => ('say' in o && o.say ? [o.say] : [])), ...FRAMES.map(f => f.start),
   ...TEACHING, ...GROUP_IDS.flatMap(g => [groupLine(g), notLine(g)]),
-  ...STATION, ...TOWN, ...CALL, ...SCENES.map(s => s.name), ...TABS.map(t => TAB_NAMES[t]),
+  ...STATION, ...TOWN, ...CALL, ...SCENES.map(s => s.name), MYSTERY_NAME, ...TABS.map(t => TAB_NAMES[t]),
   ...TABS.flatMap(t => CATALOGUE[t].flatMap(i => [i.name as ItemName, ...(i.trick ? [i.trick as TrickLine] : [])])),
 ]);

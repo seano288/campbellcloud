@@ -458,19 +458,29 @@ _Avoid_: suffix, inflection (fine in the research, not on screen)
 
 **Strong Words set**: two or three words that mean nearly the same, weakest first (whisper, talk, shout). The table is short and hand-checked; the parent reads every set. In a lesson the words sit on a **bar** that grows from small to big and each is said in a voice of matching size.
 
-**Station**: Hook and Ladder's Garage: his fire engines in their bays, the wall of **badges**, the things he has bought for the Station, the big Call button, and the tray of trucks and parts.
+**Station**: Hook and Ladder's Garage: his vehicle in its bay, the wall of **badges** (with the stars he has won on each), the things he has bought for the Station, the big Call button, and the tray of vehicles and parts.
 _Avoid_: garage, firehouse (fine to say, but the screen is the Station)
 
-**Truck**: one of eight fire engines (Pumper, Ladder Truck, Tanker, Rescue Truck, Brush Truck, Airport Crash Truck, Fireboat, Fire Helicopter). One at a time is fitted, and each has a **trick** at the Call (two more floors of ladder, twice the water, a faster ladder, grass fires in one splash, foam twice as fast, never runs dry, drops water from the sky).
+**Vehicle (Hook and Ladder)**: what he takes to the Call, one at a time, each with its own **trick** there. A **Truck** (fifteen fire engines on the Trucks tab, from the Pumper to the Fire Train, plus the Golden Fire Engine prize) parks on the street and sprays with its hose; the Tower Truck sprays from the top of its boom. An **Aircraft** (the Aircraft tab) is either **hovering** (the Fire Drone, Fire Blimp, Jet Pack, Twin Rotor Helicopter, Sky Crane and Fire Helicopter: it hangs in the air beside the scene, sprays from up there, and its rope ladder reaches any floor; the helicopters have a 🪣 **Drop** button) or a **plane** (the Water Bomber, Air Tanker and Super Jet prize: it flies wherever his finger is and drops the water from above, and tapping someone sends them a **parachute**). The Fire Helicopter moved from Trucks to Aircraft; an old save keeps it.
+_Avoid_: truck for an aircraft (a Truck is one kind of vehicle)
 
-**Part (Hook and Ladder)**: one Rung on a slot that changes the Call: the **Pump** (how high the water reaches), the **Hose** (how wide the spray is), the **Ladder** (how many floors it climbs) and the **Tank** (how long he sprays before a short refill). The **Nozzle**, **Siren**, **Lights**, **Paint** and **Crew Buddy** (a dalmatian first) change how it sprays, sounds and looks.
+**Part (Hook and Ladder)**: one Rung on a slot that changes the Call: the **Engine** (a quicker drive, a faster ladder, and its exhaust: puffs, flames, a rainbow), the **Pump** (how high the water reaches), the **Hose** (how wide the spray is), the **Ladder** (how many floors it climbs) and the **Tank** (how long he sprays before a short refill). The **Nozzle**, **Siren**, **Lights**, **Paint** and **Crew Buddy** (a dalmatian first) change how it sprays, sounds and looks.
+
+**Gadget**: a thing he switches on or off (as many as he likes) that goes on whichever vehicle he takes: the Brass Bell, Fire Flag, Spotlight, Smoke Fan, Party Popper, Turbo Ladder, Water Trailer, Rescue Drone (flies down someone the ladder can't reach), Roof Cannon, Hydrant Hookup (the water never runs out), and the Hero Cape prize.
+_Avoid_: upgrade, add-on
 
 **Call**: what a finished Round earns (he starts with one): a short drive with a big Siren button, then a scene from the side where he holds a finger to aim the hose and taps people at windows to send the ladder. It can't be failed: fires never spread, there's no clock, and what his parts can't reach yet the **helpers** finish while he's told which part would reach it. It's used, and paid, only when everything is out.
 _Avoid_: mission, level, rescue (the Call is the thing; a rescue is the ladder bringing someone down in it)
 
-**Scene (Hook and Ladder)**: one of the sixteen Calls, getting taller and stranger: the Trash Bin, the Little House, the Barn, the Car, the Forest Edge, the Bakery, the School, the Tree House, the Ship at the Dock, the Tall Building, the Castle, the Airport, the Lighthouse, the Hotel, the Skyscraper, the Rocket Pad. A new one is the next Call; after the first time it gives a **badge** and a building in the Town.
+**Scene (Hook and Ladder)**: one of the thirty-two Calls, getting taller and stranger: the Trash Bin, the Little House, the Barn, the Car, the Forest Edge, the Bakery, the School, the Tree House, the Ship at the Dock, the Tall Building, the Castle, the Airport, the Lighthouse, the Hotel, the Skyscraper, the Rocket Pad; then the Campfire, the Hay Field, the Pizza Shop, the Toy Store, the Library, the Zoo, the Train Station, the Windmill, the Mountain Cabin, the Hospital, the Dinosaur Museum, the Circus, the Stadium, the Big Forest Fire, the Giant Tower, the Volcano Island. A new one is the next Call; after the first time it gives a **badge** and a building in the Town.
 
-**Town (Hook and Ladder)**: a lot for every scene; a scene he has answered stands there with a thank-you sign, and tapping it makes it his next Call. Things he buys for the Town stand in its park.
+**Star Call**: going back to a scene he has answered (by tapping its building in the Town), hotter than last time: each **star** adds two fires (in windows, on roofs, in trees, on the ground), the second star someone more to save, the third star is at night with fires that **flare** (come back once, smaller, after they're put out). Finishing it wins that star (up to three a scene) and pays 2 Bolts more. The same scene and star are always the same fires.
+_Avoid_: replay, hard mode
+
+**Mystery Call**: an endless ladder of Calls made up from its **Level** (`call/scenes.ts` mysteryCall): bigger, taller and with more fires the higher it goes, at night every third Level, with flaring fires from Level 4. It opens once he has answered sixteen Calls, and Call goes there when there are no new ones. It pays 4 Bolts, and every fifth Level wins a **prize**: one of ten things that can't be bought (Fireworks Lights, Super Hero, Diamond paint, Golden Nozzle, Hero Horn, Golden Fire Engine, Golden Crown, Hero Hall, Super Jet, Hero Cape).
+_Avoid_: random call, endless mode
+
+**Town (Hook and Ladder)**: a lot for every scene, then the Mystery Call's; a scene he has answered stands there with a thank-you sign and its stars, and tapping it makes it his next Call, as a Star Call. Things he buys for the Town stand in its park. It scrolls.
 
 ## Dino Dig
 
