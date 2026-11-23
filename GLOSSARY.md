@@ -693,3 +693,51 @@ _Avoid_: hangar (that's Time Flies'), shop, garage
 Heart, Spiral, Big Loop, Star, Figure Eight), drawing its shape in smoke.
 
 **Wall**: the screen he shows people: his postcards, his planes, his patches and the things he bought for it.
+
+## Skyline
+
+Skyline reuses Math Bots', Rover Code's and Turbo Tally's terms where they mean the same thing (Mixed Round, Mastery, Stretch, Bolt,
+Tune-Up, Meeting, Goal, Paint). These are its own:
+
+**Game Modes (Skyline)**: the six kinds of question, about equal groups, rows and the start of multiplying: Equal Groups (buses with the
+same number of people on each: are they equal, how many buses, how many on each, how many in all, then "4 groups of 5" with no picture),
+Windows (a building's front with windows in rows: how many rows, how many in each row, how many windows, the adding sentence that
+matches, and the turn-around), Odd or Even (people pairing up for a ride, numbers to 20, doubles), Count By (house numbers along a street:
+hundreds to 1,000, tens and fives past 100, then threes and fours), Share It (boxes shared fairly between trucks, then "how many trucks")
+and Times (the × sign, said "rows of", then "times" from Level 2). Equal Groups and Windows are open from the start; Odd or Even and Share
+It open at Equal Groups Level 2, Count By at Windows Level 2, Times once both Equal Groups and Windows reach Level 3.
+
+**Row**: a line of things that goes across. A building's floors are its rows; a picture never calls an up-and-down line a row.
+_Avoid_: column (to him, until Times; he hears "in each row")
+
+**Turn-around**: the same building tipped on its side: 3 rows of 4 becomes 4 rows of 3, and the windows stay the same. Only the
+turn-around questions show the two side by side.
+
+**City**: what Bolts build: his city from above on a fixed grid of streets, Block by Block. People walk, traffic runs, and day turns to
+night with the windows lighting up.
+_Avoid_: town (that's Hook and Ladder's and Word Wreckers')
+
+**District**: one of six pieces of land, each with its own look and special buildings: Old Town, Downtown, Riverside, the Harbour, the
+Hill and the Beach. Jobs open them (4, 12, 25, 45 and 70 Jobs); each one's first Block is his the moment it opens.
+
+**Block**: a piece of land the same size as every other, with a street all round it, cut into Plots. After the Districts the city grows
+east for ever, one Block at a time, bought with Bolts (a little dearer each time, then flat at 60).
+
+**Plot**: one place in a Block where one building stands: small, wide or large. Standing a building he owns on a plot is free, and so is
+moving or swapping it; nothing on a plot is ever lost.
+
+**Floor**: one storey of a tower, a row of windows. A tower is bought one Floor at a time, up to 30; the tallest tower flies the flag.
+Every Floor adds people.
+
+**Job**: the reward he drives: about a minute through his own city from above, holding a finger where he wants to go. A bus route, a taxi
+ride, a parcel round, the bin lorry, a street sweep, a tram line, an ice cream run, a helicopter tour, a fire call, an ambulance run. A
+finished Round earns one (he starts with one). People or parcels come in equal groups at each stop and the count is said as it goes up.
+It can't be failed. A named Job (40 of them, "Old Town Loop") is done once each; after them every Job is made from his own streets and
+numbered.
+_Avoid_: mission, race, trip, launch (those are the other games')
+
+**Fresh street**: the shop's row of four buildings made from parts (a wall colour, windows, a roof, a sign, a number of floors), the same
+four until he buys one, when the next appears.
+
+**Population**: everyone who lives in his city (houses, flats and every Floor), shown with his city's rank: Village, Town, City, Big
+City, Huge City, Mega City, then Super City 1, 2, 3 and on without end.

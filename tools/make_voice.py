@@ -18,6 +18,7 @@
   .venv/bin/python tools/make_voice.py --collection food-truck --out public/food-truck-voice --index src/food-truck/voice.gen.ts
   .venv/bin/python tools/make_voice.py --collection deep-light --out public/deep-light-voice --index src/deep-light/voice.gen.ts
   .venv/bin/python tools/make_voice.py --collection sky-writer --out public/sky-writer-voice --index src/sky-writer/voice.gen.ts
+  .venv/bin/python tools/make_voice.py --collection skyline --out public/skyline-voice --index src/skyline/voice.gen.ts
 
 Select phrases through tools/phrases.ts and write recordings and a typed index to explicit locations.
 Only missing clips are recorded. Cleanup touches only the selected directory, whose .voice-collection
@@ -56,7 +57,10 @@ VOICES = {'purrdoku': ('en-GB-RyanNeural', '-5%'),
           # Deep Light says whole science sentences and an animal's name and fact, and reads its sentence choices aloud, as Wild Rescue
           'deep-light': ('en-US-AriaNeural', '-8%'),
           # Sky Writer names letters and says short words alone (Write a Word), so short vowels must be crisp, as in the reading games
-          'sky-writer': ('en-US-AriaNeural', '-8%')}
+          'sky-writer': ('en-US-AriaNeural', '-8%'),
+          # Skyline chains numbers to 200 (house numbers) and the hundreds to 1,000 into lines ("3", "rows of", "4"), and names every
+          # building, vehicle and part in the City alone
+          'skyline': ('en-US-AriaNeural', '-8%')}
 ROOT = Path(__file__).resolve().parent.parent
 
 
