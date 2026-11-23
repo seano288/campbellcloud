@@ -1,8 +1,8 @@
 # Build guide: a new learning game on the family site
 
-Read this first, then the game's own brief (`.scratch/<game-slug>/brief.md`). This guide holds everything the five briefs share: who plays, how the existing games are built, what to wire up, how to verify, and what to report. Where a brief and this guide differ, the brief wins.
+Read this first, then the game's own brief (`.scratch/<game-slug>/brief.md`). This guide holds everything the briefs share: who plays, how the existing games are built, what to wire up, how to verify, and what to report. Where a brief and this guide differ, the brief wins.
 
-Briefs that use this guide: `dino-dig`, `word-wreckers`, `sentence-express`, `treasure-fleet`, `wild-rescue`, and the second batch (2026-11-17): `turbo-tally`, `hook-and-ladder`, `deep-light`, `food-truck`, `sky-writer`.
+Briefs that use this guide: `dino-dig`, `word-wreckers`, `sentence-express`, `treasure-fleet`, `wild-rescue`, and the second batch (2026-11-17): `turbo-tally`, `hook-and-ladder`, `deep-light`, `food-truck`, `sky-writer`, and the third batch (2026-11-23), which steps up to early second-grade work: `jetway`, `skyline`, `carrier-deck`, `cargo-words`, `globe-hopper`, `moon-base-mail`.
 
 Do the work yourself in the current checkout. Don't start subagents. Don't commit, push or open a PR; leave the changes in the working tree.
 
@@ -49,9 +49,49 @@ Stack: Preact and Vite, static files, no new runtime dependencies without a stro
 
 The family look: Bungee for titles, Nunito for reading, 4px black outlines, solid chunky drop shadows. Reading games use Andika for anything he reads (a school font with single-storey *a* and *g*), lowercase except *I*, names and a sentence's first word. Each game gets its own colour world and its own icon drawn in code.
 
-## How much there is to earn
+## Rewards that never run out
 
-He bought everything in Rover Code within about a day, and Treasure Fleet, Wild Rescue and Sentence Express each had their rewards doubled or tripled the day they were built. Plan for about 150 things to earn from the first build, including kinds that change how the reward plays, not only paints. When he runs out, add more things; don't raise payouts. No price goes over 100 Bolts, because the voice only has number clips up to 100.
+This is the parent's biggest complaint about the games so far, so treat it as a requirement on the same footing as the learning. He has emptied every reward ladder on the site, usually within an hour of play and never in more than a day. Turbo Tally's 24 tracks and six Cups lasted about 90 minutes. Rover Code, Treasure Fleet, Wild Rescue, Sentence Express, Deep Light and Hook and Ladder all had their rewards doubled or tripled within days of being built. A game whose rewards can be finished is not done.
+
+Where a brief gives a count or a price limit that is smaller than this section asks for, this section wins. It was written after most of the briefs.
+
+**Build three layers, in this order of importance.**
+
+1. **An endless layer, made by the game.** Something he can keep earning or beating for ever, generated from a number rather than written by hand. Turbo Tally's Mystery Race is the model: each Level's track is generated from the Level number, is the same track every time for that Level, is checked to be playable, gets a little harder each Level and hands out a special part every fifth Level. Every game needs its own version: generated flights, missions, ships, launches or landings, and generated things to own (a building made from parts, a paint made from a colour and a pattern and a trim). Generated content must be seeded so it is the same on a reload, and tested: a few thousand generated in a test, every one playable and winnable.
+2. **Things that can be bought again and again.** Land that grows plot by plot, a tower that takes another floor, a part with ranks. The price rises gently and then stays flat, so there is always something to spend Bolts on and it never becomes hopeless. Nothing bought is ever used up or lost.
+3. **Sheer quantity.** A large fixed catalogue with real variety: about 250 things at least, including kinds that change how the reward plays, not only paints.
+
+**Tie progress to Rounds, not only to Bolts.** Anything opened by a go at the action reward (a Mission flown, a Route reached) can only be earned one Round at a time, so it cannot be bought out early. Lean on this.
+
+**Do not raise payouts** to make dear things reachable, and do not add ways to earn Bolts without answering questions. Extra Bolts from the action reward stay small (Turbo Tally pays 3 to 8 for a first win).
+
+**Prices.** Up to 100 in ones, then whole tens up to 400, using the clips Turbo Tally added (`PRICE_TENS` in `src/turbo-tally/phrases.ts`, with "You need about 140 more Bolts" for a gap that is not a whole ten). Copy that pattern. Dearer things are welcome, inside these limits, which exist so he is never discouraged:
+
+- His first purchase comes within two Rounds, and through the first hundred Rounds he can always get something new within three.
+- Nothing takes more than about 40 Rounds of saving from nothing, and only a handful of things take more than 15.
+- A dear thing always sits beside cheap ones in the shop, and the Goal shows a bar filling toward it, so saving up looks like progress.
+- A dear thing is worth it: it changes what he can do or how the reward plays. A paint is never the dearest thing.
+
+**Measure it, and put the measurement in a test.** Write an economy test with a scripted child who gets every answer right first try, takes every go at the reward, wins everything he can and always buys the cheapest new thing. Measure how many Bolts a Round really pays, reward payouts included, and how long a Round and its reward take (the tour script can time it; a first guess is about 20 Rounds an hour). The test must show:
+
+- The fixed catalogue lasts that child at least 300 Rounds, which is about 15 hours of play.
+- After 2,000 Rounds there is still something new to earn, buy or beat in every Round. No save state reads "all done".
+- The pacing limits above hold.
+
+Put the three numbers (Bolts a Round, Rounds to finish the catalogue, the longest gap between new things) in the spec and in the final report.
+
+## Competition
+
+Some rewards have a rival: a race, a league, a contest. Balance is hard, and both ways of getting it wrong have happened here. In Math Bots and the first Turbo Tally he won everything at the first try and was finished in an afternoon. When Turbo Tally was made harder on 2026-11-21 he came last, and it had to be retuned the same day. Aim between the two:
+
+- **He wins most of the time, not all of the time.** With the car, plane or part a child would plausibly own at that point, he should win about two tries in three. A rival he beats at the first try every time is too easy. A rival he cannot beat in three tries is too hard.
+- **Losing never sticks.** A rival who beats him gets a little easier each time until he wins (Turbo Tally's mercy step). Winning easily makes the next one a little harder. Rivals ease off when he is far behind, so he is never alone at the back.
+- **In a pack he is rarely last.** Put slower rivals in the field as well as faster ones. Coming third of six feels fine; coming sixth does not. Every finish is cheered and pays something, and he never loses anything he owns.
+- **Better parts must matter but not decide it.** If the dearest part wins everything, the contest is over once he buys it. If parts do nothing, there is no reason to buy them. Harder tiers should need both a better build and better hands.
+- **Keep all the tuning in one table**, and test it with three scripted children: one who does nothing, one who is clumsy and one who is skilled. Doing nothing wins only the very first contest. The clumsy child wins every contest within three tries. The skilled child does not win the later tiers at the first try. Record the measured win rates in the spec.
+- **A personal best is competition too**, and it never needs balancing: his fastest lap, his longest flight, his best landing. Show it and cheer when he beats it.
+
+Competition is optional. A reward he builds and plays with does not need a rival to be good.
 
 ## The action reward
 
@@ -78,10 +118,10 @@ He bought everything in Rover Code within about a day, and Treasure Fleet, Wild 
 ## Done means
 
 - `npm run typecheck`, `npm run typecheck:pairings`, `npm test` and `npm run build:site` all pass.
-- Vitest tests in the style of `src/rover-code/*.test.ts`: every generated question has exactly one right answer and matches its Level; content tables are checked for the ambiguities the brief names; saving, prices and payouts are covered; a scripted child can always finish the action reward.
+- Vitest tests in the style of `src/rover-code/*.test.ts`: every generated question has exactly one right answer and matches its Level; content tables are checked for the ambiguities the brief names; saving, prices and payouts are covered; a scripted child can always finish the action reward; the economy test and the generated-content test from "Rewards that never run out" pass; where there is a rival, the three scripted children from "Competition" get the results it asks for.
 - A browser tour script like `tools/rover-code/tour.ts` that plays as a child would: a whole Round with one deliberate miss, a purchase, and the action reward to its end. Run it at 810×1080, 1080×810, 390×844 and 844×390, on a new save and on saves with every kind open at Level 2 and Level 3. It should fail on buttons off screen or under 44px.
 - On the production build, a Round still starts after going offline (`npm run check:offline` shows how the others check it).
 
 ## Final report
 
-Say what you built (kinds, Levels, reward loop), the defaults the parent should confirm, what you verified and how, and what is not done or not verified. Real-iPad and Safari testing will not be possible; say so, and list what most needs checking on the device.
+Say what you built (kinds, Levels, reward loop), how long the rewards last (the three measured numbers, and what the endless layer is), the win rates against any rival, the defaults the parent should confirm, what you verified and how, and what is not done or not verified. Real-iPad and Safari testing will not be possible; say so, and list what most needs checking on the device.
