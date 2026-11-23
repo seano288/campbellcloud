@@ -19,6 +19,7 @@
   .venv/bin/python tools/make_voice.py --collection deep-light --out public/deep-light-voice --index src/deep-light/voice.gen.ts
   .venv/bin/python tools/make_voice.py --collection sky-writer --out public/sky-writer-voice --index src/sky-writer/voice.gen.ts
   .venv/bin/python tools/make_voice.py --collection skyline --out public/skyline-voice --index src/skyline/voice.gen.ts
+  .venv/bin/python tools/make_voice.py --collection jetway --out public/jetway-voice --index src/jetway/voice.gen.ts
 
 Select phrases through tools/phrases.ts and write recordings and a typed index to explicit locations.
 Only missing clips are recorded. Cleanup touches only the selected directory, whose .voice-collection
@@ -60,7 +61,10 @@ VOICES = {'purrdoku': ('en-GB-RyanNeural', '-5%'),
           'sky-writer': ('en-US-AriaNeural', '-8%'),
           # Skyline chains numbers to 200 (house numbers) and the hundreds to 1,000 into lines ("3", "rows of", "4"), and names every
           # building, vehicle and part in the City alone
-          'skyline': ('en-US-AriaNeural', '-8%')}
+          'skyline': ('en-US-AriaNeural', '-8%'),
+          # Jetway chains numbers into sums and stories like Math Bots ("38", "people are on the plane."), numbers past 100 as
+          # "three hundred" and the rest, and says airport, plane and place names alone
+          'jetway': ('en-US-AriaNeural', '-8%')}
 ROOT = Path(__file__).resolve().parent.parent
 
 

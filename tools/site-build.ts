@@ -39,6 +39,8 @@ import { skyBuild } from './sky-writer-build';
 import { iconSvg as skyIcon } from '../src/sky-writer/icon';
 import { skylineBuild } from './skyline-build';
 import { iconSvg as skylineIcon } from '../src/skyline/icon';
+import { jetBuild } from './jetway-build';
+import { iconSvg as jetIcon } from '../src/jetway/icon';
 import { iconSvg as purrdokuIcon } from '../src/purrdoku/art';
 import { purrdokuBuild } from './purrdoku-build';
 import { favicon, homeScreenIcons } from './icons';
@@ -103,6 +105,7 @@ export const SECTIONS: readonly { title: string; games: readonly Tile[] }[] = [
     { path: 'deep-light', name: 'Deep Light', blurb: 'Light and sound, explore the deep sea', icon: deepIcon },
     { path: 'sky-writer', name: 'Sky Writer', blurb: 'Writing letters, fly a stunt plane', icon: skyIcon },
     { path: 'skyline', name: 'Skyline', blurb: 'Equal groups and rows, build a city', icon: skylineIcon },
+    { path: 'jetway', name: 'Jetway', blurb: 'Adding and taking away big numbers, build an airport', icon: jetIcon },
   ] },
   { title: 'Just for Fun', games: [
     { path: 'hunch', name: 'Hunch', blurb: 'Guess the five-letter word', icon: hunchIcon },
@@ -182,6 +185,7 @@ await build({ ...staticBuild(foodTruckBuild), logLevel: 'warn' });
 await build({ ...staticBuild(deepBuild), logLevel: 'warn' });
 await build({ ...staticBuild(skyBuild), logLevel: 'warn' });
 await build({ ...staticBuild(skylineBuild), logLevel: 'warn' });
+await build({ ...staticBuild(jetBuild), logLevel: 'warn' });
 await build({ ...hunchBuild(), logLevel: 'warn' });
 await build({ ...staticBuild(purrdokuBuild), logLevel: 'warn' });
 console.log(`Built ${SITE}/: landing page, ${GAMES.map(g => g.path).join(', ')}`);

@@ -1,0 +1,304 @@
+/* Jetway: Time Flies' styles (imported before this file, as Turbo Tally does) at the airport: tarmac grey, runway white, taxiway
+   yellow, sky blue and high-visibility orange, with the family look kept: Bungee titles, Nunito reading, thick black outlines and chunky
+   drop shadows that press in. Signs look like airport signs: yellow on black, with big numbers. Colour signals stay the family's: green
+   is Go and right, yellow is look here, orange is being read aloud. Every rule is scoped to this game's own classes (jw-, fl-, airport-,
+   routes-, watch-) or its screens, so nothing leaks between kinds. */
+:root{--tarmac:#3a4150;--tarmac-2:#4a5262;--sky:#3d93dc;--sky-2:#86c5f3;--hivis:#ff7a00;--sign:#14161b;--sign-ink:#ffd23f;--runway:#f4f6fa;
+  --floor:max(56px,calc(env(safe-area-inset-bottom) + 40px))}
+html,body{background:var(--tarmac)}
+.jw-start,.start.jw-start{background:linear-gradient(var(--sky) 0 55%,#8fd17a 55% 70%,var(--tarmac) 70%)}
+.jw-start h1{color:#fff;text-shadow:3px 3px 0 var(--hivis),6px 6px 0 #000}
+.jw-start .start-art{width:min(92vw,calc(520px*var(--u)),620px);aspect-ratio:1300/780;border:4px solid #000;border-radius:18px;overflow:hidden;box-shadow:0 7px 0 #000}
+.jw-start .start-art .airport-canvas{width:100%;height:100%}
+@media (max-height:520px){.jw-start .start-art{width:auto;height:34vh}}
+.home-screen.jw-home-screen,.round-screen{background:linear-gradient(170deg,var(--sky) 0%,#2a6db3 45%,var(--tarmac) 46%,#262b35 100%)}
+.jw-home-screen .home-head h1{color:var(--sign-ink);text-shadow:2px 2px 0 var(--hivis),4px 4px 0 #000}
+.airport-canvas{display:block;width:100%;height:100%}
+
+/* ---------- Home ---------- */
+.home.jw-home{grid-template-areas:"p p" "a r" "k k";grid-template-rows:minmax(0,1fr) minmax(0,.8fr) auto;grid-template-columns:1.5fr 1fr}
+@media (orientation:landscape){.home.jw-home{grid-template-areas:"p a" "p r" "k k";grid-template-rows:minmax(0,1fr) minmax(0,.6fr) auto;grid-template-columns:1fr 1.2fr}}
+/* Play is a jet bridge reaching a door, the green Go light on it */
+.jw-home .t-play{grid-area:p;position:relative;background:linear-gradient(var(--sky-2),var(--sky))}
+.jw-home .t-play .jet-bridge{position:absolute;left:0;right:40%;top:50%;height:calc(70px*var(--u));transform:translateY(-50%);background:repeating-linear-gradient(90deg,#b8c2cc 0 26px,#8a96a3 26px 32px);border-block:4px solid #000}
+.jw-home .t-play .e{position:relative;display:grid;place-items:center;width:calc(160px*var(--u));height:calc(160px*var(--u));min-width:84px;min-height:84px;border-radius:50%;border:4px solid #000;background:var(--go);color:#fff;font-size:calc(76px*var(--u));padding-left:calc(8px*var(--u));box-shadow:0 0 0 calc(8px*var(--u)) #fff,0 0 0 calc(8px*var(--u) + 4px) #000,0 calc(8px*var(--u) + 7px) 0 calc(8px*var(--u) + 4px) #000}
+.jw-home .t-airport{grid-area:a;position:relative;flex-direction:column;gap:2px;padding:4px;background:#8fd17a;color:#fff;overflow:hidden}
+.jw-home .t-airport .airport-canvas{flex:1;min-height:0;width:100%}
+.jw-home .t-routes{grid-area:r;position:relative;flex-direction:column;justify-content:center;gap:calc(6px*var(--u));background:var(--sign);color:var(--sign-ink)}
+.next-dest{font-size:calc(64px*var(--u));line-height:1.05;filter:drop-shadow(2px 3px 0 #000)}
+.jw-home .t-routes .nm,.jw-home .t-airport .nm{font-size:calc(24px*var(--u));color:var(--sign-ink);background:#000;border-radius:10px;padding:2px 10px}
+.cup-count{position:absolute;right:8px;top:6px;background:#000;color:var(--sign-ink);border-radius:999px;padding:2px 10px;font:900 max(14px,calc(16px*var(--u))) Nunito,sans-serif}
+.race-badge{position:absolute;right:10px;top:8px;background:#000;color:var(--sign-ink);border-radius:999px;padding:3px 12px;font:900 max(16px,calc(22px*var(--u))) Nunito,sans-serif;border:2px solid var(--sign-ink)}
+.jw-home .t-kinds{grid-area:k;background:var(--runway);display:grid;grid-template-columns:repeat(3,1fr);grid-auto-rows:minmax(max(48px,calc(54px*var(--u))),auto);column-gap:calc(12px*var(--u));padding:0 calc(12px*var(--u)) calc(8px*var(--u));cursor:default}
+.jw-home .t-kinds:active{transform:none;box-shadow:0 7px 0 #000}
+.jw-home .kinds-head{grid-column:1/-1;margin:0 calc(-12px*var(--u)) calc(2px*var(--u));padding:calc(5px*var(--u)) 12px;font:400 max(14px,calc(16px*var(--u))) Bungee,sans-serif;text-align:center;letter-spacing:.04em;color:var(--sign-ink);background:var(--sign)}
+.jw-home .kind{position:relative;display:flex;align-items:center;gap:8px;background:none;border:0;padding:2px;min-height:44px;text-align:left;color:#14161b;cursor:default}
+.jw-home .kind .ki{font-size:max(20px,calc(26px*var(--u)));line-height:1}
+.jw-home .kind .kb{flex:1;min-width:0;display:flex;flex-direction:column;gap:4px}
+.jw-home .kind .kn{font:900 max(14px,calc(18px*var(--u))) Nunito,sans-serif;line-height:1.1}
+.jw-home .kind .lvl{gap:4px}
+.jw-home .kind .lvl i{width:max(12px,calc(15px*var(--u)));height:max(12px,calc(15px*var(--u)));border:2px solid #0004;background:#e3e6eb}
+.jw-home .kind .lvl i.on{border-color:#000;background:radial-gradient(circle at 35% 35%,#fff3b0,#ffc400 60%);box-shadow:0 0 0 2px #ffc40055}
+.jw-home .kind.locked{opacity:.55}
+.jw-home .kind.locked .ki{filter:grayscale(1)}
+.jw-home .kind.fresh{animation:pulse 1s infinite}
+.jw-home .kind .badge{position:absolute;right:-2px;top:2px;font-size:calc(18px*var(--u))}
+@media (max-width:560px){.jw-home .t-kinds{grid-template-columns:repeat(2,1fr)}}
+@media (orientation:landscape) and (max-height:520px){
+  .home.jw-home{grid-template-areas:"p a k" "p r k";grid-template-rows:minmax(0,1fr) minmax(0,1fr);grid-template-columns:1fr .9fr 1.2fr}
+  .jw-home .t-kinds{grid-template-columns:1fr;grid-auto-rows:minmax(44px,auto)}
+  .jw-home .kinds-head{position:absolute;width:1px;height:1px;overflow:hidden;clip-path:inset(50%)}
+}
+
+/* ---------- a question: the sum (or the question) in the bar, then the picture and the answers, side by side when there's width ---------- */
+.round-screen .card{position:relative;background:#fafafa}
+.game.jw{justify-content:flex-start;gap:calc(8px*var(--u));padding:calc(10px*var(--u));overflow:hidden}
+.game.jw .ask{flex:none;width:100%;max-width:100%}
+.game.jw .ask h2{flex:1;min-width:0;font:900 max(20px,calc(30px*var(--u)))/1.15 Nunito,sans-serif;text-align:left;text-wrap:balance}
+.game.jw .ask h2 .num{font-weight:900;background:var(--sign);color:var(--sign-ink);border-radius:8px;padding:0 8px;white-space:nowrap}
+.game.jw .help-btn{flex:none;font-size:max(20px,calc(24px*var(--u)));padding:4px 12px}
+.jw-body{flex:1;min-height:0;width:100%;display:flex;flex-direction:column;gap:calc(10px*var(--u));align-items:stretch}
+.jw-stage{position:relative;flex:1 1 0;min-height:0;min-width:0;display:flex;align-items:center;justify-content:center}
+.jw-controls{flex:none;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:calc(12px*var(--u))}
+@media (orientation:landscape){.jw-body{flex-direction:row}.jw-controls{flex:0 0 auto;width:clamp(216px,38vw,480px)}}
+.jw-picture{width:100%;height:100%;min-height:0;display:flex;align-items:center;justify-content:center}
+.jw-picture svg{max-width:100%;max-height:100%;width:auto;height:100%}
+.choices.nums{display:grid;grid-template-columns:repeat(3,1fr);gap:calc(10px*var(--u));width:min(100%,480px)}
+.choices.nums .choice{min-height:max(64px,calc(88px*var(--u)));font-size:max(28px,calc(42px*var(--u)))}
+.choice.hint,.duel-plane.hint{animation:hint 1s infinite}
+/* the sum written across, in a yellow-on-black sign */
+.sum-card{display:inline-flex;align-items:center;gap:.25em;background:var(--sign);color:var(--sign-ink);border:4px solid #000;border-radius:14px;padding:2px 14px;font:900 max(28px,calc(44px*var(--u)))/1.15 Nunito,sans-serif;white-space:nowrap;box-shadow:0 4px 0 #000}
+.sum-card .blank{display:inline-grid;place-items:center;min-width:1.6em;padding:0 .15em;border:3px dashed var(--sign-ink);border-radius:8px}
+.sum-card .blank.filled{border-style:solid;background:var(--go);color:#fff}
+.game.jw.k-sum .ask h2{display:flex;justify-content:center}
+.story-art{display:flex;align-items:center;justify-content:center;gap:calc(16px*var(--u));flex-wrap:wrap;font:900 max(26px,calc(40px*var(--u))) Nunito,sans-serif}
+.story-art .plane{font-size:2em}
+.story-art .grp,.story-art .belt,.story-art .cart{background:#fff;border:4px solid #000;border-radius:16px;padding:4px 14px;box-shadow:0 4px 0 #000}
+.story-art .grp.a{border-color:#2f8fe8}.story-art .grp.b{border-color:var(--hivis)}
+/* the wheels: one for each digit, then the check */
+.jw-wheels{display:flex;align-items:center;gap:calc(12px*var(--u));flex-wrap:nowrap}
+.jw-wheels .numwheels{display:flex;gap:10px;height:max(170px,calc(230px*var(--u)))}
+.jw-wheels .numwheel{width:max(76px,calc(104px*var(--u)));display:flex;flex-direction:column;gap:6px}
+.jw-wheels .numwheel button{flex:1;min-height:max(44px,calc(52px*var(--u)));border-radius:16px;background:var(--sign);color:var(--sign-ink);border:4px solid #000;font-size:calc(30px*var(--u));box-shadow:0 5px 0 #000}
+.jw-wheels .numwheel button:active{transform:translateY(3px);box-shadow:0 2px 0 #000}
+.jw-wheels .digit{flex:1.6;min-height:0;display:flex;align-items:center;justify-content:center;border-radius:16px;background:#fff;border:4px solid #000;font:900 max(40px,calc(76px*var(--u)))/1 Nunito,sans-serif;color:#000;overflow:hidden}
+.jw-wheels .wheel-hundreds .digit{background:#ffe6cc}.jw-wheels .wheel-tens .digit{background:#dcecff}
+.jw-wheels .done-btn{min-width:max(76px,calc(96px*var(--u)));min-height:max(76px,calc(96px*var(--u)));font-size:max(36px,calc(48px*var(--u)));background:var(--go);color:#fff}
+@media (orientation:portrait){.jw-controls .jw-wheels{width:100%;justify-content:center}}
+@media (max-width:430px){.jw-wheels .numwheel{width:68px}.jw-wheels .numwheels{gap:6px}.jw-wheels .done-btn{min-width:64px}}
+/* the mat: hundreds, tens and ones */
+.mat .mat-bg{fill:#fff;stroke:#000;stroke-width:4}
+.mat .col-h .mat-bg{fill:#fff4e6}.mat .col-t .mat-bg{fill:#eef5ff}
+.mat .mat-col.focus .mat-bg{stroke:var(--sign-ink);stroke-width:8;fill:#fffbe0}
+.mat .mat-word{font:900 22px Nunito,sans-serif;text-anchor:middle;fill:#14161b}
+.mat .mat-digit-box{fill:var(--sign);stroke:#000;stroke-width:3}.mat .mat-digit-box.empty{fill:none;stroke:#0003;stroke-dasharray:8 6}
+.mat .mat-digit{font:900 46px Nunito,sans-serif;text-anchor:middle;fill:var(--sign-ink)}
+.seat rect{fill:#2f8fe8;stroke:#0b2a52;stroke-width:1}
+.seat .back{fill:#1d5fb0}
+.seat.s-b rect{fill:#ff9a3d;stroke:#6a2c00}.seat.s-b .back{fill:#d65f00}
+.seat.s-new rect{fill:#3ddc84;stroke:#0d4a2a}.seat.s-new .back{fill:#1f9a57}
+.seat.lit rect{fill:#ffd23f}.seat.lit .back{fill:#e0a800}
+.seat.gone{opacity:.35}.seat .x{stroke:#e63946;stroke-width:3}
+.ring>.seat rect,.ring rect{stroke:#e63946;stroke-width:2.5}
+.rod.arrive{animation:pop .5s}
+@keyframes pop{0%{transform:translateY(-20px);opacity:0}100%{transform:none;opacity:1}}
+/* the runway number line */
+.runway-line .rl-strip{fill:#3a3f4b;stroke:#000;stroke-width:4}
+.runway-line .rl-dash{stroke:#f4f6fa;stroke-width:3;stroke-dasharray:14 12}
+.runway-line .rl-tick{stroke:#fff;stroke-width:2}.runway-line .rl-tick.big{stroke-width:4}
+.runway-line .rl-num{font:900 18px Nunito,sans-serif;text-anchor:middle;fill:#14161b}
+.runway-line .rl-mark rect,.runway-line .rl-land{fill:var(--sign);stroke:#000;stroke-width:2}
+.runway-line .rl-mark text,.runway-line .rl-land-n{font:900 22px Nunito,sans-serif;text-anchor:middle;fill:var(--sign-ink)}
+.runway-line .rl-hop path{fill:none;stroke:var(--hivis);stroke-width:5;stroke-linecap:round}
+.runway-line .rl-hop text{font:900 22px Nunito,sans-serif;text-anchor:middle;fill:var(--hivis);paint-order:stroke;stroke:#fff;stroke-width:5}
+.runway-line .rl-plane{font-size:30px;text-anchor:middle}
+/* Jumbo */
+.expanded{font:900 max(34px,calc(60px*var(--u))) Nunito,sans-serif;background:var(--sign);color:var(--sign-ink);border:4px solid #000;border-radius:16px;padding:6px 20px;box-shadow:0 5px 0 #000}
+.place-words{display:flex;gap:calc(18px*var(--u));font:900 max(18px,calc(26px*var(--u))) Nunito,sans-serif;color:#14161b}
+.place-words span{background:#fff;border:3px solid #000;border-radius:10px;padding:4px 10px}
+.choices.digits{display:flex;gap:calc(12px*var(--u))}
+.digit-btn{min-width:max(80px,calc(110px*var(--u)));min-height:max(80px,calc(110px*var(--u)));font-size:max(44px,calc(64px*var(--u)))!important}
+.digit-btn.lit{outline:5px solid var(--sign-ink);outline-offset:3px}
+.duel{display:flex;gap:calc(18px*var(--u));align-items:stretch;justify-content:center;flex-wrap:wrap}
+.duel-plane{display:flex;flex-direction:column;align-items:center;gap:6px;background:#fff;border:4px solid #000;border-radius:18px;padding:10px 16px;box-shadow:0 5px 0 #000;min-width:max(140px,calc(200px*var(--u)))}
+.duel-plane.wrong{opacity:.4}.duel-plane.right{background:#d8ffe8;border-color:var(--green)}
+.seat-sign{display:flex;flex-direction:column;align-items:center}
+.seat-num{font:900 max(40px,calc(56px*var(--u))) Nunito,sans-serif;background:var(--sign);color:var(--sign-ink);border-radius:10px;padding:0 12px}
+.seat-sign.lit .seat-num{outline:4px solid var(--hivis)}
+.seat-plane{font-size:max(36px,calc(56px*var(--u)))}
+.digit-row{display:inline-flex;gap:3px}
+.digit-row .dg{display:grid;place-items:center;width:1.1em;font:900 max(30px,calc(42px*var(--u))) Nunito,sans-serif;background:#fff;border:3px solid #000;border-radius:8px}
+.digit-row .dg.lit{background:var(--sign-ink)}
+.compare{display:flex;align-items:center;gap:calc(14px*var(--u));flex-wrap:wrap;justify-content:center}
+.sign-slot{display:grid;place-items:center;width:max(64px,calc(84px*var(--u)));height:max(64px,calc(84px*var(--u)));border:4px dashed #000;border-radius:16px;font:900 max(40px,calc(56px*var(--u))) Nunito,sans-serif;background:#fff}
+.sign-slot.filled{border-style:solid;background:var(--sign-ink)}
+.choices.signs{display:grid;grid-template-columns:repeat(3,1fr);gap:calc(10px*var(--u));width:min(100%,420px)}
+.choices.signs .choice{min-height:max(64px,calc(88px*var(--u)));font-size:max(36px,calc(54px*var(--u)))}
+.sign-meet{display:flex;flex-direction:column;gap:12px}
+.sign-row{display:flex;align-items:center;gap:12px;transition:opacity .3s}.sign-row.dim{opacity:.35}.sign-row.lit .sign-slot{background:var(--sign-ink)}
+.num-sign{font:900 max(32px,calc(46px*var(--u))) Nunito,sans-serif;background:var(--sign);color:var(--sign-ink);border-radius:12px;padding:2px 14px;border:3px solid #000}
+.go-btn{display:flex;align-items:center;gap:10px;font-size:calc(34px*var(--u));padding:calc(12px*var(--u)) calc(30px*var(--u))}
+.go-word{font:400 calc(28px*var(--u)) Bungee,sans-serif}
+/* the arrow the fuller lesson waits on */
+.jw-next{position:absolute;right:8px;bottom:8px;z-index:3;width:max(72px,calc(96px*var(--u)));height:max(72px,calc(96px*var(--u)));border-radius:50%;border:5px solid #000;background:var(--sign-ink);font:900 max(36px,calc(48px*var(--u))) Nunito,sans-serif;box-shadow:0 6px 0 #000;padding:0}
+.jw-next:active{transform:translateY(4px);box-shadow:0 2px 0 #000}
+
+/* ---------- the end of a Round ---------- */
+.jw-reward{background:radial-gradient(circle at 50% 30%,#4a5262,#15171c 70%)}
+.earned-race{font:900 calc(30px*var(--u)) Nunito,sans-serif;color:var(--sign-ink);background:#000;border-radius:999px;padding:6px 20px}
+.jw-reward .btns{align-items:center}
+.big-btn.my-plane{padding:calc(4px*var(--u));width:max(104px,calc(150px*var(--u)));height:max(80px,calc(104px*var(--u)));flex:none;background:linear-gradient(var(--sky-2) 0 70%,var(--tarmac) 70%)}
+.big-btn.my-plane img{width:100%;height:100%;object-fit:contain}
+.race-btn{gap:12px;min-height:max(80px,calc(110px*var(--u)));padding:calc(10px*var(--u)) calc(26px*var(--u));font-size:calc(30px*var(--u))}
+.race-flag{font-size:1.3em}
+.race-word{font:400 max(18px,calc(30px*var(--u))) Bungee,sans-serif;white-space:nowrap}
+.race-count{font-size:.7em;background:#0006;border-radius:12px;padding:2px 10px;white-space:nowrap}
+.jw-reward .btns .again.second{font-size:calc(28px*var(--u));padding:calc(18px*var(--u)) calc(24px*var(--u))}
+
+/* ---------- the Airport ---------- */
+.airport-screen,.routes-screen{gap:calc(8px*var(--u));padding:max(8px,env(safe-area-inset-top)) max(10px,env(safe-area-inset-right)) max(10px,env(safe-area-inset-bottom)) max(10px,env(safe-area-inset-left));background:radial-gradient(circle at 30% 0%,#4a5262,var(--tarmac) 70%);color:#fff}
+.jw-head{display:flex;align-items:center;gap:10px;flex:none;min-width:0}
+.jw-head h1{margin:0 auto 0 0;font:400 calc(30px*var(--u)) Bungee,sans-serif;color:var(--sign-ink);min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+@media (max-width:430px){.jw-head h1{font-size:16px}}
+.pax-board{display:flex;align-items:center;gap:6px;background:var(--sign);color:var(--sign-ink);border:3px solid #000;border-radius:10px;padding:2px 10px;font:900 max(15px,calc(20px*var(--u))) Nunito,sans-serif;white-space:nowrap}
+.pax-board small{font-size:.75em;color:#fff}
+@media (max-width:430px){.pax-board small{display:none}}
+.airport-main{flex:1.5 1 0;min-height:0;display:grid;grid-template-columns:minmax(0,1fr) auto;gap:calc(10px*var(--u))}
+.airport-view{min-height:0;border:4px solid #000;border-radius:16px;overflow:hidden;background:#8fd17a;box-shadow:0 6px 0 #000}
+.airport-side{display:flex;flex-direction:column;gap:calc(8px*var(--u));justify-content:center;width:clamp(150px,24vw,240px);min-height:0}
+@media (orientation:portrait){.airport-main{grid-template-columns:minmax(0,1fr);grid-template-rows:minmax(0,1fr) auto}.airport-side{flex-direction:row;width:auto;align-items:stretch}.airport-side .fly-btn{flex:1}}
+.fly-btn{display:grid;grid-template-columns:auto 1fr auto;grid-template-rows:auto auto;align-items:center;column-gap:8px;padding:calc(8px*var(--u)) calc(14px*var(--u));min-height:max(76px,calc(96px*var(--u)))}
+.fly-plane{font-size:calc(40px*var(--u));grid-row:1/3}
+.fly-word{font:400 max(20px,calc(30px*var(--u))) Bungee,sans-serif}
+.fly-to{grid-column:2/4;font:900 max(13px,calc(15px*var(--u))) Nunito,sans-serif;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;text-align:left}
+.fly-btn .race-count{font-size:max(18px,calc(22px*var(--u)))}
+.jw-goal{display:flex;align-items:center;gap:8px;min-height:max(52px,calc(60px*var(--u)));padding:4px 10px;border-radius:999px;border:3px solid var(--sign-ink);background:#000;color:#fff;min-width:0}
+.goal-icon{font-size:calc(28px*var(--u))}
+.goal-bar{flex:1;min-width:40px;height:14px;border-radius:7px;background:#fff3;overflow:hidden}
+.goal-bar i{display:block;height:100%;background:var(--sign-ink);border-radius:7px;transition:width .4s}
+.goal-num{font:900 max(14px,calc(16px*var(--u))) Nunito,sans-serif;white-space:nowrap}
+.side-row{display:flex;gap:8px}
+.side-btn{flex:1;min-height:max(56px,calc(68px*var(--u)));font-size:calc(32px*var(--u));padding:4px;background:#fff}
+@media (orientation:portrait){.airport-side .jw-goal{flex:1}.side-row{flex:none}.side-btn{width:max(56px,calc(68px*var(--u)))}}
+@media (orientation:portrait) and (max-width:560px){.airport-side{flex-wrap:wrap}.airport-side .fly-btn{flex:1 1 100%}}
+.buy-bar{flex:none;display:flex;align-items:center;gap:10px;padding:6px 10px;background:#000;border:3px solid var(--sign-ink);border-radius:16px}
+.buy-icon{font-size:calc(30px*var(--u))}
+.buy-name{flex:1;min-width:0;font:900 max(16px,calc(22px*var(--u))) Nunito,sans-serif;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.buy-need{display:flex;align-items:center;gap:4px;font:900 max(16px,calc(20px*var(--u))) Nunito,sans-serif;color:var(--sign-ink);white-space:nowrap}
+.buy-btn{display:flex;align-items:center;gap:6px;font:900 max(20px,calc(26px*var(--u))) Nunito,sans-serif;padding:6px 18px;min-height:52px}
+.jw-tabs{flex:none;display:grid;grid-template-columns:repeat(9,minmax(0,1fr));gap:4px}
+@media (max-width:700px),(orientation:landscape) and (max-height:520px){.jw-tabs{grid-template-columns:repeat(9,minmax(44px,1fr));overflow-x:auto}.tab-name{display:none}}
+.jw-tab{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;min-height:max(48px,calc(58px*var(--u)));min-width:44px;border-radius:12px;background:#1d2026;border:3px solid #fff3;color:#fff;padding:0 2px;font-size:calc(22px*var(--u))}
+.tab-name{font:900 max(11px,calc(13px*var(--u))) Nunito,sans-serif}
+.jw-tab.on{background:var(--sign-ink);border-color:#000;box-shadow:0 4px 0 #000;color:#000}
+.jw-tray{flex:1 1 0;min-height:max(130px,22vh);overflow-y:auto;overscroll-behavior:contain;touch-action:pan-y;display:flex;flex-direction:column;gap:8px;padding-bottom:calc(var(--floor) - 20px)}
+.tiles{display:grid;grid-template-columns:repeat(auto-fill,minmax(max(104px,calc(128px*var(--u))),1fr));grid-auto-rows:max-content;gap:calc(8px*var(--u))}
+.jw-tile{position:relative;display:flex;flex-direction:column;align-items:center;gap:2px;padding:6px 4px;min-height:96px;border-radius:14px;background:#1d2026;border:3px solid #fff3;color:#fff;font:800 max(13px,calc(15px*var(--u)))/1.1 Nunito,sans-serif}
+.jw-tile img{width:92%;height:calc(56px*var(--u));min-height:40px;object-fit:contain}
+.tile-icon{font-size:max(28px,calc(36px*var(--u)));line-height:1.2}
+.swatch-dot{width:max(36px,calc(44px*var(--u)));height:max(36px,calc(44px*var(--u)));border-radius:50%;border:3px solid #000;box-shadow:0 0 0 2px #fff5}
+.tile-name{min-height:2.2em;display:grid;place-items:center;text-align:center}
+.tile-cost,.tile-tag{display:inline-flex;align-items:center;gap:2px;font-size:max(14px,1.05em);color:#ffd97a}
+.tile-count{position:absolute;right:4px;top:4px;background:var(--sign-ink);color:#000;border-radius:999px;padding:0 6px;font-weight:900}
+.jw-tile.locked{background:#14161b;opacity:.75}
+.jw-tile.afford{border-color:var(--sign-ink)}
+.jw-tile.owned{border-color:#3ddc8466}
+.jw-tile.worn{border-color:var(--green);background:#143526;color:#c4f7dc}
+.jw-tile.picked{outline:3px solid #fff;outline-offset:1px}
+.jw-tile.grounded img{filter:grayscale(.5)}
+.jw-tile.charter{border-color:#b26bff}
+.fleet-bar{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+.fleet-bar img{width:max(120px,calc(160px*var(--u)));height:max(60px,calc(80px*var(--u)));object-fit:contain;background:linear-gradient(var(--sky-2) 0 72%,var(--tarmac) 72%);border:3px solid #000;border-radius:12px}
+.chip-btn{min-height:48px;min-width:48px;padding:4px 14px;border-radius:999px;border:3px solid #000;background:#fff;color:#000;font:900 max(16px,calc(20px*var(--u))) Nunito,sans-serif;box-shadow:0 3px 0 #000}
+.chip-btn.on{background:var(--sign-ink)}
+.chip-note{font:900 max(16px,calc(18px*var(--u))) Nunito,sans-serif;color:#fffc}
+.light-dot i{display:block;width:24px;height:24px;border-radius:50%;background:var(--dot);border:2px solid #000}
+
+/* ---------- the Routes board ---------- */
+.routes-body{flex:1;min-height:0;overflow-y:auto;overscroll-behavior:contain;display:flex;flex-direction:column;gap:10px;padding-bottom:calc(var(--floor) - 20px)}
+.fly-mini{font-size:calc(24px*var(--u));padding:6px 14px;min-height:52px}
+.charter-card{display:flex;align-items:center;gap:12px;min-height:72px;padding:8px 16px;border-radius:16px;border:4px solid #000;background:linear-gradient(90deg,#5a2a8a,#7b4bd1);color:#fff;text-align:left;box-shadow:0 5px 0 #000}
+.charter-card.locked{filter:grayscale(.8);opacity:.7}
+.charter-card.next{outline:4px solid var(--sign-ink)}
+.cc-icon{font-size:calc(40px*var(--u))}
+.cc-text{display:flex;flex-direction:column;font:900 max(18px,calc(24px*var(--u))) Nunito,sans-serif}
+.cc-text small{font-size:.7em;color:#ffe9a8}
+.routes-body .board{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:6px;background:var(--sign);border:4px solid #000;border-radius:14px;padding:8px}
+.board-row{display:grid;grid-template-columns:auto 1fr auto;align-items:center;gap:10px;min-height:52px;padding:4px 10px;border-radius:10px;border:2px solid #ffffff22;background:#0f1115;color:var(--sign-ink);font:900 max(15px,calc(18px*var(--u))) Nunito,sans-serif;text-align:left}
+.board-row .br-icon{font-size:1.5em}
+.board-row.flown{color:#c4f7dc}.board-row.locked{color:#fff6}.board-row.next{border-color:var(--sign-ink);background:#2a2610}
+.br-state{white-space:nowrap;font-size:.9em}
+.trophy-shelf{display:flex;flex-wrap:wrap;gap:6px;padding:8px;background:linear-gradient(#5a3a1c,#3a2410);border:4px solid #000;border-radius:14px}
+.trophy-shelf .trophy{font-size:calc(30px*var(--u));filter:grayscale(1) brightness(.5)}
+.trophy-shelf .trophy.won{filter:none}
+
+/* ---------- the Flight and "Watch it run" ---------- */
+.flight-screen,.watch-screen{position:fixed;inset:0;overflow:hidden;touch-action:none;overscroll-behavior:none;-webkit-user-select:none;user-select:none;-webkit-touch-callout:none;background:var(--sky);color:#fff}
+.watch-screen{background:#8fd17a}
+.fl-canvas,.watch-canvas{position:absolute;inset:0;width:100%;height:100%;display:block}
+.fl-hud{position:absolute;left:0;right:0;top:0;display:flex;align-items:center;gap:10px;padding:max(12px,env(safe-area-inset-top)) max(24px,calc(env(safe-area-inset-right) + 24px)) 0 max(24px,calc(env(safe-area-inset-left) + 24px));pointer-events:none;flex-wrap:wrap}
+.fl-hud>*{pointer-events:auto}
+.hud-chip{display:flex;align-items:center;gap:6px;background:#000c;border:3px solid var(--sign-ink);border-radius:999px;padding:4px 14px;font:900 max(18px,calc(26px*var(--u))) Nunito,sans-serif;color:var(--sign-ink);white-space:nowrap}
+@media (max-width:430px){.fl-hud .hud-chip:last-child{display:none}}
+.fl-tip{position:absolute;left:50%;top:max(80px,calc(env(safe-area-inset-top) + 80px));transform:translateX(-50%);pointer-events:none;background:#000b;color:#fff;border-radius:999px;padding:4px 18px;font:900 max(16px,calc(22px*var(--u))) Nunito,sans-serif;white-space:nowrap}
+.fl-tip:empty{display:none}
+.fl-acts{position:absolute;right:max(24px,calc(env(safe-area-inset-right) + 24px));bottom:var(--floor);pointer-events:none}
+.fl-act{pointer-events:auto;touch-action:none;display:grid;place-items:center;width:max(110px,calc(150px*var(--u)));height:max(110px,calc(150px*var(--u)));border-radius:50%;border:5px solid #000;box-shadow:0 7px 0 #000;padding:0;font-size:calc(48px*var(--u));background:radial-gradient(circle at 40% 35%,#ffb36b,var(--hivis) 60%,#a34a00);color:#000}
+.fl-act b{font:400 max(16px,calc(22px*var(--u))) Bungee,sans-serif}
+.fl-act:active{transform:translateY(5px);box-shadow:0 2px 0 #000}
+.fl-act.drop{background:radial-gradient(circle at 40% 35%,#9fe0ff,#2f8fe8 60%,#123a7a);color:#fff}
+.fl-card{display:flex;flex-direction:column;gap:calc(12px*var(--u));padding:max(12px,env(safe-area-inset-top)) max(24px,calc(env(safe-area-inset-right) + 24px)) max(14px,env(safe-area-inset-bottom)) max(24px,calc(env(safe-area-inset-left) + 24px));background:linear-gradient(var(--sky) 0 65%,var(--tarmac) 65%);touch-action:auto}
+.fl-head{display:flex;align-items:center;gap:10px}
+.fl-head h1{margin:0;flex:1;min-width:0;font:400 calc(34px*var(--u)) Bungee,sans-serif;color:var(--sign-ink);text-shadow:3px 3px 0 #000;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.fl-chip{background:#000;border-radius:999px;padding:4px 12px;font-size:max(20px,calc(26px*var(--u)))}
+.fl-route{flex:1;min-height:0;display:grid;grid-template-columns:1fr auto 1fr;align-items:center;gap:10px}
+.fl-from,.fl-to{display:flex;flex-direction:column;align-items:center;gap:6px;min-height:0}
+.fl-from img{width:100%;max-width:340px;height:auto;max-height:calc(200px*var(--u) + 40px);object-fit:contain}
+.fl-from strong,.fl-to strong{font:400 calc(24px*var(--u)) Bungee,sans-serif;text-align:center;background:#000;border-radius:10px;padding:2px 10px}
+.fl-icon{font-size:calc(110px*var(--u));filter:drop-shadow(3px 4px 0 #000)}
+.fl-arrow{font-size:calc(30px*var(--u));color:#fff;letter-spacing:.3em}
+@media (orientation:portrait){.fl-route{grid-template-columns:1fr;grid-template-rows:1fr auto 1fr}.fl-arrow{text-align:center;transform:rotate(90deg)}}
+.fl-foot{display:flex;align-items:center;justify-content:center;gap:16px;flex-wrap:wrap;padding-bottom:calc(var(--floor) - 30px)}
+.fl-best{background:#000;border:3px solid var(--sign-ink);border-radius:16px;padding:6px 14px;font:900 max(18px,calc(22px*var(--u))) Nunito,sans-serif}
+.fl-foot .big-btn.go{min-width:max(120px,calc(160px*var(--u)));min-height:max(80px,calc(96px*var(--u)));display:flex;align-items:center;gap:10px;font-size:calc(34px*var(--u))}
+.fl-result{position:fixed;inset:0;z-index:5;display:grid;place-items:center;background:#000a;padding:14px;text-align:center;overflow-y:auto;touch-action:auto}
+.fl-result .result-card{display:flex;flex-direction:column;align-items:center;gap:calc(8px*var(--u));width:min(560px,100%);padding:calc(16px*var(--u)) calc(24px*var(--u));border:4px solid #000;border-radius:24px;background:radial-gradient(circle at 50% 0%,#4a5262,#1d2026 70%);box-shadow:0 8px 0 #000,0 18px 40px #000a}
+.fl-result h2{margin:0;font:400 calc(40px*var(--u)) Bungee,sans-serif;color:var(--sign-ink);text-shadow:3px 3px 0 #000}
+.fl-grade{display:flex;align-items:center;gap:10px;font-size:calc(40px*var(--u))}
+.fl-grade span{font:400 calc(26px*var(--u)) Bungee,sans-serif;color:#fff}
+.fl-row{display:flex;align-items:center;gap:20px;font:900 calc(30px*var(--u)) Nunito,sans-serif}
+.fl-row.pax small{font-size:.65em;color:var(--sign-ink)}
+.result-bolts{display:flex;align-items:center;gap:6px}
+.won-line{font:900 max(18px,calc(24px*var(--u))) Nunito,sans-serif;color:var(--sign-ink)}
+.won-line.prize{color:#d9b8ff}
+.fl-result .btns{display:flex;gap:14px;align-items:center;justify-content:center;flex-wrap:wrap}
+.fl-result .big-btn{font-size:calc(34px*var(--u));padding:calc(12px*var(--u)) calc(28px*var(--u));min-height:64px}
+@media (orientation:landscape) and (max-height:520px){
+  .fl-result .result-card{gap:2px;padding:6px 14px}
+  .fl-result h2{font-size:24px}.fl-grade{font-size:26px}.fl-row{font-size:20px}
+  .fl-result .big-btn{min-height:52px;padding:4px 16px}
+  .airport-side{width:clamp(140px,26vw,220px)}
+  .jw-tray{min-height:110px}
+  .fl-card .fl-icon{font-size:56px}
+}
+@media (prefers-reduced-motion:reduce){
+  .choice.hint,.duel-plane.hint,.jw-next,.fly-btn.pulse,.fl-act.pulse{animation:none}
+  .choice.hint,.duel-plane.hint{outline:5px solid var(--sign-ink);outline-offset:3px}
+  .rod.arrive{animation:none}
+}
+/* a sideways phone: the airport and its buttons on the left, the tabs and the tray on the right */
+@media (orientation:landscape) and (max-height:520px){
+  .airport-screen{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);grid-template-rows:auto auto minmax(0,1fr) auto;grid-template-areas:"head head" "main tabs" "main tray" "buy tray";column-gap:10px}
+  .airport-screen .jw-head{grid-area:head}
+  .airport-screen .airport-main{grid-area:main;grid-template-columns:minmax(0,1fr);grid-template-rows:minmax(0,1fr) auto;min-height:0}
+  .airport-screen .airport-side{flex-direction:row;width:auto;align-items:stretch}
+  .airport-screen .airport-side .fly-btn{flex:1;min-height:52px;padding:2px 10px}
+  .airport-screen .fly-to,.airport-screen .goal-num{display:none}
+  .airport-screen .fly-plane{font-size:26px}
+  .airport-screen .jw-goal{flex:1;min-height:52px;min-width:0}
+  .airport-screen .side-btn{width:52px;min-height:52px;font-size:24px}
+  .airport-screen .jw-tabs{grid-area:tabs}
+  .airport-screen .jw-tray{grid-area:tray;min-height:0}
+  .airport-screen .buy-bar{grid-area:buy}
+  .airport-screen .pax-board small{display:none}
+}

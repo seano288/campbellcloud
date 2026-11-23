@@ -741,3 +741,37 @@ four until he buys one, when the next appears.
 
 **Population**: everyone who lives in his city (houses, flats and every Floor), shown with his city's rank: Village, Town, City, Big
 City, Huge City, Mega City, then Super City 1, 2, 3 and on without end.
+
+## Jetway
+
+Jetway reuses the other games' terms where they mean the same thing (Mixed Round, Mastery, Stretch, Bolt, Tune-Up, Meeting, Goal, Paint, Slot). Airfield is Sky Writer's word for its shop; in Jetway it is only a passenger rank. These are its own:
+
+**Game Modes (Jetway)**: the five kinds of question, about two-digit adding and taking away with carrying and borrowing, and numbers past 100: Boarding (two groups of passengers board one plane: no carrying, then carrying a ten, then totals past 100), Jumbo (seats in blocks of a hundred, rows of ten and single seats: reading them, which digit is in a place, numbers with a zero, which plane holds more and the < > = signs), Unload (bags come off a plane: no borrowing, borrowing a ten, from a round number and from past 100), Ten Hops (ten or a hundred more and less, then a sum in two hops along the runway number line) and Missing Bags (how many more fill the cart: to the next ten, a later ten, any number). Boarding and Jumbo are open from the start; Unload opens at Boarding Level 2, Ten Hops at Jumbo Level 2, Missing Bags at Unload Level 2.
+
+**Seat blocks**: the picture every lesson uses: a block of a hundred seats, a row of ten, and single seats, on a mat with a column for each place (hundreds, tens, ones). A Boarding lesson snaps ten ones into a new row of ten; an Unload lesson breaks a row of ten into ten ones.
+_Avoid_: base-ten blocks, flats, rods, cubes (to him)
+
+**Number wheels**: how he answers a sum: one wheel for each digit, turned up or down, then the check. Three wheels only when the answer can pass 100.
+
+**Airport**: the reward he builds, from above: a plot that starts as a grass strip and a shed, where every piece he buys goes in its own fixed place (runways, taxiways, the terminal in stages, Gates, the tower, hangars and the rest). Pieces change the Flight: a longer runway lets bigger planes fly, the tower opens night Routes, the de-icing pad snowy ones, the seaplane dock island ones.
+_Avoid_: base, garage, hangar (for the whole airport)
+
+**Gate**: a stand at the terminal where one plane parks. Six are fixed pieces; after the sixth, "Another Gate" can be bought again and again.
+
+**Fleet**: the planes he owns, from the free Two-Seater to the Supersonic Jet, each with its own name and livery. The one he flies is the one he last tapped (or bought) that his runway can take.
+_Avoid_: hangar, garage
+
+**Livery**: how one plane is painted, from parts bought once and used on any plane: a body colour, a stripe, a trim colour and a tail art. The airline's mark goes on every plane.
+
+**Flight**: the reward he flies, about a minute: from the gate along the taxiway (from above, a held finger leads the plane), the take-off with the throttle held (from the side), the cruise picking up stars, and the line of lights down to the far runway. A finished Round earns one (he starts with one). It cannot be failed.
+_Avoid_: trip, race, mission
+
+**Route**: one of 24 places he flies to, in order, each with its own little airport and weather. Flying a new one opens the next; one that needs a piece of his airport waits until he builds it, and the next is open meanwhile. His best stars and best landing on each are kept.
+_Avoid_: level, track
+
+**Charter (Charter Flight)**: the endless Flights, each made on the spot from its number (the town, the weather, the wind, day or night, the stars and a little airport at the far end), the same every time for that number. They open after three Routes; every fifth brings a Charter prize, never sold.
+_Avoid_: random flight, endless mode (to him)
+
+**Passengers, rank**: every Flight adds its passengers to the big board; at each milestone the airport takes a new rank (Airstrip, Airfield, Airport, Big Airport, Hub, Big Hub, Mega Hub, then Super Hub 1, 2, 3 and on without end).
+
+**Watch it run**: his airport working by itself, for show: his own planes landing, taxiing to his gates and leaving again, his trucks about. Nothing is paid or used.

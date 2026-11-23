@@ -32,6 +32,7 @@
     "dev:deep-light": "vite --config vite.deep-light.config.ts --port 5185 --strictPort",
     "dev:sky-writer": "vite --config vite.sky-writer.config.ts --port 5183 --strictPort",
     "dev:skyline": "vite --config vite.skyline.config.ts --port 5171 --strictPort",
+    "dev:jetway": "vite --config vite.jetway.config.ts --port 5177 --strictPort",
     "dev:hunch": "vite --config vite.hunch.config.ts",
     "dev:purrdoku": "vite --config vite.purrdoku.config.ts",
     "build:purrdoku-boards": "tsx tools/purrdoku-boards.ts"
