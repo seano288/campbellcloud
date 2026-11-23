@@ -2,9 +2,9 @@
 // (both hops drawn): pass 2 found "69 + ? = 70" with the 70 box over the 69, and two hops landing on 86 and 91 on a phone.
 import { describe, expect, it } from 'vitest';
 import { seeded } from '../../game/rng';
-import { labelRows, lineX } from './pictures';
+import { labelRows, lineX, matLayout, U } from './pictures';
 import { makeQuestion, type Level } from './problems';
-import { gapLine, hopLine, type Line } from './teach';
+import { addMat, gapLine, hopLine, matOf, type Line, type Mat } from './teach';
 
 const nextTen = (x: number) => Math.ceil(x / 10) * 10;
 function* lines(): Generator<[string, Line]> {
@@ -34,5 +34,28 @@ describe('the runway line', () => {
       if (Math.max(...rows.values()) > 0) lowered++;
     }
     expect(lowered).toBeGreaterThan(0); // close numbers do come up, and go on a second row
+  });
+});
+
+describe('the seat mat', () => {
+  // pass 2 found a hundred drawn smaller than one row of ten: the picture is the lesson, so it must show a hundred as ten tens
+  const mats: [string, Mat][] = [];
+  for (let n = 0; n <= 999; n++) mats.push([`${n}`, matOf(n, 'a', true)]);
+  for (let a = 10; a <= 99; a += 3) for (let b = 10; b <= 99; b += 7) mats.push([`${a} + ${b}`, addMat({ a, b })]);
+  it('draws one seat the same size everywhere: a ten is ten ones tall, a hundred ten tens wide', () => {
+    for (const [name, mat] of mats) for (const b of matLayout(mat).blocks) {
+      const want = b.c === 'h' ? [10 * U, 10 * U] : b.c === 't' ? [U, 10 * U] : [U, U];
+      expect([b.w, b.h], name).toEqual(want);
+    }
+  });
+  it('keeps every block inside its own column, clear of the others and of the digit box', () => {
+    for (const [name, mat] of mats) {
+      const L = matLayout(mat);
+      for (const [i, b] of L.blocks.entries()) {
+        const col = L.cols.find(c => c.c === b.c)!;
+        expect(b.x >= col.x && b.x + b.w <= col.x + col.w && b.y >= L.top && b.y + b.h <= L.H - 74 * L.f, `${name}: ${b.c}${i}`).toBe(true);
+        for (const o of L.blocks.slice(i + 1)) expect(b.x < o.x + o.w && o.x < b.x + b.w && b.y < o.y + o.h && o.y < b.y + b.h, `${name}: blocks overlap`).toBe(false);
+      }
+    }
   });
 });

@@ -23,8 +23,14 @@ export const HOME_STAND = { x: 560, y: STAND_Y } as const;
 export const EXTRA_HANGARS = [0, 1, 2, 3].map(i => r(120 + i * 112, 712, 100, 60));
 /** Where the airport starts: a shed beside the grass strip. Drawn until the Ticket Hut replaces it. */
 export const SHED = r(535, 405, 50, 40);
-/** Extra gates (the repeatable kind) park along the concourses. */
-export const EXTRA_STANDS = [r(205, 455, 0, 0), r(255, 455, 0, 0), r(905, 455, 0, 0), r(955, 455, 0, 0), r(205, 300, 0, 0), r(255, 300, 0, 0), r(905, 300, 0, 0), r(955, 300, 0, 0)].map(s => ({ x: s.x, y: s.y }));
+/** Extra gates (the repeatable kind) are remote stands either side of the terminal, by the concourses, in the two patches of ground
+ *  nothing else uses (under the monorail, above the plough on the left and the tower on the right): two by two, each `w` wide and 66
+ *  long, so a plane parked there is drawn small enough to stay on its stand (pass 2 found them over the tower and the workshops). */
+export const EXTRA_STANDS: readonly { x: number; y: number; w: number }[] = [
+  { x: 896, y: 336, w: 58 }, { x: 958, y: 336, w: 58 }, { x: 220, y: 336, w: 48 }, { x: 272, y: 336, w: 48 },
+  { x: 896, y: 404, w: 58 }, { x: 958, y: 404, w: 58 }, { x: 220, y: 404, w: 48 }, { x: 272, y: 404, w: 48 },
+];
+export const EXTRA_STAND_LEN = 66;
 
 /** Where each piece, sign and garden thing goes. */
 export const SPOTS: Record<string, Rect> = {

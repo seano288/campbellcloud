@@ -7,7 +7,8 @@
   --floor:max(56px,calc(env(safe-area-inset-bottom) + 40px))}
 html,body{background:var(--tarmac)}
 .jw-start,.start.jw-start{background:linear-gradient(var(--sky) 0 55%,#8fd17a 55% 70%,var(--tarmac) 70%)}
-.jw-start h1{color:#fff;text-shadow:3px 3px 0 var(--hivis),6px 6px 0 #000}
+/* the name on a yellow-on-black airport sign */
+.jw-start h1{color:var(--sign-ink);background:var(--sign);border:4px solid #000;border-radius:18px;padding:.12em .45em .16em;line-height:1.05;text-shadow:3px 3px 0 var(--hivis)}
 .jw-start .start-art{width:min(92vw,calc(520px*var(--u)),620px);aspect-ratio:1300/780;border:4px solid #000;border-radius:18px;overflow:hidden;box-shadow:0 7px 0 #000}
 .jw-start .start-art .airport-canvas{width:100%;height:100%}
 @media (max-height:520px){.jw-start .start-art{width:auto;height:28vh}.start.jw-start{gap:12px}}
@@ -21,15 +22,28 @@ html,body{background:var(--tarmac)}
 .jw-start{padding-bottom:calc(var(--floor) + 24px)}
 .home.jw-home{grid-template-areas:"p p" "a r" "k k";grid-template-rows:minmax(0,1fr) minmax(0,.8fr) auto;grid-template-columns:1.5fr 1fr}
 @media (orientation:landscape){.home.jw-home{grid-template-areas:"p a" "p r" "k k";grid-template-rows:minmax(0,1fr) minmax(0,.6fr) auto;grid-template-columns:1fr 1.2fr}}
-/* Play is a jet bridge reaching a door, the green Go light on it */
-.jw-home .t-play{grid-area:p;position:relative;background:linear-gradient(var(--sky-2),var(--sky))}
-.jw-home .t-play .jet-bridge{position:absolute;left:0;right:40%;top:50%;height:calc(70px*var(--u));transform:translateY(-50%);background:repeating-linear-gradient(90deg,#b8c2cc 0 26px,#8a96a3 26px 32px);border-block:4px solid #000}
-.jw-home .t-play .e{position:relative;display:grid;place-items:center;width:calc(160px*var(--u));height:calc(160px*var(--u));min-width:84px;min-height:84px;border-radius:50%;border:4px solid #000;background:var(--go);color:#fff;font-size:calc(76px*var(--u));padding-left:calc(8px*var(--u));box-shadow:0 0 0 calc(8px*var(--u)) #fff,0 0 0 calc(8px*var(--u) + 4px) #000,0 calc(8px*var(--u) + 7px) 0 calc(8px*var(--u) + 4px) #000}
+/* Play is the door of his plane, where the jet bridge meets it: the biggest, greenest thing on the screen. The fuselage wears his plane's
+   paint and trim; the door stays in the middle of the tile, so it is always the one thing to tap. */
+.jw-home .t-play{grid-area:p;position:relative;background:linear-gradient(#a9d6f7,var(--sky) 78%);--door-w:max(84px,calc(128px*var(--u)));--door-h:max(112px,calc(172px*var(--u)))}
+.jw-home .t-play .apron{position:absolute;left:0;right:0;bottom:0;height:22%;background:linear-gradient(transparent calc(50% - 4px),var(--sign-ink) calc(50% - 4px) calc(50% + 4px),transparent 0),var(--tarmac);border-top:4px solid #000}
+.jw-home .t-play .fuselage{position:absolute;left:calc(50% - var(--door-w)/2 - max(70px,calc(120px*var(--u))));right:-40px;top:50%;height:calc(var(--door-h) + max(56px,calc(84px*var(--u))));transform:translateY(-50%);background:var(--body,#f4f6fa);border:4px solid #000;border-right:0;border-radius:50% 0 0 50%/50% 0 0 50%;box-shadow:inset 0 -14px 0 #0002}
+.jw-home .t-play .cockpit{position:absolute;left:9%;top:24%;width:max(26px,calc(40px*var(--u)));height:max(14px,calc(22px*var(--u)));border-radius:60% 20% 20% 20%;background:#2a4a6a;border:3px solid #000}
+.jw-home .t-play .windows{position:absolute;left:calc(max(70px,calc(120px*var(--u))) + var(--door-w) + 24px);right:0;top:24%;height:max(14px,calc(22px*var(--u)));background:repeating-linear-gradient(90deg,#2a4a6a 0 max(14px,calc(20px*var(--u))),transparent 0 max(26px,calc(38px*var(--u))))}
+.jw-home .t-play .cheat{position:absolute;left:12%;right:0;top:calc(24% + max(22px,calc(34px*var(--u))));height:max(8px,calc(12px*var(--u)));background:var(--cheat,var(--hivis))}
+.jw-home .t-play .jet-bridge{position:absolute;left:-4px;width:calc(50% - var(--door-w)/2 + 8px);top:50%;height:calc(var(--door-h)*.74);transform:translateY(-50%);background:repeating-linear-gradient(90deg,#c9d1da 0 26px,#8a96a3 26px 32px);border:4px solid #000;box-shadow:0 10px 0 #0004}
+.jw-home .t-play .jet-bridge i{position:absolute;right:-4px;top:-10px;bottom:-10px;width:max(16px,calc(22px*var(--u)));background:repeating-linear-gradient(#3b424c 0 6px,#1c2027 6px 10px);border:4px solid #000;border-radius:6px}
+.jw-home .t-play .e{position:relative;display:grid;place-items:center;width:var(--door-w);height:var(--door-h);border-radius:calc(22px*var(--u)) calc(22px*var(--u)) 10px 10px;border:4px solid #000;background:var(--go);color:#fff;font-size:calc(72px*var(--u));padding-left:calc(8px*var(--u));box-shadow:0 0 0 6px #fff,0 0 0 10px #000,0 14px 0 10px #000}
+.jw-home .t-play:active{transform:translateY(4px)}
 .jw-home .t-airport{grid-area:a;position:relative;flex-direction:column;gap:2px;padding:4px;background:#8fd17a;color:#fff;overflow:hidden}
 .jw-home .t-airport .airport-canvas{flex:1;min-height:0;width:100%}
-.jw-home .t-routes{grid-area:r;position:relative;flex-direction:column;justify-content:center;gap:calc(6px*var(--u));background:var(--sign);color:var(--sign-ink)}
-.next-dest{font-size:calc(64px*var(--u));line-height:1.05;filter:drop-shadow(2px 3px 0 #000)}
+/* Routes is a departures board: yellow on black, where his next Flight goes */
+.jw-home .t-routes{grid-area:r;position:relative;flex-direction:column;justify-content:center;gap:calc(8px*var(--u));padding:calc(10px*var(--u));background:var(--sign);color:var(--sign-ink)}
+.jw-home .t-routes .board-head{position:absolute;left:10px;top:8px;font:400 max(12px,calc(15px*var(--u))) Bungee,sans-serif;letter-spacing:.04em;color:#fff}
+.jw-home .t-routes .next-dest{display:flex;align-items:center;gap:calc(10px*var(--u));max-width:100%;padding:calc(6px*var(--u)) calc(14px*var(--u));background:#000;border:3px solid #2c333d;border-radius:12px}
+.jw-home .t-routes .nd-icon{font-size:max(30px,calc(52px*var(--u)));line-height:1}
+.jw-home .t-routes .nd-name{font:900 max(17px,calc(30px*var(--u)))/1.05 Nunito,sans-serif;color:var(--sign-ink);text-align:left;overflow:hidden;text-overflow:ellipsis}
 .jw-home .t-routes .nm,.jw-home .t-airport .nm{font-size:calc(24px*var(--u));color:var(--sign-ink);background:#000;border-radius:10px;padding:2px 10px}
+.jw-home .t-routes .nm{background:none;padding:0;color:#fff}
 .cup-count{position:absolute;right:8px;top:6px;background:#000;color:var(--sign-ink);border-radius:999px;padding:2px 10px;font:900 max(14px,calc(16px*var(--u))) Nunito,sans-serif}
 .race-badge{position:absolute;right:10px;top:8px;background:#000;color:var(--sign-ink);border-radius:999px;padding:3px 12px;font:900 max(16px,calc(22px*var(--u))) Nunito,sans-serif;border:2px solid var(--sign-ink)}
 .jw-home .t-kinds{grid-area:k;background:var(--runway);display:grid;grid-template-columns:repeat(3,1fr);grid-auto-rows:minmax(max(48px,calc(54px*var(--u))),auto);column-gap:calc(12px*var(--u));padding:0 calc(12px*var(--u)) calc(8px*var(--u));cursor:default}
@@ -78,9 +92,9 @@ html,body{background:var(--tarmac)}
 .sum-card .blank{display:inline-grid;place-items:center;min-width:1.6em;padding:0 .15em;border:3px dashed var(--sign-ink);border-radius:8px}
 .sum-card .blank.filled{border-style:solid;background:var(--go);color:#fff}
 .game.jw.k-sum .ask h2{display:flex;justify-content:center}
-.story-art{display:flex;align-items:center;justify-content:center;gap:calc(16px*var(--u));flex-wrap:wrap;font:900 max(26px,calc(40px*var(--u))) Nunito,sans-serif}
-.story-art .plane{font-size:2em}
-.story-art .grp,.story-art .belt,.story-art .cart{background:#fff;border:4px solid #000;border-radius:16px;padding:4px 14px;box-shadow:0 4px 0 #000}
+.story-art{display:flex;align-items:center;justify-content:center;gap:calc(18px*var(--u));flex-wrap:wrap;font:900 max(30px,calc(56px*var(--u))) Nunito,sans-serif}
+.story-art .plane{font-size:2.2em;filter:drop-shadow(3px 4px 0 #0003)}
+.story-art .grp,.story-art .belt,.story-art .cart{background:#fff;border:4px solid #000;border-radius:18px;padding:4px 16px;box-shadow:0 5px 0 #000;white-space:nowrap}
 .story-art .grp.a{border-color:#2f8fe8}.story-art .grp.b{border-color:var(--hivis)}
 /* the wheels: one for each digit, then the check */
 .jw-wheels{display:flex;align-items:center;gap:calc(12px*var(--u));flex-wrap:nowrap}
@@ -92,32 +106,40 @@ html,body{background:var(--tarmac)}
 .jw-wheels .wheel-hundreds .digit{background:#ffe6cc}.jw-wheels .wheel-tens .digit{background:#dcecff}
 .jw-wheels .done-btn{min-width:max(76px,calc(96px*var(--u)));min-height:max(76px,calc(96px*var(--u)));font-size:max(36px,calc(48px*var(--u)));background:var(--go);color:#fff}
 @media (orientation:portrait){.jw-controls .jw-wheels{width:100%;justify-content:center}}
+/* an iPad on its side: the check goes under the wheels, so three wheels fit their column and never reach the mat (pass 2 found the
+   hundreds wheel touching it at 1080×810) */
+@media (orientation:landscape) and (min-height:521px){.jw-controls .jw-wheels{flex-direction:column;align-items:stretch}.jw-wheels .done-btn{min-height:max(64px,calc(84px*var(--u)))}}
+@media (orientation:landscape) and (max-height:520px){.jw-wheels.w3 .numwheel{width:64px}.jw-wheels.w3 .numwheels{gap:6px}}
 @media (max-width:430px){.jw-wheels .numwheel{width:68px}.jw-wheels .numwheels{gap:6px}.jw-wheels .done-btn{min-width:64px}}
-/* the mat: hundreds, tens and ones */
+/* the mat: hundreds, tens and ones, each column headed by a yellow-on-black sign */
 .mat .mat-bg{fill:#fff;stroke:#000;stroke-width:4}
 .mat .col-h .mat-bg{fill:#fff4e6}.mat .col-t .mat-bg{fill:#eef5ff}
-.mat .mat-col.focus .mat-bg{stroke:var(--sign-ink);stroke-width:8;fill:#fffbe0}
-.mat .mat-word{font:900 22px Nunito,sans-serif;text-anchor:middle;fill:#14161b}
+.mat .mat-head{fill:var(--sign)}
+.mat .mat-col.focus .mat-bg{stroke:var(--sign-ink);stroke-width:9;fill:#fffbe0}
+.mat .mat-word{font-weight:900;font-family:Nunito,sans-serif;text-anchor:middle;fill:var(--sign-ink)}
 .mat .mat-digit-box{fill:var(--sign);stroke:#000;stroke-width:3}.mat .mat-digit-box.empty{fill:none;stroke:#0003;stroke-dasharray:8 6}
-.mat .mat-digit{font:900 46px Nunito,sans-serif;text-anchor:middle;fill:var(--sign-ink)}
-.seat rect{fill:#2f8fe8;stroke:#0b2a52;stroke-width:1}
-.seat .back{fill:#1d5fb0}
-.seat.s-b rect{fill:#ff9a3d;stroke:#6a2c00}.seat.s-b .back{fill:#d65f00}
-.seat.s-new rect{fill:#3ddc84;stroke:#0d4a2a}.seat.s-new .back{fill:#1f9a57}
-.seat.lit rect{fill:#ffd23f}.seat.lit .back{fill:#e0a800}
-.seat.gone{opacity:.35}.seat .x{stroke:#e63946;stroke-width:3}
-.ring>.seat rect,.ring rect{stroke:#e63946;stroke-width:2.5}
-.rod.arrive{animation:pop .5s}
+.mat .mat-digit{font-weight:900;font-family:Nunito,sans-serif;text-anchor:middle;fill:var(--sign-ink)}
+.blk .body{fill:#2f8fe8;stroke:#0b2a52;stroke-width:2}
+.blk .backs{fill:#0b2a5244}
+.blk .rods{stroke:#0b2a52;stroke-width:2;fill:none}
+.blk.s-b .body{fill:#ff9a3d;stroke:#6a2c00}.blk.s-b .backs{fill:#6a2c0040}.blk.s-b .rods{stroke:#6a2c00}
+.blk.s-new .body{fill:#3ddc84;stroke:#0d4a2a}.blk.s-new .backs{fill:#0d4a2a40}.blk.s-new .rods{stroke:#0d4a2a}
+.blk.lit .body{fill:#ffd23f;stroke:#7a5a00}.blk.lit .backs{fill:#7a5a0038}.blk.lit .rods{stroke:#7a5a00}
+.blk.ring .body{stroke:#e63946;stroke-width:4}
+.blk.gone{opacity:.35}.blk .x{stroke:#e63946;stroke-width:4;stroke-linecap:round}
+.blk.arrive{animation:pop .5s}
 @keyframes pop{0%{transform:translateY(-20px);opacity:0}100%{transform:none;opacity:1}}
 /* the runway number line */
 .runway-line .rl-strip{fill:#3a3f4b;stroke:#000;stroke-width:4}
-.runway-line .rl-dash{stroke:#f4f6fa;stroke-width:3;stroke-dasharray:14 12}
-.runway-line .rl-tick{stroke:#fff;stroke-width:2}.runway-line .rl-tick.big{stroke-width:4}
-.runway-line .rl-num{font:900 18px Nunito,sans-serif;text-anchor:middle;fill:#14161b}
+.runway-line .rl-edge{stroke:#f4f6fa;stroke-width:2.5;fill:none}
+.runway-line .rl-dash{stroke:#f4f6fa;stroke-width:4;stroke-dasharray:16 12}
+.runway-line .rl-tick{stroke:#14161b;stroke-width:2.5}.runway-line .rl-tick.big{stroke-width:4}
+.runway-line .rl-num{font:900 20px Nunito,sans-serif;text-anchor:middle;fill:#14161b}
 .runway-line .rl-mark rect,.runway-line .rl-land{fill:var(--sign);stroke:#000;stroke-width:2}
 .runway-line .rl-mark text,.runway-line .rl-land-n{font:900 22px Nunito,sans-serif;text-anchor:middle;fill:var(--sign-ink)}
 .runway-line .rl-hop path{fill:none;stroke:var(--hivis);stroke-width:5;stroke-linecap:round}
 .runway-line .rl-hop text{font:900 22px Nunito,sans-serif;text-anchor:middle;fill:var(--hivis);paint-order:stroke;stroke:#fff;stroke-width:5}
+.runway-line .rl-hop text.rl-land-n{fill:var(--sign-ink);stroke:none}
 .runway-line .rl-plane{font-size:30px;text-anchor:middle}
 /* Jumbo */
 .expanded{font:900 max(34px,calc(60px*var(--u))) Nunito,sans-serif;background:var(--sign);color:var(--sign-ink);border:4px solid #000;border-radius:16px;padding:6px 20px;box-shadow:0 5px 0 #000}
@@ -135,6 +157,7 @@ html,body{background:var(--tarmac)}
 .seat-plane{font-size:max(36px,calc(56px*var(--u)))}
 .digit-row{display:inline-flex;gap:3px}
 .digit-row .dg{display:grid;place-items:center;width:1.1em;font:900 max(30px,calc(42px*var(--u))) Nunito,sans-serif;background:#fff;border:3px solid #000;border-radius:8px}
+.compare .digit-row .dg{font-size:max(40px,calc(64px*var(--u)));border-width:4px;border-radius:12px}
 .digit-row .dg.lit{background:var(--sign-ink)}
 .compare{display:flex;align-items:center;gap:calc(14px*var(--u));flex-wrap:wrap;justify-content:center}
 .sign-slot{display:grid;place-items:center;width:max(64px,calc(84px*var(--u)));height:max(64px,calc(84px*var(--u)));border:4px dashed #000;border-radius:16px;font:900 max(40px,calc(56px*var(--u))) Nunito,sans-serif;background:#fff}
@@ -151,11 +174,13 @@ html,body{background:var(--tarmac)}
 .jw-next:active{transform:translateY(4px);box-shadow:0 2px 0 #000}
 
 /* ---------- the end of a Round ---------- */
-.jw-reward{background:radial-gradient(circle at 50% 30%,#4a5262,#15171c 70%);padding-bottom:calc(var(--floor) + 16px)}
+/* dusk at his airport: night sky over the apron, the taxiway line across it */
+.jw-reward{background:linear-gradient(transparent calc(80% - 4px),#ffd23f99 calc(80% - 4px) calc(80% + 4px),transparent 0),linear-gradient(#0b1a2e,#1b3a5e 58%,#3a4150 58%,#262b35);padding-bottom:calc(var(--floor) + 16px)}
 .earned-race{font:900 calc(30px*var(--u)) Nunito,sans-serif;color:var(--sign-ink);background:#000;border-radius:999px;padding:6px 20px}
 .jw-reward .btns{align-items:center}
-.big-btn.my-plane{padding:calc(4px*var(--u));width:max(104px,calc(150px*var(--u)));height:max(80px,calc(104px*var(--u)));flex:none;background:linear-gradient(var(--sky-2) 0 70%,var(--tarmac) 70%)}
-.big-btn.my-plane img{width:100%;height:100%;object-fit:contain}
+.big-btn.my-plane{display:flex;flex-direction:column;align-items:stretch;padding:calc(4px*var(--u));width:max(104px,calc(150px*var(--u)));height:max(80px,calc(110px*var(--u)));flex:none;background:linear-gradient(var(--sky-2) 0 62%,var(--tarmac) 62%)}
+.big-btn.my-plane img{flex:1;min-height:0;width:100%;object-fit:contain;transform:scale(1.35)}
+.big-btn.my-plane .btn-word{font:400 max(12px,calc(16px*var(--u)))/1.2 Bungee,sans-serif;color:var(--sign-ink);text-align:center}
 .race-btn{gap:12px;min-height:max(80px,calc(110px*var(--u)));padding:calc(10px*var(--u)) calc(26px*var(--u));font-size:calc(30px*var(--u))}
 .race-flag{font-size:1.3em}
 .race-word{font:400 max(18px,calc(30px*var(--u))) Bungee,sans-serif;white-space:nowrap}
@@ -185,7 +210,8 @@ html,body{background:var(--tarmac)}
 .goal-bar i{display:block;height:100%;background:var(--sign-ink);border-radius:7px;transition:width .4s}
 .goal-num{font:900 max(14px,calc(16px*var(--u))) Nunito,sans-serif;white-space:nowrap}
 .side-row{display:flex;gap:8px}
-.side-btn{flex:1;min-height:max(56px,calc(68px*var(--u)));font-size:calc(32px*var(--u));padding:4px;background:#fff}
+.side-btn{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;min-height:max(56px,calc(68px*var(--u)));font-size:calc(32px*var(--u));padding:4px;background:#fff;color:#14161b}
+.side-word{font:400 max(11px,calc(13px*var(--u))) Bungee,sans-serif;line-height:1}
 @media (orientation:portrait){.airport-side .jw-goal{flex:1}.side-row{flex:none}.side-btn{width:max(56px,calc(68px*var(--u)))}}
 @media (orientation:portrait) and (max-width:560px){.airport-side{flex-wrap:wrap}.airport-side .fly-btn{flex:1 1 100%}}
 .buy-bar{flex:none;display:flex;align-items:center;gap:10px;padding:6px 10px;background:#000;border:3px solid var(--sign-ink);border-radius:16px}
@@ -258,7 +284,9 @@ html,body{background:var(--tarmac)}
 .fl-head{display:flex;align-items:center;gap:10px}
 .fl-head h1{margin:0;flex:1;min-width:0;font:400 calc(34px*var(--u)) Bungee,sans-serif;color:var(--sign-ink);text-shadow:3px 3px 0 #000;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .fl-chip{background:#000;border-radius:999px;padding:4px 12px;font-size:max(20px,calc(26px*var(--u)))}
-.fl-route{flex:1;min-height:0;display:grid;grid-template-columns:1fr auto 1fr;align-items:center;gap:10px}
+/* the Flight's card is a boarding pass: his plane and its name, then where it's going */
+.fl-route{flex:1;min-height:0;display:grid;grid-template-columns:1fr auto 1fr;align-items:center;gap:10px;width:min(100%,920px);align-self:center;padding:calc(12px*var(--u)) calc(20px*var(--u));background:linear-gradient(#e9f6fe,#c4e4f8);border:4px solid #000;border-radius:24px;box-shadow:0 8px 0 #000;color:#fff}
+.fl-arrow{color:var(--hivis)!important}
 .fl-from,.fl-to{display:flex;flex-direction:column;align-items:center;gap:6px;min-height:0}
 .fl-from img{width:100%;max-width:340px;height:auto;max-height:calc(200px*var(--u) + 40px);object-fit:contain}
 .fl-from strong,.fl-to strong{font:400 calc(24px*var(--u)) Bungee,sans-serif;text-align:center;background:#000;border-radius:10px;padding:2px 10px}
@@ -287,11 +315,12 @@ html,body{background:var(--tarmac)}
   .airport-side{width:clamp(140px,26vw,220px)}
   .jw-tray{min-height:110px}
   .fl-card .fl-icon{font-size:56px}
+  .fl-route{padding:4px 14px}.fl-from img{max-height:28vh}.fl-from strong,.fl-to strong{font-size:15px}
 }
 @media (prefers-reduced-motion:reduce){
   .choice.hint,.duel-plane.hint,.jw-next,.fly-btn.pulse,.fl-act.pulse{animation:none}
   .choice.hint,.duel-plane.hint{outline:5px solid var(--sign-ink);outline-offset:3px}
-  .rod.arrive{animation:none}
+  .blk.arrive{animation:none}
 }
 /* a sideways phone: the airport and its buttons on the left, the tabs and the tray on the right */
 @media (orientation:landscape) and (max-height:520px){
@@ -304,6 +333,7 @@ html,body{background:var(--tarmac)}
   .airport-screen .fly-plane{font-size:26px}
   .airport-screen .jw-goal{flex:1;min-height:52px;min-width:0}
   .airport-screen .side-btn{width:52px;min-height:52px;font-size:24px}
+  .airport-screen .side-word{display:none}
   .airport-screen .jw-tabs{grid-area:tabs}
   .airport-screen .jw-tray{grid-area:tray;min-height:0}
   .airport-screen .buy-bar{grid-area:buy}
@@ -312,3 +342,6 @@ html,body{background:var(--tarmac)}
   .airport-screen .jw-tray{padding-bottom:0}
   .airport-screen .pax-board small{display:none}
 }
+@media (max-width:560px),(orientation:landscape) and (max-height:520px){.jw-home .t-routes .board-head{display:none}}
+/* the end of a Round on an iPad: the same show, larger, so it fills the screen it's on */
+@media (min-width:760px) and (min-height:760px){.jw-reward>h2,.jw-reward>.bigpile,.jw-reward>.earned-race,.jw-reward>.lines,.jw-reward>.btns,.jw-reward>.icon-btn{zoom:1.3}}

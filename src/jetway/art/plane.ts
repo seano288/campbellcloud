@@ -177,6 +177,9 @@ export function drawPlaneSide(ctx: Ctx, look: Look, x: number, y: number, scale:
 }
 
 /** A plane from above, its nose along `heading` (radians, 0 = right). */
+/** How long a plane is drawn from above at scale 1 (its wings span a little less). */
+export const planeLen = (m: PlaneModel) => SIDE[m].len * .8;
+
 export function drawPlaneTop(ctx: Ctx, look: Look, x: number, y: number, heading: number, scale: number, t = 0) {
   const s = SIDE[look.model], L = s.len * .8, W = s.h * .55;
   ctx.save(); ctx.translate(x, y); ctx.rotate(heading); ctx.scale(scale, scale);

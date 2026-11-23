@@ -4,7 +4,7 @@
 import { REPEATS, SIGNS, DECOR, PIECES, type RepeatId } from '../airport/catalog';
 import { has, lightHex, type AirportState } from '../airport/airport';
 import { prizeById } from '../airport/charter';
-import { CROSSING, EXTRA_HANGARS, EXTRA_STANDS, SHED, GATE_X, HOLD_POINT, HOME_STAND, isPoint, PLOT_H, PLOT_W, RUNWAY_Y, runwayRect, SPOTS, STAND_Y, TAXI_Y, type Rect } from '../airport/plot';
+import { CROSSING, EXTRA_HANGARS, EXTRA_STAND_LEN, EXTRA_STANDS, SHED, GATE_X, HOLD_POINT, HOME_STAND, isPoint, PLOT_H, PLOT_W, RUNWAY_Y, runwayRect, SPOTS, STAND_Y, TAXI_Y, type Rect } from '../airport/plot';
 
 type Ctx = CanvasRenderingContext2D;
 export type AirportLook = Pick<AirportState, 'owned' | 'more' | 'lights'>;
@@ -127,7 +127,30 @@ function drawGates(ctx: Ctx, a: AirportLook) {
     if (has(a, 'piece:bridges')) { ctx.fillStyle = '#b8c2cc'; ctx.fillRect(gx + 10, 462, 10, 48); ctx.strokeStyle = ink; ctx.lineWidth = 2; ctx.strokeRect(gx + 10, 462, 10, 48); }
   });
   const drawn = Math.min(a.more.gate, REPEATS.find(r => r.id === 'gate')!.drawn);
-  for (let i = 0; i < drawn; i++) { const s = EXTRA_STANDS[i]!; ctx.fillStyle = '#ffd23f'; ctx.fillRect(s.x - 10, s.y - 2, 20, 4); }
+  // each extra gate is a remote stand: a paved pad with its yellow lead-in line
+  for (let i = 0; i < drawn; i++) {
+    const s = EXTRA_STANDS[i]!, top = s.y - EXTRA_STAND_LEN / 2;
+    ctx.fillStyle = '#5b616d'; roundRect(ctx, s.x - s.w / 2, top, s.w, EXTRA_STAND_LEN, 6); ctx.fill();
+    ctx.strokeStyle = '#ffd23f'; ctx.lineWidth = 2; ctx.beginPath(); ctx.moveTo(s.x, top + 6); ctx.lineTo(s.x, top + EXTRA_STAND_LEN - 6); ctx.stroke();
+  }
+}
+
+/** What he has built, as a part of the plot shaped like the plot, so a young airport fills its view instead of sitting small in a field.
+ *  It never shows less than about half the plot, and grows as he builds. */
+export function builtBounds(a: AirportLook): Rect {
+  let x0 = Infinity, y0 = Infinity, x1 = -Infinity, y1 = -Infinity;
+  const add = (r: Rect, pad = 0) => { x0 = Math.min(x0, r.x - pad); y0 = Math.min(y0, r.y - pad); x1 = Math.max(x1, r.x + r.w + pad); y1 = Math.max(y1, r.y + r.h + pad); };
+  add(runwayRect(id => has(a, id))); add(SHED); add({ x: HOME_STAND.x - 50, y: HOME_STAND.y - 50, w: 100, h: 100 });
+  for (const id of a.owned) { const r = SPOTS[id]; if (r && (r.x || r.y)) add(r, isPoint(r) ? 30 : 0); }
+  if (a.more.hangar) add(EXTRA_HANGARS[0]!);
+  if (a.more.concourse) add({ x: 200, y: 330, w: 762, h: 115 });
+  if (a.more.gate) for (const s of EXTRA_STANDS.slice(0, a.more.gate)) add({ x: s.x - s.w / 2, y: s.y - EXTRA_STAND_LEN / 2, w: s.w, h: EXTRA_STAND_LEN });
+  const pad = 40, ratio = PLOT_W / PLOT_H;
+  let w = Math.max(x1 - x0 + 2 * pad, PLOT_W * .45), h = Math.max(y1 - y0 + 2 * pad, PLOT_H * .45);
+  if (w / h > ratio) h = w / ratio; else w = h * ratio;
+  w = Math.min(w, PLOT_W); h = Math.min(h, PLOT_H);
+  const cx = (x0 + x1) / 2, cy = (y0 + y1) / 2;
+  return { x: Math.min(PLOT_W - w, Math.max(0, cx - w / 2)), y: Math.min(PLOT_H - h, Math.max(0, cy - h / 2)), w, h };
 }
 
 function drawRepeats(ctx: Ctx, a: AirportLook) {

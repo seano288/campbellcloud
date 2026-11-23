@@ -8,8 +8,8 @@ import { sChime, sFanfare, sNope } from '../../audio/sfx';
 import { confetti } from '../../celebrate/effects';
 import { IconButton } from '../../ui/bits';
 import { CurrencyIcon, CurrencyPile } from '../../ui/currency';
-import { drawAirport, drawVehicle } from '../art/airport';
-import { drawPlaneTop, lookOf, planePic } from '../art/plane';
+import { builtBounds, drawAirport, drawVehicle } from '../art/airport';
+import { drawPlaneTop, lookOf, planeLen, planePic } from '../art/plane';
 import { JET_CURRENCY } from '../branding';
 import { buy, player, updateAirport } from '../game';
 import { airportTab, fly, screen, watch } from '../nav';
@@ -22,7 +22,7 @@ import {
   AIRLINE_FIRST, AIRLINE_SECOND, DECOR, itemOf, PLANE_SPECS, MARKS, PAINTS, PIECES, PLANE_NAMES, PLANES, REPEATS, SIGNS, STRIPES, TAILS, VEHICLES, type Item, type PlaneModel, type RepeatId,
 } from './catalog';
 import { prizeById } from './charter';
-import { PLOT_H, PLOT_W } from './plot';
+import { EXTRA_STAND_LEN } from './plot';
 import { stands } from '../watch/traffic';
 
 const cls = (...xs: (string | false | null | undefined)[]) => xs.filter(Boolean).join(' ');
@@ -54,21 +54,24 @@ const priceLine = (n: number): Phrase[] => { const s = sayable(n); return ['It c
 export function AirportView({ a, class: c = '' }: { a: AirportState; class?: string }) {
   const ref = useRef<HTMLCanvasElement>(null);
   useEffect(() => {
-    const canvas = ref.current!, ctx = canvas.getContext('2d')!;
+    const canvas = ref.current!, ctx = canvas.getContext('2d')!, view = builtBounds(a);
     let raf = 0;
     const draw = (ms: number) => {
       raf = requestAnimationFrame(draw);
       const r = canvas.getBoundingClientRect(), dpr = Math.min(2, devicePixelRatio || 1);
       if (canvas.width !== Math.round(r.width * dpr)) { canvas.width = Math.round(r.width * dpr); canvas.height = Math.round(r.height * dpr); }
-      const k = Math.min(r.width / PLOT_W, r.height / PLOT_H);
+      // zoomed to what he has built (the whole plot once it's full)
+      const k = Math.min(r.width / view.w, r.height / view.h);
       ctx.setTransform(dpr, 0, 0, dpr, 0, 0); ctx.clearRect(0, 0, r.width, r.height);
-      ctx.translate((r.width - PLOT_W * k) / 2, (r.height - PLOT_H * k) / 2); ctx.scale(k, k);
+      ctx.translate((r.width - view.w * k) / 2 - view.x * k, (r.height - view.h * k) / 2 - view.y * k); ctx.scale(k, k);
       const t = ms / 1000;
       drawAirport(ctx, a, t);
       const spots = stands(a);
       PLANES.filter(p => has(a, p.id) && p.model !== 'heli').slice(0, spots.length).forEach((p, i) => {
-        const s = spots[i]!;
-        drawPlaneTop(ctx, lookOf(p.model, liveryOf(a, p.model), a.airline.mark), s.x, s.y, -Math.PI / 2, .55 * PLANE_SPECS[p.model].size, t);
+        const s = spots[i]!, size = .55 * PLANE_SPECS[p.model].size;
+        // a remote stand is small: the plane on it is drawn to fit (its wings span up to 1.1 times its length, drawn 0.8 of the side view's)
+        const fit = 'w' in s ? Math.min(size, (s.w as number) / (planeLen(p.model) * 1.1), EXTRA_STAND_LEN / planeLen(p.model)) : size;
+        drawPlaneTop(ctx, lookOf(p.model, liveryOf(a, p.model), a.airline.mark), s.x, s.y, -Math.PI / 2, fit, t);
       });
       if (has(a, 'plane:heli') && has(a, 'piece:helipad')) drawPlaneTop(ctx, lookOf('heli', liveryOf(a, 'heli'), a.airline.mark), 65, 740, -Math.PI / 2, .7, t);
       VEHICLES.filter(v => has(a, v.id)).slice(0, 10).forEach((v, i) => drawVehicle(ctx, 320 + (i % 10) * 54, 578, 0, v.hex, v.len));
@@ -180,8 +183,8 @@ export function AirportScreen() {
             </button>
           )}
           <div class="side-row">
-            <button class="big-btn side-btn" aria-label="Watch it run" onClick={() => { if (voice.active) watch(); }}>👀</button>
-            <button class="big-btn side-btn" aria-label="Routes" onClick={() => { if (voice.active) screen.value = 'routes'; }}>🗺️</button>
+            <button class="big-btn side-btn" aria-label="Watch it run" onClick={() => { if (voice.active) watch(); }}><span aria-hidden="true">👀</span><span class="side-word">Watch</span></button>
+            <button class="big-btn side-btn" aria-label="Routes" onClick={() => { if (voice.active) screen.value = 'routes'; }}><span aria-hidden="true">🗺️</span><span class="side-word">Routes</span></button>
           </div>
         </div>
       </div>

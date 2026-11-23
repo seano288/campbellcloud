@@ -8,7 +8,7 @@ import {
   routeOpen, SUPER_EVERY, wantKey, wear, type AirportState,
 } from './airport';
 import { FOR_SALE, ITEMS, PIECES, PLANES, REPEATS, repeatPrice, SIGNS, DECOR, STARTERS, VEHICLES, PAINTS, TAILS } from './catalog';
-import { isPoint, SPOTS, EXTRA_HANGARS, SHED } from './plot';
+import { isPoint, SPOTS, EXTRA_HANGARS, EXTRA_STANDS, EXTRA_STAND_LEN, SHED } from './plot';
 import { ROUTES } from './routes';
 
 const own = (a: AirportState, ...ids: string[]): AirportState => ({ ...a, owned: [...new Set([...a.owned, ...ids])] });
@@ -40,7 +40,9 @@ describe('the catalogue', () => {
     const terminal = ['piece:hut', 'piece:terminal', 'piece:bigterminal', 'piece:glass', 'piece:roofgarden', 'sign:arrivals', 'sign:departures', 'shed'];
     const onApron = (x: string) => /^piece:(gate\d|bridges|apron)$/.test(x);
     const ok = (a: string, b: string) => same.some(([x, y]) => (a === x && b === y) || (a === y && b === x)) || (terminal.includes(a) && terminal.includes(b)) || (onApron(a) && onApron(b));
-    const all = Object.entries({ ...SPOTS, ...Object.fromEntries(EXTRA_HANGARS.map((r, i) => [`more:hangar${i}`, r])), shed: SHED }).filter(([, r]) => !isPoint(r));
+    // the extra gates' remote stands, with the plane parked on each (pass 2 found them over the tower and the workshops)
+    const remote = EXTRA_STANDS.map((s, i) => [`more:gate${i}`, { x: s.x - s.w / 2, y: s.y - EXTRA_STAND_LEN / 2, w: s.w, h: EXTRA_STAND_LEN }] as const);
+    const all = Object.entries({ ...SPOTS, ...Object.fromEntries(EXTRA_HANGARS.map((r, i) => [`more:hangar${i}`, r])), ...Object.fromEntries(remote), shed: SHED }).filter(([, r]) => !isPoint(r));
     for (let i = 0; i < all.length; i++) for (let j = i + 1; j < all.length; j++) {
       const [a, r] = all[i]!, [b, q] = all[j]!;
       const hit = r.x < q.x + q.w && q.x < r.x + r.w && r.y < q.y + q.h && q.y < r.y + r.h;

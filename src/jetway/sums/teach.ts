@@ -29,6 +29,8 @@ export interface Mat {
   readonly focus?: Col | null;
   /** Show the hundreds column (anything that reaches 100). */
   readonly wide: boolean;
+  /** The most blocks each column will hold during this lesson, so the picture keeps its size as blocks come and go (pictures.tsx). */
+  readonly room?: Partial<Record<Col, number>>;
 }
 export interface Hop { readonly from: number; readonly to: number; readonly label: string }
 export interface Line { readonly lo: number; readonly hi: number; readonly marks: readonly number[]; readonly hops: readonly Hop[]; readonly at: number | null }
@@ -98,7 +100,7 @@ const lightAll = (ps: readonly Piece[], k = ps.length) => ps.map((p, i) => (i < 
 
 export function addMat(q: Pick<AddProblem, 'a' | 'b'>): Mat {
   const a = digitsOf(q.a), b = digitsOf(q.b);
-  return { h: [], t: [...of(a.t, 'a'), ...of(b.t, 'b')], o: [...of(a.o, 'a'), ...of(b.o, 'b')], wide: q.a + q.b >= 100 };
+  return { h: [], t: [...of(a.t, 'a'), ...of(b.t, 'b')], o: [...of(a.o, 'a'), ...of(b.o, 'b')], wide: q.a + q.b >= 100, room: { t: a.t + b.t + (a.o + b.o >= 10 ? 1 : 0) } };
 }
 async function teachAdd(q: AddProblem, answer: string, v: VoiceScope, lesson: Lesson, full: boolean) {
   const start = addMat(q);
@@ -154,7 +156,8 @@ async function teachAdd(q: AddProblem, answer: string, v: VoiceScope, lesson: Le
 
 async function teachTake(q: TakeProblem, answer: string, v: VoiceScope, lesson: Lesson, full: boolean) {
   const a = digitsOf(q.a), b = digitsOf(q.b);
-  let mat: Mat = { ...matOf(q.a), wide: q.a >= 100 };
+  // a hundred may break into ten rows of ten
+  let mat: Mat = { ...matOf(q.a), wide: q.a >= 100, room: { t: q.a >= 100 ? 10 : 0 } };
   lesson.mat.value = mat;
   if (!full) {
     await v.say(Number(answer) === q.traps.smallFromBig || a.o < b.o ? 'Not enough ones? Break a ten.' : 'Take away the ones first.');
@@ -245,7 +248,7 @@ async function teachGap(q: GapProblem, v: VoiceScope, lesson: Lesson, full: bool
 /** Builds the number block by block, hundreds first, each digit lighting as its blocks land. */
 async function build(x: number, v: VoiceScope, lesson: Lesson, told: { told: boolean }, step: boolean) {
   const d = digitsOf(x), cols: [Col, number][] = [['h', d.h], ['t', d.t], ['o', d.o]];
-  let mat: Mat = { h: [], t: [], o: [], wide: true, digits: {} };
+  let mat: Mat = { h: [], t: [], o: [], wide: true, digits: {}, room: { h: d.h, t: d.t, o: d.o } };
   for (const [c, k] of cols) {
     mat = { ...mat, focus: c };
     lesson.mat.value = mat;

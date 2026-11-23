@@ -57,7 +57,7 @@ export function EndOverlay({ result: r, onFly, onAirport, onAgain, onHome }: { r
       {earned && <div class="earned-race">✈️ +1 Flight</div>}
       <div class="lines">{lines.map((l, i) => <div key={i}>{l}</div>)}</div>
       <div class={`btns ${awake ? '' : 'asleep'}`}>
-        <button class="big-btn garage my-plane" aria-label="Airport" onClick={go(onAirport)}><img src={planePic(lookOf(to.plane, liveryOf(a, to.plane), a.airline.mark), 160, 80)} alt="" /></button>
+        <button class="big-btn garage my-plane" aria-label="Airport" onClick={go(onAirport)}><img src={planePic(lookOf(to.plane, liveryOf(a, to.plane), a.airline.mark), 160, 80)} alt="" /><span class="btn-word">Airport</span></button>
         <button class={`big-btn go race-btn ${awake ? 'pulse' : ''}`} aria-label={`Fly to ${to.dest.name}`} onClick={go(onFly)}>
           <span class="race-flag" aria-hidden="true">✈️</span>
           <span class="race-word">Fly</span>
