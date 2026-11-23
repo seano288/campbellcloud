@@ -6,6 +6,7 @@ import { effect } from '@preact/signals';
 import { seeded } from '../../game/rng';
 import type { Asking } from '../mix';
 import type { VoiceScope } from '../voice';
+import { sayNum } from '../phrases';
 import { lessonFor, lessonOf, type Mat } from './teach';
 import { carries, digitsOf, KINDS, makeQuestion, type Level, type Question } from './problems';
 
@@ -92,6 +93,60 @@ describe('the first miss', () => {
     }
   });
   it('never waits on the arrow, and shows the picture', async () => {
-    for (const kind of KINDS) for (const q of questions(kind, 10)) { const r = await lesson(q, false); expect(r.steps).toBe(0); expect(r.said.length).toBe(1); }
+    // one line, or two for a hop across a hundred ("Ten more.", "Ten tens make a hundred.")
+    for (const kind of KINDS) for (const q of questions(kind, 10)) { const r = await lesson(q, false); expect(r.steps).toBe(0); expect(r.said.length).toBeGreaterThan(0); expect(r.said.length).toBeLessThanOrEqual(2); }
+  });
+});
+
+// Pass 2: the lessons say true things for the very sum on screen, not only the right answer at the end.
+const run = (said: string[], ...seq: string[]) => said.some((_, i) => seq.every((x, k) => said[i + k] === x));
+describe('what the lessons say is true for this sum', () => {
+  it('Boarding names this sum\'s own ones ("8 and 5 make 13") and only makes a hundred when the tens reach ten', async () => {
+    for (const q of questions('add')) if (q.kind === 'add') {
+      const { said } = await lesson(q, true), a = digitsOf(q.a), b = digitsOf(q.b), o = a.o + b.o;
+      expect(run(said, String(a.o), 'and', String(b.o), 'make', String(o)), `${q.a} + ${q.b}: ${said.join(' ')}`).toBe(true);
+      if (o >= 10) expect(run(said, 'That is one ten and', String(o - 10))).toBe(true);
+      const tens = a.t + b.t + (o >= 10 ? 1 : 0);
+      expect(said.includes('Ten tens make a hundred.')).toBe(tens >= 10);
+      expect(said.slice(-sayNum(q.a + q.b).length - 1)).toEqual(['That makes', ...sayNum(q.a + q.b)]);
+    }
+  });
+  it('Unload says how many ones there are and how many to take, breaks a hundred first when there are no tens (100 - 36), and never says "Take away 0"', async () => {
+    for (const q of questions('take')) if (q.kind === 'take') {
+      const { said } = await lesson(q, true), a = digitsOf(q.a), b = digitsOf(q.b);
+      if (a.o < b.o) expect(run(said, 'You need to take', String(b.o), 'and there are only', String(a.o)), `${q.a} - ${q.b}`).toBe(true);
+      else expect(said).not.toContain('You need to take');
+      if (a.o < b.o && a.t === 0) expect(said.indexOf('Break a hundred.')).toBeLessThan(said.indexOf('Break a ten.'));
+      expect(run(said, 'Take away', '0')).toBe(false);
+    }
+    const hundred = makeQuestion('take', 3, 1, seeded(1));
+    const q = { ...hundred, a: 100, b: 36, answer: '64' } as Question;
+    const { said } = await lesson(q, true);
+    expect(said).toEqual(expect.arrayContaining(['Break a hundred.', 'Break a ten.']));
+    expect(said.at(-1)).toBe('64');
+  });
+  it('Ten Hops never says the tens digit goes up or down one when the hop crosses a hundred (93 + 10, 104 - 10)', async () => {
+    for (const q of questions('hop', 120)) if (q.kind === 'hop' && q.form === 'step') {
+      const { said } = await lesson(q, true), crosses = Math.floor(q.n / 100) !== Math.floor((q.n + q.step) / 100);
+      if (Math.abs(q.step) === 10 && crosses) {
+        expect(said.join(' ')).not.toMatch(/tens digit goes (up|down) one/);
+        expect(said).toContain(q.step > 0 ? 'Ten tens make a hundred.' : 'No tens, so break a hundred.');
+        if (q.step < 0) expect(digitsOf(q.n).t).toBe(0);
+        else expect(digitsOf(q.n).t).toBe(9);
+      }
+      const to = sayNum(q.n + q.step);
+      expect(said.slice(-to.length - 1)).toEqual(['That makes', ...to]);
+    }
+    for (const [n, step] of [[93, 10], [104, -10], [195, 10], [200, -10], [503, -10], [495, 10]] as const) {
+      const q = { ...makeQuestion('hop', 1, 1, seeded(1)), form: 'step', n, step, answer: String(n + step) } as Question;
+      expect((await lesson(q, true)).said.join(' ')).not.toMatch(/tens digit goes/);
+    }
+  });
+  it('Ten Hops in two hops names this sum\'s tens and ones ("47 plus 30 lands on 77")', async () => {
+    for (const q of questions('hop')) if (q.kind === 'hop' && q.form === 'two') {
+      const { said } = await lesson(q, true), t = Math.floor(q.b / 10) * 10, w = q.op === '+' ? 'plus' : 'take away';
+      expect(run(said, String(q.a), w, String(t), 'lands on', String(q.first)), JSON.stringify(q)).toBe(true);
+      expect(run(said, String(q.first), w, String(q.b % 10), 'lands on', String(q.second))).toBe(true);
+    }
   });
 });

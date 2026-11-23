@@ -217,6 +217,20 @@ COLLECTION_SPEECH = {
             'You are a Times star!': 'You are a, Times, star!', 'You are an Equal Groups star!': 'You are an, Equal Groups, star!',
         },
     },
+    # Jetway, pass 2 review: both speech-to-text models (small.en, large-v3-turbo) heard "Kite Hill" as "Tight Hill" (with a comma, or as
+    # "Kyte", too; as two sentences it is heard right), "De-Icer Truck" as "Dicer Truck", "You opened Jumbo!" as "You open Jumbo", "You
+    # opened Unload!" as "You opened and load", and the Ten Hops and Missing Bags star lines without their s ("a ten hop star"); a breath
+    # round the name keeps each one, as Deep Light and Sky Writer found. "Baggage Hall" comes back "Baggage haul" however it is written
+    # (the comma fixes small.en only). small.en also heard "The cart holds" as "The card holds", "Arrow Mark" as "Aeromark" (Food Truck's
+    # "Arrow Sign" did the same), "Grass Green" as "Grasp Green" and "Shop Row" as one word.
+    'jetway': {
+        'said_as': {
+            'Kite Hill': 'Kite. Hill.', 'Baggage Hall': 'Baggage, Hall', 'De-Icer Truck': 'Dee-icer, Truck',
+            'You opened Jumbo!': 'You opened, Jumbo!', 'You opened Unload!': 'You opened, Unload!',
+            'You are a Ten Hops star!': 'You are a. Ten Hops, star!', 'You are a Missing Bags star!': 'You are a. Missing Bags, star!',
+            'The cart holds': 'The cart, holds', 'Arrow Mark': 'Arrow, Mark', 'Grass Green': 'Grass, Green', 'Shop Row': 'Shop, Row',
+        },
+    },
 }
 
 

@@ -37,7 +37,7 @@ export function needLine(x: number): Phrase[] {
 /** The most Bolts said in one "You earned" line: a perfect Round pays 6, a Flight up to 9 (airport.ts, MOST_FLIGHT_BOLTS). */
 export const MOST_EARNED = 15;
 
-const GAME = ['Jetway!', "Let's go!", 'Round done!', 'Level up!', 'You kept trying!', 'Tap again to go home.', 'Airport', 'Routes', 'Fleet'] as const;
+const GAME = ["Let's go!", 'Level up!', 'You kept trying!', 'Tap again to go home.', 'Airport', 'Routes'] as const;
 export const CHEERS = ['Great job!', 'You got it!', 'Super adding!', 'Awesome!', 'Way to go!', 'Smooth flying!'] as const;
 
 // ---------- the questions ----------
@@ -57,7 +57,7 @@ const QUESTIONS = [
 
 const TEACHING = [
   'Not quite!', "Let's look together.", 'Try again!', 'Tap the arrow.',
-  'and', 'make', 'That makes', 'is', 'hundred.', 'hundreds.', 'ten.', 'tens.', 'one.', 'ones.', 'no tens.', 'no ones.',
+  'and', 'make', 'That makes', 'hundred.', 'hundreds.', 'ten.', 'tens.', 'one.', 'ones.',
   // Boarding
   'Add the ones first.', "Don't forget the new ten!", 'Ten ones make a new ten.', 'That is one ten and', 'The new ten goes with the tens.',
   'Now add the tens.', 'Ten tens make a hundred.',
@@ -72,7 +72,7 @@ const TEACHING = [
   'Same tens. Look at the ones.', 'is more.', 'is fewer.', 'The open side faces the bigger number.', 'is more than', 'is less than', 'is the same as',
   // Ten Hops
   'Ten more: the tens digit goes up one.', 'Ten less: the tens digit goes down one.', 'A hundred more: the hundreds digit goes up one.',
-  'A hundred less: the hundreds digit goes down one.', 'The ones stay the same.', 'Jump the tens first.', 'Then jump the ones.', 'lands on',
+  'A hundred less: the hundreds digit goes down one.', 'Ten more.', 'Ten less.', 'No tens, so break a hundred.', 'The ones stay the same.', 'Jump the tens first.', 'Then jump the ones.', 'lands on',
 ] as const;
 
 const MEETING = [
@@ -82,11 +82,11 @@ const MEETING = [
 
 // ---------- the Airport ----------
 const AIRPORT = [
-  'Airport!', 'It costs', 'Bolts.', 'You need', 'You need about', 'more Bolts.', 'Play a Round to earn Bolts!', 'You got', 'Build this first:',
+  'Airport!', 'It costs', 'Bolts.', 'You need', 'You need about', 'more Bolts.', 'You got', 'Build this first:',
   'You have 1 Flight ready!', 'Flights ready!', 'Tap Fly!', 'Play a Round to earn a Flight!', 'You earned a Flight!', 'Fly to',
-  'This plane needs', 'to fly!', 'Build', 'to fly here!', 'Your airline is', 'Your plane is called', 'Tap a plane to fly it!', 'You will fly',
-  'Body', 'Stripe', 'Trim', 'Tail', 'Mark', 'Lights', 'Build', 'Planes', 'Paint', 'Tails', 'Stripes', 'Marks', 'Trucks', 'Signs', 'Garden', 'More',
-  'You can build more of these!', 'Watch it run!', 'Tap again to leave.', 'Passengers', 'Your airport is a', 'Trophies!', 'You won a Trophy!',
+  'This plane needs', 'to fly!', 'Build', 'to fly here!', 'You will fly',
+  'Body', 'Trim', 'Lights', 'Planes', 'Paint', 'Tails', 'Stripes', 'Marks', 'Trucks', 'Signs', 'Garden',
+  'You can build more of these!', 'Watch it run!', 'Tap again to leave.', 'You won a Trophy!',
 ] as const;
 
 // ---------- the Flight ----------
@@ -95,7 +95,7 @@ const FLIGHT = [
   'Lift off!', 'Hold your finger where you want to fly!', 'Pick up the stars!', 'Pick up the crates!', 'Tap Drop on the fires!', 'Fire out!',
   'Follow the lights down!', 'Too high! Go around!', 'The plane will land itself.', 'Touchdown!', 'Smooth landing!', 'Good landing!',
   'Bumpy landing!', 'Welcome to', 'New best!', 'A new Route is open!', 'You won a Charter prize!', 'passengers flew with you!',
-  'Your airport is now a', 'Great flight!', 'Boom!', 'Fly again!', 'On the grass you go slow.', 'Wheee!',
+  'Your airport is now a', 'Great flight!', 'Boom!', 'On the grass you go slow.',
 ] as const;
 
 type EarnedPhrase = EarnedLine<typeof JET_CURRENCY>;

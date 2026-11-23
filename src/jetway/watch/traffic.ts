@@ -2,7 +2,7 @@
 // bag carts come and go, push back, taxi out and take off again. More gates and more planes mean more traffic, and his trucks drive
 // about. Capped so it holds 60 fps on an iPad 9: at most MAX_PLANES planes and MAX_VEHICLES vehicles move at once.
 import { PLANE_SPECS, VEHICLES, type PlaneModel } from '../airport/catalog';
-import { fleet, gateCount, has, type AirportState } from '../airport/airport';
+import { fleet, has, type AirportState } from '../airport/airport';
 import { EXTRA_STANDS, GATE_X, HOLD_POINT, HOME_STAND, RUNWAY_Y, runwayRect, SPOTS, STAND_Y, TAXI_Y } from '../airport/plot';
 
 export const MAX_PLANES = 6, MAX_VEHICLES = 8;
@@ -23,7 +23,8 @@ export interface Traffic { planes: MovingPlane[]; vehicles: MovingVehicle[]; t: 
 /** `seed` spreads the planes out so they don't all move together. */
 export function createTraffic(a: AirportState, seed = 1): Traffic {
   const spots = stands(a), models = fleet(a).filter(m => PLANE_SPECS[m].ability !== 'heli').slice(-MAX_PLANES);
-  const n = Math.min(MAX_PLANES, Math.max(1, Math.min(models.length, gateCount(a) + 1)), spots.length + 1);
+  // one plane to a stand, so two never park on top of each other
+  const n = Math.max(1, Math.min(MAX_PLANES, models.length, spots.length));
   const planes: MovingPlane[] = [];
   for (let i = 0; i < n; i++) {
     const model = models[(models.length - 1 - i + models.length) % models.length] ?? 'twoseater', stand = spots[i % spots.length]!;
@@ -56,7 +57,7 @@ export function stepTraffic(tr: Traffic, a: AirportState, dt: number) {
   tr.t += dt;
   const ends = runwayEnds(a);
   // one plane on the runway at a time
-  const runwayBusy = tr.planes.some(p => p.state === 'roll' || p.state === 'land');
+  let runwayBusy = tr.planes.some(p => p.state === 'roll' || p.state === 'land');
   for (const p of tr.planes) {
     p.timer -= dt;
     switch (p.state) {
@@ -64,7 +65,7 @@ export function stepTraffic(tr: Traffic, a: AirportState, dt: number) {
         if (p.timer <= 0) { p.state = 'out'; p.path = [{ x: p.stand.x, y: p.stand.y + 20 }, { x: p.stand.x, y: TAXI_Y }, { x: HOLD_POINT.x, y: TAXI_Y }, { x: HOLD_POINT.x, y: TAXI_Y + 30 }]; p.at = 0; }
         break;
       case 'out':
-        if (follow(p, 55, dt) && !runwayBusy) { p.state = 'roll'; p.path = [{ x: ends.start, y: RUNWAY_Y }, { x: 1400, y: RUNWAY_Y }]; p.at = 0; p.speed = 20; }
+        if (follow(p, 55, dt) && !runwayBusy) { runwayBusy = true; p.state = 'roll'; p.path = [{ x: ends.start, y: RUNWAY_Y }, { x: 1400, y: RUNWAY_Y }]; p.at = 0; p.speed = 20; }
         break;
       case 'roll':
         p.speed = Math.min(260, p.speed + 70 * dt);
@@ -73,7 +74,7 @@ export function stepTraffic(tr: Traffic, a: AirportState, dt: number) {
         if (p.x > 1360) { p.state = 'away'; p.timer = 6 + Math.random() * 6; p.lift = 1; }
         break;
       case 'away':
-        if (p.timer <= 0 && !runwayBusy) { p.state = 'land'; p.x = -120; p.y = RUNWAY_Y; p.heading = 0; p.lift = 1; p.speed = 200; p.path = [{ x: ends.end - 60, y: RUNWAY_Y }]; p.at = 0; }
+        if (p.timer <= 0 && !runwayBusy) { runwayBusy = true; p.state = 'land'; p.x = -120; p.y = RUNWAY_Y; p.heading = 0; p.lift = 1; p.speed = 200; p.path = [{ x: ends.end - 60, y: RUNWAY_Y }]; p.at = 0; }
         break;
       case 'land': {
         const touch = ends.start + 60;

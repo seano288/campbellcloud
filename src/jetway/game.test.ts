@@ -2,7 +2,8 @@ import { describe, expect, it } from 'vitest';
 import type { SolvedProblem } from '../learning/session';
 import { createPractice, jetSave, SAVE_KEY, SAVE_VERSION, settleFlight, type JetState } from './game';
 import { freshAirport, planFlight } from './airport/airport';
-import { PHRASES } from './phrases';
+import { needLine, PHRASES, PRICE_TOP, sayable, sayNum } from './phrases';
+import { FOR_SALE, REPEATS, repeatPrice } from './airport/catalog';
 import { CLIPS } from './voice.gen';
 import { PLACE_KEY } from './nav';
 
@@ -52,4 +53,16 @@ describe('a Round', () => {
 
 describe('the voice', () => {
   it('has a clip for every line', () => { for (const p of PHRASES) expect(CLIPS[p as keyof typeof CLIPS], p).toBeTruthy(); });
+  it('can say every price and every "you need" gap: each thing for sale, the again-and-again things at every rank, any gap to 400', () => {
+    const said = new Set<string>(PHRASES);
+    const prices = [...FOR_SALE.map(i => i.price), ...REPEATS.flatMap(r => Array.from({ length: 60 }, (_, k) => repeatPrice(r.id, k)))];
+    for (const price of prices) {
+      expect(price, 'a price over 400').toBeLessThanOrEqual(PRICE_TOP);
+      const { said: n, exact } = sayable(price);
+      expect(exact, `${price} is not a whole ten`).toBe(true);
+      expect(said.has(n)).toBe(true);
+    }
+    for (let gap = 1; gap <= PRICE_TOP; gap++) for (const p of needLine(gap)) expect(said.has(p), `${gap}: ${p}`).toBe(true);
+    for (let n = 0; n <= 999; n++) for (const p of sayNum(n)) expect(said.has(p), `${n}: ${p}`).toBe(true);
+  });
 });

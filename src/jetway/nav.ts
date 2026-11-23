@@ -17,7 +17,8 @@ screen.subscribe(() => {
 /** Where he was, so a reload brings him back to it (src/save/place.ts). A Flight isn't a place: a reload during one lands in the Airport. */
 export const PLACE_KEY = 'jetway-place';
 export const place = createPlace(PLACE_KEY, ['home', 'airport', 'routes', 'round'], ['mix']); // every Round is a mix
-screen.subscribe(s => place.screen(s));
+// A Flight or a show comes back to the Airport after a reload (from the end of a Round it would have come back to Home)
+screen.subscribe(s => place.screen(s === 'flight' || s === 'watch' ? 'airport' : s));
 
 export function fly() {
   flightId.value++;

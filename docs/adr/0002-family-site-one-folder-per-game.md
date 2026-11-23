@@ -32,7 +32,7 @@ Truck Money alone into `dist/` for the existing browser checks.
   (with `turbo-tally-place` for the screen and the Round in progress).
 - **Hook and Ladder** (`/hook-and-ladder/`) has a tile in **Learning Games**, after Hook and Ladder, and saves under its own key,
   `hook-and-ladder-save` (with `hook-and-ladder-place` for the screen and the Round in progress).
-- **Jetway** (`/jetway/`) has a tile in **Learning Games**, after Sky Writer, and saves under its own key, `jetway-save` (with
+- **Jetway** (`/jetway/`) has a tile in **Learning Games**, after Skyline, and saves under its own key, `jetway-save` (with
   `jetway-place` for the screen and the Round in progress). Its voice clips are in `public/jetway-voice/`.
 
 ## Learning games and games just for fun

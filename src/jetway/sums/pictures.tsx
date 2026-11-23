@@ -56,29 +56,43 @@ export function MatView({ mat, lit, jumbled = false }: { mat: Mat; lit?: Col | n
   );
 }
 
+const LINE_W = 640;
+/** Where a number sits on the runway line, in its own units. */
+export const lineX = (line: Line, v: number) => 30 + ((v - line.lo) / Math.max(1, line.hi - line.lo)) * (LINE_W - 60);
+/** The row (0, 1, 2) of each number box under the line, marks first then landings, each on the first row where it clears the boxes
+ *  already placed (a box is 60 wide): 69 and 70 in "69 + ? = 70", or two hops landing on 86 and 91 on a phone, never print over each
+ *  other (pass 2 found both). */
+export function labelRows(line: Line): Map<number, number> {
+  const rows = new Map<number, number>();
+  for (const v of [...line.marks, ...line.hops.map(h => h.to).filter(v => !line.marks.includes(v))]) {
+    if (rows.has(v)) continue;
+    let row = 0;
+    while ([...rows].some(([u, r]) => r === row && Math.abs(lineX(line, u) - lineX(line, v)) < 64)) row++;
+    rows.set(v, row);
+  }
+  return rows;
+}
+
 /** The runway number line: tens marked, his plane where it is, hops drawn as arcs with what they add. */
 export function RunwayLine({ line, plane = true }: { line: Line; plane?: boolean }) {
-  const W = 640, X = (v: number) => 30 + ((v - line.lo) / Math.max(1, line.hi - line.lo)) * (W - 60);
+  const W = LINE_W, X = (v: number) => lineX(line, v);
   // no more than about a dozen labels: by tens on a short line, by hundreds on a long one (a hundred more and less)
   const span = line.hi - line.lo, step = span > 150 ? 10 : span > 30 ? 5 : 1, label = span > 150 ? 100 : 10;
   const ticks: number[] = [];
   for (let v = Math.ceil(line.lo / step) * step; v <= line.hi; v += step) ticks.push(v);
   const Y = 150;
+  const rows = labelRows(line), rowOf = (v: number) => rows.get(v) ?? 0, deep = Math.max(0, ...rows.values()) - 1;
   return (
-    <svg class="runway-line" viewBox={`0 0 ${W} 262`} role="img" aria-label="A runway number line">
+    <svg class="runway-line" viewBox={`0 0 ${W} ${262 + Math.max(0, deep) * 40}`} role="img" aria-label="A runway number line">
       <rect class="rl-strip" x={10} y={Y - 26} width={W - 20} height={52} rx={8} />
       <line class="rl-dash" x1={20} x2={W - 20} y1={Y} y2={Y} />
       {ticks.map(t => <g key={t}><line class={cls('rl-tick', t % label === 0 && 'big')} x1={X(t)} x2={X(t)} y1={Y - (t % label === 0 ? 26 : 12)} y2={Y + (t % label === 0 ? 26 : 12)} />
         {t % label === 0 && t <= 999 && !line.marks.some(m => Math.abs(X(m) - X(t)) < 44) && !line.hops.some(h => Math.abs(X(h.to) - X(t)) < 44) && <text class="rl-num" x={X(t)} y={Y + 58}>{t}</text>}</g>)}
-      {line.marks.map(m => <g key={`m${m}`} class="rl-mark"><rect x={X(m) - 30} y={Y + 32} width={60} height={34} rx={6} /><text x={X(m)} y={Y + 58}>{m}</text></g>)}
+      {line.marks.map(m => <g key={`m${m}`} class="rl-mark"><rect x={X(m) - 30} y={Y + 32 + rowOf(m) * 40} width={60} height={34} rx={6} /><text x={X(m)} y={Y + 58 + rowOf(m) * 40}>{m}</text></g>)}
       {line.hops.map((h, i) => {
         const x1 = X(h.from), x2 = X(h.to), top = Y - 40 - Math.min(80, Math.abs(x2 - x1) * .45);
         return <g key={i} class="rl-hop"><path d={`M${x1} ${Y - 18} Q${(x1 + x2) / 2} ${top} ${x2} ${Y - 18}`} /><text x={(x1 + x2) / 2} y={top + 4}>{h.label}</text>
-          {!line.marks.includes(h.to) && (() => {
-            // a landing close to a marked number goes a row lower, so the two never print over each other
-            const dy = line.marks.some(m => Math.abs(X(m) - x2) < 64) ? 40 : 0;
-            return <><rect class="rl-land" x={x2 - 30} y={Y + 32 + dy} width={60} height={34} rx={6} /><text class="rl-land-n" x={x2} y={Y + 58 + dy}>{h.to}</text></>;
-          })()}</g>;
+          {!line.marks.includes(h.to) && <><rect class="rl-land" x={x2 - 30} y={Y + 32 + rowOf(h.to) * 40} width={60} height={34} rx={6} /><text class="rl-land-n" x={x2} y={Y + 58 + rowOf(h.to) * 40}>{h.to}</text></>}</g>;
       })}
       {plane && line.at !== null && <text class="rl-plane" x={X(line.at)} y={Y + 10}>✈️</text>}
     </svg>

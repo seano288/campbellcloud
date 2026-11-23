@@ -161,8 +161,8 @@ async function teachTake(q: TakeProblem, answer: string, v: VoiceScope, lesson: 
     return;
   }
   const told = { told: false };
-  lesson.mat.value = { ...mat, focus: 'o' };
-  await v.say('Take away the ones first.');
+  lesson.mat.value = { ...mat, focus: b.o ? 'o' : 't' };
+  if (b.o) await v.say('Take away the ones first.');
   let ones = a.o, tens = a.t;
   if (a.o < b.o) {
     await next(v, lesson, told);
@@ -184,10 +184,13 @@ async function teachTake(q: TakeProblem, answer: string, v: VoiceScope, lesson: 
     ones += 10; tens -= 1;
     await v.say('Now there are', ...n(ones), onesWord(ones));
   }
-  await next(v, lesson, told);
-  mat = { ...mat, o: mat.o.map((p, i) => (i >= mat.o.length - b.o ? { ...p, gone: true } : p)), focus: 'o' };
-  lesson.mat.value = mat;
-  await v.say('Take away', ...n(b.o));
+  // no ones to take (65 - 40): straight on to the tens, rather than "Take away 0"
+  if (b.o > 0) {
+    await next(v, lesson, told);
+    mat = { ...mat, o: mat.o.map((p, i) => (i >= mat.o.length - b.o ? { ...p, gone: true } : p)), focus: 'o' };
+    lesson.mat.value = mat;
+    await v.say('Take away', ...n(b.o));
+  }
   await next(v, lesson, told);
   if (tens < b.t) {
     // not enough rows of ten for the tens (112 - 28): a hundred breaks into ten rows
@@ -304,6 +307,16 @@ async function teachHundreds(q: HundredsProblem, v: VoiceScope, lesson: Lesson, 
 
 // ---------- Ten Hops ----------
 
+/** What a hop of ten or a hundred does to the digits, said true for this number. Across a hundred the tens digit doesn't just go up or
+ *  down one (93 + 10 = 103, 104 - 10 = 94): ten more makes ten tens, a new hundred; ten less from no tens breaks a hundred. */
+export function stepLesson(n: number, step: 10 | -10 | 100 | -100): Phrase[] {
+  if (step === 100) return ['A hundred more: the hundreds digit goes up one.'];
+  if (step === -100) return ['A hundred less: the hundreds digit goes down one.'];
+  const crosses = Math.floor(n / 100) !== Math.floor((n + step) / 100);
+  if (step === 10) return crosses ? ['Ten more.', 'Ten tens make a hundred.'] : ['Ten more: the tens digit goes up one.'];
+  return crosses ? ['Ten less.', 'No tens, so break a hundred.'] : ['Ten less: the tens digit goes down one.'];
+}
+
 export function hopLine(q: HopProblem, hops: Hop[] = [], at: number | null = null): Line {
   if (q.form === 'step') {
     const to = q.n + q.step, span = Math.abs(q.step) === 100 ? 100 : 10, lo = Math.min(q.n, to), hi = Math.max(q.n, to);
@@ -317,11 +330,11 @@ async function teachHop(q: HopProblem, v: VoiceScope, lesson: Lesson, full: bool
   const told = { told: false };
   if (q.form === 'step') {
     const big = Math.abs(q.step) === 100, up = q.step > 0, to = q.n + q.step;
-    const line: Phrase = big ? (up ? 'A hundred more: the hundreds digit goes up one.' : 'A hundred less: the hundreds digit goes down one.') : up ? 'Ten more: the tens digit goes up one.' : 'Ten less: the tens digit goes down one.';
+    const line = stepLesson(q.n, q.step);
     lesson.line.value = hopLine(q);
     lesson.col.value = big ? 'h' : 't';
-    if (!full) { await v.say(line); return; }
-    await v.say(line);
+    if (!full) { await v.say(...line); return; }
+    await v.say(...line);
     await next(v, lesson, told);
     lesson.line.value = hopLine(q, [{ from: q.n, to, label: `${up ? '+' : '−'}${Math.abs(q.step)}` }], to);
     sCount(1);

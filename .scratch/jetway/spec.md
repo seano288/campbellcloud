@@ -1,6 +1,6 @@
 # Spec: Jetway (two-digit adding and taking away, numbers past 100; build an airport and fly from it)
 
-Status: built on 2026-11-23 (pass 1 of 3: build), playable at `/jetway/` with a tile in **Learning Games** on the landing page, after Sky
+Status: built on 2026-11-23 (pass 1 of 3: build; pass 2, bug and sound review, the same day), playable at `/jetway/` with a tile in **Learning Games** on the landing page, after Sky
 Writer. Every decision below is a **default for the parent to confirm**. Not yet run on a real iPad or in Safari. The name is still a
 working name.
 
@@ -102,7 +102,9 @@ so he fixes his own number.
   tens. 3 ones. That makes 243."; "No tens, so the tens digit is zero."). For a place: the column lights ("This is the tens place. 4
   tens."). For compare: "Look at the hundreds first." → "Same hundreds. Look at the tens." → "412 is more." / "389 is less than 412."
 - **Ten Hops:** the hop is drawn on the runway line with what it adds; "Ten more: the tens digit goes up one. The ones stay the same.
-  That makes 103." Two hops: "Jump the tens first. 47 plus 30 lands on 77. Then jump the ones. 77 plus 8 lands on 85."
+  That makes 83." Across a hundred the tens digit doesn't go up or down one, so the lesson says what does happen: "Ten more. Ten tens make
+  a hundred. The ones stay the same. That makes 103." for `93 + 10`, and "Ten less. No tens, so break a hundred." for `104 - 10` (pass 2;
+  tested). Two hops: "Jump the tens first. 47 plus 30 lands on 77. Then jump the ones. 77 plus 8 lands on 85."
 - **Missing Bags:** "Hop to the next ten." → "That is 2." → "Then hop to 65." → "That is 25 more." → "2 and 25 make 27."
 
 Tested (`sums/teach.test.ts`, thousands of questions): every fuller lesson waits on the arrow and ends on the right answer; Boarding's
@@ -229,12 +231,15 @@ the thing he builds. This is a first pass: pass 3 is the design pass.
 
 ## Voice
 
-Aria at -8%, recorded with `tools/make_voice.py --collection jetway`: 717 clips in `public/jetway-voice/` (10 MB). Numbers to 100 are a
+Aria at -8%, recorded with `tools/make_voice.py --collection jetway`: 701 clips in `public/jetway-voice/` (9 MB; pass 2 removed 19
+lines nothing said and added three). Numbers to 100 are a
 clip each; past 100 a hundreds clip and the rest ("three hundred", "6"), so every number to 999 has a voice from 109 clips; prices past
 100 use whole-ten clips (`PRICE_TENS`, "You need about 140 more Bolts." as Turbo Tally). The story that frames a sum is said once ("38
 people are on the plane. 25 more get on. How many are on the plane now?"); sums and number buttons are not read out. Every item, Route,
-town, plane name, airline word, rank and Trophy name is a clip. Not listened to by a person and not transcribed back (no speech-to-text
-on this machine); see Not done.
+town, plane name, airline word, rank and Trophy name is a clip. Not listened to by a person. Pass 2 transcribed every clip back with
+faster-whisper small.en, and the ones it doubted (and the short names) with large-v3-turbo, and re-recorded what both models misheard,
+with a breath round the name (`COLLECTION_SPEECH['jetway']` in `tools/make_voice.py`); every clip's speech length fits its text. See Not
+done for the clips the parent should hear.
 
 ## Sounds
 
@@ -268,20 +273,33 @@ during a Flight lands in the Airport with the Flight unused.
 - **Not run on a real iPad 9, an iPhone or in Safari/WebKit.** Checked in Chromium (Playwright) at 810×1080, 1080×810, 390×844 and 844×390
   with `tools/jetway/tour.ts`, on a new save and on saves with every kind open at Level 2 and at Level 3; offline with
   `tools/jetway/offline.ts`. What most needs checking on the device: the taxi's held finger and the view change; the throttle button
-  held while the iPad's edge gestures are near; the wheels' size and speed for three digits; 60 fps in "Watch it run" with a full airport
-  (capped at 6 planes and 8 trucks, not measured); the canvas drawing cost of a fully built plot (drawn every frame).
+  held while the iPad's edge gestures are near; the wheels' size and speed for three digits; frame time on the iPad itself. Pass 2 measured
+  in Chromium with the CPU slowed 4× and the GPU on (Metal): 60 fps on Home, in "Watch it run" and in the Flight on a fully built airport
+  (the Airport screen 53 fps on average, with an occasional long frame; the taxi 49 fps on average, its first frames). With software
+  drawing (the default headless browser) the Airport, "Watch it run" and the Flight fall to 15 to 36 fps, so the canvas leans on the GPU.
 - **The Air Race is not built** (the brief makes it optional). So no rival, no tuning table, and no three-children win-rate test; the only
   competition is his personal bests on each Route.
-- **The voice has not been listened to or transcribed back.** Most likely to sound wrong: the chain pieces said alone ("is", "and",
-  "make", "plus", "take away", "lands on", "ten.", "one.", "hundred."), the hundreds chained to a number ("three hundred", "6"), names
-  with hyphens or odd words ("Two-Seater", "Double-Decker", "Follow-Me Car", "De-Icer Truck", "De-icing Pad", "Toadstool Ring", "Jet
-  Black"), the airline words alone ("Air", "Lines", "Jets", "Wings", "Sky"), plane names ("Nimbus", "Maverick", "Whizzer"), towns ("Fox
-  Hollow", "Otter Creek", "Misty Glen"), "Wheee!" and "Boom!".
+- **The voice has not been listened to by a person.** Transcribed back by two speech-to-text models (pass 2), which heard the pass-1
+  suspects right ("and", "make", "plus", "take away", "lands on", "ten.", "one.", the hundreds, "Two-Seater", "Double-Decker", "Follow-Me
+  Car", "De-icing Pad", "Air", "Lines", "Jets", "Nimbus", "Whizzer", "Fox Hollow", "Misty Glen", "Boom!"). For the parent to hear:
+  "Baggage Hall" (both models hear "haul" however it's written), "Kite Hill" (said as two words with a pause, the only way both models
+  heard "Kite"), "De-Icer Truck", "You opened Unload!", "You are a Ten Hops star!", "You are a Missing Bags star!", "The cart holds",
+  "Ten more." / "Ten less." (new), "Phoenix Tail" and "Rainbow Tail" (tail or tale), and a chained number line such as "three hundred",
+  "6".
 - **Seen in the browser:** every kind's Levels 1 to 3 and a deliberate first and second miss in each kind (the fuller lesson walked
-  through with the arrow), including the two-hop form, the signs and "which plane holds more". **Not seen on screen, only in the unit
-  tests:** Unload Level 3 (from 100 and from past 100, on three wheels) and Jumbo Level 2's numbers with a zero and `300 + 40 + 6`.
+  through with the arrow), including the two-hop form, the signs and "which plane holds more". Pass 2 also saw on screen, with first and
+  second misses, Unload Level 3 (from a round number, from 100 and from past 100, on three wheels) and Jumbo Level 2's numbers with a zero
+  and `800 + 70 + 6`.
   `TOUR_WINDOW=0` (a Level's first forms) and `TOUR_ROUNDS=n` reach more of them. `tools/jetway/looks.ts` screenshots a fully built
   airport; `tools/jetway/shot.ts` and `tools/jetway/measure.ts` were used to fix the phone layouts.
 - Number names in words (2.NBT.A.3's "number names") are not asked.
 - No Tune-Up for Unload, Ten Hops or Missing Bags (they start at Level 1 when they open).
 - Planes are drawn simply; pass 3 is the design pass (the plot's pieces are boxes with emoji; the question screens' pictures are plain).
+- **Found in pass 2 and left for the design pass:** on the seat mat a block of a hundred is drawn smaller than one row of ten (6px seats
+  against 20px), so a hundred can look like less than a ten; the extra gates' planes (Another Gate) are drawn over the tower and the
+  workshops; at 1080×810 the hundreds wheel touches the mat's ones column; a mat of nine hundreds is about 2,000 SVG shapes redrawn at each
+  lesson step.
+- **The again-and-again things stop changing anything after a few:** only 4 concourses, 8 extra gates, 4 hangars and 4 runway stretches
+  are drawn; past those they are a count on a sign. Concourses stop adding passengers once the Glass Terminal's 600 outnumber the biggest
+  plane's 550 seats, and past the fifth extra gate there is no plane left to park (eleven planes use stands). The Charters (new every Flight, a prize every fifth) and the passenger
+  ranks carry the endless layer; whether these four should keep doing something is for the parent.

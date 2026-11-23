@@ -2,7 +2,7 @@
 // question of each kind, so both lessons run, tapping the arrow through the fuller one, then answering right), the end of the Round, a
 // purchase at the Airport, a Flight led by a held finger from the gate to the runway, the throttle held, the cruise and the landing,
 // its results, the Routes board and "Watch it run", with screenshots. Answers are read from the page (window.__round in dev) and turned
-// in on the wheels as he would; every tap waits for the question to be said. It fails on buttons off screen or under 44px.
+// in on the wheels as he would; every tap waits for the question to be said. It fails on buttons off screen, under 44px or in the bottom 56px.
 //   npm run dev:jetway   (in another shell)
 //   npx tsx tools/jetway/tour.ts <url> <outDir>
 // TOUR_ROUNDS=n plays n Rounds (1 by default). TOUR_VIEW=portrait|landscape|phone|side picks the screen (iPad 9 sizes by default: 810×1080
@@ -67,6 +67,8 @@ async function fits(name: string) {
         continue;
       }
       if (r.right > innerWidth + 1 || r.bottom > innerHeight + 1 || r.left < -1 || r.top < -1) out.push(`off screen: ${el.getAttribute('aria-label') ?? el.className}`);
+      // the bottom band belongs to iPadOS: nothing to tap within 56px of the bottom (pass 2 found the wheels 25px up)
+      else if (r.bottom > innerHeight - 56) out.push(`in the bottom band (${Math.round(innerHeight - r.bottom)}px up): ${el.getAttribute('aria-label') ?? el.className}`);
       if (r.height < 43 || r.width < 43) out.push(`small ${Math.round(r.width)}x${Math.round(r.height)}: ${el.getAttribute('aria-label') ?? el.className}`);
     }
     // numbers printed over each other on a picture (the runway line once labelled every ten from 700 to 1000)
@@ -74,6 +76,12 @@ async function fits(name: string) {
     for (let i = 0; i < texts.length; i++) for (let j = i + 1; j < texts.length; j++) {
       const [ta, a] = texts[i]!, [tb, b] = texts[j]!;
       if (a.left < b.right - 2 && b.left < a.right - 2 && a.top < b.bottom - 2 && b.top < a.bottom - 2) out.push(`"${ta}" printed over "${tb}"`);
+    }
+    // the number boxes under the runway line, one over another (two hops landing on 86 and 91, on a phone)
+    const boxes = [...document.querySelectorAll('.game.jw .rl-mark rect, .game.jw rect.rl-land')].map(r => r.getBoundingClientRect());
+    for (let i = 0; i < boxes.length; i++) for (let j = i + 1; j < boxes.length; j++) {
+      const a = boxes[i]!, b = boxes[j]!;
+      if (a.left < b.right - 1 && b.left < a.right - 1 && a.top < b.bottom - 1 && b.top < a.bottom - 1) out.push('number boxes over each other on the runway line');
     }
     return [...new Set(out)];
   });

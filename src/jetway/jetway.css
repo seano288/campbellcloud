@@ -10,12 +10,15 @@ html,body{background:var(--tarmac)}
 .jw-start h1{color:#fff;text-shadow:3px 3px 0 var(--hivis),6px 6px 0 #000}
 .jw-start .start-art{width:min(92vw,calc(520px*var(--u)),620px);aspect-ratio:1300/780;border:4px solid #000;border-radius:18px;overflow:hidden;box-shadow:0 7px 0 #000}
 .jw-start .start-art .airport-canvas{width:100%;height:100%}
-@media (max-height:520px){.jw-start .start-art{width:auto;height:34vh}}
+@media (max-height:520px){.jw-start .start-art{width:auto;height:28vh}.start.jw-start{gap:12px}}
 .home-screen.jw-home-screen,.round-screen{background:linear-gradient(170deg,var(--sky) 0%,#2a6db3 45%,var(--tarmac) 46%,#262b35 100%)}
 .jw-home-screen .home-head h1{color:var(--sign-ink);text-shadow:2px 2px 0 var(--hivis),4px 4px 0 #000}
 .airport-canvas{display:block;width:100%;height:100%}
 
 /* ---------- Home ---------- */
+/* the Levels board and Play stay above the bottom band (pass 2 measured them 16 to 33px up) */
+.home.jw-home{padding-bottom:var(--floor)}
+.jw-start{padding-bottom:calc(var(--floor) + 24px)}
 .home.jw-home{grid-template-areas:"p p" "a r" "k k";grid-template-rows:minmax(0,1fr) minmax(0,.8fr) auto;grid-template-columns:1.5fr 1fr}
 @media (orientation:landscape){.home.jw-home{grid-template-areas:"p a" "p r" "k k";grid-template-rows:minmax(0,1fr) minmax(0,.6fr) auto;grid-template-columns:1fr 1.2fr}}
 /* Play is a jet bridge reaching a door, the green Go light on it */
@@ -53,6 +56,10 @@ html,body{background:var(--tarmac)}
 /* ---------- a question: the sum (or the question) in the bar, then the picture and the answers, side by side when there's width ---------- */
 .round-screen .card{position:relative;background:#fafafa}
 .game.jw{justify-content:flex-start;gap:calc(8px*var(--u));padding:calc(10px*var(--u));overflow:hidden}
+/* answers stay above the bottom band (pass 2: the wheels and the lesson's arrow sat 25px up on an iPad): the card's 16px margin and border
+   plus this keep them 56px up, as Deep Light's */
+@media (min-height:600px){.game.jw{padding-bottom:max(calc(10px*var(--u)),calc(var(--floor) - 14px))}}
+@media (orientation:landscape) and (max-height:520px){.game.jw{padding-bottom:calc(var(--floor) - 20px)}}
 .game.jw .ask{flex:none;width:100%;max-width:100%}
 .game.jw .ask h2{flex:1;min-width:0;font:900 max(20px,calc(30px*var(--u)))/1.15 Nunito,sans-serif;text-align:left;text-wrap:balance}
 .game.jw .ask h2 .num{font-weight:900;background:var(--sign);color:var(--sign-ink);border-radius:8px;padding:0 8px;white-space:nowrap}
@@ -144,7 +151,7 @@ html,body{background:var(--tarmac)}
 .jw-next:active{transform:translateY(4px);box-shadow:0 2px 0 #000}
 
 /* ---------- the end of a Round ---------- */
-.jw-reward{background:radial-gradient(circle at 50% 30%,#4a5262,#15171c 70%)}
+.jw-reward{background:radial-gradient(circle at 50% 30%,#4a5262,#15171c 70%);padding-bottom:calc(var(--floor) + 16px)}
 .earned-race{font:900 calc(30px*var(--u)) Nunito,sans-serif;color:var(--sign-ink);background:#000;border-radius:999px;padding:6px 20px}
 .jw-reward .btns{align-items:center}
 .big-btn.my-plane{padding:calc(4px*var(--u));width:max(104px,calc(150px*var(--u)));height:max(80px,calc(104px*var(--u)));flex:none;background:linear-gradient(var(--sky-2) 0 70%,var(--tarmac) 70%)}
@@ -242,7 +249,7 @@ html,body{background:var(--tarmac)}
 @media (max-width:430px){.fl-hud .hud-chip:last-child{display:none}}
 .fl-tip{position:absolute;left:50%;top:max(80px,calc(env(safe-area-inset-top) + 80px));transform:translateX(-50%);pointer-events:none;background:#000b;color:#fff;border-radius:999px;padding:4px 18px;font:900 max(16px,calc(22px*var(--u))) Nunito,sans-serif;white-space:nowrap}
 .fl-tip:empty{display:none}
-.fl-acts{position:absolute;right:max(24px,calc(env(safe-area-inset-right) + 24px));bottom:var(--floor);pointer-events:none}
+.fl-acts{position:absolute;right:max(24px,calc(env(safe-area-inset-right) + 24px));bottom:calc(var(--floor) + 10px);pointer-events:none}
 .fl-act{pointer-events:auto;touch-action:none;display:grid;place-items:center;width:max(110px,calc(150px*var(--u)));height:max(110px,calc(150px*var(--u)));border-radius:50%;border:5px solid #000;box-shadow:0 7px 0 #000;padding:0;font-size:calc(48px*var(--u));background:radial-gradient(circle at 40% 35%,#ffb36b,var(--hivis) 60%,#a34a00);color:#000}
 .fl-act b{font:400 max(16px,calc(22px*var(--u))) Bungee,sans-serif}
 .fl-act:active{transform:translateY(5px);box-shadow:0 2px 0 #000}
@@ -258,10 +265,10 @@ html,body{background:var(--tarmac)}
 .fl-icon{font-size:calc(110px*var(--u));filter:drop-shadow(3px 4px 0 #000)}
 .fl-arrow{font-size:calc(30px*var(--u));color:#fff;letter-spacing:.3em}
 @media (orientation:portrait){.fl-route{grid-template-columns:1fr;grid-template-rows:1fr auto 1fr}.fl-arrow{text-align:center;transform:rotate(90deg)}}
-.fl-foot{display:flex;align-items:center;justify-content:center;gap:16px;flex-wrap:wrap;padding-bottom:calc(var(--floor) - 30px)}
+.fl-foot{display:flex;align-items:center;justify-content:center;gap:16px;flex-wrap:wrap;padding-bottom:calc(var(--floor) - 14px)}
 .fl-best{background:#000;border:3px solid var(--sign-ink);border-radius:16px;padding:6px 14px;font:900 max(18px,calc(22px*var(--u))) Nunito,sans-serif}
 .fl-foot .big-btn.go{min-width:max(120px,calc(160px*var(--u)));min-height:max(80px,calc(96px*var(--u)));display:flex;align-items:center;gap:10px;font-size:calc(34px*var(--u))}
-.fl-result{position:fixed;inset:0;z-index:5;display:grid;place-items:center;background:#000a;padding:14px;text-align:center;overflow-y:auto;touch-action:auto}
+.fl-result{position:fixed;inset:0;z-index:5;display:grid;place-items:center;background:#000a;padding:14px 14px calc(var(--floor) + 10px);text-align:center;overflow-y:auto;touch-action:auto}
 .fl-result .result-card{display:flex;flex-direction:column;align-items:center;gap:calc(8px*var(--u));width:min(560px,100%);padding:calc(16px*var(--u)) calc(24px*var(--u));border:4px solid #000;border-radius:24px;background:radial-gradient(circle at 50% 0%,#4a5262,#1d2026 70%);box-shadow:0 8px 0 #000,0 18px 40px #000a}
 .fl-result h2{margin:0;font:400 calc(40px*var(--u)) Bungee,sans-serif;color:var(--sign-ink);text-shadow:3px 3px 0 #000}
 .fl-grade{display:flex;align-items:center;gap:10px;font-size:calc(40px*var(--u))}
@@ -300,5 +307,8 @@ html,body{background:var(--tarmac)}
   .airport-screen .jw-tabs{grid-area:tabs}
   .airport-screen .jw-tray{grid-area:tray;min-height:0}
   .airport-screen .buy-bar{grid-area:buy}
+  /* the Fly button row and Buy stay above the bottom band; the tray scrolls clear of it by itself */
+  .airport-screen{padding-bottom:var(--floor)}
+  .airport-screen .jw-tray{padding-bottom:0}
   .airport-screen .pax-board small{display:none}
 }

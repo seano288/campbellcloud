@@ -166,8 +166,10 @@ function HundredsView({ current, q, waiting }: { current: Current; q: HundredsPr
     const stage = mat
       ? <div class="jw-picture"><MatView mat={mat} jumbled={q.form === 'read' && q.jumbled && !lesson.mat.value} /></div>
       : <div class="expanded">{d.h * 100} + {d.t * 10} + {d.o}</div>;
+    // once the lesson's mat takes the expanded sum's place, the sum stays in the question ("Which number is this? 800 + 70 + 6")
+    const text = q.form === 'expanded' && mat ? <>{line} <b class="num">{d.h * 100} + {d.t * 10} + {d.o}</b></> : line;
     return (
-      <Shell current={current} lesson={lesson} ready={can} kind={`hundreds form-${q.form}${q.form === 'read' && q.jumbled ? ' jumbled' : ''}`} text={line} speech={speech}
+      <Shell current={current} lesson={lesson} ready={can} kind={`hundreds form-${q.form}${q.form === 'read' && q.jumbled ? ' jumbled' : ''}`} text={text} speech={speech}
         stage={stage} controls={<NumberChoices choices={q.choices} onTap={tap} wrong={wrong} done={done} hint={hint} />} />
     );
   }

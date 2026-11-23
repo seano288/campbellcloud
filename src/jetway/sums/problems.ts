@@ -169,9 +169,20 @@ function readTraps(n: number): number[] {
   const { h, t, o } = digitsOf(n);
   return [h * 100 + o * 10 + t, o * 100 + t * 10 + h, t * 100 + h * 10 + o, n + 10, n - 10, n + 1, n - 1, n + 100, n - 100];
 }
-function zeroTraps(n: number): number[] {
-  const { h, t, o } = digitsOf(n);
-  return [h * 10 + (t || o), t ? h * 100 + o * 10 + t : h * 100 + o * 10, h * 100 + t + o * 10, t * 100 + h * 10 + o].filter(x => x !== n);
+/** Choices for a number with a zero (`306`, `340`): always one of the zero's own mistakes, the zero left out (36) or put in the wrong
+ *  place (360), and another real mistake (603, 206, 406) where it's needed so the right one can stand first, in the middle or last. With
+ *  only the two zero mistakes, `306` would always sit between `36` and `360` (pass 2 measured it in the middle 6 times in 10). */
+export function zeroChoices(rng: Rng, n: number): number[] {
+  const { h, t, o } = digitsOf(n), x = t || o;
+  const ok = (v: number) => v !== n && v >= 10 && v <= TOP;
+  const zero = uniq([h * 10 + x, t ? h * 100 + x : h * 100 + x * 10]).filter(ok);
+  const other = uniq([t ? x * 100 + h * 10 : x * 100 + h, n - 100, n + 100]).filter(v => ok(v) && !zero.includes(v));
+  const side = (below: boolean) => [...shuffle(rng, zero.filter(v => v < n === below)), ...shuffle(rng, other.filter(v => v < n === below))];
+  const below = side(true), above = side(false);
+  // where the right one stands: as many below it as `under`, with a zero mistake among the two wrong ones
+  const fits = [0, 1, 2].filter(u => below.length >= u && above.length >= 2 - u && ((u > 0 && zero.includes(below[0]!)) || (u < 2 && zero.includes(above[0]!))));
+  const under = fits.length ? pick(rng, fits) : 1;
+  return [...below.slice(0, under), n, ...above.slice(0, 2 - under)].sort((a, b) => a - b);
 }
 const signOf = (a: number, b: number): Sign => (a < b ? '<' : a > b ? '>' : '=');
 const distinctDigits = (n: number) => { const { h, t, o } = digitsOf(n); return h !== t && t !== o && h !== o; };
@@ -211,7 +222,7 @@ export function makeHundreds(level: Level, stretch: Stretch, rng: Rng): Hundreds
     }
     if (form === 'zero') {
       const h = int(rng, 1, 9), x = int(rng, 1, 9), n = rng() < 0.5 ? h * 100 + x : h * 100 + x * 10; // 306 or 340
-      return { kind: 'hundreds', form: 'read', n, jumbled: false, choices: numberChoices(rng, n, zeroTraps(n), 2, 10, TOP, []), answer: String(n) };
+      return { kind: 'hundreds', form: 'read', n, jumbled: false, choices: zeroChoices(rng, n), answer: String(n) };
     }
     let n: number;
     do n = int(rng, 111, 999); while (!distinctDigits(n) || !ones(n) || !tens(n));

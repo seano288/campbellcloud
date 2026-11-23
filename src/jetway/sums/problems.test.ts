@@ -7,7 +7,7 @@ import { describe, expect, it } from 'vitest';
 import { seeded } from '../../game/rng';
 import type { Stretch } from '../../modes/progress';
 import {
-  borrows, carries, digitsOf, isRightAnswer, KINDS, makeAdd, makeGap, makeHop, makeHundreds, makeQuestion, makeTake, numberChoices,
+  borrows, carries, digitsOf, isRightAnswer, KINDS, makeAdd, makeGap, makeHop, makeHundreds, makeQuestion, makeTake, numberChoices, zeroChoices,
   onWheels, possibleAnswers, sumText, TOP, type Kind, type Level, type Question,
 } from './problems';
 
@@ -53,6 +53,23 @@ describe('every kind', () => {
     expect([...at].sort()).toEqual([0, 1, 2]);
     const mid = Array.from({ length: 300 }, (_, i) => numberChoices(seeded(i), 50, [40, 60], 2, 0, 99).indexOf(50));
     expect(mid.filter(i => i === 1).length / 300).toBeLessThan(.6);
+  });
+  it('in every kind, Level and form with number choices, the right one stands first, in the middle and last, and not mostly in the middle', () => {
+    // pass 2 found Jumbo's numbers with a zero (306 among 36 and 360) with the right one in the middle 6 times in 10, hidden by a check
+    // that pooled every kind together
+    const at = new Map<string, number[]>();
+    for (const kind of ['hundreds', 'hop'] as const) for (const { level, q } of all(kind)) {
+      const lists: [string, readonly number[], number][] = [];
+      if ('choices' in q) lists.push([`${kind} L${level} ${q.form}`, q.choices, Number(q.answer)]);
+      if (q.kind === 'hop' && q.form === 'two') lists.push([`hop L${level} first`, q.firstChoices, q.first], [`hop L${level} second`, q.secondChoices, q.second]);
+      for (const [key, choices, right] of lists) { const c = at.get(key) ?? [0, 0, 0]; c[choices.indexOf(right)]!++; at.set(key, c); }
+    }
+    for (const [key, [first, mid, last]] of at) {
+      const total = first! + mid! + last!;
+      expect(first! / total, key).toBeGreaterThan(.15);
+      expect(last! / total, key).toBeGreaterThan(.15);
+      expect(mid! / total, key).toBeLessThan(.5);
+    }
   });
   it('things that are not answers are not counted', () => {
     expect(isRightAnswer(makeAdd(1, 0, seeded(1)), 'x')).toBeNull();
@@ -122,8 +139,16 @@ describe('the sums match their Level', () => {
       if (q.form === 'more') expect(q.a).not.toBe(q.b);
     }
   });
-  it('Jumbo Level 2 numbers with a zero offer the zero left out and put in the wrong place (306: 36, 360)', () => {
-    for (const { level, q } of all('hundreds')) if (level === 2 && q.kind === 'hundreds' && q.form === 'read' && q.n === 306) expect(q.choices).toEqual([36, 306, 360]);
+  it('Jumbo Level 2 numbers with a zero always offer the zero left out or put in the wrong place (306: 36 or 360)', () => {
+    let zeros = 0;
+    for (const { level, q } of all('hundreds')) if (level === 2 && q.kind === 'hundreds' && q.form === 'read') {
+      zeros++;
+      const { h, t, o } = digitsOf(q.n), x = t || o;
+      expect(q.choices, String(q.n)).toHaveLength(3);
+      expect(q.choices.some(c => c === h * 10 + x || c === (t ? h * 100 + x : h * 100 + x * 10)), `${q.n}: ${q.choices}`).toBe(true);
+    }
+    expect(zeros).toBeGreaterThan(200);
+    for (let s = 0; s < 200; s++) { const c = zeroChoices(seeded(s), 306); expect(c).toContain(306); expect(c.includes(36) || c.includes(360)).toBe(true); }
   });
   it('Ten Hops: ten more and less to 200, a hundred more and less to 999, then two hops: the tens, then the ones', () => {
     for (const { level, q } of all('hop')) if (q.kind === 'hop') {
