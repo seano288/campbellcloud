@@ -97,6 +97,9 @@ describe('the × sign is met before it is asked', () => {
       const q2 = makeQuestion('times', 2, 0, rng);
       expect(meetingsFor(q2, 2)).toEqual(['sign', 'word']);
       expect(meetingsFor(makeQuestion('groups', 3, 2, rng), 3)).toEqual([]);
+      // the turn-around says "times" too, so it needs the name first even if it comes before any written fact
+      const q3 = makeQuestion('times', 3, 2, rng);
+      expect(meetingsFor(q3, 3)).toEqual(['sign', 'word']);
     }
   });
   it('the first Times question of all comes after the Meetings, in order, once each', () => {

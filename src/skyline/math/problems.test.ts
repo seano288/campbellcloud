@@ -91,9 +91,10 @@ describe('sizes', () => {
       if (q.kind === 'pair' && q.form === 'double') for (const h of q.halves) expect(h).toBeLessThanOrEqual(MOST_GROUP);
     }
   });
-  it('Share It always comes out even', () => {
-    for (const { q } of every('share')) {
+  it('Share It always comes out even, and Level 1 shares 6 to 12 between two trucks', () => {
+    for (const { q, level } of every('share')) {
       if (q.kind !== 'share') continue;
+      if (level === 1 && q.form !== 'trucks') { expect(q.trucks).toBe(2); expect(q.total).toBeGreaterThanOrEqual(6); expect(q.total).toBeLessThanOrEqual(12); }
       if (q.form === 'trucks') expect(q.total % q.each).toBe(0);
       else expect(q.total % q.trucks).toBe(0);
     }
@@ -148,6 +149,9 @@ describe('wrong choices are real mistakes', () => {
         if (w.why === 'missing-group' && q.kind === 'groups' && (q.form === 'total' || q.form === 'words')) expect(Number(w.value)).toBe(q.groups * q.each - q.each);
         if (w.why === 'group-count' && q.kind === 'groups' && (q.form === 'total' || q.form === 'words')) expect(Number(w.value)).toBe(q.groups);
         if (w.why === 'added' && q.kind === 'array' && q.form === 'sentence') expect(w.value).toBe(plusCard(q.rows, q.cols));
+        // "12 boxes, 3 on each truck, how many trucks?": the mistakes are the 3 on each and the 12 boxes themselves
+        if (q.kind === 'share' && q.form === 'trucks' && w.why === 'total') expect(Number(w.value)).toBe(q.total);
+        if (q.kind === 'share' && q.form === 'trucks' && w.why === 'each-count') expect(Number(w.value)).toBe(q.each);
       }
     }
   });

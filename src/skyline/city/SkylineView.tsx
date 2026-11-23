@@ -15,7 +15,10 @@ export function SkylineView({ city, night, near }: { city: CityState; night: boo
     const c = ref.current!;
     const placed = Object.entries(city.plots).map(([id, p]) => ({ id, p, plot: plotById(id)!, d: designOf(city, p.d)! })).filter(x => x.plot && x.d && x.d.look.floors > 0); // parks and ponds lie flat: nothing to see from the street
     placed.sort((a, b) => Math.abs(a.plot.rect.x - near) - Math.abs(b.plot.rect.x - near));
-    const shown = placed.slice(0, SKYLINE_MOST).sort((a, b) => a.plot.block - b.plot.block || a.plot.rect.x - b.plot.rect.x);
+    const flagAt = flagPlot(city), nearest = placed.slice(0, SKYLINE_MOST);
+    // the tallest tower always stands in his Skyline, with its flag, however far along the city it is
+    if (flagAt && !nearest.some(x => x.id === flagAt)) { const f = placed.find(x => x.id === flagAt); if (f) nearest[nearest.length - 1] = f; }
+    const shown = nearest.sort((a, b) => a.plot.block - b.plot.block || a.plot.rect.x - b.plot.rect.x);
     const widthOf = (x: (typeof shown)[number]) => (x.plot.size === 's' ? 58 : 110);
     const tallest = Math.max(160, ...shown.map(x => faceHeight(x.p.floors) + 80));
     const W = Math.max(300, shown.reduce((a, x) => a + widthOf(x) + 10, 30)), H = tallest + 60, k = Math.min(1.5, 4000 / W);
@@ -28,7 +31,7 @@ export function SkylineView({ city, night, near }: { city: CityState; night: boo
     g.fillStyle = sky; g.fillRect(0, 0, W, H);
     if (night) { g.fillStyle = '#fff'; for (let i = 0; i < 60; i++) g.fillRect((i * 97) % W, (i * 53) % (H * .5), 2, 2); g.fillStyle = '#fff6c8'; g.beginPath(); g.arc(W - 60, 50, 24, 0, Math.PI * 2); g.fill(); }
     else { g.fillStyle = '#ffd23f'; g.beginPath(); g.arc(W - 70, 56, 30, 0, Math.PI * 2); g.fill(); g.strokeStyle = O; g.lineWidth = 3; g.stroke(); }
-    const ground = H - 40, flag = flagPlot(city);
+    const ground = H - 40, flag = flagAt;
     g.fillStyle = night ? '#2a2e38' : '#5b6170'; g.fillRect(0, ground, W, 40);
     g.strokeStyle = '#ffd23f'; g.setLineDash([16, 12]); g.lineWidth = 3; g.beginPath(); g.moveTo(0, ground + 22); g.lineTo(W, ground + 22); g.stroke(); g.setLineDash([]);
     let x = 20;

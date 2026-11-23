@@ -228,12 +228,13 @@ function makeShare(level: Level, stretch: Stretch, rng: Rng): ShareQ {
     let each: number, trucks: number;
     do { each = int(rng, 2, 5); trucks = int(rng, 2, 6); } while (each === trucks);
     const total = each * trucks;
-    const { choices, wrong } = numberChoices(rng, trucks, [[each, 'each-count'], [total - each, 'total'], [trucks + 1, 'miscount']]);
+    const { choices, wrong } = numberChoices(rng, trucks, [[each, 'each-count'], [total, 'total'], [trucks + 1, 'miscount']]);
     return { kind: 'share', form: 'trucks', total, each, choices, wrong, answer: String(trucks) };
   }
   const trucks = level === 1 ? 2 : int(rng, 3, 4);
   if (stretch > 0 && coin(rng)) {
-    const share = int(rng, 2, Math.min(MOST_GROUP, Math.floor(MOST_TOTAL / trucks))), total = share * trucks;
+    // Level 1 shares 6 to 12 between two trucks (the brief), Level 2 more between three or four
+    const share = level === 1 ? int(rng, 3, 6) : int(rng, 2, Math.min(MOST_GROUP, Math.floor(MOST_TOTAL / trucks))), total = share * trucks;
     const { choices, wrong } = numberChoices(rng, share, [[total, 'whole'], [trucks, 'group-count'], [share + 1, 'miscount']]);
     return { kind: 'share', form: 'each', total, trucks, choices, wrong, answer: String(share) };
   }

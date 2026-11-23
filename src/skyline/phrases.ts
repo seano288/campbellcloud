@@ -31,7 +31,7 @@ export function needLine(x: number): Phrase[] {
 /** The most Bolts said in one "You earned" line: a perfect Round pays 6, a Job up to 5. */
 export const MOST_EARNED = 6;
 
-const GAME = ['Skyline!', "Let's go!", 'Round done!', 'Level up!', 'You kept trying!', 'Tap again to go home.', 'City', 'Job'] as const;
+const GAME = ["Let's go!", 'Level up!', 'You kept trying!', 'Tap again to go home.'] as const;
 export const CHEERS = ['Great job!', 'You got it!', 'Super counting!', 'Awesome!', 'Way to go!', 'Nice building!'] as const;
 
 // ---------- the questions ----------
@@ -59,19 +59,17 @@ const QUESTIONS = [
 const TEACHING = [
   'Not quite!', "Let's look together.", 'Try again!', 'Tap each row to count it.', 'Tap each bus to count it.',
   // groups and rows
-  "Let's count each bus.", 'Count the buses.', 'Count the people on one bus.', 'They all have the same.', 'One bus is different.',
-  'people in all!', 'Rows go across.', "Let's count the rows.", "Let's count one row.", 'in each row.', 'windows!', 'rows.', 'Add a row each time.',
-  'make', 'Every row has the same.', 'Not every bus has the same.', 'A group is missing.', 'Tip it on its side.', 'The windows stay the same.',
+  "Let's count each bus.", 'Count the people on each bus.', 'Add the people on each bus.', 'Count the buses.', 'Count the people on one bus.', 'They all have the same.', 'One bus is different.',
+  'people in all!', 'Rows go across.', "Let's count the rows.", "Let's count one row.", 'in each row.', 'windows!', 'rows.',
+  'make', 'Every row has the same.', 'Not every bus has the same.', 'Tip it on its side.', 'The windows stay the same.',
   'It has the same number of windows.', 'It has a different number of windows.',
   // odd or even
   "Let's pair them up.", 'One is left alone. So it is odd.', 'Everyone has a partner. So it is even.', 'Two equal halves make an even number.', 'and',
   // count by
-  'Every jump is', 'Look at the jumps.',
-  // share
+  'Every jump is',   // share
   'One box for each truck, round and round.', 'Every truck has the same.', "Let's fill the trucks.",
   // times
-  'This sign means rows of.', 'is a short way to say', "Let's build it.",
-] as const;
+  'This sign means rows of.', 'is a short way to say', ] as const;
 
 const MEETING = [
   'Here is a new sign.', 'It is a short way to write rows of.', 'This sign has a name.', 'We say times.', 'Tap Go!',
@@ -80,20 +78,20 @@ const MEETING = [
 // ---------- the City ----------
 const CITY = [
   'City!', 'It costs', 'Bolts.', 'You need', 'You need about', 'more Bolts.', 'Play a Round to earn Bolts!', 'Play a Round to earn a Job!',
-  'You have 1 Job ready!', 'Jobs ready!', 'Tap Job!', 'You earned a Job!', 'You got', 'You built', 'Another floor!', 'floors high!', 'New land!',
-  'Tap an empty plot to build on it.', 'Tap a building to choose it.', 'Tap where it goes.', 'Moved!', 'It needs a big plot.', 'It needs a wide plot.',
-  'It needs a small plot.', 'Buy more land to build more!', 'Your building', 'Build it!', 'Design your own!', 'Roof', 'Windows', 'Walls', 'Sign', 'Floors',
+  'You have 1 Job ready!', 'Jobs ready!', 'Tap Job!', 'You earned a Job!', 'You got', 'Another floor!', 'floors high!', 'New land!',
+  'Tap an empty plot to build on it.', 'Tap where it goes.', 'Moved!', 'It needs a big plot.', 'It needs a wide plot.',
+  'It needs a small plot.', 'Buy more land to build more!', 'Your building', 'Roof', 'Windows', 'Walls', 'Sign',
   'Buildings', 'Vehicles', 'Paint', 'Street', 'Parts', 'Land', 'New Street', 'Design', 'Trophies', 'Skyline',
-  'Your city is a', 'people live here!', 'Population', 'Fly over!', 'Good night!', 'Good morning!', 'This is your tallest tower!', 'It is the top floor!',
-  'Open', 'to get it.', 'Do more Jobs to open it!', 'It drives', 'Jobs.', 'It goes faster!', 'It carries more!', 'It flies!', 'Put it back.',
-  'Another block of land!', 'Your city grew!', 'Move', 'Swap', 'Clear', 'Pick a building.', 'Your bests!', 'Most in one Job', 'Tallest tower', 'Biggest city',
-  'Choose it', 'On!', 'You can buy this when you have', 'You opened', 'Super City', 'Rank', 'Win it by doing Jobs!', 'Coming soon!',
+  'Your city is a', 'Fly over!', 'Good night!', 'Good morning!', 'This is your tallest tower!', 'It is the top floor!',
+  'Open', 'to get it.', 'Do more Jobs to open it!', 'It drives', 'Jobs.', 'It goes faster!', 'It carries more!', 'It flies!',
+  'Another block of land!', 'Your city grew!', 'Pick a building.', 'Most in one Job', 'Tallest tower',
+  'You can buy this when you have', 'Super City', 'Win it by doing Jobs!',
 ] as const;
 
 // ---------- the Job ----------
 const JOBS = [
-  'Hold your finger where you want to go!', 'Go!', 'Next stop!', 'Last stop!', 'Job done!', 'Bump!', 'New best!', 'number', 'Head for the star!',
-  'Tap again to leave.', 'Great driving!', 'You opened a new District!', 'You won', 'Job again!', 'This Job is new!',
+  'Hold your finger where you want to go!', 'Go!', 'Last stop!', 'Job done!', 'New best!', 'number', 'Head for the star!',
+  'Tap again to leave.', 'You opened a new District!', 'You won',
 ] as const;
 
 type EarnedPhrase = EarnedLine<typeof SKYLINE_CURRENCY>;

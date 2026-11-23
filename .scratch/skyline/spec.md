@@ -174,7 +174,7 @@ different heights at dusk with their windows lit in rows and a flag on the talle
 
 ## Voice
 
-Aria at -8%, recorded with `tools/make_voice.py --collection skyline` (edge-tts), 804 clips (11 MB) in `public/skyline-voice/`, trimmed as
+Aria at -8%, recorded with `tools/make_voice.py --collection skyline` (edge-tts), 776 clips (10 MB) in `public/skyline-voice/`, trimmed as
 they decode and chained ("3", "rows of", "4"; "It costs", "12", "Bolts."). Every number to 200 and the hundreds to 1,000 are clips. Answer
 buttons are never read out; every question, lesson, purchase and Job line is.
 
@@ -209,7 +209,7 @@ A Job isn't a place: a reload during one lands in the City, and the Job isn't us
   and both × Meetings, the turn-around and Share It's dealing were played.
 - `tools/skyline/city-sheet.ts` loads the scripted child's City after n Rounds and screenshots it by day, by night, zoomed out, the
   Skyline, the fly-over and a Job, and counts frames: 60 fps for the City and the Job in Chromium on a Mac (not an iPad).
-- `tools/skyline/offline.ts`: on the production build, 804 clips precached, offline a Round starts, its question is said, a miss is
+- `tools/skyline/offline.ts`: on the production build, 776 clips precached, offline a Round starts, its question is said, a miss is
   taught aloud and the Round moves on.
 
 ## Not done

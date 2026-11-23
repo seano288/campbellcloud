@@ -36,7 +36,7 @@ export const LOCKED_HINTS = {
 export const MEETINGS = ['sign', 'word'] as const;
 export type MeetingId = (typeof MEETINGS)[number];
 /** The Meetings a question needs first, in order: any Times question needs the sign; a written fact from Level 2 its name too. */
-export const meetingsFor = (q: Question, level: Level): MeetingId[] => (q.kind !== 'times' ? [] : level >= 2 && q.form === 'fact' ? ['sign', 'word'] : ['sign']);
+export const meetingsFor = (q: Question, level: Level): MeetingId[] => (q.kind !== 'times' ? [] : level >= 2 && (q.form === 'fact' || q.form === 'turn') ? ['sign', 'word'] : ['sign']);
 
 // ---------- Mastery ----------
 

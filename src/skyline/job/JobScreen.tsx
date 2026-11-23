@@ -182,7 +182,8 @@ export function JobScreen() {
     void voice.say('Job done!', n(Math.min(total, 200)), named(j.thing), earnedLine(SKYLINE_CURRENCY, Math.min(6, pay.bolts)), ...more);
   }, [phase, pay]);
 
-  if (!ref || !j) { screen.value = 'city'; return null; }
+  useEffect(() => { if (!ref || !j) screen.value = 'city'; }, []); // no Job to drive: back to the City (after render, not during it)
+  if (!ref || !j) return null;
   const leave = () => {
     if (!voice.active) return;
     if (phase !== 'live' || armed) { screen.value = 'city'; return; }

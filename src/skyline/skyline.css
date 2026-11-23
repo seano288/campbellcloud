@@ -122,7 +122,7 @@ html,body{background:var(--dusk)}
 
 /* the street of house numbers */
 .sl-street{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:calc(10px*var(--u));width:100%;height:100%}
-.sl-street .houses{display:flex;justify-content:center;gap:calc(10px*var(--u));width:100%;border-bottom:10px solid var(--road);padding-bottom:4px}
+.sl-street .houses{display:flex;justify-content:center;gap:calc(10px*var(--u));width:100%;box-sizing:border-box;border-bottom:10px solid var(--road);padding:0 8px 4px}
 .sl-street .house{position:relative;flex:1 1 0;max-width:140px;display:flex;flex-direction:column;align-items:center;justify-content:flex-end;gap:4px;background:#f4d8a8;border:4px solid #000;border-radius:6px 6px 0 0;padding:6px 4px;min-height:calc(110px*var(--u))}
 .sl-street .house:nth-child(2n){background:#bfe3d0}.sl-street .house:nth-child(3n){background:#ffd1e0}
 .sl-street .house-roof{position:absolute;left:-8px;right:-8px;top:-26px;height:24px;background:var(--brick);border:4px solid #000;clip-path:polygon(0 100%,50% 0,100% 100%);}
@@ -131,6 +131,9 @@ html,body{background:var(--dusk)}
 .sl-street .plate{background:#fff;border:3px solid #000;border-radius:10px;padding:0 6px;font:900 max(22px,calc(34px*var(--u))) Nunito,sans-serif}
 .sl-street .house.gap .plate{background:var(--lane)}
 .sl-street .house.lit{box-shadow:0 0 0 4px var(--lane)}
+/* six houses (threes and fours) still fit a phone: the houses may shrink to their plates */
+.sl-street .house{min-width:0}
+@media (max-width:480px){.sl-street .houses{gap:4px}.sl-street .house{padding:6px 2px}.sl-street .house-wins i{width:11px;height:11px}.sl-street .plate{padding:0 3px}}
 .sl-line{width:100%;max-width:640px;height:auto}
 .sl-line .axis{stroke:#000;stroke-width:4}
 .sl-line .dot{fill:#fff;stroke:#000;stroke-width:3}.sl-line .dot.on{fill:var(--lane)}
@@ -188,6 +191,8 @@ button.sl-truck:active{transform:translateY(3px);box-shadow:0 2px 0 #000}
 @media (orientation:landscape) and (max-height:520px){.map-tools{flex-direction:row;flex-wrap:wrap;justify-content:flex-end;left:70px}}
 .map-go{position:absolute;left:12px;right:12px;bottom:12px;display:flex;align-items:center;gap:10px;pointer-events:none}
 .map-go>*{pointer-events:auto}
+/* the map reaches the bottom of the screen when it is beside the shop: the Job button stays above the iPad's bottom band */
+@media (orientation:landscape){.map-go{bottom:max(12px,calc(var(--floor) - 14px))}}
 .map-go .job-btn{min-height:max(64px,calc(80px*var(--u)));padding:calc(6px*var(--u)) calc(20px*var(--u))}
 .map-go .icon-btn{width:max(56px,calc(64px*var(--u)));height:max(56px,calc(64px*var(--u)));font-size:calc(28px*var(--u));color:#fff}
 .map-note{position:absolute;left:50%;top:12px;transform:translateX(-50%);background:#000c;color:var(--lane);border-radius:999px;padding:4px 16px;font:900 24px Nunito,sans-serif;pointer-events:none}
@@ -196,7 +201,7 @@ button.sl-truck:active{transform:translateY(3px);box-shadow:0 2px 0 #000}
 @media (max-width:700px),(orientation:landscape) and (max-height:520px){.sl-tabs{grid-template-columns:repeat(5,minmax(0,1fr))}}
 .sl-tab{min-height:max(var(--tap),calc(54px*var(--u)));min-width:44px;border-radius:12px;background:#152a45;border:3px solid #fff3;font:900 calc(24px*var(--u)) Nunito,sans-serif;color:#fff;padding:0}
 .sl-tab.on{background:var(--lane);border-color:#000;box-shadow:0 4px 0 #000;color:#000}
-.sl-tray{display:grid;grid-template-columns:repeat(auto-fill,minmax(max(100px,calc(122px*var(--u))),1fr));grid-auto-rows:max-content;gap:calc(8px*var(--u));overflow-y:auto;overscroll-behavior:contain;touch-action:pan-y;padding-bottom:calc(90px*var(--u));min-height:0}
+.sl-tray{display:grid;grid-template-columns:repeat(auto-fill,minmax(max(100px,calc(122px*var(--u))),1fr));grid-auto-rows:max-content;gap:calc(8px*var(--u));overflow-y:auto;overscroll-behavior:contain;touch-action:pan-y;padding-bottom:calc(90px*var(--u) + var(--floor));min-height:0}
 .sl-tile{position:relative;display:flex;flex-direction:column;align-items:center;gap:2px;padding:6px 4px;border-radius:14px;background:#152a45;border:3px solid #fff3;color:#fff;font:800 max(14px,calc(15px*var(--u)))/1.1 Nunito,sans-serif;min-height:44px}
 .sl-tile .tile-pic{width:92%;height:calc(70px*var(--u));min-height:52px;object-fit:contain;display:block;margin:2px auto}
 .sl-tile .mt-name{min-height:2.2em;display:grid;place-items:center;text-align:center}
@@ -208,7 +213,7 @@ button.sl-truck:active{transform:translateY(3px);box-shadow:0 2px 0 #000}
 .sl-tile.trying{border-color:#fff;outline:3px solid var(--lane);outline-offset:1px}
 .sl-tile.big{max-width:220px;margin:0 auto}
 .tray-note{grid-column:1/-1;text-align:center;font-size:40px;margin:20px 0}
-.buybar{position:absolute;left:0;right:0;bottom:0;display:flex;align-items:center;gap:10px;padding:8px;background:#000;border:3px solid var(--lane);border-radius:16px;box-shadow:0 -4px 18px #0009;z-index:3}
+.buybar{position:absolute;left:0;right:0;bottom:max(0px,calc(var(--floor) - 21px));display:flex;align-items:center;gap:10px;padding:8px;background:#000;border:3px solid var(--lane);border-radius:16px;box-shadow:0 -4px 18px #0009;z-index:3}
 .buybar .x{flex:none;width:var(--tap);height:var(--tap);border-radius:50%;background:#3a3f4b;color:#fff;border:0;font-size:20px}
 .buy-pic{flex:none;width:max(48px,calc(60px*var(--u)));height:max(48px,calc(60px*var(--u)));object-fit:contain}
 .buy-name{flex:1;min-width:0;color:#fff;font:900 max(16px,calc(22px*var(--u))) Nunito,sans-serif}

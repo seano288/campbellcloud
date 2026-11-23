@@ -204,6 +204,15 @@ COLLECTION_SPEECH = {
         'voice_for': {'cat': 'en-US-JennyNeural', 'puff': 'en-US-JennyNeural', 'duck': 'en-US-JennyNeural',
                       'Letter Q': 'en-US-JennyNeural', 'q starts with the round part.': 'en-US-JennyNeural'},
     },
+    'skyline': {
+        # pass 2: both speech-to-text models (small.en and large-v3-turbo) heard these as "Great Purple" (Turbo Tally's fix), "mass",
+        # "mark it", "been round", "here run", and dropped the kind's name into the words round it ("you open share it", "a time star")
+        'said_as': {
+            'Grape Purple': 'Grape, Purple', 'Moss': 'Moss!', 'Market': 'Market!', 'Bin Round': 'Bin, Round', 'Pier Run': 'Pier, Run',
+            'You opened Share It!': 'You opened, Share It!', 'You opened Times!': 'You opened, Times!',
+            'You are a Times star!': 'You are a, Times, star!', 'You are an Equal Groups star!': 'You are an, Equal Groups, star!',
+        },
+    },
 }
 
 

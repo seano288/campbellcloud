@@ -11,7 +11,7 @@ import { CurrencyIcon, CurrencyPile } from '../../ui/currency';
 import { SKYLINE_CURRENCY } from '../branding';
 import { buy, player, updateCity } from '../game';
 import { job, screen } from '../nav';
-import { n, named, needLine, sayable, type Phrase } from '../phrases';
+import { canSay, n, named, needLine, sayable, type Phrase } from '../phrases';
 import { startRound } from '../round';
 import { useVoice } from '../voice';
 import {
@@ -48,7 +48,13 @@ function itemPic(i: Item, city: CityState): string {
   if (p.slot === 'window') return buildingThumb(`w${p.value}`, { wall: '#e9e2d0', trim: '#2b5d8a', floors: 2, window: p.value as WindowStyle, roof: 'flat' }, 2, 's');
   return emojiThumb(p.value || '▫️', '#fff6dc');
 }
-const itemOffer = (i: Item, city: CityState): Offer => ({ request: { t: 'item', key: i.key }, name: i.name, said: [named(i.name)], pic: itemPic(i, city), price: i.price });
+const itemOffer = (i: Item, city: CityState): Offer => ({ request: { t: 'item', key: i.key }, name: i.name, said: [named(i.name), ...vehicleTraits(i)], pic: itemPic(i, city), price: i.price });
+/** What a vehicle does better than the one its Job comes with, said when he looks at it: it changes how the Job plays. */
+function vehicleTraits(i: Item): Phrase[] {
+  const v = vehicleOf(i.key), base = v && VEHICLES.find(x => x.job === v.job && x.free);
+  if (!v || !base || v === base) return [];
+  return [...(v.speed > base.speed ? ['It goes faster!' as const] : []), ...(v.extra ? ['It carries more!' as const] : []), ...(v.fly ? ['It flies!' as const] : [])];
+}
 function designPic(city: CityState, d: DesignKey, floors?: number) {
   const design = designOf(city, d)!;
   return buildingThumb(d, design.look, floors ?? design.look.floors, design.size);
@@ -121,10 +127,10 @@ export function CityScreen() {
     if (!canGrow(city, selected)) { nope(); void voice.say('It is the top floor!'); return; }
     const price = floorPrice(p.floors);
     if (balance < price) { nope(); void voice.say(...needLine(price - balance), 'Play a Round to earn Bolts!'); return; }
-    const done = buy({ t: 'floor', plot: selected });
+    const was = player.state.peek().city, done = buy({ t: 'floor', plot: selected });
     if (done.kind !== 'accepted') { nope(); return; }
     const top = tallest(player.state.peek().city) === p.floors + 1;
-    celebrate(['Another floor!', n(p.floors + 1), 'floors high!', ...(top ? ['This is your tallest tower!' as const] : []), ...trophyLines(done.trophies)]);
+    celebrate(['Another floor!', n(p.floors + 1), 'floors high!', ...(top ? ['This is your tallest tower!' as const] : []), ...trophyLines(done.trophies), ...rankUp(was)]);
   }
 
   // ---------- buying ----------
@@ -159,7 +165,7 @@ export function CityScreen() {
       const v = r.t === 'item' ? vehicleOf(r.key) : null;
       if (v) { lines.push('It drives', named(JOB_NAMES[v.job]), 'Jobs.'); setPaintFor(v.key); }
     }
-    celebrate([...lines, ...trophyLines(done.trophies)]);
+    celebrate([...lines, ...trophyLines(done.trophies), ...rankUp(before)]);
   }
   const trophyLines = (keys: readonly string[]): Phrase[] => keys.flatMap(k => { const t = TROPHIES.find(x => x.key === k); return t ? ['You won' as const, named(t.name)] : []; });
 
@@ -307,7 +313,7 @@ export function CityScreen() {
           <button class="best" aria-label="Biggest city" onClick={() => void voice.say('Your city is a', ...rankSaid(rank))}>👥 {population(city)}<small>{rank.name}{rank.n ? ` ${rank.n}` : ''}</small></button>
           <button class="best" aria-label="Tallest tower" onClick={() => void voice.say('Tallest tower', n(Math.min(200, Math.max(city.best.floors, tallest(city)))), 'floors high!')}>🏢 {Math.max(city.best.floors, tallest(city))}<small>🏁</small></button>
           <button class="best" aria-label="Most in one Job" onClick={() => void voice.say('Most in one Job', n(Math.min(200, city.best.most)))}>🚌 {city.best.most}<small>⭐</small></button>
-          <button class="best" aria-label="Jobs done" onClick={() => void voice.say(n(Math.min(200, city.done)), 'Jobs.')}>✅ {city.done}<small>Jobs</small></button>
+          <button class="best" aria-label="Jobs done" onClick={() => void voice.say(...(canSay(city.done) ? [n(city.done)] : []), 'Jobs.')}>✅ {city.done}<small>Jobs</small></button>
         </div>
         <div class="trophy-shelf">{TROPHIES.map(t => {
           const won = city.trophies.includes(t.key);
@@ -375,5 +381,10 @@ export function CityScreen() {
   );
 }
 
+/** A purchase that takes the city to a new rank, past any it has had (the ranks go on for ever: Super City 1, 2, 3...), is cheered. */
+function rankUp(before: CityState): Phrase[] {
+  const was = rankOf(Math.max(before.best.population, population(before))).at, now = rankOf(population(player.state.peek().city));
+  return now.at > was ? ['Your city is a', ...rankSaid(now)] : [];
+}
 function sizeLine(size: 's' | 'w' | 'l'): Phrase { return size === 'l' ? 'It needs a big plot.' : size === 'w' ? 'It needs a wide plot.' : 'It needs a small plot.'; }
 function rankSaid(rank: ReturnType<typeof rankOf>): Phrase[] { return rank.name === 'Super City' ? ['Super City', sayable(rank.n).said] : [named(rank.name)]; }

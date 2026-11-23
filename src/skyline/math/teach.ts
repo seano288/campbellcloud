@@ -89,7 +89,7 @@ async function countOnes(v: VoiceScope, l: Lesson, to: number) {
 async function teachGroups(q: GroupsQ, v: VoiceScope, l: Lesson, full: boolean) {
   if (q.form === 'same') {
     l.show.value = 'cue';
-    await v.say("Let's count each bus.");
+    await v.say(full ? "Let's count each bus." : 'Count the people on each bus.');
     if (!full) return;
     for (let i = 0; i < q.buses.length && v.active; i++) { l.focus.value = i; l.step.value = i + 1; sCount(i + 1); await v.say(n(q.buses[i]!)); }
     l.focus.value = null; l.hint.value = q.answer;
@@ -117,7 +117,7 @@ async function teachGroups(q: GroupsQ, v: VoiceScope, l: Lesson, full: boolean) 
   }
   // how many in all: count on by each bus
   if (q.form === 'words') l.show.value = 'picture';
-  await v.say(full ? "Let's count each bus." : 'Add a row each time.');
+  await v.say(full ? "Let's count each bus." : 'Add the people on each bus.');
   if (!full) { l.show.value = 'picture'; return; }
   await countGroups(v, l, q.groups, q.each, true, 'bus');
   l.hint.value = q.answer;
@@ -156,7 +156,8 @@ async function teachArray(q: ArrayQ, v: VoiceScope, l: Lesson, full: boolean) {
 
 async function teachPair(q: PairQ, v: VoiceScope, l: Lesson, full: boolean) {
   const count = q.form === 'which' ? Number(q.answer) : q.n;
-  l.show.value = 'pairs'; l.step.value = 0;
+  // Which number is even: the people shown are the right number of them, so they wait for the fuller lesson
+  l.show.value = q.form === 'which' && !full ? null : 'pairs'; l.step.value = 0;
   if (q.form === 'double' || q.form === 'half') {
     await v.say('Two equal halves make an even number.');
     if (!full) return;
@@ -218,7 +219,7 @@ async function teachTimes(q: TimesQ, v: VoiceScope, l: Lesson, full: boolean, le
     if (!full) return;
     await countGroups(v, l, q.a, q.b, false);
     l.hint.value = q.answer;
-    await v.say(n(q.a), 'times', n(q.b), 'is the same as which?');
+    await v.say('It has the same number of windows.');
     return;
   }
   const rows = q.form === 'fact' ? q.a : q.rows, cols = q.form === 'fact' ? q.b : q.cols;

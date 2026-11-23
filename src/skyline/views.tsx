@@ -31,8 +31,8 @@ export function promptOf(q: Question): Prompt {
         case 'buses': return line('How many buses?');
         case 'each': return line('How many people on each bus?');
         case 'total': return line(q.groups, 'buses.', q.each, 'on each.', 'How many people?');
-        case 'words': return line(q.groups, 'groups of', q.each, 'How many in all?');
-        case 'pick': return line('Which picture shows', q.groups, 'groups of', q.each);
+        case 'words': return { ...line(q.groups, 'groups of', q.each, 'How many in all?'), text: `${q.groups} groups of ${q.each}. How many in all?` };
+        case 'pick': return { ...line('Which picture shows', q.groups, 'groups of', q.each), text: `Which picture shows ${q.groups} groups of ${q.each}?` };
       }
       break;
     case 'array':
@@ -41,7 +41,7 @@ export function promptOf(q: Question): Prompt {
         case 'cols': return line('How many windows in each row?');
         case 'total': return line('How many windows?');
         case 'sentence': return line('Which adding sentence matches the building?');
-        case 'turn': return line('This building has', q.rows, 'rows of', q.cols, 'That one has', q.other.rows, 'rows of', q.other.cols, 'Do they have the same number of windows?');
+        case 'turn': return { ...line('This building has', q.rows, 'rows of', q.cols, 'That one has', q.other.rows, 'rows of', q.other.cols, 'Do they have the same number of windows?'), text: `This building has ${q.rows} rows of ${q.cols}. That one has ${q.other.rows} rows of ${q.other.cols}. Do they have the same number of windows?` };
       }
       break;
     case 'pair':
@@ -49,7 +49,7 @@ export function promptOf(q: Question): Prompt {
         case 'partner': return line('Everyone pairs up for a ride.', 'Does everyone get a partner?');
         case 'oddEven': return q.picture ? line('Is it odd or even?') : line('Is', q.n, 'odd or even?');
         case 'which': return line(q.want === 'even' ? 'Which number is even?' : 'Which number is odd?');
-        case 'double': return line('Which double makes', q.n);
+        case 'double': return { ...line('Which double makes', q.n), text: `Which double makes ${q.n}?` };
         case 'half': return line(q.n, 'people make two equal teams.', 'How many on each team?');
       }
       break;
@@ -59,10 +59,10 @@ export function promptOf(q: Question): Prompt {
       if (q.form === 'each') return line(q.total, 'boxes.', q.trucks, 'trucks.', 'How many on each truck?');
       return line(q.total, 'boxes.', q.each, 'on each truck.', 'How many trucks?');
     case 'times':
-      if (q.form === 'match') return line('Which building shows', q.rows, 'rows of', q.cols);
+      if (q.form === 'match') return { ...line('Which building shows', q.rows, 'rows of', q.cols), text: `Which building shows ${q.rows} rows of ${q.cols}?` };
       if (q.form === 'write') return line('Which one tells about this building?');
       if (q.form === 'fact') return { text: `${q.a} × ${q.b}. ${q.a} groups of ${q.b}. How many in all?`, speech: [n(q.a), 'times', n(q.b), n(q.a), 'groups of', n(q.b), 'How many in all?'] };
-      return { text: `${q.a} × ${q.b} is the same as which?`, speech: [n(q.a), 'times', n(q.b), 'is the same as which?'] };
+      return { text: `${q.a} × ${q.b}: ${q.a} rows of ${q.b}. Which is the same?`, speech: [n(q.a), 'times', n(q.b), n(q.a), 'rows of', n(q.b), 'is the same as which?'] };
   }
   return line('Try again!');
 }
@@ -331,12 +331,16 @@ function ShareView({ current, q, waiting }: { current: Current; q: ShareQ; waiti
   const voice = useVoice(), show = lesson.show.value, step = lesson.step.value, hint = lesson.hint.value;
   const trucks = q.form === 'trucks' ? q.total / q.each : q.trucks;
   const [loads, setLoads] = useState<number[]>(() => Array.from({ length: trucks }, () => 0)), [shared, setShared] = useState(false);
+  // The lesson deals the boxes out on these same trucks. Once it is over (or he starts dealing during 🔎), the trucks are his again:
+  // without this they stayed full after a miss and his taps went on the trucks unseen.
+  const handBack = () => { if (q.form === 'deal' && lesson.show.peek() === 'deal') { lesson.task.cancel(); lesson.show.value = null; lesson.step.value = 0; } };
+  useEffect(() => { if (!waiting) handBack(); }, [waiting]);
   // what the lesson shows: dealt one at a time, round and round (or whole trucks filled, for "how many trucks")
   const dealt = show === 'deal' ? Array.from({ length: trucks }, (_, t) => Math.floor(step / trucks) + (t < step % trucks ? 1 : 0)) : show === 'fill' && q.form === 'trucks' ? Array.from({ length: trucks }, (_, t) => (t < step ? q.each : 0)) : null;
   if (q.form === 'deal') {
     const pile = q.total - loads.reduce((a, b) => a + b, 0), ok = ready && !waiting && !shared;
-    const give = (t: number) => { if (!ok || current.actions.busy) return; if (pile <= 0) { sNope(); return; } sClink(); setLoads(ls => ls.map((x, i) => (i === t ? x + 1 : x))); };
-    const back = () => { if (ok && pile < q.total) { sClink(); setLoads(Array.from({ length: trucks }, () => 0)); } };
+    const give = (t: number) => { if (!ok || current.actions.busy) return; handBack(); if (pile <= 0) { sNope(); return; } sClink(); setLoads(ls => ls.map((x, i) => (i === t ? x + 1 : x))); };
+    const back = () => { if (!ok) return; handBack(); if (pile < q.total) { sClink(); setLoads(Array.from({ length: trucks }, () => 0)); } };
     const check = () => {
       if (!ok || current.actions.busy) return;
       if (pile > 0) { sNope(); void voice.say('Share all the boxes.'); return; }
