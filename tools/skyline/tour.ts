@@ -55,7 +55,8 @@ async function fits(name: string) {
     const out: string[] = [];
     if (document.documentElement.scrollWidth - innerWidth > 1) out.push('wider than the screen');
     const game = document.querySelector('.game.sl');
-    if (game && game.scrollHeight - game.clientHeight > 2) out.push(`question scrolls ${game.scrollHeight - game.clientHeight}px`);
+    // under the Round-done card the finished question is clipped and can't be scrolled to, so it isn't checked there
+    if (game && !document.querySelector('.sl-reward') && game.scrollHeight - game.clientHeight > 2) out.push(`question scrolls ${game.scrollHeight - game.clientHeight}px`);
     for (const el of document.querySelectorAll('button')) {
       const r = el.getBoundingClientRect(), style = getComputedStyle(el);
       if (!r.width || style.visibility === 'hidden' || el.closest('.asleep')) continue;
