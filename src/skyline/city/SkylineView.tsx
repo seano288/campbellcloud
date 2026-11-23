@@ -20,8 +20,8 @@ export function SkylineView({ city, night, near }: { city: CityState; night: boo
     if (flagAt && !nearest.some(x => x.id === flagAt)) { const f = placed.find(x => x.id === flagAt); if (f) nearest[nearest.length - 1] = f; }
     const shown = nearest.sort((a, b) => a.plot.block - b.plot.block || a.plot.rect.x - b.plot.rect.x);
     const widthOf = (x: (typeof shown)[number]) => (x.plot.size === 's' ? 58 : 110);
-    const tallest = Math.max(160, ...shown.map(x => faceHeight(x.p.floors) + 80));
-    const W = Math.max(300, shown.reduce((a, x) => a + widthOf(x) + 10, 30)), H = tallest + 60, k = Math.min(1.5, 4000 / W);
+    const tallest = Math.max(100, ...shown.map(x => faceHeight(x.p.floors) + 80)); // a small city fills the view instead of sitting under a big sky
+    const W = Math.max(240, shown.reduce((a, x) => a + widthOf(x) + 10, 30)), H = tallest + 60, k = Math.min(1.5, 4000 / W);
     c.width = Math.round(W * k); c.height = Math.round(H * k);
     c.style.aspectRatio = `${W} / ${H}`;
     const g = c.getContext('2d')!;
@@ -30,7 +30,7 @@ export function SkylineView({ city, night, near }: { city: CityState; night: boo
     sky.addColorStop(0, night ? '#0b1430' : '#8fd3ff'); sky.addColorStop(1, night ? '#2a2f5a' : '#e4f6ff');
     g.fillStyle = sky; g.fillRect(0, 0, W, H);
     if (night) { g.fillStyle = '#fff'; for (let i = 0; i < 60; i++) g.fillRect((i * 97) % W, (i * 53) % (H * .5), 2, 2); g.fillStyle = '#fff6c8'; g.beginPath(); g.arc(W - 60, 50, 24, 0, Math.PI * 2); g.fill(); }
-    else { g.fillStyle = '#ffd23f'; g.beginPath(); g.arc(W - 70, 56, 30, 0, Math.PI * 2); g.fill(); g.strokeStyle = O; g.lineWidth = 3; g.stroke(); }
+    else { const r = Math.min(30, H * .11); g.fillStyle = '#ffd23f'; g.beginPath(); g.arc(W - r - 34, r + 22, r, 0, Math.PI * 2); g.fill(); g.strokeStyle = O; g.lineWidth = 3; g.stroke(); }
     const ground = H - 40, flag = flagAt;
     g.fillStyle = night ? '#2a2e38' : '#5b6170'; g.fillRect(0, ground, W, 40);
     g.strokeStyle = '#ffd23f'; g.setLineDash([16, 12]); g.lineWidth = 3; g.beginPath(); g.moveTo(0, ground + 22); g.lineTo(W, ground + 22); g.stroke(); g.setLineDash([]);

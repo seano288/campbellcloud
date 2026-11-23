@@ -146,11 +146,23 @@ function Bus({ people, lit, focus, count, onTap }: { people: number; lit: boolea
   );
 }
 
-function Buses({ buses, lesson, onPick, pickedClass }: { buses: readonly number[]; lesson: Lesson; onPick?: () => void; pickedClass?: string }) {
+/** How wide each bus is drawn, as CSS: as big as fits in its container (the stage, or a picture) for the best number of columns,
+ *  allowing for the gaps and the count that sits on a bus's corner, and never wider than 440px. */
+function busWidth(buses: readonly number[], gap: number): string {
+  const rows = Math.max(1, ...buses.map(p => Math.ceil(p / 5))), ratio = ((5 * SEAT + 22) / (rows * SEAT + 42)).toFixed(3), n = buses.length;
+  const fits: string[] = [];
+  for (let c = 1; c <= Math.min(n, 4); c++) {
+    const r = Math.ceil(n / c);
+    fits.push(`min((100cqw - ${(c - 1) * gap + 4}px) / ${c}, (100cqh - ${(r - 1) * gap + 10}px) / ${r} * ${ratio})`);
+  }
+  return `min(440px, max(${fits.join(', ')}))`;
+}
+
+function Buses({ buses, lesson, onPick, pickedClass, tight }: { buses: readonly number[]; lesson: Lesson; onPick?: () => void; pickedClass?: string; tight?: boolean }) {
   const step = lesson.step.value, focus = lesson.focus.value, show = lesson.show.value, tapping = lesson.tapping.value;
   const same = buses.every(b => b === buses[0]);
   return (
-    <div class={cls('sl-buses', `n${buses.length}`, pickedClass)} onClick={onPick}>
+    <div class={cls('sl-buses', `n${buses.length}`, pickedClass)} style={`--bw:${busWidth(buses, tight ? 6 : 14)}`} onClick={onPick}>
       {buses.map((p, i) => (
         <Bus key={i} people={p} lit={i < step && show !== 'one'} focus={focus === i}
           count={i < step && same && show !== 'one' ? (i + 1) * p : show === 'one' && i === 0 && step > 0 ? step : null}
@@ -264,7 +276,7 @@ function GroupsView({ current, q, waiting }: { current: Current; q: GroupsQ; wai
     return <Shell current={current} ready={c.can} kind="groups form-pick" prompt={prompt}
       stage={<div class="sl-pictures">{q.pictures.map((p, i) => (
         <button key={i} class={cls('picture', c.wrong.includes(String(i)) && 'wrong', c.done === String(i) && 'right', hint === String(i) && 'hint')} aria-label={`Picture ${i + 1}`} onClick={() => c.tap(String(i))}>
-          <Buses buses={p} lesson={hint === String(i) ? lesson : lessonFor(new AbortController().signal)} />
+          <Buses buses={p} tight lesson={hint === String(i) ? lesson : lessonFor(new AbortController().signal)} />
         </button>
       ))}</div>} />;
   }

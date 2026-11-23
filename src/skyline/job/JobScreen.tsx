@@ -12,7 +12,7 @@ import { confetti } from '../../celebrate/effects';
 import { earnedLine } from '../../currency/kind';
 import { IconButton } from '../../ui/bits';
 import { CurrencyIcon } from '../../ui/currency';
-import { drawPerson, drawVehicle, emoji, O } from '../art/draw';
+import { drawPerson, drawVehicle, emoji, O, vehicleSize } from '../art/draw';
 import { SKYLINE_CURRENCY } from '../branding';
 import { DISTRICTS, itemOf, vehicleOf } from '../city/catalog';
 import { type JobPay, type JobRef } from '../city/city';
@@ -198,10 +198,11 @@ export function JobScreen() {
       <div class="screen sl-job-screen card-phase" data-phase="card">
         <header class="job-head"><IconButton label="City" onClick={() => { if (voice.active) screen.value = 'city'; }}>🏙️</IconButton></header>
         <div class="job-card">
-          <h2>{jobTitle(ref)}{'named' in ref ? '' : ` ${ref.n}`}</h2>
-          <VehiclePic vehicle={j.vehicle} />
-          <p class="job-vehicle">{v.name}</p>
-          <p class="job-stops">⭐ × {j.plan.stops.length}</p>
+          <div class="job-ticket">
+            <h2>{jobTitle(ref)}{'named' in ref ? '' : ` ${ref.n}`}</h2>
+            <VehiclePic vehicle={j.vehicle} />
+            <div class="job-meta"><p class="job-vehicle">{v.name}</p><p class="job-stops">⭐ × {j.plan.stops.length}</p></div>
+          </div>
           <button class="big-btn go pulse" aria-label="Go" onClick={() => { if (voice.active) setPhase('live'); }}><span class="e">▶</span></button>
         </div>
       </div>
@@ -235,15 +236,21 @@ export function JobScreen() {
   );
 }
 
-/** His vehicle, drawn as it drives, for the card and the shop. */
+/** His vehicle on the Job's card: drawn from above as it drives, as big as fits, on a stretch of road with its lane line. */
 export function VehiclePic({ vehicle, paint }: { vehicle: string; paint?: string }) {
   const ref = useRef<HTMLCanvasElement>(null);
   useEffect(() => {
     const c = ref.current;
     if (!c) return;
-    const g = c.getContext('2d')!, v = vehicleOf(vehicle)!;
-    c.width = 240; c.height = 150; g.clearRect(0, 0, 240, 150);
-    g.save(); g.translate(120, 75); g.scale(2.2, 2.2); drawVehicle(g, v, paint ?? paintOf(vehicle), 0, 0, 0, 0.3); g.restore();
+    const g = c.getContext('2d')!, v = vehicleOf(vehicle)!, W = 480, H = 240, { L, W: wide } = vehicleSize(v);
+    c.width = W; c.height = H;
+    // pavement, kerbs, the road and its dashed lane line
+    g.fillStyle = '#d9d2c3'; g.fillRect(0, 0, W, H);
+    g.fillStyle = '#5b6170'; g.fillRect(0, 34, W, H - 68);
+    g.fillStyle = O; g.fillRect(0, 30, W, 5); g.fillRect(0, H - 35, W, 5);
+    g.strokeStyle = '#ffd23f'; g.lineWidth = 7; g.setLineDash([34, 24]); g.beginPath(); g.moveTo(0, H / 2 + 26); g.lineTo(W, H / 2 + 26); g.stroke(); g.setLineDash([]);
+    const k = Math.min(300 / L, 96 / wide, 5);
+    g.save(); g.translate(W / 2, v.fly ? H / 2 : H / 2 - 22); g.scale(k, k); drawVehicle(g, v, paint ?? paintOf(vehicle), 0, 0, 0, 0.3); g.restore();
   }, [vehicle, paint]);
   return <canvas ref={ref} class="vehicle-pic" aria-hidden="true" />;
 }

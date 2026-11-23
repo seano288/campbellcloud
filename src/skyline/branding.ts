@@ -1,8 +1,8 @@
 export const skylineBranding = {
   title: 'Skyline',
   shortName: 'Skyline',
-  background: '#1f3a5f',
-  theme: '#1f3a5f',
+  background: '#3aa6ea',
+  theme: '#3aa6ea',
 } as const;
 
 /** What his Rounds earn: Bolts, like the vehicle games. They buy buildings, floors and vehicles for his city. */

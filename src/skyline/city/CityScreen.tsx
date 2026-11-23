@@ -217,7 +217,7 @@ export function CityScreen() {
       <div class="plot-panel">
         <div class="plot-head">
           <button class="x" aria-label="Close" onClick={() => { setSelected(null); setMoving(null); setSwapping(false); }}>✕</button>
-          {selPlaced ? <img class="plot-pic" src={designPic(city, selPlaced.d, selPlaced.floors)} alt="" /> : <span class="plot-empty">{sel.size === 's' ? '▫️' : sel.size === 'w' ? '▭' : '⬜'}</span>}
+          {selPlaced ? <img class="plot-pic" src={designPic(city, selPlaced.d, selPlaced.floors)} alt="" /> : <span class={`plot-empty ${sel.size}`} aria-hidden="true" />}
           {selPlaced && designOf(city, selPlaced.d)?.tower && <span class="floors-chip">🏢 {selPlaced.floors}</span>}
         </div>
         {selPlaced && !swapping

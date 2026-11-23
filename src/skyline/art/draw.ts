@@ -212,9 +212,15 @@ export function reachAbove(look: Look, floors: number): number {
 
 // ---------- vehicles and people, from above ----------
 
-export function drawVehicle(c: C, v: Pick<Vehicle, 'shape' | 'radius'>, colour: string, x: number, y: number, angle: number, t: number, wobble = 0) {
+/** How long and wide a vehicle is drawn, from above (a helicopter: its rotor's reach). */
+export function vehicleSize(v: Pick<Vehicle, 'shape' | 'radius'>): { L: number; W: number } {
+  if (v.shape === 'heli') return { L: 72, W: 64 };
   const L = v.shape === 'bendy' ? v.radius * 3.4 : v.shape === 'bus' || v.shape === 'double' || v.shape === 'open' || v.shape === 'tram' ? v.radius * 2.6 : v.shape === 'lorry' || v.shape === 'truck' ? v.radius * 2.4 : v.shape === 'bike' ? v.radius * 1.8 : v.radius * 2;
-  const W = v.shape === 'bike' ? v.radius * .9 : v.radius * 1.3;
+  return { L, W: v.shape === 'bike' ? v.radius * .9 : v.radius * 1.3 };
+}
+
+export function drawVehicle(c: C, v: Pick<Vehicle, 'shape' | 'radius'>, colour: string, x: number, y: number, angle: number, t: number, wobble = 0) {
+  const { L, W } = vehicleSize(v);
   c.save(); c.translate(x, y); c.rotate(angle + Math.sin(t * 30) * wobble * .15);
   c.lineWidth = 2.5; c.strokeStyle = O; c.lineJoin = 'round';
   if (v.shape === 'heli') {
