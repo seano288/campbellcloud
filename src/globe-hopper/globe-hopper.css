@@ -1,0 +1,307 @@
+/* Globe Hopper: Time Flies' styles (imported before this file) taken to a launch day. A deep blue sky going to black, concrete and steel
+   for the base, white rockets with bold stripes, and an Earth in clear friendly colours, one fixed colour for each continent. The family
+   look stays: Bungee titles, Nunito reading, thick black outlines and chunky drop shadows that press in. The family's colour signals stay
+   too: green is Go and right, yellow is look here, orange is being read aloud. Every rule is scoped to this game's own classes (gh-, ls-,
+   base-) or its screens, so nothing leaks between kinds. */
+:root{
+  --space:#03040c;--night:#0b1f4d;--night-2:#14306b;--sky:#3d8fe0;--sky-2:#8fc8f5;--sky-3:#d4ecff;
+  --concrete:#b8bec6;--concrete-2:#8a9099;--steel:#3a3f48;--steel-2:#2b2f36;--sun:#ffd23f;--flame:#ff7a00;--sign:#14161b;--go-green:#2fa84f;
+  --floor:max(56px,calc(env(safe-area-inset-bottom) + 40px));
+}
+html,body{background:var(--night)}
+
+/* ---------- the Start screen ---------- */
+.start.gh-start{background:radial-gradient(circle at 50% 120%,#1d5fb0 0 38%,transparent 38.5%),linear-gradient(var(--space),var(--night) 70%);padding-bottom:calc(var(--floor) + 24px)}
+.gh-start h1{color:var(--sun);text-shadow:3px 3px 0 var(--flame),6px 6px 0 #000;line-height:1.02}
+.gh-start-art{display:flex;align-items:flex-end;justify-content:center;gap:12px}
+.gh-start-art img{height:min(30vh,170px);filter:drop-shadow(0 5px 0 #000)}
+.gh-start-art .gh-play-globe{width:min(30vh,170px);height:min(30vh,170px);position:relative}
+@media (max-height:520px){.gh-start-art img,.gh-start-art .gh-play-globe{height:24vh}.gh-start-art .gh-play-globe{width:24vh}.start.gh-start{gap:10px}}
+/* a globe drawn in CSS for tiles: blue sea with green and gold land turning */
+.gh-play-globe{display:block;border-radius:50%;border:5px solid #000;overflow:hidden;background:radial-gradient(circle at 35% 30%,#7fc1f5,#1d5fb0 70%);box-shadow:0 7px 0 #000,inset -14px -10px 0 #0003}
+.gh-play-globe i{display:block;width:300%;height:100%;background:
+  radial-gradient(ellipse 9% 22% at 8% 40%,#5cbf4a 98%,transparent),radial-gradient(ellipse 7% 18% at 16% 64%,#a66bd9 98%,transparent),
+  radial-gradient(ellipse 8% 24% at 30% 52%,#f59b2e 98%,transparent),radial-gradient(ellipse 5% 9% at 30% 22%,#ef5a7a 98%,transparent),
+  radial-gradient(ellipse 13% 18% at 44% 30%,#f5cf3b 98%,transparent),radial-gradient(ellipse 5% 8% at 55% 70%,#e0533c 98%,transparent),
+  radial-gradient(ellipse 9% 22% at 41.3% 40%,#5cbf4a 98%,transparent),radial-gradient(ellipse 7% 18% at 49.3% 64%,#a66bd9 98%,transparent),
+  radial-gradient(ellipse 8% 24% at 63.3% 52%,#f59b2e 98%,transparent),radial-gradient(ellipse 5% 9% at 63.3% 22%,#ef5a7a 98%,transparent),
+  radial-gradient(ellipse 13% 18% at 77.3% 30%,#f5cf3b 98%,transparent),radial-gradient(ellipse 5% 8% at 88.3% 70%,#e0533c 98%,transparent);
+  animation:gh-spin 24s linear infinite}
+@keyframes gh-spin{from{transform:translateX(0)}to{transform:translateX(-33.333%)}}
+
+/* ---------- Home ---------- */
+.home-screen.gh-home-screen,.round-screen{background:linear-gradient(175deg,var(--night) 0%,var(--night-2) 55%,#1b3f7a 100%)}
+.gh-home-screen .home-head h1{color:var(--sun);text-shadow:2px 2px 0 var(--flame),4px 4px 0 #000}
+.home.gh-home{padding-bottom:var(--floor);grid-template-areas:"p p" "a r" "k k";grid-template-rows:minmax(0,1fr) minmax(0,.8fr) auto;grid-template-columns:1.3fr 1fr}
+@media (orientation:landscape){.home.gh-home{grid-template-areas:"p a" "p r" "k k";grid-template-rows:minmax(0,1fr) minmax(0,.6fr) auto;grid-template-columns:1fr 1.2fr}}
+/* Play is the Earth with a rocket in orbit round it, and the big green go in front */
+.gh-home .t-play{grid-area:p;position:relative;overflow:hidden;background:radial-gradient(circle at 50% 50%,#14306b,var(--space) 80%);--door:max(104px,calc(172px*var(--u)))}
+.gh-home .t-play .gh-play-globe{position:absolute;left:50%;top:50%;width:min(78%,calc(340px*var(--u)));aspect-ratio:1;height:auto;transform:translate(-50%,-50%)}
+.gh-home .t-play .gh-play-orbit{position:absolute;left:50%;top:50%;font-size:calc(40px*var(--u));animation:gh-orbit 9s linear infinite;filter:drop-shadow(0 3px 0 #000)}
+@keyframes gh-orbit{from{transform:translate(-50%,-50%) rotate(0) translateX(min(46vmin,calc(210px*var(--u)))) rotate(90deg)}to{transform:translate(-50%,-50%) rotate(360deg) translateX(min(46vmin,calc(210px*var(--u)))) rotate(90deg)}}
+.gh-home .t-play .e{position:relative;z-index:1;display:grid;place-items:center;width:var(--door);height:var(--door);border-radius:50%;border:5px solid #000;background:var(--go);color:#fff;font-size:calc(72px*var(--u));padding-left:calc(8px*var(--u));box-shadow:0 0 0 8px var(--go-green),0 0 0 12px #000,0 14px 0 12px #000}
+.gh-home .t-play:active{transform:translateY(4px)}
+.gh-home .t-base{grid-area:a;position:relative;flex-direction:column;gap:2px;padding:4px;background:linear-gradient(var(--sky-2) 0 70%,var(--concrete) 70%);color:#fff;overflow:hidden}
+.gh-home .t-base img{flex:1;min-height:0;max-width:100%;object-fit:contain;filter:drop-shadow(0 4px 0 #0006)}
+.gh-home .nm{font-size:calc(24px*var(--u));color:var(--sun);background:#000;border-radius:10px;padding:2px 10px}
+.gh-home .t-next{grid-area:r;position:relative;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:calc(8px*var(--u));padding:calc(10px*var(--u));color:#fff;cursor:default;
+  background:radial-gradient(circle at 80% 20%,#ffffff22 0 2px,transparent 3px) 0 0/40px 40px,radial-gradient(circle at 30% 30%,#1d4a8f,var(--space) 80%)}
+.gh-home .t-next:active{transform:none;box-shadow:0 7px 0 #000}
+.gh-home .next-dest{display:flex;flex-wrap:wrap;justify-content:center;gap:6px}
+.gh-home .nd-name{font:900 max(16px,calc(24px*var(--u)))/1.05 Nunito,sans-serif;background:#fff;color:#14161b;border:3px solid #000;border-radius:999px;padding:4px 12px;box-shadow:0 4px 0 #000}
+.gh-home .board-head{font:400 max(14px,calc(18px*var(--u))) Bungee,sans-serif;color:var(--sun)}
+.gh-home .cup-count{font:900 max(14px,calc(18px*var(--u))) Nunito,sans-serif}
+.gh-home .race-badge{position:absolute;right:10px;top:8px;background:#000;color:var(--sun);border-radius:999px;padding:3px 12px;font:900 max(16px,calc(22px*var(--u))) Nunito,sans-serif;border:2px solid var(--sun)}
+.gh-home .t-kinds{grid-area:k;background:linear-gradient(var(--steel),var(--steel-2));display:grid;grid-template-columns:repeat(3,1fr);grid-auto-rows:minmax(max(48px,calc(56px*var(--u))),auto);column-gap:calc(12px*var(--u));padding:0 calc(14px*var(--u)) calc(12px*var(--u));cursor:default;color:#fff}
+.gh-home .t-kinds:active{transform:none;box-shadow:0 7px 0 #000}
+.gh-home .kinds-head{grid-column:1/-1;justify-self:center;margin:calc(10px*var(--u)) 0 calc(4px*var(--u));padding:2px 14px;font:400 max(14px,calc(16px*var(--u))) Bungee,sans-serif;color:#14161b;background:var(--sun);border:3px solid #000;border-radius:10px}
+.gh-home .kind{position:relative;display:flex;align-items:center;gap:10px;background:none;border:0;padding:2px;min-height:44px;text-align:left;color:#fff;cursor:default;font-size:max(20px,calc(26px*var(--u)))}
+.gh-home .kind .kb{flex:1;min-width:0;display:flex;flex-direction:column;gap:4px}
+.gh-home .kind .kn{font:900 max(15px,calc(20px*var(--u))) Nunito,sans-serif;line-height:1.1}
+.gh-home .kind .lvl i{width:max(12px,calc(15px*var(--u)));height:max(12px,calc(15px*var(--u)));border:2px solid #000;background:var(--steel-2)}
+.gh-home .kind .lvl i.on{background:radial-gradient(circle at 35% 35%,#fff3b0,#ffc400 60%);box-shadow:0 0 6px 1px #ffc40099}
+.gh-home .kind.locked{color:#ffffff8c}
+.gh-home .kind.fresh{animation:pulse 1s infinite}
+.gh-home .kind .badge{position:absolute;right:-2px;top:2px;font-size:calc(18px*var(--u))}
+@media (max-width:560px){.gh-home .t-kinds{grid-template-columns:repeat(2,1fr)}}
+@media (orientation:landscape) and (max-height:520px){
+  .home.gh-home{grid-template-rows:minmax(0,1fr) minmax(0,.7fr) auto}
+  .gh-home .t-kinds{grid-template-columns:repeat(3,1fr);grid-auto-rows:44px;padding-bottom:4px}
+  .gh-home .kinds-head{display:none}
+  .gh-home .t-play .e{--door:84px;font-size:44px}
+}
+
+/* ---------- a question ---------- */
+.round-screen .card{background:#f7f9fc}
+.game.gh{justify-content:flex-start;gap:calc(8px*var(--u));padding:calc(10px*var(--u));overflow:hidden}
+@media (min-height:600px){.game.gh{padding-bottom:max(calc(10px*var(--u)),calc(var(--floor) - 14px))}}
+@media (orientation:landscape) and (max-height:520px){.game.gh{padding-bottom:calc(var(--floor) - 20px)}}
+.game.gh .ask{flex:none;width:100%;max-width:100%;padding-bottom:calc(8px*var(--u));border-bottom:4px solid #e3e6eb}
+.game.gh .ask h2{flex:1;min-width:0;font:900 max(19px,calc(30px*var(--u)))/1.15 Nunito,sans-serif;text-align:left;text-wrap:balance}
+.game.gh .help-btn{flex:none;font-size:max(20px,calc(24px*var(--u)));padding:4px 12px}
+.gh-body{flex:1;min-height:0;width:100%;display:flex;flex-direction:column;gap:calc(10px*var(--u));align-items:stretch}
+.gh-stage{position:relative;flex:1 1 0;min-height:0;min-width:0;display:flex;align-items:center;justify-content:center}
+.gh-controls{flex:none;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:calc(12px*var(--u))}
+@media (orientation:landscape){.gh-body{flex-direction:row}.gh-controls{flex:0 0 auto;width:clamp(200px,30vw,400px)}}
+.game.gh .gh-controls{transition:opacity .25s,filter .25s}
+.game.gh[data-ready="no"] .gh-controls{opacity:.55;filter:saturate(.5)}
+/* the Earth: the flat map keeps its 2:1 shape, the globe its circle; both as big as the stage allows */
+.gh-earth{display:block;touch-action:none;-webkit-user-select:none;user-select:none;-webkit-touch-callout:none;cursor:pointer}
+.gh-earth.map{width:100%;height:auto;aspect-ratio:2/1;max-height:100%;max-width:calc(100cqh*2)}
+.gh-stage{container-type:size;overflow:hidden}
+.gh-stage>.gh-earth.map{width:min(100%,200cqh);height:auto}
+.gh-earth.globe{height:100%;width:auto;aspect-ratio:1;max-width:100%}
+.gh-stage>.gh-earth.globe{width:min(100cqw,100cqh);height:min(100cqw,100cqh)}
+.gh-shape{width:min(100cqw,100cqh*1.3);height:min(100cqh,100cqw*.8);border-radius:18px;background:var(--night);border:4px solid #000;box-shadow:0 5px 0 #000}
+/* landform cards */
+.gh-cards{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:calc(12px*var(--u));width:min(100%,calc(100cqh*4.4));align-items:center}
+.gh-card{padding:0;border:0;background:none;border-radius:16px;box-shadow:0 6px 0 #000;transition:transform .1s}
+.gh-card:active{transform:translateY(4px);box-shadow:0 2px 0 #000}
+.gh-card .gh-landform{display:block;width:100%;height:auto;min-height:44px}
+.gh-card.wrong{opacity:.35;filter:grayscale(1)}
+.gh-card.right{outline:6px solid var(--green);outline-offset:3px}
+@media (orientation:portrait) and (max-width:560px){.gh-cards{grid-template-columns:1fr 1fr}.gh-cards .gh-card:last-child{grid-column:1/-1;justify-self:center;width:50%}}
+/* name buttons: each with its continent's colour chip, lit orange as it is read */
+.gh-choices{display:flex;flex-direction:column;gap:calc(10px*var(--u));width:100%}
+@media (orientation:portrait){.gh-choices{flex-direction:row;flex-wrap:wrap;justify-content:center}.gh-choices .gh-choice{flex:1 1 30%}}
+.gh-choice{display:flex;align-items:center;justify-content:center;gap:10px;min-height:max(56px,calc(72px*var(--u)));font:900 max(18px,calc(26px*var(--u))) Nunito,sans-serif}
+.gh-choice .chip{flex:none;width:max(22px,calc(28px*var(--u)));height:max(22px,calc(28px*var(--u)));border-radius:50%;background:var(--chip);border:3px solid #000}
+.gh-choice.lit{outline:6px solid var(--flame);outline-offset:2px}
+.gh-choice.wrong{opacity:.4}
+.gh-choice.right,.choice.hint{background:var(--green);color:#fff}
+.gh-scene-row{display:flex;gap:10px;align-items:center;justify-content:center;width:100%;height:100%}
+.gh-scene-row .gh-scene{flex:0 0 32%;height:auto;max-height:100%}
+.gh-scene-row .gh-earth.map{flex:1;min-width:0;width:auto;max-height:100%}
+@media (orientation:portrait){.gh-scene-row{flex-direction:column}.gh-scene-row .gh-scene{flex:none;width:60%}.gh-scene-row .gh-earth.map{width:100%;flex:none}}
+/* the lesson's pop-up: a place's picture and name, or a landform from the side and from above */
+.gh-popup{pointer-events:none;position:absolute;right:8px;top:8px;display:flex;align-items:center;gap:8px;background:#fff;border:4px solid #000;border-radius:16px;padding:6px 14px;box-shadow:0 5px 0 #000;font:900 max(18px,calc(24px*var(--u))) Nunito,sans-serif;animation:gh-pop .35s ease-out}
+.gh-popup .e{font-size:1.8em;line-height:1}
+.gh-popup.lesson-card{left:50%;right:auto;top:50%;transform:translate(-50%,-50%);flex-wrap:wrap;justify-content:center;max-width:94%}
+.gh-popup.lesson-card{max-height:96%}
+.gh-popup.lesson-card .gh-landform{width:min(38cqw,180px,calc((100cqh - 70px)*1.33));height:auto}
+.gh-popup.lesson-card b{flex-basis:100%;text-align:center;text-transform:capitalize}
+@keyframes gh-pop{from{transform:scale(.6);opacity:0}}
+.gh-popup.lesson-card{animation:none}
+/* meeting a continent: the globe and the map side by side */
+.gh-meet{gap:10px}
+.gh-meet-globe{flex:0 0 38%;height:100%;display:grid;place-items:center;container-type:size}
+.gh-meet-map{flex:1;min-width:0;height:100%;display:grid;place-items:center;container-type:size}
+.gh-meet-globe .gh-earth{width:min(100cqw,100cqh);height:min(100cqw,100cqh)}
+.gh-meet-map .gh-earth{width:min(100cqw,200cqh);height:auto}
+@media (orientation:portrait){.gh-meet{flex-direction:column}.gh-meet-globe{flex:0 0 42%;width:100%}.gh-meet-map{width:100%}}
+
+/* ---------- the end of a Round ---------- */
+.gh-reward{background:radial-gradient(circle at 50% 130%,#1d5fb0 0 34%,transparent 34.5%),linear-gradient(var(--space),var(--night) 70%);padding-bottom:calc(var(--floor) + 16px)}
+.earned-race{font:900 calc(30px*var(--u)) Nunito,sans-serif;color:var(--sun);background:#000;border-radius:999px;padding:6px 20px;box-shadow:inset 0 0 0 3px var(--sun)}
+.gh-reward .btns{align-items:center}
+.race-btn{gap:12px;min-height:max(80px,calc(110px*var(--u)));padding:calc(10px*var(--u)) calc(26px*var(--u));font-size:calc(30px*var(--u))}
+.race-flag{font-size:1.3em}
+.race-word{font:400 max(18px,calc(30px*var(--u))) Bungee,sans-serif;white-space:nowrap}
+.race-count{font-size:.7em;background:#0006;border-radius:12px;padding:2px 10px;white-space:nowrap}
+.gh-reward .btns .again.second{font-size:calc(28px*var(--u));padding:calc(18px*var(--u)) calc(24px*var(--u))}
+@media (min-width:760px) and (min-height:760px){.gh-reward>h2,.gh-reward>.bigpile,.gh-reward>.earned-race,.gh-reward>.lines,.gh-reward>.btns,.gh-reward>.icon-btn{zoom:1.3}}
+
+/* ---------- the Rocket Base ---------- */
+.base-screen{gap:calc(8px*var(--u));padding:max(8px,env(safe-area-inset-top)) max(10px,env(safe-area-inset-right)) max(10px,env(safe-area-inset-bottom)) max(10px,env(safe-area-inset-left));background:radial-gradient(circle at 30% 0%,#22478a,var(--night) 70%);color:#fff}
+.gh-head{display:flex;align-items:center;gap:10px;flex:none;min-width:0}
+.gh-head h1{margin:0 auto 0 0;font:400 calc(30px*var(--u)) Bungee,sans-serif;color:var(--sun);text-shadow:2px 2px 0 #000;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+@media (max-width:430px){.gh-head h1{font-size:16px}}
+.rank-chip{display:flex;align-items:center;gap:6px;background:var(--steel);color:var(--sun);border:3px solid #000;border-radius:10px;padding:2px 10px;font:900 max(15px,calc(20px*var(--u))) Nunito,sans-serif;white-space:nowrap}
+.rank-chip small{font-size:.75em;color:#fff}
+@media (max-width:430px){.rank-chip small{display:none}}
+.base-main{flex:1.5 1 0;min-height:0;display:grid;grid-template-columns:minmax(0,1fr) auto;gap:calc(10px*var(--u))}
+.base-view{position:relative;min-height:0;border:4px solid #000;border-radius:16px;overflow:hidden;background:var(--sky);box-shadow:0 6px 0 #000}
+.base-side{display:flex;flex-direction:column;gap:calc(8px*var(--u));justify-content:center;width:clamp(150px,24vw,240px);min-height:0}
+@media (orientation:portrait){.base-main{grid-template-columns:minmax(0,1fr);grid-template-rows:minmax(0,1fr) auto}.base-side{flex-direction:row;width:auto;align-items:stretch}.base-side .fly-btn{flex:1}}
+.fly-btn{display:grid;grid-template-columns:auto 1fr auto;grid-template-rows:auto auto;align-items:center;column-gap:8px;padding:calc(8px*var(--u)) calc(14px*var(--u));min-height:max(76px,calc(96px*var(--u)))}
+.fly-plane{font-size:calc(40px*var(--u));grid-row:1/3}
+.fly-word{font:400 max(20px,calc(30px*var(--u))) Bungee,sans-serif}
+.fly-to{grid-column:2/4;font:900 max(13px,calc(15px*var(--u))) Nunito,sans-serif;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;text-align:left}
+.fly-btn .race-count{font-size:max(18px,calc(22px*var(--u)))}
+.gh-goal{display:flex;align-items:center;gap:8px;min-height:max(52px,calc(60px*var(--u)));padding:4px 10px;border-radius:999px;border:3px solid var(--sun);background:#000;color:#fff;min-width:0}
+.goal-icon{font-size:calc(28px*var(--u))}
+.goal-bar{flex:1;min-width:40px;height:14px;border-radius:7px;background:#fff3;overflow:hidden}
+.goal-bar i{display:block;height:100%;background:var(--sun);border-radius:7px;transition:width .4s}
+.goal-num{font:900 max(14px,calc(16px*var(--u))) Nunito,sans-serif;white-space:nowrap}
+.side-row{display:flex;gap:8px}
+.side-row:empty{display:none}
+.side-btn{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;min-height:max(56px,calc(68px*var(--u)));font-size:calc(32px*var(--u));padding:4px;background:#fff;color:#14161b}
+.side-word{font:400 max(11px,calc(13px*var(--u))) Bungee,sans-serif;line-height:1}
+@media (orientation:portrait){.base-side .gh-goal{flex:1}.side-row{flex:none}.side-btn{width:max(56px,calc(68px*var(--u)))}}
+@media (orientation:portrait) and (max-width:560px){.base-side{flex-wrap:wrap}.base-side .fly-btn{flex:1 1 100%}}
+.buy-bar{flex:none;display:flex;align-items:center;gap:10px;padding:6px 10px;background:#000;border:3px solid var(--sun);border-radius:16px}
+.buy-icon{font-size:calc(30px*var(--u))}
+.buy-name{flex:1;min-width:0;font:900 max(16px,calc(22px*var(--u))) Nunito,sans-serif;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.buy-need{display:flex;align-items:center;gap:4px;font:900 max(16px,calc(20px*var(--u))) Nunito,sans-serif;color:var(--sun);white-space:nowrap}
+.buy-btn{display:flex;align-items:center;gap:6px;font:900 max(20px,calc(26px*var(--u))) Nunito,sans-serif;padding:6px 18px;min-height:52px}
+.gh-tabs{flex:none;display:grid;grid-template-columns:repeat(8,minmax(0,1fr));gap:4px}
+@media (max-width:760px),(orientation:landscape) and (max-height:520px){.gh-tabs{grid-template-columns:repeat(8,minmax(44px,1fr));overflow-x:auto}.tab-name{display:none}}
+.gh-tab{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;min-height:max(48px,calc(58px*var(--u)));min-width:44px;border-radius:12px;background:var(--steel-2);border:3px solid #fff3;color:#fff;padding:0 2px;font-size:calc(22px*var(--u))}
+.tab-name{font:900 max(11px,calc(13px*var(--u))) Nunito,sans-serif}
+.gh-tab.on{background:var(--sun);border-color:#000;box-shadow:0 4px 0 #000;color:#000}
+.gh-tab.fresh{animation:pulse 1s infinite}
+.gh-tray{flex:1 1 0;min-height:max(130px,22vh);overflow-y:auto;overscroll-behavior:contain;touch-action:pan-y;display:flex;flex-direction:column;gap:8px;padding-bottom:calc(var(--floor) - 20px)}
+.tiles{display:grid;grid-template-columns:repeat(auto-fill,minmax(max(104px,calc(128px*var(--u))),1fr));grid-auto-rows:max-content;gap:calc(8px*var(--u))}
+.gh-tile{position:relative;display:flex;flex-direction:column;align-items:center;gap:2px;padding:6px 4px;min-height:96px;border-radius:14px;background:var(--steel-2);border:3px solid #fff3;color:#fff;font:800 max(13px,calc(15px*var(--u)))/1.1 Nunito,sans-serif}
+.gh-tile img,.gh-tile canvas{width:92%;height:calc(56px*var(--u));min-height:40px;object-fit:contain}
+.gh-tile .gh-module-preview{width:56px;height:56px}
+.tile-icon{font-size:max(28px,calc(36px*var(--u)));line-height:1.2}
+.swatch-dot{display:inline-block;width:max(36px,calc(44px*var(--u)));height:max(36px,calc(44px*var(--u)));border-radius:50%;border:3px solid #000;box-shadow:0 0 0 2px #fff5}
+.chip-btn .swatch-dot{width:28px;height:28px;vertical-align:middle}
+.tile-name{min-height:2.2em;display:grid;place-items:center;text-align:center}
+.tile-cost,.tile-tag{display:inline-flex;align-items:center;gap:2px;font-size:max(14px,1.05em);color:#ffd97a}
+.tile-lift{position:absolute;left:4px;top:4px;background:#000a;border-radius:999px;padding:0 6px;font-weight:900;font-size:.9em}
+.tile-count{position:absolute;right:4px;top:4px;background:var(--sun);color:#000;border-radius:999px;padding:0 6px;font-weight:900}
+.gh-tile.locked{background:#14161b;opacity:.75}
+.gh-tile.afford{border-color:var(--sun)}
+.gh-tile.owned{border-color:#3ddc8466}
+.gh-tile.worn{border-color:var(--green);background:#143526;color:#c4f7dc}
+.gh-tile.flown{background:#1b2a4a}
+.gh-tile.picked{outline:3px solid #fff;outline-offset:1px}
+.fleet-bar{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+.fleet-bar img{width:auto;height:max(60px,calc(90px*var(--u)));object-fit:contain;background:linear-gradient(var(--sky-2) 0 80%,var(--concrete) 80%);border:3px solid #000;border-radius:12px;padding:2px 10px}
+.chip-btn{min-height:48px;min-width:48px;padding:4px 14px;border-radius:999px;border:3px solid #000;background:#fff;color:#000;font:900 max(16px,calc(20px*var(--u))) Nunito,sans-serif;box-shadow:0 3px 0 #000}
+.chip-note{font:900 max(16px,calc(18px*var(--u))) Nunito,sans-serif;color:#fffc}
+.chip-note.pulse{animation:pulse 1s infinite;color:var(--sun)}
+.slot-row h3{margin:4px 0;font:400 max(14px,calc(16px*var(--u))) Bungee,sans-serif;color:var(--sun)}
+.gh-designer{display:flex;flex-wrap:wrap;align-items:center;gap:8px;padding:8px;border-radius:14px;background:#0008;border:3px solid var(--sun)}
+.gh-designer .gh-module-preview{width:72px;height:72px;background:var(--space);border-radius:12px;border:3px solid #000}
+.gh-patch{display:inline-grid;place-items:center;border-radius:50%;border:4px solid;box-shadow:0 3px 0 #000;flex:none;line-height:1}
+.gh-log{display:flex;flex-direction:column;gap:8px}
+.log-row{font:900 max(18px,calc(24px*var(--u))) Nunito,sans-serif}
+.log-row small{color:var(--sun)}
+/* his base from the side: sky, the pads in a row with his rockets, the tower, and his buildings along the ground */
+.gh-base-view{position:absolute;inset:0;display:flex;flex-direction:column;background:linear-gradient(var(--sky) 0,var(--sky-2) 62%,var(--sky-3) 74%)}
+.gh-base-view.night{background:linear-gradient(#020617,#0b1f4d 74%)}
+.gh-pads{flex:1;min-height:0;display:flex;align-items:flex-end;justify-content:center;gap:4%;padding:4% 4% 0}
+.gh-pad{position:relative;display:flex;flex-direction:column;align-items:center;justify-content:flex-end;height:100%;min-width:0}
+.gh-pad img{height:88%;max-height:100%;max-width:100%;object-fit:contain;object-position:bottom;filter:drop-shadow(0 4px 0 #0005);position:relative;z-index:1}
+.gh-pad:not(.flying) img{height:62%}
+.gh-pad-slab{display:block;width:120%;height:12px;background:var(--concrete);border:3px solid #000;border-radius:4px}
+.gh-pad.empty{width:12%}
+.gh-tower{position:absolute;bottom:12px;left:-26%;width:22%;max-width:30px;border:3px solid #c0392b;border-bottom:0;background:repeating-linear-gradient(45deg,transparent 0 8px,#c0392b 8px 11px)}
+.gh-tower.t1{height:40%}.gh-tower.t2{height:62%}.gh-tower.t3{height:80%}.gh-tower.t4{height:96%}
+.gh-buildings{flex:none;display:flex;flex-wrap:wrap;justify-content:center;gap:2px 6px;padding:6px 8px 8px;background:linear-gradient(var(--concrete),var(--concrete-2));border-top:4px solid #000;font-size:max(20px,calc(26px*var(--u)));line-height:1.15;max-height:42%;overflow:hidden}
+.gh-station{position:absolute;inset:0;width:100%;height:100%;display:block;touch-action:none}
+/* the photo wall: a card for every continent and ocean, grey until he has photographed it from orbit */
+.gh-wall{position:absolute;inset:0;display:grid;grid-template-columns:repeat(auto-fill,minmax(110px,1fr));gap:6px;padding:8px;overflow-y:auto;background:radial-gradient(circle at 30% 30%,#14306b,var(--space) 80%)}
+.gh-photo{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;min-height:64px;border-radius:12px;border:3px solid #000;background:#2b2f36;color:#fff9;font:900 13px/1.1 Nunito,sans-serif;text-align:center;filter:grayscale(1);opacity:.6}
+.gh-photo i{font-style:normal;font-size:22px}
+.gh-photo.got{background:var(--c);color:#14161b;filter:none;opacity:1;box-shadow:0 3px 0 #000}
+@media (orientation:landscape) and (max-height:520px){
+  .base-screen{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);grid-template-rows:auto auto minmax(0,1fr) auto;grid-template-areas:"head head" "main tabs" "main tray" "buy tray";column-gap:10px;padding-bottom:var(--floor)}
+  .base-screen .gh-head{grid-area:head}
+  .base-screen .base-main{grid-area:main;grid-template-columns:minmax(0,1fr);grid-template-rows:minmax(0,1fr) auto;min-height:0}
+  .base-screen .base-side{flex-direction:row;width:auto;align-items:stretch}
+  .base-screen .base-side .fly-btn{flex:1;min-height:52px;padding:2px 10px}
+  .base-screen .fly-to,.base-screen .goal-num{display:none}
+  .base-screen .fly-plane{font-size:26px}
+  .base-screen .gh-goal{flex:1;min-height:52px;min-width:0}
+  .base-screen .side-btn{width:52px;min-height:52px;font-size:24px}
+  .base-screen .side-word{display:none}
+  .base-screen .gh-tabs{grid-area:tabs}
+  .base-screen .gh-tray{grid-area:tray;min-height:0;padding-bottom:0}
+  .base-screen .buy-bar{grid-area:buy}
+}
+
+/* ---------- the Launch ---------- */
+.launch-screen{position:fixed;inset:0;overflow:hidden;touch-action:none;overscroll-behavior:none;-webkit-user-select:none;user-select:none;-webkit-touch-callout:none;background:var(--space);color:#fff}
+.ls-canvas{position:absolute;inset:0;width:100%;height:100%;display:block}
+.ls-hud{position:absolute;left:0;right:0;top:0;display:flex;align-items:center;gap:10px;padding:max(12px,env(safe-area-inset-top)) max(24px,calc(env(safe-area-inset-right) + 24px)) 0 max(24px,calc(env(safe-area-inset-left) + 24px));pointer-events:none}
+.ls-hud>*{pointer-events:auto}
+.hud-chip{display:flex;align-items:center;gap:6px;background:#000c;border:3px solid var(--sun);border-radius:999px;padding:4px 14px;font:900 max(18px,calc(26px*var(--u))) Nunito,sans-serif;color:var(--sun);white-space:nowrap}
+.ls-tip{position:absolute;left:50%;top:max(80px,calc(env(safe-area-inset-top) + 80px));transform:translateX(-50%);pointer-events:none;background:#000b;color:#fff;border-radius:999px;padding:4px 18px;font:900 max(16px,calc(22px*var(--u))) Nunito,sans-serif;white-space:nowrap;max-width:92vw;overflow:hidden;text-overflow:ellipsis}
+.ls-tip:empty{display:none}
+.ls-acts{position:absolute;right:max(24px,calc(env(safe-area-inset-right) + 24px));bottom:calc(var(--floor) + 10px);pointer-events:none}
+.ls-act{pointer-events:auto;touch-action:none;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;width:max(110px,calc(150px*var(--u)));height:max(110px,calc(150px*var(--u)));border-radius:50%;border:5px solid #000;box-shadow:0 7px 0 #000;padding:0;font-size:max(34px,calc(48px*var(--u)));line-height:1;color:#fff}
+.ls-act b{font:400 max(14px,calc(18px*var(--u))) Bungee,sans-serif;text-shadow:2px 2px 0 #000}
+.ls-act:active{transform:translateY(5px);box-shadow:0 2px 0 #000}
+.ls-act.drop{background:radial-gradient(circle at 40% 35%,#ffd9a0,var(--flame) 60%,#7a3300)}
+.ls-act.deploy{background:radial-gradient(circle at 40% 35%,#9ff0b0,var(--go-green) 60%,#0d4a2a)}
+.ls-card{display:flex;flex-direction:column;gap:calc(12px*var(--u));padding:max(12px,env(safe-area-inset-top)) max(24px,calc(env(safe-area-inset-right) + 24px)) max(14px,env(safe-area-inset-bottom)) max(24px,calc(env(safe-area-inset-left) + 24px));background:linear-gradient(var(--sky) 0,var(--sky-2) 62%,var(--concrete) 62%);touch-action:auto}
+.ls-head{display:flex;align-items:center;gap:10px}
+.ls-head h1{margin:0;flex:1;min-width:0;font:400 calc(32px*var(--u)) Bungee,sans-serif;color:var(--sun);text-shadow:3px 3px 0 #000;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.ms-chip{background:#000;border-radius:999px;padding:4px 12px;font:900 max(15px,calc(20px*var(--u))) Nunito,sans-serif;white-space:nowrap}
+.ls-route{flex:1;min-height:0;display:grid;grid-template-columns:minmax(0,.8fr) minmax(0,1.2fr);align-items:stretch;gap:calc(16px*var(--u));width:min(100%,960px);align-self:center;padding:calc(14px*var(--u));background:var(--night-2);border:4px solid #000;border-radius:24px;box-shadow:0 8px 0 #000}
+.ls-rocket{display:grid;grid-template-rows:minmax(0,1fr) auto;justify-items:center;min-height:0;border-radius:16px;overflow:hidden;background:linear-gradient(var(--sky-3),var(--sky-2) 85%,var(--concrete) 85%)}
+.ls-rocket img{height:100%;min-height:0;max-width:100%;object-fit:contain;object-position:center bottom;padding-top:6px}
+.ls-rocket strong{font:400 max(14px,calc(20px*var(--u))) Bungee,sans-serif;background:#000;color:#fff;border-top:3px solid var(--sun);width:100%;text-align:center;padding:4px}
+.ls-brief{display:flex;flex-direction:column;align-items:stretch;justify-content:center;gap:calc(12px*var(--u));min-height:0}
+.ls-payload,.ls-target{display:flex;align-items:center;gap:10px;padding:6px 16px 6px 8px;border-radius:999px;background:#fff;color:#14161b;border:4px solid #000;box-shadow:0 4px 0 #000;font:900 max(17px,calc(24px*var(--u))) Nunito,sans-serif}
+.ls-payload .e{font-size:1.5em}
+.ls-mission{display:flex;flex-direction:column;gap:8px}
+.ls-target b{display:grid;place-items:center;width:1.6em;height:1.6em;border-radius:50%;background:var(--sun);border:3px solid #000}
+.ls-patch{display:flex;align-items:center;gap:8px;font-size:28px}
+@media (orientation:portrait){.ls-route{flex:0 1 auto;margin-top:auto;grid-template-columns:1fr;grid-template-rows:minmax(160px,34vh) auto}.ls-foot{margin-bottom:auto;padding-top:calc(10px*var(--u))}}
+.ls-foot{display:flex;align-items:center;justify-content:center;gap:16px;flex-wrap:wrap;padding-bottom:calc(var(--floor) - 14px)}
+.ms-best{background:#000;border:3px solid var(--sun);border-radius:16px;padding:6px 14px;font:900 max(18px,calc(22px*var(--u))) Nunito,sans-serif}
+.ls-foot .big-btn.go{min-width:max(120px,calc(160px*var(--u)));min-height:max(80px,calc(96px*var(--u)));display:flex;align-items:center;gap:10px;font-size:calc(34px*var(--u))}
+.ms-result{position:fixed;inset:0;z-index:5;display:grid;place-items:center;background:#000a;padding:14px 14px calc(var(--floor) + 10px);text-align:center;overflow-y:auto;touch-action:auto}
+.ms-result .result-card{display:flex;flex-direction:column;align-items:center;gap:calc(8px*var(--u));width:min(560px,100%);padding:calc(16px*var(--u)) calc(24px*var(--u));border:4px solid #000;border-radius:24px;background:radial-gradient(circle at 50% 0%,#22478a,var(--night) 70%);box-shadow:0 8px 0 #000,0 18px 40px #000a}
+.ms-result h2{margin:0;font:400 calc(40px*var(--u)) Bungee,sans-serif;color:var(--sun);text-shadow:3px 3px 0 #000}
+.ls-stars{display:flex;align-items:center;gap:10px;font-size:calc(40px*var(--u))}
+.ls-stars small{font:900 calc(24px*var(--u)) Nunito,sans-serif}
+.ms-row{display:flex;align-items:center;gap:20px;font:900 calc(30px*var(--u)) Nunito,sans-serif}
+.ms-row.log small{font-size:.65em;color:var(--sun)}
+.ls-photos{display:flex;flex-wrap:wrap;justify-content:center;gap:6px}
+.ls-photo{background:#fff;color:#14161b;border:3px solid #000;border-radius:10px;padding:2px 10px;font:900 max(14px,calc(18px*var(--u))) Nunito,sans-serif}
+.result-bolts{display:flex;align-items:center;gap:6px}
+.won-line{display:flex;align-items:center;gap:8px;font:900 max(18px,calc(24px*var(--u))) Nunito,sans-serif;color:var(--sun)}
+.ms-result .btns{display:flex;gap:14px;align-items:center;justify-content:center;flex-wrap:wrap}
+.ms-result .big-btn{font-size:calc(34px*var(--u));padding:calc(12px*var(--u)) calc(28px*var(--u));min-height:64px}
+@media (orientation:landscape) and (max-height:520px){
+  .ms-result{padding-top:6px}
+  .ms-result .result-card{gap:2px;padding:6px 14px}
+  .ms-result h2{font-size:24px}.ls-stars{font-size:26px}.ms-row{font-size:20px}
+  .ms-result .big-btn{min-height:52px;padding:4px 16px}
+  .ms-result .ms-row.log{display:none}
+  .ms-result .won-line{font-size:15px}
+  .base-side{width:clamp(140px,26vw,220px)}
+  .gh-tray{min-height:110px}
+  .ls-route{padding:8px}.ls-payload,.ls-target{font-size:15px;padding:2px 10px 2px 4px}
+}
+
+@media (prefers-reduced-motion:reduce){
+  .gh-play-globe i,.gh-home .t-play .gh-play-orbit,.fly-btn.pulse,.ls-act.pulse,.gh-tab.fresh,.chip-note.pulse{animation:none}
+  .choice.hint{outline:5px solid var(--sun);outline-offset:3px}
+}

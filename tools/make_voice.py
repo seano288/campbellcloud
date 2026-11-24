@@ -23,6 +23,7 @@
   .venv/bin/python tools/make_voice.py --collection carrier-deck --out public/carrier-deck-voice --index src/carrier-deck/voice.gen.ts
   .venv/bin/python tools/make_voice.py --collection cargo-words --out public/cargo-words-voice --index src/cargo-words/voice.gen.ts
   .venv/bin/python tools/make_voice.py --collection moon-base-mail --out public/moon-base-mail-voice --index src/moon-base-mail/voice.gen.ts
+  .venv/bin/python tools/make_voice.py --collection globe-hopper --out public/globe-hopper-voice --index src/globe-hopper/voice.gen.ts
 
 Select phrases through tools/phrases.ts and write recordings and a typed index to explicit locations.
 Only missing clips are recorded. Cleanup touches only the selected directory, whose .voice-collection
@@ -75,7 +76,10 @@ VOICES = {'purrdoku': ('en-GB-RyanNeural', '-5%'),
           'cargo-words': ('en-US-AriaNeural', '-8%'),
           # Moon Base Mail says every sentence of every letter whole (the speaker beside it and the lessons), and its questions and
           # short written answers, so short vowels must be crisp, as in the reading games
-          'moon-base-mail': ('en-US-AriaNeural', '-8%')}
+          'moon-base-mail': ('en-US-AriaNeural', '-8%'),
+          # Globe Hopper says every continent, ocean, landform and place name alone, and chains them into lines ("Fly over", "Cairo",
+          # "and take a picture!"), as Carrier Deck does
+          'globe-hopper': ('en-US-AriaNeural', '-8%')}
 ROOT = Path(__file__).resolve().parent.parent
 
 
@@ -270,6 +274,11 @@ COLLECTION_SPEECH = {
         # as "How does dough feel?". (A lone "Cat" is "Kate" however it is written, as other games found: the lucky statues say "Kitty".)
         'said_as': {'Moon Base': 'Moon, Base', 'One wheel came off!': 'One wheel, came off!', 'trees and a pond': 'trees, and a pond',
                     'Grapes': 'Grapes!', 'Tess': 'Tess!', 'What will Dot do?': 'What will Dot, do?', 'How does Jo feel?': 'How does Jo, feel?'},
+    },
+    # Globe Hopper, pass 1: faster-whisper small.en heard Aria's place names alone as written except these: "Lagos" as "LEGOs",
+    # "Bogotá" as "Bo-Guitar", "Manaus" as "Menaus", "the Paraná River" as "the Piranha River" and "Cuba" as "HUBA"
+    'globe-hopper': {
+        'said_as': {'Lagos': 'Lay gos', 'Bogotá': 'Bo go tah', 'Manaus': 'Mah-nowss', 'the Paraná River': 'the Pah rah nah River', 'Cuba': 'Cuba!'},
     },
 }
 

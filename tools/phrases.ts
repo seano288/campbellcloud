@@ -31,6 +31,7 @@ const collections = {
   'carrier-deck': async () => (await import('../src/carrier-deck/phrases')).PHRASES,
   'cargo-words': async () => (await import('../src/cargo-words/phrases')).PHRASES,
   'moon-base-mail': async () => (await import('../src/moon-base-mail/phrases')).PHRASES,
+  'globe-hopper': async () => (await import('../src/globe-hopper/phrases')).PHRASES,
 };
 if (!name || !Object.hasOwn(collections, name)) throw new Error(`Select --collection ${Object.keys(collections).join('|')}`);
 const phrases = await collections[name as keyof typeof collections]();

@@ -915,3 +915,37 @@ _Avoid_: level, flight, mission
 
 **Softest landing, closest to the middle**: his own bests (lower is better), cheered when beaten and paid a Bolt each. There is no rival.
 
+## Globe Hopper
+
+Globe Hopper reuses the other games' terms where they mean the same thing (Mixed Round, Mastery, Bolt, Tune-Up, Meeting, Goal, Slot, Rung, Mod, Paint). These are its own:
+
+**Game Modes (Globe Hopper)**: the six kinds of question, about the whole Earth: Land and Water (tap the land or the water, more land or more water; the North Pole, the South Pole and the equator; is a place north or south of the equator), Continents (tap one of three lit continents; any of the seven on the map or the globe; a continent's shape by itself, and which continent is north, south or east of another), Oceans (the Pacific and the Atlantic; all five; which ocean is between two continents), Shape of the Land (ten landforms as pictures from the side, as map signs, and by meaning), Hot and Cold (the cold place and the hot place; where a snowy or steamy scene could be; which of two places is colder or warmer) and Famous Places (which continent a landmark or animal is on, then tap its pin). Land and Water and Continents are open from the start; Oceans and Hot and Cold open at Land and Water Level 2, Shape of the Land and Famous Places at Continents Level 2.
+
+**Continent**: one of the seven, as American schools teach them: Africa, Europe, Asia, North America, South America, Australia and Antarctica, each always in its own colour. Greenland is drawn as an island and is never a continent.
+
+**Ocean**: one of the five: the Pacific, Atlantic, Indian, Arctic and Southern Oceans.
+
+**Meeting (Globe Hopper)**: the first time a continent is needed, the globe turns to it beside the flat map, both glowing, so he sees they are the same place.
+
+**Safe area**: a circle well inside a continent or ocean where its target sits and its name is written; taps near an arguable border (Europe and Asia, Suez, Panama, New Guinea) count as no continent at all.
+_Avoid_: hit box (to the parent)
+
+**Rocket Base**: the reward he builds, seen from the side: his rockets on their pads, the tower, and his buildings along the ground. Some buildings change the Launch or the orbit (taller towers, dishes, the Weather Mast, floodlights, the Landing Pad, the Runway, the Module Factory).
+_Avoid_: space base (that is Rover Code's)
+
+**Pad**: where a rocket stands. He starts with one; the Second Pad, the Third Pad and then "Another Pad" each hold another of his rockets.
+
+**Rocket**: one of six kinds (Sounding Rocket, Satellite Launcher, Crew Rocket, Heavy Lifter, Spaceplane, Flyback Booster), each built from parts in its Slots: Nose, Capsule, Upper Stage, Main Stage, Boosters, Engines, Fins, and its Paint, decal and flame. Its **lift** is its own, plus its engines' and its boosters'.
+
+**Launch**: the action reward, about a minute, from the side: the countdown from ten, then he holds a finger on the screen to fire the engines and steers along a wide path through the clouds, and drops the boosters and the main stage. A Round earns one Launch. It cannot be failed.
+
+**Orbit**: after the Launch, the Earth turning below: he lets the payload go, then taps when each place in the photo mission is right under the camera, then photographs whatever he flies over in free time (longer with more dishes).
+
+**Payload**: what a Launch carries: a Station module or a satellite he bought, or supplies when nothing is waiting. One too heavy for every rocket he can fly is never offered.
+
+**Station**: the modules he has launched, joined on a grid in orbit round the core, each put where he chose. With the Module Factory he designs new ones from parts (shape, colour, windows, solar panels, a dish), without end.
+
+**Photo mission**: what each Launch photographs: the continents and oceans, then every place in the world tables, then generated missions of two or three places, without end. Every fifth earns a **patch** for his wall.
+
+**Logbook rank**: by Launches flown: Cadet, Rocket Rookie, Launch Crew, Pilot, Commander, Captain, Flight Director, Space Ace, Star Captain, Orbit Legend, then Orbit Legend 2, 3 and on without end.
+
