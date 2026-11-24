@@ -110,6 +110,19 @@ function CountView({ current, q, waiting }: { current: Current; q: CountQ; waiti
 
 // ---------- Load the Ship (and Bossy R's Level 3) ----------
 
+/** The ship's hull under the deck in Load the Ship: the same navy hull, white trim and red below the water as the Crane's container ship. */
+function Hull() {
+  return (
+    <svg class="cw-hull" viewBox="0 0 200 40" preserveAspectRatio="none" aria-hidden="true">
+      <defs><clipPath id="cw-hull-shape"><path d="M2 3 H176 L199 0 Q188 20 178 38 H16 Q2 34 2 3 Z" /></clipPath></defs>
+      <g clip-path="url(#cw-hull-shape)">
+        <rect width="200" height="40" fill="#1d3a6e" /><rect width="200" height="7" fill="#ffffff" /><rect y="24" width="200" height="3" fill="#1b1b1b" /><rect y="27" width="200" height="13" fill="#a3322a" />
+      </g>
+      <path d="M2 3 H176 L199 0 Q188 20 178 38 H16 Q2 34 2 3 Z" fill="none" stroke="#000" stroke-width="4" vector-effect="non-scaling-stroke" stroke-linejoin="round" />
+    </svg>
+  );
+}
+
 function BuildView({ current, q, waiting }: { current: Current; q: BuildQ; waiting: boolean }) {
   const speech = speechOf(q as Asking['q']);
   const ready = useAsked(current, speech), lesson = lessonFor(current.signal), voice = useVoice();
@@ -134,11 +147,16 @@ function BuildView({ current, q, waiting }: { current: Current; q: BuildQ; waiti
   return (
     <Shell current={current} lesson={lesson} ready={can} kind={`build n${n}${q.spare ? ' spare' : ''}`} text="Load the ship!" speech={speech}
       stage={<div class="cw-ship-load">
-        <div class="cw-deck">{Array.from({ length: n }, (_, k) => {
-          const i = loaded[k];
-          return i === undefined ? <span key={k} class="cw-slot" /> : <BoxView key={k} text={q.boxes[i]!} onClick={() => tapSlot(k)} label={`Take ${q.boxes[i]} off`} class={done ? 'loaded' : ''} />;
-        })}</div>
-        <div class="cw-hull" aria-hidden="true" />
+        <div class="cw-ship">
+          <div class="cw-ship-top">
+            <div class="cw-deck">{Array.from({ length: n }, (_, k) => {
+              const i = loaded[k];
+              return i === undefined ? <span key={k} class="cw-slot" /> : <BoxView key={k} text={q.boxes[i]!} onClick={() => tapSlot(k)} label={`Take ${q.boxes[i]} off`} class={done ? 'loaded' : ''} />;
+            })}</div>
+            <span class="cw-bridge" aria-hidden="true"><i /></span>
+          </div>
+          <Hull />
+        </div>
       </div>}
       controls={<div class="cw-quay-row">{q.boxes.map((b, i) => (
         <BoxView key={`${b}-${i}`} text={b} faded={loaded.includes(i)} lit={hint === b && !loaded.includes(i)} onClick={() => tapBox(i)} label={b} />

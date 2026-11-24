@@ -49,6 +49,7 @@ export function ChartScreen() {
         <IconButton label="Home" onClick={() => { if (voice.active) screen.value = 'home'; }}>🏠</IconButton>
         <h1>Sea Chart</h1>
         <CurrencyPile kind={CUR} count={state.currency.balance} />
+        <IconButton label="Port" class="cw-to-port" onClick={() => { if (voice.active) screen.value = 'port'; }}>🏗️</IconButton>
       </header>
       <div class="cw-chart-main">
         <section class="cw-chart" aria-label="Harbours">
@@ -85,7 +86,7 @@ export function ChartScreen() {
           </div>
           <div class="cw-board" aria-label="Trophies">
             <h2>🏆 {p.trophies.length}/{TROPHIES.length}</h2>
-            <div class="cw-trophies">{TROPHIES.map(t => <span key={t.id} class={cls(p.trophies.includes(t.id) && 'won')} title={t.name}>{p.trophies.includes(t.id) ? t.icon : '❔'}</span>)}</div>
+            <div class="cw-trophies">{TROPHIES.map(t => <span key={t.id} class={cls(p.trophies.includes(t.id) && 'won')} title={t.name}>{t.icon}</span>)}</div>
           </div>
         </section>
       </div>

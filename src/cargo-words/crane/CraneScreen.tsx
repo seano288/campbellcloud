@@ -13,6 +13,7 @@ import { confetti } from '../../celebrate/effects';
 import { earnedLine } from '../../currency/kind';
 import { IconButton } from '../../ui/bits';
 import { CurrencyIcon } from '../../ui/currency';
+import { ShipArt } from '../art/Thumb';
 import { CUR } from '../branding';
 import { player, settleGo } from '../game';
 import { load, screen } from '../nav';
@@ -156,8 +157,9 @@ export function CraneScreen() {
         <header class="fl-head"><IconButton label="Port" onClick={leave}>🏗️</IconButton><h1>{plan.look.name}</h1>
           <span class="fl-chip">{plan.harbour.weather === 'night' ? '🌙' : plan.harbour.weather === 'fog' ? '🌫️' : plan.harbour.weather === 'storm' ? '⛈️' : plan.harbour.weather === 'snow' ? '❄️' : '☀️'}</span></header>
         <div class="fl-route">
-          <div class="fl-from"><span class="cw-card-ship" aria-hidden="true">🚢</span><strong>{plan.look.name}</strong><span class="cw-card-size">{capacity(plan.shape)} 📦</span></div>
-          <div class="fl-arrow" aria-hidden="true">〰️ 〰️ 〰️</div>
+          <div class="fl-from"><ShipArt class="cw-card-ship" look={plan.look} cols={plan.shape.cols} /><strong>{plan.look.name}</strong>
+            <span class="cw-card-size" aria-label={`${capacity(plan.shape)} containers`}>{Array.from({ length: Math.min(18, capacity(plan.shape)) }, (_, i) => <i key={i} class="cw-mini-box" />)}</span></div>
+          <div class="cw-route" aria-hidden="true"><i /><b>⚓</b></div>
           <div class="fl-to"><span class="fl-icon" aria-hidden="true">{plan.harbour.icon}</span><strong>{plan.harbour.name}</strong><FlagView f={plan.harbour.flag} size={48} /></div>
         </div>
         <div class="fl-foot">

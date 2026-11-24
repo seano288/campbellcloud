@@ -38,7 +38,7 @@ export function WatchScreen() {
   useEffect(() => { void voice.say('Watch it run!'); }, []);
   return (
     <div class="screen cw-watch-screen">
-      <div class="cw-watch-view"><PortView p={p} moving={moving} /></div>
+      <div class="cw-watch-view"><PortView p={p} moving={moving} pan /></div>
       <div class="cw-watch-hud"><IconButton label="Port" onClick={() => { if (voice.active) screen.value = 'port'; }}>🏗️</IconButton></div>
     </div>
   );

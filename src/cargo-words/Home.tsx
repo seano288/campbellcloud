@@ -9,6 +9,7 @@ import { BoxView } from './art/BoxView';
 import { player } from './game';
 import { LOCKED_HINTS, MODE_IDS, MODE_NAMES, type ModeId } from './learning';
 import { screen } from './nav';
+import { FlagView } from './port/ChartScreen';
 import { PortView } from './port/PortView';
 import { nextHarbour, rankOf } from './port/port';
 import { startRound } from './round';
@@ -34,7 +35,9 @@ export function Home({ status }: { status: ComponentChildren }) {
       <div class="home cw-home">
         {/* Play is a container on the grab, ready to lift */}
         <button class="tile t-play" aria-label="Play" onClick={() => { if (voice.active) startRound(); }}>
+          <span class="cw-play-boom" aria-hidden="true"><i class="trolley" /></span>
           <span class="cw-play-grab" aria-hidden="true"><i class="cable" /><i class="spreader" /><BoxView text="play" hex="#c8452f" /></span>
+          <span class="cw-play-sea" aria-hidden="true" />
           <span class="e">▶</span>
         </button>
         <button class="tile t-port" aria-label="Port" onClick={() => { if (voice.active) screen.value = 'port'; }}>
@@ -43,7 +46,7 @@ export function Home({ status }: { status: ComponentChildren }) {
         </button>
         <button class="tile t-chart" aria-label="Sea Chart" onClick={() => { if (voice.active) screen.value = 'chart'; }}>
           <span class="board-head" aria-hidden="true">🧭 Next</span>
-          <span class="next-dest" aria-hidden="true"><span class="nd-icon">{next.icon}</span><span class="nd-name">{next.name}</span></span>
+          <span class="next-dest" aria-hidden="true"><span class="nd-icon">{next.icon}</span><span class="nd-name">{next.name}</span><FlagView f={next.flag} size={40} /></span>
           <span class="nm">Sea Chart</span><span class="cup-count" aria-hidden="true">⚖️ {rank.name}{rank.number ? ` ${rank.number}` : ''}</span>
         </button>
         <div class="tile t-kinds" role="group" aria-label="My Levels">

@@ -10,6 +10,7 @@ import { confetti } from '../../celebrate/effects';
 import { IconButton } from '../../ui/bits';
 import { CurrencyIcon, CurrencyPile } from '../../ui/currency';
 import { BoxView } from '../art/BoxView';
+import { CraneArt, ShipArt } from '../art/Thumb';
 import { CUR } from '../branding';
 import { buy, player, updatePort } from '../game';
 import { load, portTab, screen, watch } from '../nav';
@@ -18,7 +19,7 @@ import { useVoice } from '../voice';
 import {
   BOX_COLOURS, CRANE_PAINTS, CRANES, DECOR, itemOf, LOGOS, MARKS, PAINTS, PARTS, PIECES, REPEATS, SHIP_NAMES, SHIP_SHAPES, SHIPS, STRIPE_ITEMS, type Item, type RepeatId,
 } from './catalog';
-import { buyable, canLoad, dress, goalOf, has, missingNeed, planGo, priceOf, rankOf, sailNext, selectGoal, wantKey, type Want } from './port';
+import { buyable, canLoad, craneLook, dress, goalOf, has, missingNeed, planGo, priceOf, rankOf, sailNext, selectGoal, shipLook, wantKey, type Want } from './port';
 import { PortView } from './PortView';
 import type { ShipKind } from '../art/ship';
 
@@ -94,6 +95,7 @@ export function PortScreen() {
     sChime(); say(SHIPS.find(s => s.kind === k)!.name as Phrase, ...(player.state.peek().port.next === k ? ['sails next!' as const] : ['A visiting ship!' as const]));
   }
 
+  const paintHex = craneLook(p).paint;
   const inUse = (item: Item) => {
     const k = plan.own ?? p.next ?? 'tug', d = p.fleet[k];
     return (item.cat === 'crane' && p.crane === item.id) || (item.cat === 'cranepaint' && p.cranePaint === item.id) || (item.cat === 'part' && (p.lights === item.id || p.horn === item.id))
@@ -102,7 +104,9 @@ export function PortScreen() {
   const tile = (item: Item) => {
     const w: Want = { kind: 'item', id: item.id }, owned = has(p, item.id), need = !owned && missingNeed(p, w), afford = !owned && !need && item.price <= balance;
     const onTap = () => (item.cat === 'ship' ? tapShip(item.kind) : owned ? useIt(item) : tapWant(w));
-    const art = item.cat === 'paint' || item.cat === 'cranepaint' ? <span class="swatch-dot" style={{ background: item.hex }} />
+    const art = item.cat === 'ship' ? <ShipArt class="tile-art" look={shipLook(p, item.kind)} cols={SHIP_SHAPES[item.kind].cols} />
+      : item.cat === 'crane' ? <CraneArt class="tile-art" kind={item.kind} paint={paintHex} />
+      : item.cat === 'paint' || item.cat === 'cranepaint' ? <span class="swatch-dot" style={{ background: item.hex }} />
       : item.cat === 'box' ? <BoxView text="" hex={item.hex} small />
       : item.cat === 'part' && item.slot === 'lights' && item.hex ? <span class="swatch-dot" style={{ background: item.hex === 'rainbow' ? 'conic-gradient(#e63946,#ffd23f,#2fa84f,#2f8fe8,#7b4bd1,#e63946)' : item.hex }} />
       : <span class="tile-icon" aria-hidden="true">{item.cat === 'mark' || item.cat === 'logo' ? item.glyph || '▫️' : item.icon}</span>;
@@ -112,8 +116,8 @@ export function PortScreen() {
         aria-label={item.name} onClick={onTap}>
         {art}
         <span class="tile-name">{item.name}</span>
-        {item.cat === 'ship' && <span class="tile-size">{SHIP_SHAPES[item.kind].cols * SHIP_SHAPES[item.kind].tiers}📦</span>}
-        {owned ? <span class="tile-tag">{used ? '✓' : '✔︎'}</span> : need ? <span class="tile-tag">🔒</span> : <span class="tile-cost"><CurrencyIcon kind={CUR} size={16} />{item.price}</span>}
+        {item.cat === 'ship' && <span class="tile-size"><i class="cw-mini-box" aria-hidden="true" />×{SHIP_SHAPES[item.kind].cols * SHIP_SHAPES[item.kind].tiers}</span>}
+        {owned ? <span class={cls('tile-tag', used && 'on')}>{item.cat === 'ship' && used ? '⚓ next' : used ? '✓ on' : '✓'}</span> : need ? <span class="tile-tag">🔒</span> : <span class="tile-cost"><CurrencyIcon kind={CUR} size={16} />{item.price}</span>}
       </button>
     );
   };
@@ -129,6 +133,8 @@ export function PortScreen() {
   };
 
   const goalPrice = goal ? priceOf(p, goal) : 0, rank = rankOf(p.tonnes), k = plan.own ?? p.next;
+  /** Whose ship is at the quay for the next go: tapping the panel says so. */
+  const sayQuay = () => say(...(plan.own ? [SHIPS.find(s => s.kind === plan.own)!.name as Phrase, 'sails next!' as const] : [plan.visitor!.first, plan.visitor!.second, 'A visiting ship!' as const]));
   const shown = (i: Item) => i.price > 0 || has(p, i.id) || i.cat === 'ship' || i.cat === 'crane';
   return (
     <div class="screen airport-screen cw-port-screen">
@@ -143,7 +149,7 @@ export function PortScreen() {
         <div class="airport-side">
           <button class={cls('big-btn', 'go', 'fly-btn', 'cw-load', p.ships > 0 && 'pulse')} aria-label={`Load a ship for ${plan.harbour.name}`}
             onClick={() => { if (!voice.active) return; if (p.ships > 0) load(); else { sNope(); say('Play a Round to earn a Ship!'); } }}>
-            <span class="fly-plane" aria-hidden="true">🏗️</span><span class="fly-word">Load</span><span class="race-count">{p.ships}</span>
+            <ShipArt class="fly-plane cw-load-ship" look={plan.look} cols={plan.shape.cols} water={false} /><span class="fly-word">Load</span><span class="race-count">{p.ships}</span>
             <span class="fly-to">{plan.harbour.icon} {plan.harbour.name}</span>
           </button>
           {goal && (
@@ -172,6 +178,13 @@ export function PortScreen() {
         {TABS.map(t => <button key={t.id} role="tab" aria-selected={tab === t.id} aria-label={t.name} class={cls('cw-tab', tab === t.id && 'on')} onClick={() => { portTab.value = t.id; setPicked(null); say(t.name as Phrase); }}><span aria-hidden="true">{t.icon}</span><span class="tab-name">{t.name}</span></button>)}
       </div>
       <div class="cw-tray">
+        {tab === 'ships' && (
+          <button class={cls('cw-quay-next', plan.own ? 'own' : 'visitor')} aria-label="Next at the quay" onClick={sayQuay}>
+            <ShipArt class="qn-ship" look={plan.look} cols={plan.shape.cols} />
+            <span class="qn-text"><span class="qn-head">Next at the quay</span><span class="qn-name">{plan.look.name}</span></span>
+            <span class="qn-tag">{plan.own ? '⚓ Yours' : '🧭 Visiting'}</span>
+          </button>
+        )}
         {(tab === 'ships' || tab === 'paint') && k && p.fleet[k] && (
           <div class="fleet-bar">
             <span class="chip-note">{SHIPS.find(s => s.kind === k)!.name}</span>
