@@ -20,7 +20,7 @@ import {
   AIRCRAFT, CREW, FLAGS, FLEET, HULL_PAINTS, itemOf, MARKS, PAINTS, PARTS, PLANES, REPEATS, TAILS, type Item, type Model, type RepeatId,
 } from './catalog';
 import { yardShip } from './fleet';
-import { prizeById } from './missions';
+import { CALLS, prizeById } from './missions';
 import {
   airWing, buyable, canFly, capacity, deckLen, goalOf, has, lookOf, missingNeed, planMission, priceOf, rankOf, selectGoal, SHIP_NAMES, wantKey, wear, type ShipState, type Want,
 } from './ship';
@@ -230,7 +230,7 @@ export function ShipScreen() {
           <button class={cls('big-btn', 'go', 'fly-btn', a.missions > 0 && 'pulse')} aria-label="Fly"
             onClick={() => { if (!voice.active) return; if (a.missions > 0) fly(); else { sNope(); say('Play a Round to earn a Mission!'); } }}>
             <span class="fly-plane" aria-hidden="true">{plan.m.patch.glyph}</span><span class="fly-word">Fly</span><span class="race-count">{a.missions}</span>
-            <span class="fly-to">{plan.m.name ?? '📻'}</span>
+            <span class="fly-to">{plan.m.name ?? CALLS[plan.m.job]}</span>
           </button>
           {goal && (
             <button class="goal-chip cd-goal" aria-label={`Goal: ${nameOf(goal)}`} onClick={() => tapWant(goal)}>
