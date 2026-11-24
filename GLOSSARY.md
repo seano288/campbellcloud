@@ -813,3 +813,40 @@ _Avoid_: level, map (Treasure Fleet's)
 **Logbook, rank**: every Mission adds its minutes to his logbook; at each milestone he takes a new rank and a new stripe on his jersey (Cadet, Deckhand, Flyer, Pilot, Ace, Flight Leader, Wing Leader, Captain, Commodore, Admiral, then Fleet Admiral 1, 2, 3 and on without end).
 
 **Watch the deck**: his carrier working by itself, for show: his aircraft up the lift, off the catapult, back onto a wire and down again, his Fleet sailing alongside. Nothing is paid or used.
+
+## Cargo Words
+
+Cargo Words reuses the other games' terms where they mean the same thing (Mixed Round, Mastery, Stretch, Bolt, Tune-Up, Meeting, Goal, Slot, Rung, Mod, Paint). Bossy R is Dino Dig's sixth Pattern (ar, or, er, ir, ur); here it is a kind about bossy r inside long words. These are its own:
+
+**Game Modes (Cargo Words)**: the six kinds of question, about reading long words a syllable at a time: How Many Containers (how many beats a word has: heard with its picture, heard, then written and not said), Load the Ship (hear a word, load its syllable containers in order: two exactly, three and a spare, then a spare that looks or sounds close), Split It (tap where a written two-beat word breaks: two small words or twin letters, two different letters, then one letter in the middle, said slowly), Read It (read a long word that is never said, tap its picture: two pictures, three with vowel teams and bossy r, three beats), Bossy R (fill a long word's r container, read a long bossy-r word, load a three-beat one with an r spare) and Add-Ons (un and re at the front, ful, less, er and est at the back: tap the picture, which word means it, which word is hiding inside it, and -er and -est with pictures). How Many Containers and Load the Ship are open from the start; Split It opens at How Many Containers Level 2, Read It and Bossy R at Load the Ship Level 2, Add-Ons at Split It Level 2.
+
+**Container (in the questions)**: a syllable: a coloured shipping container with one syllable written on its side in Andika. A long word is a row of containers. The same container is lifted by the Crane.
+_Avoid_: block, tile, chunk (to him)
+
+**Beat**: a syllable, as it is said to him ("How many beats?").
+_Avoid_: syllable (to him; the spec and code say syllable)
+
+**Syllable types**: closed (rab), magic e (cake), vowel team (rain), bossy r (gar) and the three that are new here, each met in a Meeting first: open (ti, the vowel says its name), consonant-le (tle) and the final y that says ee (py).
+
+**Port**: the reward he builds, a harbour seen from the front: the land with its buildings, the yard, the rail and the gate, and the quay with his cranes and his ships at their berths. Every piece goes in its own fixed place. Pieces change what he can do: berths take ships, the long and deep-water quays take bigger ships, the crane rails let gantry cranes stand, the lighthouse, fog horn and breakwater open night, foggy and stormy harbours, the dry dock lets him repaint a hull.
+_Avoid_: harbour (for the whole port), base, yard (for the whole port)
+
+**Berth**: a place at the quay where one of his ships moors. The wooden pier is the first; Berths 2 to 10 are pieces, then "Another Berth" can be bought again and again. A ship he buys needs a free berth.
+
+**Crane**: the action reward, about a minute, from the side: he drags the crane's trolley along its boom and taps to lower the grab; it locks on by itself, lifts, and he carries each container over the ship and sets it down. A Round earns one go ("a Ship to load"). It cannot be failed and has no clock. Also the five cranes he can own (Dock Crane, Tall Crane, Gantry Crane, Floating Crane, Giant Gantry), each reaching a bigger ship, with parts for its Slots: the grab, the cable, the trolley, lights and a horn.
+_Avoid_: claw, game (to him)
+
+**Ship (to load)**: what a finished Round earns: one ship at the quay to load with the Crane. It is his own ship when he picks one (or has just bought one), else a visiting ship made on the spot from the go's number.
+
+**Fleet**: the ships he owns, from the free Tug to the Cruise Liner, each with a name he taps through, a hull paint and a funnel mark.
+
+**Harbour**: a place on the Sea Chart his loaded ship sails to. Twenty-four named ones in order, each sending back a crate (a decoration, a container colour, a stripe or a company mark, never sold); one that needs a piece of his port waits. Past them, chart harbours are made on the spot from their number, without end, each with a flag made from parts for his flag wall.
+_Avoid_: level, route, island (for all of them)
+
+**Sea Chart**: the board of harbours, his flag wall, his bests (tallest stack, quickest loading of each size of ship), the tonnage and his Trophies.
+
+**Special crate**: what every fifth go brings back: twelve hand-made prizes, then numbered Lucky Containers made from parts. Never sold.
+
+**Tonnage, port rank**: every container loaded adds to the tonnage counter on the harbour office; at each milestone the port takes a new rank (Wooden Pier, Jetty, Little Port, Port, Busy Port, Big Port, Mega Port, then Super Port 1, 2, 3 and on without end).
+
+**Watch it run**: his port working by itself, for show: his ships coming in to their berths, his cranes unloading them, the train and the lorries carrying containers away. Nothing is paid or used.

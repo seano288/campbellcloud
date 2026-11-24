@@ -24,7 +24,8 @@ Truck Money alone into `dist/` for the existing browser checks.
   Food Truck `food-truck-save` (and `food-truck-place`), Deep Light `deep-light-save` (and `deep-light-place`), Sky Writer `sky-writer-save` (and `sky-writer-place`),
   Skyline `skyline-save` (and `skyline-place`),
   Jetway `jetway-save` (and `jetway-place`),
-  Carrier Deck `carrier-deck-save` (and `carrier-deck-place`).
+  Carrier Deck `carrier-deck-save` (and `carrier-deck-place`),
+  Cargo Words `cargo-words-save` (and `cargo-words-place`).
 - **Home Screen**: the app already installed from the site root now opens the landing page, which works offline. Each game
   becomes available offline after its first online visit at its new folder.
 - **Word Wreckers** (`/word-wreckers/`) has a tile in **Learning Games** and saves under its own key, `word-wreckers-save` (with
@@ -37,10 +38,12 @@ Truck Money alone into `dist/` for the existing browser checks.
   `jetway-place` for the screen and the Round in progress). Its voice clips are in `public/jetway-voice/`.
 - **Carrier Deck** (`/carrier-deck/`) has a tile in **Learning Games**, after Jetway, and saves under its own key, `carrier-deck-save`
   (with `carrier-deck-place` for the screen and the Round in progress). Its voice clips are in `public/carrier-deck-voice/`.
+- **Cargo Words** (`/cargo-words/`) has a tile in **Learning Games**, after Carrier Deck, and saves under its own key, `cargo-words-save`
+  (with `cargo-words-place` for the screen and the Round in progress). Its voice clips are in `public/cargo-words-voice/`.
 
 ## Learning games and games just for fun
 
-The landing page groups its tiles into sections: **Learning Games** (Monster Truck Money, Time Flies, Chop Chop, Sight Squad, Math Bots, Rover Code, Treasure Fleet, Wild Rescue, Sentence Express, Word Wreckers, Turbo Tally, Hook and Ladder, Dino Dig, Food Truck, Deep Light, Sky Writer, Skyline, Jetway, Carrier Deck) and
+The landing page groups its tiles into sections: **Learning Games** (Monster Truck Money, Time Flies, Chop Chop, Sight Squad, Math Bots, Rover Code, Treasure Fleet, Wild Rescue, Sentence Express, Word Wreckers, Turbo Tally, Hook and Ladder, Dino Dig, Food Truck, Deep Light, Sky Writer, Skyline, Jetway, Carrier Deck, Cargo Words) and
 **Just for Fun**. A fun game still gets its own folder, manifest, icons and worker, but it doesn't have to use the learning engine,
 voice clips or `staticBuild()`. Hunch (`/hunch/`, a five-letter word guessing game) is a plain DOM page with its own
 small build (`tools/hunch-build.ts`) and its own save key, `hunch-save`.

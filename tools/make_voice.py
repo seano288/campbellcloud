@@ -21,6 +21,7 @@
   .venv/bin/python tools/make_voice.py --collection skyline --out public/skyline-voice --index src/skyline/voice.gen.ts
   .venv/bin/python tools/make_voice.py --collection jetway --out public/jetway-voice --index src/jetway/voice.gen.ts
   .venv/bin/python tools/make_voice.py --collection carrier-deck --out public/carrier-deck-voice --index src/carrier-deck/voice.gen.ts
+  .venv/bin/python tools/make_voice.py --collection cargo-words --out public/cargo-words-voice --index src/cargo-words/voice.gen.ts
 
 Select phrases through tools/phrases.ts and write recordings and a typed index to explicit locations.
 Only missing clips are recorded. Cleanup touches only the selected directory, whose .voice-collection
@@ -68,7 +69,9 @@ VOICES = {'purrdoku': ('en-GB-RyanNeural', '-5%'),
           'jetway': ('en-US-AriaNeural', '-8%'),
           # Carrier Deck chains numbers into story sentences one piece at a time, as Bot Stories does ("40", "jets are on the deck."), and
           # says ship parts, aircraft, Mission and port names alone
-          'carrier-deck': ('en-US-AriaNeural', '-8%')}
+          'carrier-deck': ('en-US-AriaNeural', '-8%'),
+          # Cargo Words says every long word whole and every syllable alone ("(rab)"), so short vowels must be crisp, as in the reading games
+          'cargo-words': ('en-US-AriaNeural', '-8%')}
 ROOT = Path(__file__).resolve().parent.parent
 
 
@@ -245,7 +248,30 @@ COLLECTION_SPEECH = {
         'said_as': {'Foghorn': 'Fog horn', 'Grape Purple': 'Grape, Purple', 'carry than': 'carry, than',
                     'Reef': 'Reef!', 'Fleet Admiral': 'Fleet Admiral!', 'Angled Deck': 'Angled, Deck', 'Checkered Deck': 'Checkered, Deck'},
     },
+    # Cargo Words says every syllable alone, written "(rab)". Alone, the voice reads "ti" as the letters T and I and "py" as P and Y, so
+    # each syllable is said as it sounds in its word, respelled by the rules in src/cargo-words/words/said.ts (printed by
+    # tools/cargo-words/said.ts and merged into said_as here): "(ti)" is said "tie", "(tle)" "tull", "(ger)" "gur", "(el)" "ell".
+    # Speech-to-text (small.en) on every word and syllable clip heard Aria's "(cat)" as "Kate" (as every reading game found), "(mag)" as
+    # "Meg", "retell" as "retail" and "hopeful" as "helpful" however they were written; Jenny's cat, mag and retell are heard as written,
+    # and "hope-ful" keeps its hope.
+    'cargo-words': {
+        'said_from': 'tools/cargo-words/said.ts',
+        'said_as': {'hopeful': 'hope-ful'},
+        # and Aria's "(buck)" (bucket) was heard as a swear word and her "(got)" (forgot) as nothing at all, however written; Jenny's
+        # are heard as written
+        'voice_for': {'(cat)': 'en-US-JennyNeural', '(mag)': 'en-US-JennyNeural', 'retell': 'en-US-JennyNeural',
+                      '(buck)': 'en-US-JennyNeural', '(got)': 'en-US-JennyNeural'},
+    },
 }
+
+
+def load_said_from(collection):
+    """A collection can print more said_as entries from a script (Cargo Words' syllables), merged in once."""
+    own = COLLECTION_SPEECH.get(collection, {})
+    script = own.pop('said_from', None)
+    if script:
+        extra = json.loads(subprocess.run(['npx', 'tsx', script], cwd=ROOT, check=True, capture_output=True, text=True).stdout)
+        own['said_as'] = {**extra, **own.get('said_as', {})}
 
 
 def spoken(text, voice, rate, collection=None):
@@ -287,6 +313,7 @@ async def main():
     args = parser.parse_args()
     clips, index = args.out.resolve(), args.index.resolve()
     voice, rate = VOICES.get(args.collection, (VOICE, RATE))
+    load_said_from(args.collection)
     phrases = json.loads(subprocess.run(['npx', 'tsx', 'tools/phrases.ts', '--collection', args.collection], cwd=ROOT, check=True, capture_output=True, text=True).stdout)
     files = {p: f'{clip_id(p, voice, rate, args.collection)}.mp3' for p in phrases}
     todo = [p for p, f in files.items() if not (clips / f).is_file()]
