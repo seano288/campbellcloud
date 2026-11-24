@@ -22,6 +22,7 @@
   .venv/bin/python tools/make_voice.py --collection jetway --out public/jetway-voice --index src/jetway/voice.gen.ts
   .venv/bin/python tools/make_voice.py --collection carrier-deck --out public/carrier-deck-voice --index src/carrier-deck/voice.gen.ts
   .venv/bin/python tools/make_voice.py --collection cargo-words --out public/cargo-words-voice --index src/cargo-words/voice.gen.ts
+  .venv/bin/python tools/make_voice.py --collection moon-base-mail --out public/moon-base-mail-voice --index src/moon-base-mail/voice.gen.ts
 
 Select phrases through tools/phrases.ts and write recordings and a typed index to explicit locations.
 Only missing clips are recorded. Cleanup touches only the selected directory, whose .voice-collection
@@ -71,7 +72,10 @@ VOICES = {'purrdoku': ('en-GB-RyanNeural', '-5%'),
           # says ship parts, aircraft, Mission and port names alone
           'carrier-deck': ('en-US-AriaNeural', '-8%'),
           # Cargo Words says every long word whole and every syllable alone ("(rab)"), so short vowels must be crisp, as in the reading games
-          'cargo-words': ('en-US-AriaNeural', '-8%')}
+          'cargo-words': ('en-US-AriaNeural', '-8%'),
+          # Moon Base Mail says every sentence of every letter whole (the speaker beside it and the lessons), and its questions and
+          # short written answers, so short vowels must be crisp, as in the reading games
+          'moon-base-mail': ('en-US-AriaNeural', '-8%')}
 ROOT = Path(__file__).resolve().parent.parent
 
 

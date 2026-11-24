@@ -45,6 +45,8 @@ import { deckBuild } from './carrier-deck-build';
 import { iconSvg as deckIcon } from '../src/carrier-deck/icon';
 import { cargoBuild } from './cargo-words-build';
 import { iconSvg as cargoIcon } from '../src/cargo-words/icon';
+import { moonBuild } from './moon-base-mail-build';
+import { iconSvg as moonIcon } from '../src/moon-base-mail/icon';
 import { iconSvg as purrdokuIcon } from '../src/purrdoku/art';
 import { purrdokuBuild } from './purrdoku-build';
 import { favicon, homeScreenIcons } from './icons';
@@ -112,6 +114,7 @@ export const SECTIONS: readonly { title: string; games: readonly Tile[] }[] = [
     { path: 'jetway', name: 'Jetway', blurb: 'Adding and taking away big numbers, build an airport', icon: jetIcon },
     { path: 'carrier-deck', name: 'Carrier Deck', blurb: 'Story problems and bar graphs, build an aircraft carrier', icon: deckIcon },
     { path: 'cargo-words', name: 'Cargo Words', blurb: 'Reading long words, build a port and work the crane', icon: cargoIcon },
+    { path: 'moon-base-mail', name: 'Moon Base Mail', blurb: 'Reading letters from the Moon, build a base and land the supply ship', icon: moonIcon },
   ] },
   { title: 'Just for Fun', games: [
     { path: 'hunch', name: 'Hunch', blurb: 'Guess the five-letter word', icon: hunchIcon },
@@ -194,6 +197,7 @@ await build({ ...staticBuild(skylineBuild), logLevel: 'warn' });
 await build({ ...staticBuild(jetBuild), logLevel: 'warn' });
 await build({ ...staticBuild(deckBuild), logLevel: 'warn' });
 await build({ ...staticBuild(cargoBuild), logLevel: 'warn' });
+await build({ ...staticBuild(moonBuild), logLevel: 'warn' });
 await build({ ...hunchBuild(), logLevel: 'warn' });
 await build({ ...staticBuild(purrdokuBuild), logLevel: 'warn' });
 console.log(`Built ${SITE}/: landing page, ${GAMES.map(g => g.path).join(', ')}`);

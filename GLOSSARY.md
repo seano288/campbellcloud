@@ -875,3 +875,43 @@ _Avoid_: level, route, island (for all of them)
 **Tonnage, port rank**: every container loaded adds to the tonnage counter on the harbour office; at each milestone the port takes a new rank (Wooden Pier, Jetty, Little Port, Port, Busy Port, Big Port, Mega Port, then Super Port 1, 2, 3 and on without end).
 
 **Watch it run**: his port working by itself, for show: his ships coming in to their berths, his cranes unloading them, the train and the lorries carrying containers away. Nothing is paid or used.
+
+## Moon Base Mail
+
+Moon Base Mail reuses the other games' terms where they mean the same thing (Mixed Round, Mastery, Stretch, Bolt, Tune-Up, Meeting, Goal, Slot, Rung, Mod, Paint, Special crate). These are its own:
+
+**Game Modes (Moon Base Mail)**: the five kinds of question, about reading a short passage for meaning: Read the Mail (a letter, then a spoken question: who, what or where with picture answers; when as well, with short written answers; then why and how), What Came Next (put the story back in order: three pictures after reading it; three mixed-up sentences; four with first, next, then and last), Big Idea (what the letter is mostly about: a picture, the best title of three, then the one sentence that does not belong), Clue Finder (what the letter does not say outright: where someone is going, how someone feels and which sentence tells you, what will happen next) and Fact File (a true report about space: find a fact; use the labels on its picture; "Does the report say this?" yes, no, or not in the report). Read the Mail and What Came Next are open from the start; Big Idea and Clue Finder open at Read the Mail Level 2, Fact File at What Came Next Level 2.
+
+**Mail**: the letters and reports he reads, each a passage of two to five sentences from the crew to him as Commander (or, in the Fact File, from the base). One letter is not asked again until twenty others have been, and never with the same question twice running.
+_Avoid_: story, text, passage (to him; the code says passage)
+
+**I read it**: the button he taps when he has read the letter; only then is the question said and its answers shown. The letter stays on screen while he answers.
+
+**Speaker (in a letter)**: the 🔊 beside each sentence and each written answer: it reads that line aloud. As in Sentence Express's What Happened, an answer he had read to him counts as help (no Mastery credit, no first-try Bolt), and every tap is counted in the save.
+
+**Base word**: one of the Moon Base's own words that is on no other game's list (moon, dome, rover, the crew's names ...), met first in a small group with its picture and the voice, in a Meeting before the first letter that uses it.
+
+**Crew**: who lives at the base. The five letter-writers (Ava, Sam, Kit, Ben, Jo), Dot the robot and Pip the cat are there from the start; each living dome he builds adds one more (Max, Pam, Tess, Rex, Liz, Gus), who waves and says a line when tapped on a walk.
+_Avoid_: team, people
+
+**Moon Base**: the reward he builds, seen from above: a grid of plots on grey moon ground, the home dome in the middle and his modules on the other plots, joined by tunnels drawn by themselves. He picks each module's plot and can move it at any time.
+_Avoid_: port, city, town
+
+**Module**: one building of the base (a living dome, the greenhouse, the solar field, the observatory ...). Fifty are named; after twelve of those, New Modules made from parts (a shape, a colour, windows and a roof fitting, named like "Blue Pod") can be bought again and again. A module comes on the supply ship and needs a free plot.
+_Avoid_: building, house, room (for all of them)
+
+**Plot, Land Patch**: a square of ground a module stands on. The base starts 3 by 3; each Land Patch (bought again and again) adds a column or a row, without end.
+
+**Landing**: the action reward, about half a minute to a minute, from the side: the supply ship comes down over the Moon's hills; he holds the Engine button to slow the fall and slides it toward the pad with a held finger. It cannot be failed: a hard landing bounces on its legs, and off the pad it hops across by itself. A Round earns one. Each Landing's ground is made from its number (the same every time), a little trickier each time up to a cap; it brings the newest module waiting (or a supply crate), a moon rock, and every fifth a special crate.
+_Avoid_: level, flight, mission
+
+**Lander**: the supply ship he flies: six kinds (Little, Hopper, Wide Cargo, Tall, Crane, Star), each flying its own way, with parts (legs, engine, side jets, lights) that change how it lands.
+
+**Moon rock**: what each Landing brings back for the shelf: made from parts (shape, colour, sparkle, size) from the Landing's number, rarer the further he has got. There is no last rock.
+
+**Garden**: the greenhouse's plants (twenty named, then Garden Beds made from parts): each grows a stage every Round he plays, and a grown plant adds to the harvest every Round after.
+
+**Walk the base**: show off: his astronaut walks and moon-hops along his modules, the crew wave when tapped, and with the right modules he drives the moon buggy and looks through the telescope. Nothing is paid or used.
+
+**Softest landing, closest to the middle**: his own bests (lower is better), cheered when beaten and paid a Bolt each. There is no rival.
+

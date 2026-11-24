@@ -35,6 +35,7 @@
     "dev:jetway": "vite --config vite.jetway.config.ts --port 5177 --strictPort",
     "dev:carrier-deck": "vite --config vite.carrier-deck.config.ts --port 5189 --strictPort",
     "dev:cargo-words": "vite --config vite.cargo-words.config.ts --port 5167 --strictPort",
+    "dev:moon-base-mail": "vite --config vite.moon-base-mail.config.ts --port 5159 --strictPort",
     "dev:hunch": "vite --config vite.hunch.config.ts",
     "dev:purrdoku": "vite --config vite.purrdoku.config.ts",
     "build:purrdoku-boards": "tsx tools/purrdoku-boards.ts"

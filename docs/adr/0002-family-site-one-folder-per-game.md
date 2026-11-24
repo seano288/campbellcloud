@@ -25,7 +25,8 @@ Truck Money alone into `dist/` for the existing browser checks.
   Skyline `skyline-save` (and `skyline-place`),
   Jetway `jetway-save` (and `jetway-place`),
   Carrier Deck `carrier-deck-save` (and `carrier-deck-place`),
-  Cargo Words `cargo-words-save` (and `cargo-words-place`).
+  Cargo Words `cargo-words-save` (and `cargo-words-place`),
+  Moon Base Mail `moon-base-mail-save` (and `moon-base-mail-place`).
 - **Home Screen**: the app already installed from the site root now opens the landing page, which works offline. Each game
   becomes available offline after its first online visit at its new folder.
 - **Word Wreckers** (`/word-wreckers/`) has a tile in **Learning Games** and saves under its own key, `word-wreckers-save` (with
@@ -40,6 +41,9 @@ Truck Money alone into `dist/` for the existing browser checks.
   (with `carrier-deck-place` for the screen and the Round in progress). Its voice clips are in `public/carrier-deck-voice/`.
 - **Cargo Words** (`/cargo-words/`) has a tile in **Learning Games**, after Carrier Deck, and saves under its own key, `cargo-words-save`
   (with `cargo-words-place` for the screen and the Round in progress). Its voice clips are in `public/cargo-words-voice/`.
+- **Moon Base Mail** (`/moon-base-mail/`) has a tile in **Learning Games**, after Cargo Words, and saves under its own key,
+  `moon-base-mail-save` (with `moon-base-mail-place` for the screen and the Round in progress). Its voice clips are in
+  `public/moon-base-mail-voice/`.
 
 ## Learning games and games just for fun
 
