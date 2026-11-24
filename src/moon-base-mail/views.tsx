@@ -15,7 +15,7 @@ import { ORDER_SEP, type Passage } from './mail/index';
 import { BASE_WORDS } from './mail/words';
 import type { Asking, Meet } from './mix';
 import { said, type Phrase } from './phrases';
-import { letterOf, questionOf } from './reading/problems';
+import { LETTER_TO, letterOf, questionOf } from './reading/problems';
 import { lessonFor, markListened, type Lesson } from './reading/teach';
 import { createVoiceScope, useVoice } from './voice';
 
@@ -70,7 +70,7 @@ function Letter({ current, p, shown, lesson, tapLine, numbers, canSay, tapping }
   const order = ordered !== null && p.kind === 'order' && !p.pics ? p.lines.map((_, i) => i) : shown;
   return (
     <div class={cls('mb-letter', p.kind === 'fact' && 'report', tapping && 'tapping')}>
-      <div class="mb-letter-head"><span class="mb-to" lang="en">{p.kind === 'fact' ? 'Fact File' : 'To the Commander'}</span><span class="mb-stamp" aria-hidden="true">🌙</span></div>
+      <div class="mb-letter-head"><span class="mb-to" lang="en">{p.kind === 'fact' ? 'Fact File' : LETTER_TO}</span><span class="mb-stamp" aria-hidden="true">🌙</span></div>
       <ol class="mb-lines">
         {order.map(i => {
           const line = p.lines[i]!, n = numbers?.[i];
@@ -116,11 +116,13 @@ export function QuestionView({ current, waiting }: { current: Current; waiting: 
 
   const read = () => {
     if (stage !== 'reading' && stage !== 'intro') return;
-    voice.cancel();
+    // hush, not cancel: cancelling ends this question's voice for good, and the question would never be said
+    voice.hush();
     setStage('asking');
     void voice.say(said(qq.ask)).then(() => { if (!current.signal.aborted) setStage('ready'); });
   };
-  const askAgain = () => { if (stage === 'ready' || stage === 'asking') void voice.say(said(qq.ask)); };
+  // not during a lesson: any new line hushes the one playing, and the lesson would be cut short
+  const askAgain = () => { if (!waiting && (stage === 'ready' || stage === 'asking')) void voice.say(said(qq.ask)); };
 
   const n = p.lines.length, ordering = qq.form === 'order';
   function tapOrder(i: number) {

@@ -59,18 +59,18 @@ export const FACT = [
     q('Which part do the crew go down?', 'label', 'ladder', ['legs', 'rocket', 'hatch'], 2, { so: 'So the crew go down the ladder.' }),
     q('Which part slows the lander down?', 'label', 'rocket', ['legs', 'ladder', 'hatch'], 3, { so: 'So the rocket slows it down.' }),
   ], { diagram: 'lander' }),
-  P('fact', 2, 'Base', ['A lander has a hatch.', 'The crew get in and out at the hatch.', 'Its rocket fires to make it go up and down.'], [
+  P('fact', 2, 'Base', ['A lander has a hatch.', 'The crew get in and out at the hatch.', 'Its rocket slows it down and makes it go up.'], [
     q('Which part do the crew get in at?', 'label', 'hatch', ['legs', 'ladder', 'rocket'], 1, { so: 'So the crew get in at the hatch.' }),
-    q('Which part fires?', 'label', 'rocket', ['hatch', 'legs', 'ladder'], 2, { so: 'So the rocket fires.' }),
+    q('Which part makes it go up?', 'label', 'rocket', ['hatch', 'legs', 'ladder'], 2, { so: 'So the rocket makes it go up.' }),
   ], { diagram: 'lander' }),
   P('fact', 2, 'Base', ['This is a moon suit.', 'The backpack has air in it.', 'The helmet has gold on it to stop the sun.', 'The boots are big and thick.'], [
     q('Which part has air in it?', 'label', 'backpack', ['helmet', 'boots', 'hands'], 1, { so: 'So the backpack has the air.' }),
     q('Which part stops the sun?', 'label', 'helmet', ['backpack', 'boots', 'hands'], 2, { so: 'So the helmet stops the sun.' }),
     q('Which part is big and thick?', 'label', 'boots', ['helmet', 'backpack', 'hands'], 3, { so: 'So the boots are big and thick.' }),
   ], { diagram: 'suit' }),
-  P('fact', 2, 'Base', ['A moon suit is white.', 'The white helps it not get hot in the sun.', 'The crew can get rocks with the thick hands of the suit.'], [
-    q('Which part can get rocks?', 'label', 'hands', ['helmet', 'backpack', 'boots'], 2, { so: 'So the hands get rocks.' }),
-    q('Which part goes on the head?', 'label', 'helmet', ['hands', 'backpack', 'boots'], 0, { so: 'So the helmet goes on the head.' }),
+  P('fact', 2, 'Base', ['A moon suit is white.', 'The white helps it not get hot in the sun.', 'The helmet goes on your head.', 'The crew can get rocks with the thick hands of the suit.'], [
+    q('Which part can get rocks?', 'label', 'hands', ['helmet', 'backpack', 'boots'], 3, { so: 'So the hands get rocks.' }),
+    q('Which part goes on the head?', 'label', 'helmet', ['hands', 'backpack', 'boots'], 2, { so: 'So the helmet goes on the head.' }),
   ], { diagram: 'suit' }),
   P('fact', 2, 'Base', ['This is a moon rover.', 'Its wheels can go over rocks and dust.', 'The dish on it talks to Earth.', 'The box on the back is for rocks.'], [
     q('Which part talks to Earth?', 'label', 'dish', ['wheels', 'box', 'light'], 2, { so: 'So the dish talks to Earth.' }),
@@ -85,9 +85,9 @@ export const FACT = [
   P('fact', 2, 'Base', ['Here is the ground on the moon.', 'A crater is a hole made by a space rock.', 'Dust is all over the ground.', 'You can see footprints in the dust.'], [
     q('Which part is a hole?', 'label', 'crater', ['dust', 'footprint', 'rock'], 1, { so: 'So the crater is a hole.' }),
     q('Which part did a boot make?', 'label', 'footprint', ['crater', 'dust', 'rock'], 3, { so: 'So a boot made the footprint.' }),
-    q('Which part made the crater?', 'label', 'rock', ['footprint', 'dust', 'crater'], 1, { so: 'So a space rock made the crater.' }),
+    q('Which part is all over the ground?', 'label', 'dust', ['crater', 'footprint', 'rock'], 2, { so: 'So dust is all over the ground.' }),
   ], { diagram: 'ground' }),
-  P('fact', 2, 'Base', ['This is a telescope.', 'Light comes in at the big end.', 'You look in at the little end.', 'It makes stars look big.'], [
+  P('fact', 2, 'Base', ['This is a telescope.', 'Light comes in at the big end.', 'You look in at the little end.', 'It makes the moon and planets look big.'], [
     q('Where does the light come in?', 'label', 'big end', ['little end', 'legs'], 1, { so: 'So light comes in at the big end.' }),
     q('Where do you look in?', 'label', 'little end', ['big end', 'legs'], 2, { so: 'So you look in at the little end.' }),
   ], { diagram: 'telescope' }),
@@ -113,7 +113,7 @@ export const FACT = [
     yes('The Earth goes around the sun.', 1), no('The Earth is a star.', 0), notSaid('The moon goes around the Earth.'),
   ]),
   P('fact', 3, 'Base', ['Craters are all over the moon.', 'Rocks from space made the craters.', 'Some craters are big, and some are little.', 'Some craters are dark inside all the time.'], [
-    yes('Some craters are little.', 2), no('All craters are big.', 2), notSaid('Craters have ice in them.'),
+    yes('Some craters are little.', 2), no('All craters are big.', 2), notSaid('Some craters have ice in them.'),
   ]),
   P('fact', 3, 'Base', ['Dust is all over the moon.', 'Moon dust is sharp, not soft.', 'It sticks to suits and boots.', 'Crews brush it off.'], [
     yes('Moon dust sticks to boots.', 2), no('Moon dust is soft.', 1), notSaid('Dust gets in the rover too.'),
@@ -121,7 +121,7 @@ export const FACT = [
   P('fact', 3, 'Base', ['A day on the moon is long.', 'The sun is up for days and days.', 'Then the night is long too.', 'At night it gets so cold.'], [
     yes('The night on the moon is long.', 2), no('The sun is up for a little time.', 1), notSaid('There are stars at night.'),
   ]),
-  P('fact', 3, 'Base', ['A telescope makes stars look big.', 'Some telescopes are on the ground.', 'Some telescopes are in space.', 'You look in at the little end.'], [
-    yes('Some telescopes are in space.', 2), no('A telescope makes stars look little.', 0), notSaid('Telescopes are black.'),
+  P('fact', 3, 'Base', ['A telescope makes planets look big.', 'Some telescopes are on the ground.', 'Some telescopes are in space.', 'You look in at the little end.'], [
+    yes('Some telescopes are in space.', 2), no('A telescope makes planets look little.', 0), notSaid('Some telescopes are big, and some are little.'),
   ]),
 ] as const;

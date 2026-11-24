@@ -33,9 +33,9 @@ export const MAIN = [
     q(ABOUT, 'pic', 'lunch', ['robot', 'dome'], [0, 1, 2]),
     q('What did they have?', 'pic', 'muffin', ['robot', 'dome'], 1, { so: 'So they had muffins.' }),
   ], { topic: 'lunch' }),
-  P('main', 1, 'Kit', ['A dust storm is coming.', 'Dust will go all over the base.', 'We will all sit inside the dome.'], [
+  P('main', 1, 'Kit', ['A dust storm is coming.', 'Dust will go all over the lander.', 'We will all sit inside the dome.'], [
     q(ABOUT, 'pic', 'storm', ['dome', 'crew'], [0, 1, 2]),
-    q('Where will they sit?', 'pic', 'dome', ['base', 'storm'], 2, { so: 'So they will sit in the dome.' }),
+    q('Where will they sit?', 'pic', 'dome', ['lander', 'storm'], 2, { so: 'So they will sit in the dome.' }),
   ], { topic: 'the dust storm', story: 'storm' }),
   P('main', 1, 'Sam', ['The mail came in the lander.', 'There was a letter for Kit.', 'There was a box for Ben.'], [
     q(ABOUT, 'pic', 'mail', ['lander', 'box'], [0, 1, 2]),
@@ -75,9 +75,9 @@ export const MAIN = [
     q(TITLE, 'words', 'the jumping game', ['a big rock', 'sitting in the dust'], [0, 1, 2, 3]),
     q('What did Kit jump over?', 'words', 'the rover', ['a big rock', 'the dust'], 2, { so: 'So Kit jumped over the rover.' }),
   ], { topic: 'the jumping game' }),
-  P('main', 2, 'Ben', ['We got a new flag for the base.', 'It is blue with a white star.', 'Dot put it up by the hatch.'], [
+  P('main', 2, 'Ben', ['We got a new flag in the mail.', 'It is blue with a white star.', 'Dot put it up by the hatch.'], [
     q(TITLE, 'words', 'the new flag', ['the hatch', 'a white star'], [0, 1, 2]),
-    q('Where did Dot put the flag?', 'words', 'by the hatch', ['a white star', 'the base'], 2, { so: 'So the flag is by the hatch.' }),
+    q('Where did Dot put the flag?', 'words', 'by the hatch', ['a white star', 'in the mail'], 2, { so: 'So the flag is by the hatch.' }),
   ], { topic: 'the new flag' }),
   P('main', 2, 'Jo', ['Pip the cat has a new ball.', 'It has a bell in it.', 'Pip kicks it all over the dome.', 'Now the dome is not quiet!'], [
     q(TITLE, 'words', 'a ball for Pip', ['the quiet dome', 'a bell'], [0, 1, 2, 3]),
@@ -117,8 +117,8 @@ export const MAIN = [
     q(ODD, 'line', '3', ['0', '1', '2'], [0, 1, 2]),
     q('Who made the cake?', 'words', 'Jo', ['Ben', 'a crater'], 1, { so: 'So Jo made the cake.' }),
   ], { topic: 'the party', odd: 3, story: 'party' }),
-  P('main', 3, 'Ava', ['Max is new at the base.', 'He came in the lander.', 'Max can fix rockets.', 'Pip the cat had a nap.', 'He sleeps in the new dome.'], [
+  P('main', 3, 'Ava', ['Max is new at the base.', 'He came in the lander.', 'He sleeps in the new dome.', 'Pip the cat likes fish.', 'Max can fix rockets.'], [
     q(ODD, 'line', '3', ['0', '1', '2', '4'], [0, 1, 2, 4]),
-    q('Where does Max sleep?', 'words', 'in the new dome', ['in the lander', 'rockets'], 4, { so: 'So he sleeps in the new dome.' }),
+    q('Where does Max sleep?', 'words', 'in the new dome', ['in the lander', 'rockets'], 2, { so: 'So he sleeps in the new dome.' }),
   ], { topic: 'Max', odd: 3, story: 'max' }),
 ] as const;

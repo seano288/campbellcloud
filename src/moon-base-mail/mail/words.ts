@@ -40,14 +40,14 @@ export const SOURCES: Record<Exclude<Source, 'base'>, ReadonlySet<string>> = {
  */
 export interface BaseWord { readonly word: string; readonly pic: string; readonly group: number }
 const GROUPS: readonly (readonly [word: string, pic: string][])[] = [
-  // 0: the crew (names he can sound out, all but Ava)
-  [['Ava', '👩‍🚀'], ['Kit', '👧'], ['Jo', '🧑'], ['Dot', '🤖'], ['Pip', '🐈']],
+  // 0: the crew (names he can sound out, all but Ava), and him: every letter is to "the Commander"
+  [['Ava', '👩‍🚀'], ['Kit', '👧'], ['Jo', '🧑'], ['Dot', '🤖'], ['Pip', '🐈'], ['Commander', '🎖️']],
   // 1: the base
   [['moon', '🌕'], ['dome', 'art:dome'], ['base', 'art:base'], ['Earth', '🌍'], ['space', '🌌']],
   // 2: going outside
   [['suit', 'art:suit'], ['boots', '🥾'], ['air', '💨'], ['hatch', 'art:hatch']],
   // 3: getting about
-  [['rover', 'art:rover'], ['lander', 'art:lander'], ['crew', '👩‍🚀'], ['Commander', '🎖️']],
+  [['rover', 'art:rover'], ['lander', 'art:lander'], ['crew', '👩‍🚀']],
   // 4: around the base
   [['food', '🍲'], ['water', '💧'], ['dust', 'art:dust'], ['crater', 'art:crater']],
   // 5: the mail and the base's jobs

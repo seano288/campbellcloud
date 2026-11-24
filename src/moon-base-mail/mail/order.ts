@@ -13,11 +13,11 @@ export const ORDER = [
   P('order', 1, 'Ben', ['Ben dug in the dust.', 'He found a rock.', 'He put the rock in his bag.'], [], { pics: ['dust', 'rock', 'bag'] }),
   P('order', 1, 'Sam', ['Pip the cat ran to the hatch.', 'Sam opened it.', 'Pip ran into the green dome.'], [], { pics: ['cat', 'hatch', 'greendome'], story: 'cat' }),
   P('order', 1, 'Jo', ['Jo made a cake.', 'She put a candle on it.', 'The crew ate it all up.'], [], { pics: ['cake', 'candle', 'crew'], story: 'party' }),
-  P('order', 1, 'Dot', ['Dot got a can of red paint.', 'Dot painted the rover.', 'Then Dot went to bed.'], [], { pics: ['paint', 'rover', 'bed'] }),
+  P('order', 1, 'Dot', ['Dot got a can of red paint.', 'Dot painted the rover.', 'Dot went to bed.'], [], { pics: ['paint', 'rover', 'bed'] }),
   P('order', 1, 'Kit', ['The sun went down.', 'It got dark and cold.', 'Kit put on the lights.'], [], { pics: ['sun', 'night', 'light'] }),
   P('order', 1, 'Ava', ['Ava looked in the telescope.', 'She saw a big planet.', 'She called Sam to come and look.'], [], { pics: ['telescope', 'planet', 'Sam'] }),
   P('order', 1, 'Ben', ['The lander came down.', 'Ben got a box out.', 'In the box was a new rover!'], [], { pics: ['lander', 'box', 'rover'] }),
-  P('order', 1, 'Jo', ['Jo put seeds in the dirt.', 'Little plants came up.', 'Then the plants had peppers!'], [], { pics: ['seeds', 'plant', 'pepper'], story: 'seeds' }),
+  P('order', 1, 'Jo', ['Jo put seeds in the dirt.', 'Little plants came up.', 'The plants had red peppers!'], [], { pics: ['seeds', 'plant', 'pepper'], story: 'seeds' }),
   P('order', 1, 'Kit', ['Kit got up from bed.', 'She had pancakes.', 'She went to the green dome.'], [], { pics: ['bed', 'pancake', 'greendome'] }),
 
   // ---------- Level 2 ----------

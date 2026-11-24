@@ -32,8 +32,15 @@ describe('teaching a miss', () => {
     for (const a of all().filter(a => a.mode === 'order')) {
       const p = PASSAGES.find(x => x.id === a.q.pid)!, said = shortLesson(a).flatMap(s => s.say).filter(x => p.lines.includes(x));
       expect(said).toEqual(p.lines);
-      expect(shortLesson(a).some(s => s.say[0] === 'First,')).toBe(true);
-      expect(shortLesson(a).some(s => s.say[0] === 'Last,')).toBe(true);
+      // each line is said with its word once: "First," then the line, or a line that already starts "First, ..." on its own
+      const steps = shortLesson(a).filter(s => s.lit), words = ['First,', 'Next,', 'Then,', 'Last,'];
+      for (const s of steps) {
+        const spoken = s.say.join(' ');
+        expect(words.some(w => spoken.startsWith(w)), spoken).toBe(true);
+        expect(words.filter(w => spoken.split(' ').includes(w)).length, spoken).toBe(1);
+      }
+      expect(steps[0]!.say.join(' ').startsWith('First,')).toBe(true);
+      expect(steps.at(-1)!.say.join(' ').startsWith('Last,')).toBe(true);
     }
   });
   it('Big Idea points every sentence about the idea at it, and the odd one out says it is not', () => {

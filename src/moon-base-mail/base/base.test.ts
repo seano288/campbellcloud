@@ -1,7 +1,7 @@
 // The Moon Base: modules come by Landing and need a free plot; the base grows with land; nothing is ever lost; parts change the lander;
 // the garden grows a stage a Round; every fifth Landing brings a special crate.
 import { describe, expect, it } from 'vitest';
-import { bought, buyable, crewOf, earnLanding, finishGo, freePlots, freshBase, gridSize, harvestOf, missingNeed, move, nextWant, place, planGo, proposePurchase, readBase, roomFor, specOf, stageOf, type BaseState } from './base';
+import { bought, buyable, crewOf, earnLanding, finishGo, payFor, freePlots, freshBase, gridSize, harvestOf, missingNeed, move, nextWant, place, planGo, proposePurchase, readBase, roomFor, specOf, stageOf, type BaseState } from './base';
 import { LANDER_SPECS } from './catalog';
 
 const buyAll = (b: BaseState, ids: string[]) => ids.reduce((s, id) => bought(s, { kind: 'item', id }), b);
@@ -58,6 +58,25 @@ describe('modules and plots', () => {
     expect(proposePurchase(b, { kind: 'item', id: 'module:living1' }, 1).kind).toBe('rejected');
     expect(proposePurchase(b, { kind: 'item', id: 'module:living1' }, 14).kind).toBe('ready');
     expect(buyable(b, { kind: 'more', id: 'module' })).toBe(false); // made modules come after twelve named ones
+  });
+});
+
+describe('his bests', () => {
+  it('a Landing he flew in sets and beats his bests, and pays a Bolt for each best beaten', () => {
+    let b = { ...freshBase(), landings: 3 };
+    b = finishGo(b, planGo(b), { soft: 9, close: 20 });
+    expect(b.bests).toEqual({ soft: 9, close: 20 });
+    expect(payFor(b, planGo(b), { soft: 4, close: 3 }).bolts).toBe(5);
+  });
+  it('a Landing the ship finished by itself (it hopped or was guided onto the pad) sets no best and pays none, so doing nothing can\'t win "closest to the middle"', () => {
+    let b = { ...freshBase(), landings: 3 };
+    b = finishGo(b, planGo(b), { soft: 0.6, close: 0, assisted: true });
+    expect(b.bests).toEqual({ soft: null, close: null });
+    expect(b.badges).not.toContain('bullseye');
+    b = finishGo(b, planGo(b), { soft: 9, close: 20 });
+    const pay = payFor(b, planGo(b), { soft: 0.6, close: 0, assisted: true });
+    expect(pay.bolts).toBe(3);
+    expect(finishGo(b, planGo(b), { soft: 0.6, close: 0, assisted: true }).bests).toEqual({ soft: 9, close: 20 });
   });
 });
 

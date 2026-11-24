@@ -3,6 +3,10 @@
 import { pick, shuffle, type Rng } from '../../game/rng';
 import { ORDER_SEP, passageById, passagesOf, type Kind, type Level, type Passage, type Question } from '../mail/index';
 import { baseWordsIn } from '../mail/words';
+import { picOf } from '../mail/pictures';
+
+/** The head of every letter (not of a Fact File report): "Commander" is a base word, so he meets it before he sees it. */
+export const LETTER_TO = 'To the Commander';
 import { LETTER_GAP, type MeetingId } from '../learning';
 
 export interface MailQ {
@@ -70,14 +74,17 @@ export function isAnswer(q: MailQ, answer: string): boolean {
 }
 export const isRightAnswer = (q: MailQ, answer: string) => answer === rightAnswer(q);
 
-/** Everything he reads in this question, for its Meeting: the letter, the written answers, the statement and labels. */
+/** Everything he reads in this question, for its Meeting: the letter and who it is to and from ("To the Commander", "from Kit"), the
+ *  written answers, labels and "Does the report say this?" choices ("not in the report"), the statement, and the names under pictures. */
 export function textOf(q: MailQ): string[] {
   const p = letterOf(q), qq = questionOf(q);
-  return [...p.lines, p.from === 'Base' ? '' : p.from, ...(qq.form === 'words' || qq.form === 'label' ? [qq.right, ...qq.wrong] : []), ...(qq.says ? [qq.says] : [])];
+  const written = qq.form === 'words' || qq.form === 'label' ? [qq.right, ...qq.wrong] : qq.form === 'yn' ? [...q.choices] : [];
+  const named = qq.form === 'pic' ? [qq.right, ...qq.wrong].map(k => picOf(k).name ?? '') : p.pics ? p.pics.map(k => picOf(k).name ?? '') : [];
+  return [...p.lines, ...(p.from === 'Base' ? [] : [p.from, LETTER_TO]), ...written, ...(qq.says ? [qq.says] : []), ...named];
 }
 /** The base-word groups this question needs met first. */
 export const needs = (q: MailQ): MeetingId[] => [...new Set(textOf(q).flatMap(t => baseWordsIn(t).map(b => `g${b.group}` as MeetingId)))].sort();
 
 /** The base-word groups a letter's own words need (its questions may add a few). */
 export const groupsOf = (p: Passage): MeetingId[] =>
-  [...new Set([...p.lines, p.from === 'Base' ? '' : p.from].flatMap(t => baseWordsIn(t).map(b => `g${b.group}` as MeetingId)))];
+  [...new Set([...p.lines, ...(p.from === 'Base' ? [] : [p.from, LETTER_TO])].flatMap(t => baseWordsIn(t).map(b => `g${b.group}` as MeetingId)))];

@@ -74,7 +74,11 @@ export function shortLesson(p: Asking): Step[] {
   const q = p.q, letter = letterOf(q), qq = questionOf(q), steps: Step[] = [];
   if (letter.kind === 'order') {
     steps.push({ say: ["Let's put it in order."] });
-    letter.lines.forEach((line, i) => steps.push({ say: [orderWord(i, letter.lines.length), said(line)], lit: [i], ordered: i + 1 }));
+    // a Level 3 line already starts with its word ("First, Kit got a pot of dirt."), so it is not said twice
+    letter.lines.forEach((line, i) => {
+      const word = orderWord(i, letter.lines.length);
+      steps.push({ say: line.startsWith(word) ? [said(line)] : [word, said(line)], lit: [i], ordered: i + 1 });
+    });
     steps.push({ say: [], hint: qq.right });
     return steps;
   }

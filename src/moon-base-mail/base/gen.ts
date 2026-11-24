@@ -140,9 +140,10 @@ export const SPECIALS = [
   { id: 'special:earthlamp', name: 'Earth Lamp', icon: '🌍' },
 ] as const;
 export type SpecialName = (typeof SPECIALS)[number]['name'];
-export const STATUE_WORDS = ['Star', 'Moon', 'Rocket', 'Cat', 'Robot', 'Comet'] as const;
+// "Kitty", not "Cat": the voice says a lone "Cat" as "Kate"
+export const STATUE_WORDS = ['Star', 'Moon', 'Rocket', 'Kitty', 'Robot', 'Comet'] as const;
 export interface Special { readonly id: string; readonly name: string; readonly icon: string; readonly lucky?: { colour: ColourWord; word: (typeof STATUE_WORDS)[number]; hex: string; number: number } }
-const STATUE_ICONS: Record<(typeof STATUE_WORDS)[number], string> = { Star: '⭐', Moon: '🌙', Rocket: '🚀', Cat: '🐈', Robot: '🤖', Comet: '☄️' };
+const STATUE_ICONS: Record<(typeof STATUE_WORDS)[number], string> = { Star: '⭐', Moon: '🌙', Rocket: '🚀', Kitty: '🐈', Robot: '🤖', Comet: '☄️' };
 /** The special crate on Landing n (every fifth): the twelve named prizes in order, then lucky statues made from parts, without end. */
 export function specialFor(n: number): Special | null {
   if (n % 5 !== 0) return null;

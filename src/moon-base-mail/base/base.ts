@@ -283,10 +283,17 @@ export function planGo(b: BaseState): GoPlan {
   const n = b.goes + 1, sp = specialFor(n);
   return { n, landing: landingFor(n), carrying: b.pending.at(-1) ?? null, special: sp && !has(b, sp.id) ? sp : null };
 }
-export interface GoResult { /** How fast it first touched the pad, and how far from the middle it came to rest. */ soft: number; close: number }
+export interface GoResult {
+  /** How fast it first touched the pad, and how far from the middle it came to rest. */
+  soft: number; close: number;
+  /** The game brought the ship to the pad (it hopped across, or was guided in after a long wait): no best is set or beaten, so doing
+   *  nothing can't earn "closest to the middle" (the hop and the guide aim at the middle). */
+  assisted?: boolean;
+}
 export interface GoPay { bolts: number; bestSoft: boolean; bestClose: boolean; special: Special | null; carrying: string | null; badges: string[] }
 export function payFor(b: BaseState, plan: GoPlan, res: GoResult): GoPay {
-  const bestSoft = b.bests.soft !== null && res.soft < b.bests.soft - 0.05, bestClose = b.bests.close !== null && res.close < b.bests.close - 0.05;
+  const counts = !res.assisted;
+  const bestSoft = counts && b.bests.soft !== null && res.soft < b.bests.soft - 0.05, bestClose = counts && b.bests.close !== null && res.close < b.bests.close - 0.05;
   const pay: GoPay = { bolts: LANDING_BOLTS + (bestSoft ? BEST_BOLTS : 0) + (bestClose ? BEST_BOLTS : 0), bestSoft, bestClose, special: plan.special, carrying: plan.carrying, badges: [] };
   pay.badges = finishGo(b, plan, res).badges.filter(t => !b.badges.includes(t));
   return pay;
@@ -302,7 +309,7 @@ export function finishGo(b: BaseState, plan: GoPlan, res: GoResult): BaseState {
     ...s, owned, landings: Math.max(0, s.landings - 1), goes: s.goes + 1,
     pending: carrying ? s.pending.filter(x => x !== carrying) : s.pending, toPlace: carrying ?? s.toPlace,
     supplies: s.supplies + (carrying ? 0 : 1),
-    bests: { soft: s.bests.soft === null ? res.soft : Math.min(s.bests.soft, res.soft), close: s.bests.close === null ? res.close : Math.min(s.bests.close, res.close) },
+    bests: res.assisted ? s.bests : { soft: s.bests.soft === null ? res.soft : Math.min(s.bests.soft, res.soft), close: s.bests.close === null ? res.close : Math.min(s.bests.close, res.close) },
   }, res);
 }
 /** A Round finished: one more Landing, and the garden grows. */

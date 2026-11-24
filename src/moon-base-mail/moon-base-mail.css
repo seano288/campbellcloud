@@ -268,8 +268,6 @@ button.mb-box:active{transform:translateY(4px);box-shadow:0 1px 0 #000}
 /* Split It: the word in big letters, with a cut button between each two */
 .mb-split{display:flex;justify-content:center;align-items:stretch;font:700 min(max(44px,calc(84px*var(--u))),calc((100vw - 48px)/var(--n)*1.35))/1.2 Andika,Nunito,sans-serif;background:#fff;border:4px solid #000;border-radius:18px;padding:.1em .35em;box-shadow:0 6px 0 #000;transition:gap .4s}
 .mb-split.apart{gap:.6em}
-.mb-letter{position:relative;display:inline-block;padding:0 .04em;transition:transform .4s}
-.mb-split.apart .mb-letter.right-half{color:var(--blue)}
 .mb-cut{position:absolute;top:-6px;bottom:-6px;right:-22px;width:44px;z-index:1;background:transparent;border:0;border-radius:10px;cursor:pointer;padding:0}
 .mb-cut::after{content:"";position:absolute;left:50%;top:10%;bottom:10%;width:6px;margin-left:-3px;border-radius:3px;background:#0001}
 .mb-cut:hover::after,.mb-cut:active::after{background:var(--sign-ink)}
@@ -339,7 +337,6 @@ button.mb-box:active{transform:translateY(4px);box-shadow:0 1px 0 #000}
 .mb-stack-btn{min-height:64px}}
 /* Split It: every letter at least 44px wide, so the cuts between them (44px, centred on each join) touch but never overlap */
 .mb-split{font-size:min(max(44px,calc(84px*var(--u))),calc((100vw - 64px)/var(--n)*1.2))}
-.mb-letter{min-width:44px;text-align:center}
 .mb-split{padding:.1em .12em}
 .choices.mb-pics.n2{grid-template-columns:repeat(2,1fr)}
 .mb-compare.b-dark,.mb-compare.b-thick{grid-template-columns:repeat(3,1fr)}
@@ -431,7 +428,6 @@ button.mb-box:active{transform:translateY(4px);box-shadow:0 1px 0 #000}
 .mb-harbour.next{background:#fff6c4}
 /* Split It: the word comes apart only at its break (a gap between every letter pushed a seven-letter word off a phone's screen) */
 .mb-split.apart{gap:0}
-.mb-split.apart .mb-letter:not(.right-half)+.mb-letter.right-half{margin-left:.5em}
 
 /* ======================================================================================================================================
    Moon Base Mail's own screens
@@ -521,6 +517,10 @@ button.mb-box:active{transform:translateY(4px);box-shadow:0 1px 0 #000}
   .mb-word-row .mb-say{width:44px;height:44px}
   .mb-side{width:clamp(220px,42%,400px)}
   .mb-diagram{max-height:70vh}
+  /* "Does the report say this?": the statement and three answers in four rows reached the bottom band; yes and no share a row */
+  .game.mb.f-yn .mb-choices.words{flex-direction:row;flex-wrap:wrap}
+  .game.mb.f-yn .mb-says,.game.mb.f-yn .mb-word-row:last-child{flex-basis:100%}
+  .game.mb.f-yn .mb-word-row{flex:1 1 40%;min-width:0}
 }
 @media (orientation:portrait) and (max-width:500px){
   .mb-text{font-size:17px}

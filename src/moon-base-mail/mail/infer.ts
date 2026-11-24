@@ -38,7 +38,7 @@ export const INFER = [
   ], { story: 'cat' }),
   P('infer', 1, 'Sam', ['The base is dark.', 'The crew is in bed.', 'Pip the cat is in her bed too.'], [
     q('When is it?', 'pic', 'night', ['lunch', 'sunny'], [0, 1, 2], { clues: ['dark', 'in bed'], think: 'It is dark, and they are all in bed. It is night.' }),
-    q('Where is the crew?', 'pic', 'bed', ['cat', 'base'], [1, 2], { so: 'So the crew is in bed.' }),
+    q('Where is the crew?', 'pic', 'bed', ['cat', 'rover'], 1, { so: 'So the crew is in bed.' }),
   ]),
   P('infer', 1, 'Jo', ['Dot has a can of paint and a brush.', 'He is looking at the rover.'], [
     q('What will Dot do?', 'pic', 'painting', ['sleep', 'eat'], [0, 1], { clues: ['paint', 'brush', 'rover'], think: 'Paint, a brush and the rover. Dot is going to paint the rover.' }),
@@ -54,13 +54,13 @@ export const INFER = [
     q(FEEL('Sam'), 'words', 'sad', ['happy', 'silly'], [1, 2], { clues: ['no letter', 'did not eat dinner'], think: 'He got no letter, and he did not eat. Sam is sad.' }),
     q('Which sentence tells you how Sam feels?', 'line', '2', ['0', '1'], 2, { clues: ['did not eat dinner'], think: 'He sat in his room and did not eat. That is what you do when you are sad.' }),
   ], { story: 'mail' }),
-  P('infer', 2, 'Jo', ['Jo saw a lander come down.', 'Her dad was in it!', 'Jo ran to hug him.'], [
+  P('infer', 2, 'Jo', ['Jo saw a lander come down.', 'Her dad was in it.', 'Jo ran to hug him.'], [
     q(FEEL('Jo'), 'words', 'happy', ['sad', 'scared'], [1, 2], { clues: ['Her dad was in it', 'ran to hug him'], think: 'Her dad came, and she ran to hug him. Jo is happy.' }),
     q('Which sentence tells you how Jo feels?', 'line', '2', ['0', '1'], 2, { clues: ['ran to hug him'], think: 'You run to hug someone when you are happy to see them.' }),
   ]),
-  P('infer', 2, 'Kit', ['The seeds came up at last!', 'Kit said, "Thank you, Ben!"', 'Then she made Ben a cake.'], [
-    q(FEEL('Kit'), 'words', 'thankful', ['mad', 'tired'], [1, 2], { clues: ['Thank you, Ben', 'made Ben a cake'], think: 'She said thank you and made him a cake. Kit is thankful.' }),
-    q('Which sentence tells you how Kit feels?', 'line', '1', ['0', '2'], 1, { clues: ['Thank you'], think: 'You say thank you when you are thankful.' }),
+  P('infer', 2, 'Kit', ['Ben sprayed the seeds with water.', 'At last, they came up!', 'Kit said, "Thank you, Ben!"'], [
+    q(FEEL('Kit'), 'words', 'thankful', ['mad', 'tired'], [0, 2], { clues: ['sprayed the seeds', 'Thank you, Ben'], think: 'Ben sprayed her seeds, and she said thank you. Kit is thankful.' }),
+    q('Which sentence tells you how Kit feels?', 'line', '2', ['0', '1'], 2, { clues: ['Thank you'], think: 'You say thank you when you are thankful.' }),
   ], { story: 'seeds' }),
   P('infer', 2, 'Ava', ['Ava was out on the moon.', 'A dust storm came, and she could not see the base!', 'She called Dot to come and help.'], [
     q(FEEL('Ava'), 'words', 'scared', ['happy', 'silly'], [1, 2], { clues: ['could not see the base', 'come and help'], think: 'She could not see the base, and she called for help. Ava is scared.' }),
@@ -74,7 +74,7 @@ export const INFER = [
     q(FEEL('Kit'), 'words', 'mad', ['happy', 'tired'], [1, 2], { clues: ['came down', 'it was my dust man'], think: 'Pip knocked it down, and Kit said so. Kit is mad.' }),
     q('Which sentence tells you how Kit feels?', 'line', '2', ['0', '1'], 2, { clues: ['it was my dust man'], think: 'She tells Pip off. She is mad.' }),
   ], { story: 'dustman' }),
-  P('infer', 2, 'Jo', ['Dot put a pot on top like a hat.', 'Then he hopped like a frog.', 'The crew could not stop laughing.'], [
+  P('infer', 2, 'Jo', ['Dot put a pot on his head like a hat.', 'Then he hopped like a frog.', 'The crew could not stop laughing.'], [
     q('How does the crew feel?', 'words', 'happy', ['sad', 'scared'], [1, 2], { clues: ['could not stop laughing'], think: 'They could not stop laughing. The crew is happy.' }),
     q('Which sentence tells you how the crew feels?', 'line', '2', ['0', '1'], 2, { clues: ['laughing'], think: 'You laugh when you are happy.' }),
   ]),
@@ -102,11 +102,11 @@ export const INFER = [
   ]),
   P('infer', 3, 'Ben', ['Pip the cat likes to play with balls.', 'Ben kicked a red ball to her.'], [
     q('What will Pip do next?', 'words', 'run after the ball', ['have a nap', 'go in the lander'], [0, 1], { clues: ['likes to play with balls', 'kicked a red ball to her'], think: 'Pip likes balls, and one is coming to her.' }),
-    q('What did Ben kick?', 'words', 'a red ball', ['Pip', 'the cat'], 1, { so: 'So he kicked a red ball.' }),
+    q('What did Ben kick?', 'words', 'a red ball', ['Pip', 'a rock'], 1, { so: 'So he kicked a red ball.' }),
   ], { story: 'cat' }),
   P('infer', 3, 'Jo', ['Jo put the cake on the table.', 'The crew sat down at the table.', 'They all have forks.'], [
     q('What will the crew do next?', 'words', 'eat the cake', ['paint the cake', 'go to bed'], [0, 2], { clues: ['cake on the table', 'forks'], think: 'The cake is on the table, and they have forks.' }),
-    q('Where is the cake?', 'words', 'on the table', ['with the forks', 'in the crew'], 0, { so: 'So it is on the table.' }),
+    q('Where is the cake?', 'words', 'on the table', ['with the forks', 'in a box'], 0, { so: 'So it is on the table.' }),
   ], { story: 'party' }),
   P('infer', 3, 'Sam', ['Sam made a kite.', 'He wants to fly it on the moon.', 'But there is no air on the moon.'], [
     q('What will happen next?', 'words', 'the kite will not fly', ['the kite will go up', 'the kite will get wet'], [1, 2], { clues: ['no air'], think: 'A kite needs air to fly, and there is no air on the moon.' }),

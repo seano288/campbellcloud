@@ -24,6 +24,9 @@ function fly(n: number, kind: LanderKind, child: Child, seed = n) {
   return s;
 }
 
+// thousands of Landings: slow when every core is busy, so these get longer than vitest's five seconds
+const HEAVY = 60_000;
+
 describe('every Landing can be finished', () => {
   it('3,000 generated Landings: the ground is sound, and each is the same twice', () => {
     for (let n = 1; n <= 3000; n++) {
@@ -35,7 +38,7 @@ describe('every Landing can be finished', () => {
       expect(a.padX + a.padW).toBeLessThan(landingLength(a));
       for (let x = 0; x < landingLength(a); x += 5) expect(Number.isFinite(groundAt(a, x))).toBe(true);
     }
-  });
+  }, HEAVY);
   it('a child who does nothing lands on the pad of every one of 3,000 Landings, in under two minutes', () => {
     let worst = 0;
     for (let n = 1; n <= 3000; n++) {
@@ -46,13 +49,18 @@ describe('every Landing can be finished', () => {
     }
     console.log(`a child who does nothing: ${worst.toFixed(0)} s at most`);
     expect(worst).toBeLessThan(120);
-  });
+  }, HEAVY);
+  it('a Landing the game finished for him (a hop across, or the guide) is marked, so it sets no best; one he flew in is not', () => {
+    for (let n = 1; n <= 300; n++) expect(fly(n, 'little', nothing).result!.assisted, `Landing ${n}`).toBe(true);
+    const flown = Array.from({ length: 60 }, (_, i) => fly(i * 3 + 1, 'little', careful).result!);
+    expect(flown.filter(r => !r.assisted).length).toBeGreaterThan(50);
+  }, HEAVY);
   it('clumsy, careful and engine-holding children land with every lander', () => {
     for (const kind of Object.keys(LANDER_SPECS) as LanderKind[]) for (const child of [clumsy, careful, holder]) for (let n = 1; n <= 400; n += 7) {
       const s = fly(n, kind, child);
       expect(s.done, `${kind} Landing ${n}`).toBe(true);
     }
-  });
+  }, HEAVY);
   it('a careful child takes about 45 seconds or less, and lands soft and close', () => {
     const times: number[] = [];
     for (let n = 1; n <= 200; n += 3) { const s = fly(n, 'little', careful); times.push(s.t); expect(s.result!.close).toBeLessThan(15); }
@@ -78,7 +86,7 @@ describe('the rest of the endless layer', () => {
       expect(rockFor(n).lumps.every(l => l > 0.5 && l < 1.3)).toBe(true);
       expect((specialFor(n) !== null)).toBe(n % 5 === 0);
     }
-  });
+  }, HEAVY);
   it('made modules and plants have different names for their first 96 and 72', () => {
     const m = new Set(Array.from({ length: 96 }, (_, k) => { const x = moduleFor(k); return `${x.colour} ${x.word}`; }));
     expect(m.size).toBe(96);

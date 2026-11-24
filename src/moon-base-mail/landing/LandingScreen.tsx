@@ -43,7 +43,7 @@ export function LandingScreen() {
   const plan = useMemo(() => planGo(b), []);
   const look = useMemo(() => ({ kind: b.lander, paint: paintHex(b), lights: lightsHex(b), carrying: true }), []);
   const rock = useMemo(() => rockFor(plan.n, has(b, 'module:moonmine')), []);
-  const [phase, setPhase] = useState<Phase>('card'), [pay, setPay] = useState<GoPay | null>(null), [result, setResult] = useState<{ soft: number; close: number } | null>(null);
+  const [phase, setPhase] = useState<Phase>('card'), [pay, setPay] = useState<GoPay | null>(null), [result, setResult] = useState<{ soft: number; close: number; assisted: boolean } | null>(null);
   const canvas = useRef<HTMLCanvasElement>(null), engine = useRef(false), finger = useRef<number | null>(null), keys = useRef(new Set<string>());
   const sceneRef = useRef<ReturnType<typeof createScene> | null>(null);
 
@@ -94,8 +94,8 @@ export function LandingScreen() {
         if (e.t === 'landed' && !done) {
           done = true;
           touchdown();
-          setResult({ soft: e.soft, close: e.close });
-          setPay(settleGo(player, plan, { soft: e.soft, close: e.close }));
+          setResult({ soft: e.soft, close: e.close, assisted: e.assisted });
+          setPay(settleGo(player, plan, { soft: e.soft, close: e.close, assisted: e.assisted }));
           setPhase('end');
         }
       }
@@ -109,7 +109,8 @@ export function LandingScreen() {
     if (phase !== 'end' || !pay || !result) return;
     void (async () => {
       sFanfare(); confetti(40, voice.signal);
-      await voice.say(softWord(result.soft) as Phrase, closeWord(result.close) as Phrase);
+      // a Landing the ship finished by itself (it hopped across, or was guided in) is only "on the pad": its middle isn't his doing
+      await voice.say(softWord(result.soft) as Phrase, (result.assisted ? 'On the pad!' : closeWord(result.close)) as Phrase);
       if (pay.bestSoft) { sCheer(); await voice.say('Softest landing!', 'New best!'); }
       if (pay.bestClose) { sCheer(); await voice.say('Closest to the middle!', 'New best!'); }
       await voice.say(earnedLine(CUR, pay.bolts));

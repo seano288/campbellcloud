@@ -1,7 +1,8 @@
 // The Moon Base from above: the grid of plots on grey moon ground, each module on its plot, and tunnels joining modules that stand side
 // by side (and each one to the home dome's row), drawn by themselves. In the Base screen every plot is a button: tap a module to pick it
-// up, tap a free plot to put it (or the module that has just come) there. The grid grows with each Land Patch; the map scrolls, and only
-// what is on screen is drawn.
+// up, tap a free plot to put it (or the module that has just come) there. The grid grows with each Land Patch without end; the map
+// scrolls, and only the plots on screen (and a margin round them) are drawn, so a base of thousands of plots stays quick on an iPad.
+import { useLayoutEffect, useRef, useState } from 'preact/hooks';
 import { Shown } from '../art/pics';
 import { itemOf, isItemId } from './catalog';
 import { domeHex, gridSize, HOME, type BaseState } from './base';
@@ -57,6 +58,16 @@ export function BaseMap({ b, mini, onPlot, selected, placing }: { b: BaseState; 
     if (y + 1 < rows && at(x, y + 1)) tunnels.push({ x1: x, y1: y, x2: x, y2: y + 1 });
   }
   const w = cols * CELL, h = rows * CELL;
+  const scroller = useRef<HTMLDivElement>(null), [win, setWin] = useState<Window>(FIRST_WINDOW);
+  useLayoutEffect(() => {
+    const el = scroller.current;
+    if (!el) return;
+    const update = () => setWin(old => { const next = windowOf(el); return sameWindow(old, next) ? old : next; });
+    update();
+    el.addEventListener('scroll', update, { passive: true });
+    addEventListener('resize', update);
+    return () => { el.removeEventListener('scroll', update); removeEventListener('resize', update); };
+  }, [cols, rows, mini]);
   if (mini) {
     return (
       <svg class="mb-map mini" viewBox={`0 0 ${w} ${h}`} preserveAspectRatio="xMidYMid meet" aria-hidden="true">
@@ -71,12 +82,12 @@ export function BaseMap({ b, mini, onPlot, selected, placing }: { b: BaseState; 
     );
   }
   return (
-    <div class="mb-map-scroll">
+    <div class="mb-map-scroll" ref={scroller}>
       <div class="mb-map" style={{ width: `${w}px`, height: `${h}px` }}>
         <svg class="mb-tunnels" viewBox={`0 0 ${w} ${h}`} width={w} height={h} aria-hidden="true">
-          {tunnels.map((t, i) => <line key={i} x1={t.x1 * CELL + CELL / 2} y1={t.y1 * CELL + CELL / 2} x2={t.x2 * CELL + CELL / 2} y2={t.y2 * CELL + CELL / 2} stroke="#c0c7d0" stroke-width="16" stroke-linecap="round" />)}
+          {tunnels.filter(t => inWindow(win, t.x1, t.y1) || inWindow(win, t.x2, t.y2)).map((t, i) => <line key={i} x1={t.x1 * CELL + CELL / 2} y1={t.y1 * CELL + CELL / 2} x2={t.x2 * CELL + CELL / 2} y2={t.y2 * CELL + CELL / 2} stroke="#c0c7d0" stroke-width="16" stroke-linecap="round" />)}
         </svg>
-        {Array.from({ length: rows }, (_, y) => Array.from({ length: cols }, (_, x) => {
+        {range(win.y0, Math.min(rows, win.y1)).map(y => range(win.x0, Math.min(cols, win.x1)).map(x => {
           const k = `${x},${y}`, id = at(x, y);
           return (
             <button key={k} class={cls('mb-plot', id ? 'built' : 'free', selected === k && 'picked', placing && !id && 'target')} style={{ left: `${x * CELL}px`, top: `${y * CELL}px` }}
@@ -88,4 +99,25 @@ export function BaseMap({ b, mini, onPlot, selected, placing }: { b: BaseState; 
       </div>
     </div>
   );
+}
+
+// ---------- drawing only what is on screen ----------
+
+/** The plots drawn: columns x0 to x1 and rows y0 to y1 (x1 and y1 not included). */
+interface Window { x0: number; y0: number; x1: number; y1: number }
+/** Before the map has been measured: enough for any screen the base starts on. */
+const FIRST_WINDOW: Window = { x0: 0, y0: 0, x1: 32, y1: 32 };
+/** Plots drawn past the edge of the screen, so a quick scroll doesn't show an empty edge. */
+const MARGIN = 3;
+const range = (a: number, b: number) => Array.from({ length: Math.max(0, b - a) }, (_, i) => a + i);
+const inWindow = (w: Window, x: number, y: number) => x >= w.x0 && x < w.x1 && y >= w.y0 && y < w.y1;
+const sameWindow = (a: Window, b: Window) => a.x0 === b.x0 && a.y0 === b.y0 && a.x1 === b.x1 && a.y1 === b.y1;
+function windowOf(scroller: HTMLElement): Window {
+  // where the screen is over the map (the map is centred in the scroller while it is smaller than it)
+  const map = scroller.firstElementChild?.getBoundingClientRect(), box = scroller.getBoundingClientRect();
+  const left = map ? box.left - map.left : 0, top = map ? box.top - map.top : 0;
+  return {
+    x0: Math.max(0, Math.floor(left / CELL) - MARGIN), y0: Math.max(0, Math.floor(top / CELL) - MARGIN),
+    x1: Math.ceil((left + scroller.clientWidth) / CELL) + MARGIN, y1: Math.ceil((top + scroller.clientHeight) / CELL) + MARGIN,
+  };
 }

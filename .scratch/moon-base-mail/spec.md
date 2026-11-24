@@ -1,6 +1,6 @@
 # Spec: Moon Base Mail (reading a short passage for meaning; build a moon base and land its supply ship)
 
-Status: built on 2026-11-24 (pass 1 of 3: build), playable at `/moon-base-mail/` with a tile in **Learning Games** on the landing page,
+Status: built on 2026-11-24 (pass 1 of 3: build; pass 2, the bug, content and sound review, the same day), playable at `/moon-base-mail/` with a tile in **Learning Games** on the landing page,
 after Cargo Words. Every decision below is a **default for the parent to confirm**. Not yet run on a real iPad or in Safari. The name is
 still a working name.
 
@@ -56,7 +56,7 @@ their bases), and, as a default for the parent to confirm, Sentence Express's se
 and the voice) before the first letter that uses them. 36 of the base words are used: around, Ava, base, boots, cloud, Commander, crater,
 crew, Dot, dome, dust, Earth, food, gravity, hatch, ice, Jo, Kit, lander, light, mad, next, Pip, planet, put, rover, scared, space, suit,
 tired, wind (and plurals). The letters use 111 Sight Squad words, 59 Dino Dig words, 41 Cargo Words words, 44 Sentence Express words, 41
-Hook and Ladder words. Meetings come in nine small groups (crew; the base; going outside; getting about; around the base; the mail;
+Hook and Ladder words. Meetings come in nine small groups (the crew, with "Commander", since every letter is headed "To the Commander"; the base; going outside; getting about; around the base; the mail;
 words for the reports; feelings; "next"). While he is still meeting them, a letter that needs at most one new group is picked first, so
 a Round is not all Meetings (the first Round of a new save has two or three).
 
@@ -98,25 +98,44 @@ upright. The letter stays on screen while he answers. Written answers each have 
 - The right answer is never the only choice that names something in the letter, and never the longest by a clear margin (no more than
   four letters or 30% longer than the longest wrong one).
 - Wrong answers in Read the Mail are things from the letter (every content word of the choice is in it, or the letter is signed by it),
-  each the answer to a different question (a place for a who, a time for a where).
+  each the answer to a different question (a place for a who, a time for a where); one named in the sentence that holds the answer must
+  stand beside the answer there, never in its place (which would read as a second answer).
 - In Clue Finder, neither the answer nor the wrong guesses are written in the letter (they are guesses the clues rule out), and every
   question records its clue words, each of which is in the letter, and the thinking said after them.
 - Every question records the sentence(s) that hold its answer ("not in the report" holds none); a yes or no Fact File statement shares a
   word with the sentence it points at.
 - Sentence counts per kind and Level (table above, `mail/types.ts`); no sentence longer than twelve words.
 - What Came Next Level 3's lines start First, Next, Then, Last; Level 2's never do; the mixed-up sentences are never shown in the right
-  order; every other order of taps is wrong.
+  order; every other order of taps is wrong (every order is tried); the order lesson says each line with its word once ("First," is not
+  said before a line that already starts "First,").
 - A letter is not asked again until at least twenty others have been, and never with the same question twice running (simulated 150
   Rounds from a new save, from all kinds at Level 2, all at Level 3, and two kinds only at Level 2: no letter came back within twenty).
   A Round never asks a letter twice. At the start, Read the Mail and What Came Next Level 1 have 27 letters between them.
 - Lowercase in Andika, capitals only for a sentence's first word, I, and names.
 - Every Fact File report's id is listed in this spec with its sources (below).
+- The speaker rule, played through the shared Round engine (`speaker.test.ts`): an answer after a 🔊 tap is helped, pays no first-try
+  Bolt, counts in the Mastery window as helped, and is counted in `heard`.
+- Every word he sees before answering is met first: the letter, who signed it, "To the Commander" on every letter (Commander is in the
+  first Meeting, with the crew), the written answers, "not in the report", and the names under pictures (`needs` in
+  `reading/problems.ts`, `learning.test.ts`).
 
 **The second read for two right answers and guessable ones** (pass 1 did it on all 151 after writing them): it took out "from a star"
 beside "from the sun" (the report said the sun is a star), "in a hot spot" beside "in the sun", "Who got the rock out?" and three other
 questions whose letter had only one person, place or time (so the type of answer gave it away), and added a second time or place to
 four letters so "when" and "where" have a wrong answer of the same type. "There it was, under a box!" was made plain, since an
 exclamation also says Kit is happy.
+
+**Pass 2's second read** (a reader who did not write them, every letter and question): "Where did they go?" had "a hill" beside "a
+crater" when Ava got dust from the hill (now she gets it in a bag); "What does Ben have?" could be "his dome" (the letter is now about the
+bike he rides, and Pip riding with him in a box); "Where is the ice?" after the ice was put in the rover (now "Where did they dig up the
+ice?"); "Who ate a muffin?" offered "the crew", who ate the lunch (now Kit or Jo); "Where will they sit?" offered "the base", where the
+dome is (the storm now covers the lander); "Where did Dot put the flag?" offered "the base" when the flag was "for the base" (it now came
+in the mail); "Where is the crew?" offered "the base" and pointed its lesson at Pip's bed; "Which sentence tells you how Kit feels?" had
+two (thank you, and making Ben a cake: the cake is gone); "Her dad was in it!" (its exclamation told how Jo feels before the question);
+Max's odd-one-out letter put "Pip the cat had a nap." right before "He sleeps in the new dome." (both about sleep, and "He" read as
+Pip); "What did Ben kick?" offered both "Pip" and "the cat"; "in the crew" as a place; "Dot put a pot on top" (on top of what?); "The ice
+gets hot and makes water!" after "we make the ice hot"; two Level 1 order stories whose last line began "Then", said "Last, Then ...".
+Fact File: see below.
 
 ## Teaching a miss
 
@@ -149,7 +168,9 @@ when it outgrows the screen. Modules matter (`base.ts`): the greenhouse opens th
 dome adds a crew member (Max, Pam, Tess, Rex, Liz, Gus); the solar field keeps the windows lit through the night on a walk; the rover
 garage opens the moon buggy and its parts; the observatory opens the telescope on a walk; the workshop opens lander parts and the rock
 shelf; the second landing pad opens the Wide Cargo Lander, the hangar the Tall Lander, the crane tower the Crane Lander, the rocket pad
-the Star Lander; the glass garden dome makes plants grow twice as fast; the moon mine brings rarer moon rocks.
+the Star Lander; the glass garden dome makes plants grow twice as fast; the moon mine brings rarer moon rocks. The map draws only the
+plots on screen and a margin round them (pass 2: it drew every plot, and Land Patches are endless; a base of 41,412 plots opens in about
+a tenth of a second with 63 plots drawn).
 
 **The Landing (`landing/`, the action, about 30 seconds for a careful child).** From the side, on a canvas: black sky, the Earth (hanging
 still: from the Moon's near side it never rises or sets, so the brief's "the Earth rises" was not drawn), grey hills and craters, the pad
@@ -162,7 +183,9 @@ engine-holding children land with all six landers. A careful child takes 31 seco
 seconds the voice tells him to hold the engine. Keys work on a computer (arrows, space).
 
 **After the Landing.** How soft ("Soft as a feather!" to "Big bounce!") and how close ("Right in the middle!" to "On the pad!"), his bests
-(softest touchdown, closest to the middle; each beaten pays a Bolt and is cheered), the Bolts, the moon rock it brought, any special crate,
+(softest touchdown, closest to the middle; each beaten pays a Bolt and is cheered; a Landing the ship finished by itself, hopping across
+or guided in after 45 seconds, is only "On the pad!" and sets no best, since the hop and the guide aim at the middle: before pass 2 a
+child who did nothing got "Right in the middle!" and the Bullseye badge), the Bolts, the moon rock it brought, any special crate,
 and what it carried. Then Base (pulsing when a module waits), Land again, or ▶.
 
 **Landers.** Little (free), Hopper (bouncier, hops further), Wide Cargo (soft legs, slower), Tall (strongest engine), Crane (fast slide),
@@ -183,7 +206,7 @@ The guide's three layers:
    Landing (further, a narrower pad, taller hills, from 260 to about 1,000 metres and a 110 to 60 metre pad) up to Landing 60, then
    steady. Every seventh is a night landing. **Every fifth Landing brings a special crate**: twelve named prizes (Gold Moon Statue, Comet
    Lamp, Alien Toy, Crystal Tree, Star Map, Rocket Fountain, Space Swing, Disco Dome, Robot Band, Meteor in a Jar, Gold Lander Statue,
-   Earth Lamp), then lucky statues made from parts (a colour and a thing: "Gold Cat Statue"), without end, never sold. **Moon rocks**:
+   Earth Lamp), then lucky statues made from parts (a colour and a thing: "Gold Kitty Statue"; "Kitty", since the voice says a lone "Cat" as "Kate"), without end, never sold. **Moon rocks**:
    every Landing brings one, made from parts (six shapes, twelve colours, four sparkles, three sizes), rarer the further he has got (and
    with the Moon Mine); his newest are on the shelf, numbered, and there is no last rock. **Modules made from parts** after twelve named
    ones (New Module: a shape, a colour, windows and a roof fitting, 96 names from two clips, then numbered). **The garden grows a stage
@@ -246,29 +269,31 @@ Sun.
 | `fact1-05` | The sky on the Moon is black, day and night, because there is no air | N2 |
 | `fact1-06` | Gravity pulls us down; the Moon is smaller so its gravity is weaker; you can jump high | M (one sixth) |
 | `fact1-07` | Hot in the day, very cold at night; crews go out in suits | N1, L1, E1 |
-| `fact1-08` | No wind and no rain; footprints don't go away; the first footprints are still there | N2, M |
+| `fact1-08` | No wind and no rain; footprints don't go away; the first footprints are still there | N2; LRO images still show the Apollo footpaths, estimates of millions of years [S, Space.com, BigThink]; micrometeorites slowly blur them, so "do not go away" is true for a child's lifetime and far beyond |
 | `fact1-09` | Earth is a planet; it goes around the Sun; the Moon goes around Earth | N1, M |
-| `fact1-10` | Ice on the Moon, in dark craters where the Sun doesn't shine; crews can make it into water | M (LCROSS) |
+| `fact1-10` | Ice on the Moon, in dark craters where the Sun doesn't shine; crews can make it into water | JPL "Ice confirmed at the Moon's poles" (2018, Moon Mineralogy Mapper) [S]; LCROSS (2009) M |
 | `fact2-01` | A lander's legs sit on the ground; the crew go down the ladder; the rocket under it slows it | M (Apollo lunar module) |
-| `fact2-02` | The crew get in and out at the hatch; its rocket fires to go up and down | M (Apollo lunar module) |
+| `fact2-02` | The crew get in and out at the hatch; its rocket slows it down and makes it go up (pass 2: was "fires to make it go up and down", which says a rocket pushes it down) | M (Apollo lunar module) |
 | `fact2-03` | The suit's backpack has the air; the helmet has gold to stop the sun; the boots are big and thick | M (Apollo suit) |
-| `fact2-04` | A moon suit is white so it doesn't get as hot; thick hands for gathering rocks | M |
-| `fact2-05` | A moon rover's wheels go over rocks and dust; its dish talks to Earth; a box for rocks | M (Apollo lunar rover) |
+| `fact2-04` | A moon suit is white so it doesn't get as hot; the helmet goes on your head (pass 2: added, since a question asked it and the report didn't say it); thick hands for gathering rocks | M; the white outer layer is the Integrated Thermal Meteoroid Garment [S, NASA ALSJ] |
+| `fact2-05` | A moon rover's wheels go over rocks and dust; its dish talks to Earth; a box for rocks on the back | Apollo LRV: a mesh high-gain dish aimed at Earth, sample bags at the back [S, NASA SP-4214, NSSDC "The Apollo Lunar Roving Vehicle", ALSJ] |
 | `fact2-06` | The Sun is a star; Earth goes around the Sun; the Moon goes around Earth | M, N1 |
-| `fact2-07` | A crater is a hole made by a space rock; dust over the ground; footprints in the dust | N1, N3, M |
-| `fact2-08` | A telescope: light comes in at the big end, you look in at the little end; stars look big | M (a refractor, as drawn) |
+| `fact2-07` | A crater is a hole made by a space rock; dust over the ground; footprints in the dust (pass 2 took out "Which part made the crater?" with the rock lying on the picture as the answer: the rock that makes a crater is mostly smashed or melted, and the rock beside it didn't make it) | N1, N3, M |
+| `fact2-08` | A telescope: light comes in at the big end, you look in at the little end; it makes the Moon and planets look big (pass 2: was "it makes stars look big", which is wrong: stars stay points of light however much a telescope magnifies; it makes them brighter) | M (a refractor, as drawn); Britannica "optical telescope", Sky & Telescope [S] |
 | `fact2-09` | From space, Earth is blue and white; the blue is water; the white is ice and clouds | M |
 | `fact3-01` | Ball of rock; no air; Earth is bigger; crews went in rockets ("Crews can dig up moon rocks." is not in the report, and is true) | N1, N2, M |
 | `fact3-02` | Gravity pulls down; the Moon has gravity; it is weaker; you jump high ("Gravity on the sun is big." not in it, true) | M |
 | `fact3-03` | Plants grow in light; they get water from the dirt; plants have been grown in space; crews can grow them in a dome | M (ISS Veggie) |
 | `fact3-04` | The Sun is a star, the one we see by day; much bigger than Earth; don't look at it ("The sun is far from us." not in it, true) | M |
 | `fact3-05` | Earth is a planet; it goes around the Sun; it has air and water; it looks blue from the Moon ("The moon goes around the Earth." not in it, true) | N1, M |
-| `fact3-06` | Craters all over; made by rocks from space; big and little; some dark inside all the time ("Craters have ice in them." not in it; true of some) | N1, M |
-| `fact3-07` | Dust all over; sharp, not soft; sticks to suits and boots; crews brush it off | M (Apollo) |
+| `fact3-06` | Craters all over; made by rocks from space; big and little; some dark inside all the time ("Some craters have ice in them." not in it, true; pass 2 added "Some", since most craters have none) | N1; JPL "Ice confirmed at the Moon's poles" (2018) [S] |
+| `fact3-07` | Dust all over; sharp, not soft; sticks to suits and boots; crews brush it off | ESA "The toxic side of the Moon" (sharp and spiky), NASA NTRS on Apollo suit dust (clings mechanically and electrostatically) [S]; brushing, M (Apollo 17) |
 | `fact3-08` | A lunar day is long, the Sun up for days and days; the night is long too, and very cold | E1, N1 |
-| `fact3-09` | A telescope makes stars look big; some are on the ground, some in space; you look in at the little end | M |
+| `fact3-09` | A telescope makes planets look big; some are on the ground, some in space; you look in at the little end ("Some telescopes are big, and some are little." not in it, true; pass 2: was "makes stars look big" (wrong, as above) and "Telescopes are black." (not true, so not a safe "not in the report")) | M |
 
-Every "not in the report" statement was chosen to be true (or true of some), so it teaches nothing wrong.
+Every "not in the report" statement is true, so it teaches nothing wrong. Pass 2 checked the facts against the sources named (search
+results, [S]); nothing else needed changing. "Where does the Moon get its light? from the sun" keeps "from the Earth" as a wrong answer,
+though earthshine lights the dark part of a crescent Moon faintly: the report says sunlight, and that is the answer for a six-year-old.
 
 **Left out, as not sure enough or not sayable in his words:** the Earth rising over the base (it doesn't, seen from the near side: it was
 drawn still); "there is no sound on the Moon" (true of sound through air, but a child hears the crew on the radio in the game); exact
@@ -287,12 +312,23 @@ is unused, and pass 3 is the design pass. The landers, modules and crew are draw
 
 ## Voice
 
-Aria at −8%, recorded with `tools/make_voice.py --collection moon-base-mail`: **1,856 phrases, 1,856 clips, 30 MB** in
+Aria at −8%, recorded with `tools/make_voice.py --collection moon-base-mail`: **1,858 phrases, 1,858 clips, 27.5 MB** in
 `public/moon-base-mail-voice/` (Cargo Words' is 16 MB, Sight Squad's 30 MB). Every one of the 518 sentences is a clip, as are 359 questions'
 lines, every written answer and label, every lesson line ("So the box is in the dome."), every clue, the base words, numbers to 100 and
 the whole tens to 400, every name in the reward and the words made things are named from. The precache is the voice plus about 0.4 MB of
 code (see "Not done" for the measured total). It fits the site's budget of about 50 MB a game; if it must shrink, the first cut would be
 the "So ..." lesson lines (about 250 clips, the answer could be shown instead), not the letters' sentences.
+
+**Checked in pass 2.** Every clip was decoded: none is empty, silent, missing or unused, and each one's speech length fits its text (the
+quickest about 0.14 s a syllable, the slowest a lone word of 0.8 s). Every clip of four words or fewer (998) was transcribed back with
+faster-whisper small.en, and the longer ones (860) with base.en; anything heard differently went through large-v3-turbo as well. The
+small models hear a name that starts a sentence as another word ("Kit" as "Hit", "Ben" as "Then", "Pip" as "Pit"), and write a spoken
+"dot" as "."; large-v3-turbo heard all of those right, and each clip starts with about 0.2 s of quiet, so they were left alone. Both
+small.en and large-v3-turbo heard these wrong, so they are said another way (`COLLECTION_SPEECH['moon-base-mail']` in
+`tools/make_voice.py`; the screen keeps the written text): "Moon Base" ("Moonbears"), "One wheel came off!" ("One will"), "trees and a
+pond" ("trees in a pond"), "Grapes" ("crepes"), "Tess" ("tests"), "What will Dot do?" ("that"), "How does Jo feel?" ("dough"). A lone
+"Cat" is "Kate" however it is written, so the lucky statues' "Cat" became "Kitty". Still heard wrong by both, and left for a person to
+hear: "Ava made a little hat for Dot." ("for it"), "Dot the robot likes to help." ("Doc", large only), "Cube" ("Hube", small only).
 
 ## Save
 
@@ -328,21 +364,30 @@ value; a module he owns that is nowhere goes back on the ship. A reload during a
 - **Not run on a real iPad 9, an iPhone or in Safari/WebKit.** Checked in Chromium (Playwright) with `tools/moon-base-mail/tour.ts`
   at 810×1080, 1080×810, 390×844 and 844×390, on a new save and on saves with every kind open at Level 2 and at Level 3 (12 runs,
   each a whole Round with a deliberate first and second miss in every kind met, a speaker tap, the sound paused by the "device" mid-Round,
-  a purchase, a Landing to the pad, putting the module on a plot, and a walk). All pass. The tours found and fixed: Home's kinds board
-  off the screen on a sideways phone, the answers and "I read it" in the bottom band on an upright iPad, and the "Tap a plot!" tip
-  covering (and blocking taps on) the first plot on phones. A Round took 77 to 143 seconds with the deliberate misses; a Landing 16 to
-  17 seconds (the tour steers straight in). The production build's precache is 1,872 files, about 30.6 MB (30 MB of voice, 0.5 MB of
-  code, styles and fonts), and `tools/moon-base-mail/offline.ts` shows a Round starting, answering and resuming after a reload offline. What most needs checking on the device: the Landing's Engine hold and finger slide together on the
-  iPad (two touches at once), its frame time, the letter's text size and the sideways-phone layout of the longer letters beside their
-  answers, the 30 MB precache on the first visit, and the read-along lighting (shared out by letters, not timed to the clip).
-- **The voice has not been listened to by a person, and not transcribed back** (Cargo Words used faster-whisper; not done here). The
-  clips most likely to sound wrong: names said alone (**Jo**, **Kit**, **Dot**, **Pip** may come out as words: "joe", "kit" as in a kit,
-  "dot"), **"Commander"** fine but **"Moon Base"** and the made names ("Teal Pod", "Gold Lump"), the quoted sentences ("Kit said, "Thank
-  you, Ben!""), the clue phrases said alone ("no food", "jumped up and down"), "mad", "next", and the base words alone ("hatch", "dome",
-  "suit" can blur).
+  a purchase, a Landing to the pad, putting the module on a plot, and a walk). The production build's precache is 1,874 files, 28.1 MB
+  (27.5 MB of voice), and `tools/moon-base-mail/offline.ts` shows a Round starting, speaking, answering and resuming after a reload
+  offline. What most needs checking on the device: the Landing's Engine hold and finger slide together on the iPad (two touches at
+  once), its frame time, the letter's text size (15 to 34 px; small on a sideways phone), the 28 MB precache on the first visit, and the
+  read-along lighting (shared out by letters, not timed to the clip).
+- **Pass 2 (bug, content and sound review) found and fixed:** the question was never said after **I read it** (the tap cancelled the
+  question's voice for good, so 🔊 "say it again" was silent too); a child who did nothing at the Landing got "Right in the middle!", a
+  best and the Bullseye badge (the hop and the guide aim at the middle); the Level 3 order lesson said "First, First, Kit got a pot of
+  dirt."; "say it again" during a lesson cut the lesson short; Cargo Words' letter-tile rules, renamed `.mb-letter`, still styled every
+  letter (centred text, a 44 px minimum width); the map drew every plot of an endless grid; "To the Commander", "not in the report" and
+  the names under pictures were shown before their Meeting; on a sideways phone "Does the report say this?" put "not in the report" in
+  the bottom band (yes and no now share a row there); the content and fact changes above.
+- **The voice has been transcribed back (above) but not listened to by a person.** Hear first: "Ava made a little hat for Dot.", "Dot
+  the robot likes to help.", "Cube", "Who did Dot help?", the names alone (Jo, Kit, Dot, Pip, Max, Tess), the made names ("Teal Pod",
+  "Gold Lump", "Kitty Statue"), the quoted sentence ("Kit said, "Thank you, Ben!""), the clue phrases said alone ("no food", "come back",
+  "dish", "pot"), and the seven respelled clips.
+- **"its"** is let in by the -s rule as "it" + s (it is on none of the lists, though he can sound it out); seven letters use it.
+- **A Meeting pays a Bolt** (it counts as a first-try answer of the five); nine Meetings in a game's life, so it was left.
 - **Read-along lighting** shares a clip's time out by letters; real word timings would need recording with marks.
 - **Walk the base** is plain: no Sky Elevator ride, no buggy parts drawn, no rock shelf in the walk, the crew drawn as emoji. Pass 3.
 - **The Moon Base map** draws modules as emoji in coloured circles; generated modules have their own drawing. Pass 3.
-- **The Landing** has no wind or hazards beyond hills and craters, and its ship is small on an iPad.
+- **The Landing** has no wind or hazards beyond hills and craters, and its ship is small on an iPad. A Landing the ship finished by
+  itself still shows its 🎯 number (often 0) on the result card, though the voice says only "On the pad!".
+- **Tapping a sentence** (Big Idea Level 3, Clue Finder's "which sentence", What Came Next Levels 2 and 3) leaves the answer side empty
+  but for "Tap the sentence." while the letter is squeezed into the other half on a sideways phone; "from Jo" tucks under the last line.
 - No parent screen for the speaker count; it is in the save only.
-- The stylesheet carries Cargo Words' unused rules (renamed): pass 3 should prune it.
+- The stylesheet still carries Cargo Words' other unused rules (renamed): pass 3 should prune it.

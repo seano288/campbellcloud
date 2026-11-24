@@ -155,6 +155,11 @@ describe('exactly one right answer, and it can\'t be had without reading', () =>
     if (p.kind !== 'ask') return;
     for (const w of q.wrong) ok(names(p, q, w), 'toBe', [true], `"${w}" is not in the letter`, fail);
   }));
+  it('a wrong answer in Read the Mail is never in the answer\'s sentence when the answer itself is not (it would read as a second answer)', () => each((p, q, fail) => {
+    if (p.kind !== 'ask') return;
+    const inAnswer = { ...p, lines: q.at.map(i => p.lines[i]!), from: 'Base' as const };
+    for (const w of q.wrong) ok(names(inAnswer, q, w) && !names(inAnswer, q, q.right), 'toBe', [false], `"${w}" is in the answer's sentence and the answer is not`, fail);
+  }));
   it('in Clue Finder the answer is not written in the letter, and nor are the wrong guesses', () => each((p, q, fail) => {
     if (!q.clues || q.form === 'line') return;
     for (const c of [q.right, ...q.wrong]) {

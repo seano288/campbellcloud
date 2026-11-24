@@ -32,7 +32,7 @@ export type SimEvent =
   | { t: 'bounce'; speed: number }
   | { t: 'hop' }
   | { t: 'padTouch'; speed: number }
-  | { t: 'landed'; soft: number; close: number }
+  | { t: 'landed'; soft: number; close: number; assisted: boolean }
   | { t: 'idle' };
 
 export interface Sim {
@@ -46,8 +46,10 @@ export interface Sim {
   engine: boolean;
   /** How fast it first touched the pad, and whether it has come to rest on it. */
   firstPadTouch: number | null;
+  /** The game brought it to the pad (a hop across, or the guide after GUIDE_AFTER): a Landing he didn't fly in himself sets no best. */
+  assisted: boolean;
   done: boolean;
-  result: { soft: number; close: number } | null;
+  result: { soft: number; close: number; assisted: boolean } | null;
   idleFor: number;
   events: SimEvent[];
 }
@@ -55,7 +57,7 @@ export interface Sim {
 export function createSim(plan: LandingPlan, spec: LanderSpec): Sim {
   return {
     plan, spec, x: plan.startX, y: plan.startY, vx: 0, vy: 0, t: 0, resting: 0, onGround: false, engine: false,
-    firstPadTouch: null, done: false, result: null, idleFor: 0, events: [],
+    firstPadTouch: null, assisted: false, done: false, result: null, idleFor: 0, events: [],
   };
 }
 
@@ -67,6 +69,7 @@ export function step(s: Sim, input: Input) {
   if (s.done) return;
   s.t += STEP;
   const guided = s.t > GUIDE_AFTER;
+  if (guided) s.assisted = true;
   const engine = input.engine && !guided;
   s.engine = engine;
   if (!input.engine && input.to === null) s.idleFor += STEP; else s.idleFor = 0;
@@ -119,7 +122,7 @@ export function step(s: Sim, input: Input) {
       if (s.resting > 0.6) {
         if (s.firstPadTouch === null) s.firstPadTouch = 0;
         s.done = true;
-        s.result = { soft: Math.round(s.firstPadTouch * 10) / 10, close: Math.round(Math.abs(s.x - s.plan.padX) * 10) / 10 };
+        s.result = { soft: Math.round(s.firstPadTouch * 10) / 10, close: Math.round(Math.abs(s.x - s.plan.padX) * 10) / 10, assisted: s.assisted };
         s.events.push({ t: 'landed', ...s.result });
       }
     } else if (s.resting > HOP_WAIT && !engine) {
@@ -134,6 +137,7 @@ export function step(s: Sim, input: Input) {
       s.vx = dir * Math.min(reach / air, 60 * s.spec.hop);
       s.onGround = false;
       s.resting = 0;
+      s.assisted = true;
       s.events.push({ t: 'hop' });
     }
   } else s.resting = 0;

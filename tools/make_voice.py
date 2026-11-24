@@ -262,6 +262,15 @@ COLLECTION_SPEECH = {
         'said_from': 'tools/cargo-words/said.ts',
         'said_as': {'hopeful': 'hope-ful'},
     },
+    # Moon Base Mail, pass 2 review: both small.en and large-v3-turbo heard "Moon Base" alone as "Moonbears" / "Moonbass", the letter's
+    # "One wheel came off!" as "One will came off" and the answer "trees and a pond" as "trees in a pond"; a breath keeps each word (both
+    # models hear these right). The letter on screen keeps its own text.
+    'moon-base-mail': {
+        # and "Grapes" as "crepes", the crew name "Tess" as "tests", "What will Dot do?" as "What will that do?" and "How does Jo feel?"
+        # as "How does dough feel?". (A lone "Cat" is "Kate" however it is written, as other games found: the lucky statues say "Kitty".)
+        'said_as': {'Moon Base': 'Moon, Base', 'One wheel came off!': 'One wheel, came off!', 'trees and a pond': 'trees, and a pond',
+                    'Grapes': 'Grapes!', 'Tess': 'Tess!', 'What will Dot do?': 'What will Dot, do?', 'How does Jo feel?': 'How does Jo, feel?'},
+    },
 }
 
 

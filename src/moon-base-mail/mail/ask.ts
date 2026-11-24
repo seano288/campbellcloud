@@ -27,9 +27,9 @@ export const ASK = [
     q('What does Jo have?', 'pic', 'rover', ['cat', 'Jo'], 0, { so: 'So Jo has a rover.' }),
     q('Who got a ride?', 'pic', 'cat', ['Jo', 'rover'], 2, { so: 'So Pip the cat got a ride.' }),
   ], { story: 'cat' }),
-  P('ask', 1, 'Ava', ['Ava and Ben went out to a big crater.', 'Ben dug up a black rock.', 'Ava got dust from a hill.'], [
-    q('Where did they go?', 'pic', 'crater', ['hill', 'rock'], 0, { so: 'So they went to a crater.' }),
-    q('What did Ava get?', 'pic', 'dust', ['rock', 'hill'], 2, { so: 'So Ava got dust.' }),
+  P('ask', 1, 'Ava', ['Ava and Ben went out to a big crater.', 'Ben dug up a black rock.', 'Ava got some dust in a bag.'], [
+    q('Where did they go?', 'pic', 'crater', ['bag', 'rock'], 0, { so: 'So they went to a crater.' }),
+    q('What did Ava get?', 'pic', 'dust', ['rock', 'crater'], 2, { so: 'So Ava got dust.' }),
     q('Who dug up a rock?', 'pic', 'Ben', ['Ava', 'crater'], 1, { so: 'So Ben dug up the rock.' }),
   ]),
   P('ask', 1, 'Dot', ['Dot the robot likes to help.', 'Dot helped Sam fix the lander.', 'Then Dot cleaned the hatch.'], [
@@ -40,9 +40,9 @@ export const ASK = [
     q('What did Kit make?', 'pic', 'dustman', ['cup', 'cat'], 0, { so: 'So Kit made a dust man.' }),
     q('What is his hat?', 'pic', 'cup', ['cat', 'dust'], 1, { so: 'So his hat is a cup.' }),
   ], { story: 'dustman' }),
-  P('ask', 1, 'Ben', ['Ben has a bike in his dome.', 'It does not go out on the moon.', 'He rides it after lunch.'], [
-    q('What does Ben have?', 'pic', 'bike', ['dome', 'moon'], 0, { so: 'So Ben has a bike.' }),
-    q('Where is the bike?', 'pic', 'dome', ['bike', 'moon'], 0, { so: 'So the bike is in his dome.' }),
+  P('ask', 1, 'Ben', ['Ben has a bike in his dome.', 'He rides it after lunch.', 'Pip the cat rides with him in a box!'], [
+    q('What does Ben ride?', 'pic', 'bike', ['box', 'cat'], [0, 1], { so: 'So Ben rides a bike.' }),
+    q('Where is the bike?', 'pic', 'dome', ['box', 'cat'], 0, { so: 'So the bike is in his dome.' }),
   ]),
   P('ask', 1, 'Sam', ['Sam got a letter from Earth.', 'It was from his mom.', 'Sam put it on his bed.'], [
     q('Who was the letter from?', 'pic', 'mom', ['Sam', 'bed'], 1, { so: 'So it was from his mom.' }),
@@ -109,13 +109,13 @@ export const ASK = [
     q('What can Max fix?', 'words', 'rockets', ['the base', 'lunch'], 3, { so: 'So Max can fix rockets.' }),
   ], { story: 'max' }),
   P('ask', 2, 'Ben', ['Jo and I went to the ice in the dark crater.', 'We dug up some ice.', 'We put it in the rover.', 'Back at the base, we will make it into water.'], [
-    q('Where is the ice?', 'words', 'in the dark crater', ['in the rover', 'back at the base'], 0, { so: 'So the ice is in the dark crater.' }),
+    q('Where did they dig up the ice?', 'words', 'in the dark crater', ['in the rover', 'back at the base'], 0, { so: 'So they dug it up in the dark crater.' }),
     q('What will they make the ice into?', 'words', 'water', ['the rover', 'a crater'], 3, { so: 'So the ice will be water.' }),
   ], { story: 'ice' }),
   P('ask', 2, 'Jo', ['Kit and I made lunch for the crew.', 'Kit made a big salad.', 'I made hot muffins.', 'Dot the robot ate a muffin, but robots can not eat!'], [
     q('Who made the salad?', 'words', 'Kit', ['Jo', 'Dot'], 1, { so: 'So Kit made the salad.' }),
     q('What did Jo make?', 'words', 'hot muffins', ['a big salad', 'the crew'], 2, { so: 'So Jo made hot muffins.' }),
-    q('Who ate a muffin?', 'words', 'Dot', ['Kit', 'the crew'], 3, { so: 'So Dot ate a muffin.' }),
+    q('Who ate a muffin?', 'words', 'Dot', ['Kit', 'Jo'], 3, { so: 'So Dot ate a muffin.' }),
   ]),
   P('ask', 2, 'Kit', ['After dinner, Jo and I went to the telescope.', 'We looked at a big yellow planet.', 'Then we looked at a red planet.', 'I want to go there one day!'], [
     q('When did they go to the telescope?', 'words', 'after dinner', ['one day', 'a red planet'], 0, { so: 'So they went after dinner.' }),
@@ -155,7 +155,7 @@ export const ASK = [
     q('Why did Dot make a brush?', 'words', 'dust sticks to boots', ['they came in', 'it is by the hatch'], [1, 2], { so: 'So the dust sticks, and the brush gets it off.' }),
     q('How do they get the dust off?', 'words', 'with a brush', ['they come in', 'by the hatch'], 3, { so: 'So they brush their boots.' }),
   ]),
-  P('ask', 3, 'Ben', ['We get water from ice.', 'The rover gets ice from a dark crater.', 'Then we make the ice hot.', 'The ice gets hot and makes water!'], [
+  P('ask', 3, 'Ben', ['We get water from ice.', 'The rover gets ice from a dark crater.', 'We make the ice hot.', 'Then the ice is water!'], [
     q('How do they make the ice into water?', 'words', 'they make it hot', ['from a dark crater', 'the rover gets it'], [2, 3], { so: 'So they make the ice hot.' }),
     q('Why does the rover go to the crater?', 'words', 'to get ice', ['to make it hot', 'to get dark'], 1, { so: 'So the rover gets ice there.' }),
   ], { story: 'ice' }),

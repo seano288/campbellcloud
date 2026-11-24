@@ -15,8 +15,9 @@ describe('questions made from letters', () => {
         expect(rightAnswer(q).split(ORDER_SEP).map(Number)).toEqual(p.lines.map((_, i) => i));
         expect(isAnswer(q, rightAnswer(q))).toBe(true);
         // every other order of the taps is wrong
-        const wrong = [...p.lines.keys()].reverse().join(ORDER_SEP);
-        expect(isRightAnswer(q, wrong)).toBe(false);
+        const perms = (xs: number[]): number[][] => (xs.length <= 1 ? [xs] : xs.flatMap((x, i) => perms([...xs.slice(0, i), ...xs.slice(i + 1)]).map(r => [x, ...r])));
+        const rights = perms([...p.lines.keys()]).filter(o => isRightAnswer(q, o.join(ORDER_SEP)));
+        expect(rights).toEqual([[...p.lines.keys()]]);
         continue;
       }
       expect(q.choices.filter(c => isRightAnswer(q, c)).length).toBe(1);
