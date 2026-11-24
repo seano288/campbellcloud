@@ -2,7 +2,7 @@
 
 Read this first, then the game's own brief (`.scratch/<game-slug>/brief.md`). This guide holds everything the briefs share: who plays, how the existing games are built, what to wire up, how to verify, and what to report. Where a brief and this guide differ, the brief wins.
 
-Briefs that use this guide: `dino-dig`, `word-wreckers`, `sentence-express`, `treasure-fleet`, `wild-rescue`, and the second batch (2026-11-17): `turbo-tally`, `hook-and-ladder`, `deep-light`, `food-truck`, `sky-writer`, and the third batch (2026-11-23), which steps up to early second-grade work: `jetway`, `skyline`, `carrier-deck`, `cargo-words`, `globe-hopper`, `moon-base-mail`.
+Briefs that use this guide: `dino-dig`, `word-wreckers`, `sentence-express`, `treasure-fleet`, `wild-rescue`, and the second batch (2026-11-17): `turbo-tally`, `hook-and-ladder`, `deep-light`, `food-truck`, `sky-writer`, and the third batch (2026-11-23), which steps up to early second-grade work: `jetway`, `skyline`, `carrier-deck`, `cargo-words`, `globe-hopper`, `moon-base-mail`, and the fourth batch (2026-11-24), each with its own currency: `big-air`, `coaster-crew`, `dragon-roost`, `tractor-patch`, `plow-patrol`, `time-garage`, `castle-blocks`, `storm-chaser`.
 
 Do the work yourself in the current checkout. Don't start subagents. Don't commit, push or open a PR; leave the changes in the working tree.
 
@@ -25,7 +25,7 @@ One 6-year-old first grader, playing alone on the family iPad (an iPad 9), somet
 3. **Levels rise by themselves on Mastery and never go down.** Use the Math Bots rules (16 of the last 20 right first try, or 10 in a row; the quick rule for the first 30) unless the brief says otherwise. New kinds open as earlier ones reach Level 2.
 4. **Teach a miss, never mark it.** No red X. Show him why on the thing itself, and say it. A second miss gets a fuller worked lesson. A missed question comes back later in the Round as a fresh one with no Mastery credit.
 5. **The reward is something he owns, drives with his hands and can show off.** Never a score, never something he can lose. The action part cannot be failed: hazards only wobble or bounce him.
-6. **Each finished Round earns Bolts and one go at the action reward.** Bolts use the shared currency (`boltsFor`: one per first-try answer plus one for finishing). The first go is free so he sees the reward before his first purchase.
+6. **Each finished Round earns the game's currency and one go at the action reward.** The amounts are the same in every game (`boltsFor`: one per first-try answer plus one for finishing). What it is called and how it looks belong to the game: see "Currency" below. Where this guide says Bolts, read the game's own currency. The first go is free so he sees the reward before his first purchase.
 7. **A Round resumes after a reload.** Saves are versioned, under `<slug>-save` and `<slug>-place`; an unknown version reads as a blank save.
 
 ## Build and wiring checklist
@@ -78,7 +78,18 @@ Where a brief gives a count or a price limit that is smaller than this section a
 - After 2,000 Rounds there is still something new to earn, buy or beat in every Round. No save state reads "all done".
 - The pacing limits above hold.
 
-Put the three numbers (Bolts a Round, Rounds to finish the catalogue, the longest gap between new things) in the spec and in the final report.
+Put the three numbers (currency earned a Round, Rounds to finish the catalogue, the longest gap between new things) in the spec and in the final report.
+
+## Currency
+
+Most games so far pay in Bolts. That suits a garage, a hangar or a robot workshop, and it does not suit a farm or a dragon's cave. The parent asked on 2026-11-24 for each game to pay in something that belongs to its world. Every brief from the fourth batch on names its currency in a "Currency" section. An older brief that says Bolts keeps them unless the parent says otherwise.
+
+- **Add it as a kind, not as a rename.** `src/currency/kind.ts` holds each currency's name for one and for many (`BOLT`, `AMMO`). Add the new one there, draw its icon in `src/ui/currency.tsx`, and export it from the game's `branding.ts` as Sight Squad does with Ammo. Sight Squad is the model: read how its Camp, Goal bar, end overlay and phrases use `SQUAD_CURRENCY`.
+- **Only the name and the picture change.** Earning, spending, prices, the save and every rule in "Rewards that never run out" stay as they are.
+- **It is never money.** No dollars, cents or coins with values. Bolts were made "deliberately not money" so that spending never asks him to count cash, and that still holds. Monster Truck Money and Food Truck own real money.
+- **It is said aloud.** The earned line, the need line, "It costs" and the whole-ten prices are recorded with this currency's word. Nothing in the game says or shows "Bolt", including the Round-done celebration, which flies Bolts today (`flyBolt` in `src/celebrate/effects.ts`): make it fly the game's own icon. A test fails if the word Bolt appears in the game's phrases or its screens.
+- **Listen to the word.** A short word can come out wrong from the voice by itself (see `SAID_AS`). Record "1 Seed" and "5 Seeds" early and listen.
+- **Add it to `GLOSSARY.md`** in the game's section, the way Ammo is there, with "Avoid: Bolt".
 
 ## Competition
 
