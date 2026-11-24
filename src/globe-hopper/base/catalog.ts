@@ -253,12 +253,15 @@ export const starterPart = (slot: Slot) => partsFor(slot).find(p => p.price === 
 
 // ---------- things to buy again and again ----------
 
-/** Each opens once its fixed one is built; its price rises a little each time and then stays flat. Pads stop at a base that still draws
- *  well; hangars, dishes and new Station modules never stop (a new module is one he designs, station.ts). */
+/** Each opens once its fixed one is built; its price rises a little each time and then stays flat. Each one bought must show or do
+ *  something: pads stop at a base that still draws well, hangars at the 12 the base draws (MOST_HANGARS), dishes when the orbit's free
+ *  time reaches its minute (3 fixed + 5 more: orbit/sim.ts, freeFor). New Station modules never stop: each is one he designs and puts on
+ *  his Station himself (station.ts). */
+export const MOST_HANGARS = 12;
 export const REPEATS = [
   { id: 'pad', name: 'Another Pad', icon: '🅿️', needs: 'b:pad3', base: 120, step: 10, flat: 200, most: 6 },
-  { id: 'hangar', name: 'Another Hangar', icon: '🏠', needs: 'b:hangar', base: 45, step: 5, flat: 90, most: Infinity },
-  { id: 'dish', name: 'Another Dish', icon: '📡', needs: 'b:dish3', base: 60, step: 5, flat: 100, most: Infinity },
+  { id: 'hangar', name: 'Another Hangar', icon: '🏠', needs: 'b:hangar', base: 45, step: 5, flat: 90, most: MOST_HANGARS },
+  { id: 'dish', name: 'Another Dish', icon: '📡', needs: 'b:dish3', base: 60, step: 5, flat: 100, most: 5 },
   { id: 'module', name: 'New Station Module', icon: '🧩', needs: 'b:factory', base: 40, step: 4, flat: 80, most: Infinity },
 ] as const;
 export type RepeatId = (typeof REPEATS)[number]['id'];

@@ -153,6 +153,8 @@ export const wantOf = (key: string): Want => (key.startsWith('more:') ? { kind: 
 export function missingNeed(a: BaseState, w: Want): string | null {
   const needs = w.kind === 'item' ? itemOf(w.id).needs : repeatOf(w.id).needs;
   if (needs && !has(a, needs)) return needs;
+  // a payload that builds on another (Solar Panels on the Station Core) waits until that one has flown, so the core is always first up
+  if (needs?.startsWith('pl:') && !a.flownPayloads.includes(needs)) return needs;
   if (w.kind === 'item') {
     const item = itemOf(w.id);
     if (item.cat === 'rocket' && towerLevel(a) < ROCKET_KINDS[item.kind].tower) return ['b:tower1', 'b:tower2', 'b:tower3'][ROCKET_KINDS[item.kind].tower - 2]!;

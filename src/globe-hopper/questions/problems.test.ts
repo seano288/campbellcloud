@@ -1,11 +1,12 @@
 // Every generated question has exactly one right answer, matches its Level, and its taps can't be argued: thousands of each kind and Level.
 import { describe, expect, it } from 'vitest';
 import { seeded } from '../../game/rng';
-import { arc, continentAt, landAt, oceanAt } from '../map/geo';
+import { arc, continentAt, landAt, oceanAt, ortho, unOrtho } from '../map/geo';
 import { CONTINENTS, type ContinentId } from '../world/continents';
 import { OCEANS } from '../world/oceans';
-import { landform, LOOK_ALIKE } from '../world/land';
+import { HOT, landform, LOOK_ALIKE } from '../world/land';
 import { FAMOUS } from '../world/places';
+import { BETWEEN } from '../world/oceans';
 import { isRightAnswer, judgeTap, KINDS, makeQuestion, PIN_APART, PIN_R, possibleAnswers, type Level, type Question } from './problems';
 
 const N = 1500;
@@ -50,6 +51,29 @@ describe('every question', () => {
       expect(PIN_R * 2).toBeLessThan(PIN_APART);
     }
   });
+  // Small places are hard to tap: on a globe, the right answer must be in view and big enough for a finger on a phone (the globe there
+  // is about 330 points across, so 3% of the disc is roughly a 50-point patch).
+  it('on a globe, puts the answer in view, as a patch big enough for a finger', () => {
+    const seen = new Map<string, number>();
+    for (const q of all) {
+      const st = q.stage;
+      if (st.type !== 'earth' || st.surface.s !== 'globe' || !st.tap) continue;
+      // land and water are judged away from every coast, which is slow to work out: those are sampled more coarsely
+      const coarse = st.tap.by === 'surface', key = `${q.kind}${q.level}:${q.answer}:${Math.round(st.surface.lon / (coarse ? 45 : 10))}:${Math.round(st.surface.lat / (coarse ? 45 : 10))}`;
+      if (seen.has(key)) continue;
+      let right = 0, total = 0;
+      const step = coarse ? .1 : .05;
+      for (let x = -1; x <= 1; x += step) for (let y = -1; y <= 1; y += step) {
+        if (Math.hypot(x, y) > .97) continue;
+        total++;
+        if (judgeTap(st, unOrtho(x, y, st.surface.lon, st.surface.lat)) === q.answer) right++;
+      }
+      seen.set(key, right / total);
+      expect(right / total, `${q.text} on a globe facing ${st.surface.lon.toFixed(0)},${st.surface.lat.toFixed(0)}`).toBeGreaterThan(.03);
+      const s = spot(q.answer);
+      if (s) expect(ortho(s.lon, s.lat, st.surface.lon, st.surface.lat).z, `${q.text}: its safe area faces him`).toBeGreaterThan(.3);
+    }
+  }, 120_000);
   it('never lets Greenland be a continent, and never counts a tap on it', () => {
     for (const q of all) expect([...possibleAnswers(q), q.answer]).not.toContain('greenland');
     expect(continentAt(-42, 72)).toBeNull();
@@ -68,6 +92,10 @@ describe('Land and Water', () => {
     expect(judgeTap(st, { lon: 10, lat: -80 })).toBe('spole');
     expect(judgeTap(st, { lon: 10, lat: 3 })).toBe('equator');
     expect(judgeTap(st, { lon: 10, lat: 35 })).toBeNull();
+  });
+  it('asks north or south about as often as each other, so always saying "North" is no way through', () => {
+    const l3 = all.filter(x => x.kind === 'globe' && x.level === 3), north = l3.filter(q => q.answer === 'north').length / l3.length;
+    expect(north).toBeGreaterThan(.4); expect(north).toBeLessThan(.6);
   });
   it('counts a tap as land or water only away from the coast', () => {
     const st = { type: 'earth', surface: { s: 'globe', lon: 0, lat: 0 }, tap: { by: 'surface' } } as const;
@@ -114,11 +142,34 @@ describe('Shape of the Land', () => {
 describe('Hot and Cold', () => {
   it('always has a plainly colder place: the cold one is much further from the equator', () => {
     for (const q of all.filter(x => x.kind === 'climate')) {
-      const st = q.stage as { pins: readonly { id: string; at: { lat: number } }[] };
+      const st = q.stage as { pins: readonly { id: string; at: { lat: number; lon: number } }[] };
       const lat = (id: string) => Math.abs(st.pins.find(p => p.id === id)!.at.lat);
       if (q.level < 3) expect(lat('cold') - lat('hot')).toBeGreaterThanOrEqual(55);
       else expect(lat('cool') - lat('warm')).toBeGreaterThanOrEqual(25);
+      // the steamy scene is a jungle: its hot place is on land
+      if (q.level === 2) { const h = st.pins.find(p => p.id === 'hot')!.at; expect(HOT.find(x => x.lat === h.lat && x.lon === h.lon)!.land, q.text).toBe(true); }
     }
+  });
+});
+
+describe('Oceans between continents', () => {
+  // on the flat map the Pacific is split at the edges, so Asia and North America have the Atlantic between them there
+  it('asks about the Pacific between two continents on a globe turned to it, with both continents in view', () => {
+    const seen = new Set<string>();
+    for (const q of all.filter(x => x.kind === 'ocean' && x.level === 3 && x.answer === 'pacific')) {
+      const st = q.stage as Extract<Question['stage'], { type: 'earth' }>;
+      if (seen.has(q.text)) continue;
+      seen.add(q.text);
+      expect(st.surface.s, q.text).toBe('globe');
+      const v = st.surface as { lon: number; lat: number };
+      expect(ortho(-160, 0, v.lon, v.lat).z, `${q.text}: the middle of the Pacific faces him`).toBeGreaterThan(.8);
+      for (const c of st.lit!) {
+        let shown = false;
+        for (let lat = -60; lat <= 70 && !shown; lat += 2) for (let lon = -180; lon < 180 && !shown; lon += 2) if (continentAt(lon, lat) === c && ortho(lon, lat, v.lon, v.lat).z > .35) shown = true;
+        expect(shown, `${q.text}: ${c} in view`).toBe(true);
+      }
+    }
+    expect(BETWEEN.filter(b => b.answer === 'pacific').every(b => b.face)).toBe(true);
   });
 });
 

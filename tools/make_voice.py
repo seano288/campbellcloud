@@ -276,9 +276,11 @@ COLLECTION_SPEECH = {
                     'Grapes': 'Grapes!', 'Tess': 'Tess!', 'What will Dot do?': 'What will Dot, do?', 'How does Jo feel?': 'How does Jo, feel?'},
     },
     # Globe Hopper, pass 1: faster-whisper small.en heard Aria's place names alone as written except these: "Lagos" as "LEGOs",
-    # "Bogotá" as "Bo-Guitar", "Manaus" as "Menaus", "the Paraná River" as "the Piranha River" and "Cuba" as "HUBA"
+    # "Bogotá" as "Bo-Guitar", "Manaus" as "Menaus", "the Paraná River" as "the Piranha River" and "Cuba" as "HUBA". Pass 2: "Lagos",
+    # "Lay gos", "Laygos" and "Lagos city" all still came back "LEGOs"; "Lay-goss" is the one heard as "Lagos", with or without a hint.
+    # "Flagpoles" alone was heard as "flight poles"; "Flag poles" as "Flagpoles".
     'globe-hopper': {
-        'said_as': {'Lagos': 'Lay gos', 'Bogotá': 'Bo go tah', 'Manaus': 'Mah-nowss', 'the Paraná River': 'the Pah rah nah River', 'Cuba': 'Cuba!'},
+        'said_as': {'Lagos': 'Lay-goss', 'Flagpoles': 'Flag poles', 'Bogotá': 'Bo go tah', 'Manaus': 'Mah-nowss', 'the Paraná River': 'the Pah rah nah River', 'Cuba': 'Cuba!'},
     },
 }
 

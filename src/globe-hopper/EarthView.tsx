@@ -17,6 +17,8 @@ export interface EarthProps {
   readonly rays?: boolean;
   /** Zoom the map in on Europe on a narrow screen. */
   readonly europe?: boolean;
+  /** A finger just over the globe's rim counts as the nearest point on it ("Tap the North Pole": the pole is the very top). */
+  readonly rim?: boolean;
   readonly onTap?: (at: LonLat | null, px: { x: number; y: number }) => void;
   readonly label: string;
   readonly class?: string;
@@ -24,6 +26,8 @@ export interface EarthProps {
 
 const reduced = () => typeof matchMedia === 'function' && matchMedia('(prefers-reduced-motion:reduce)').matches;
 const NARROW = 560;
+/** How far past the globe's rim (in radii) a finger still counts as on it, when `rim` is set. */
+const RIM_GRAB = 1.3;
 /** The map's view for a w×h canvas. */
 export function mapViewFor(w: number, _h: number, europe: boolean, base?: MapView): MapView {
   if (base) return base;
@@ -31,7 +35,7 @@ export function mapViewFor(w: number, _h: number, europe: boolean, base?: MapVie
   return WORLD;
 }
 
-export function EarthView({ surface, look, face, rays, europe, onTap, label, class: k = '' }: EarthProps) {
+export function EarthView({ surface, look, face, rays, europe, rim, onTap, label, class: k = '' }: EarthProps) {
   const canvas = useRef<HTMLCanvasElement>(null);
   const props = useRef({ surface, look, face, rays, europe });
   props.current = { surface, look, face, rays, europe };
@@ -97,7 +101,12 @@ export function EarthView({ surface, look, face, rays, europe, onTap, label, cla
   function tap(e: PointerEvent) {
     if (!onTap) return;
     const b = canvas.current!.getBoundingClientRect(), x = e.clientX - b.left, y = e.clientY - b.top, g = geom.current;
-    if (surface.s === 'globe') onTap(unOrtho((x - g.cx) / g.r, (y - g.cy) / g.r, view.current.lon, view.current.lat), { x: e.clientX, y: e.clientY });
+    if (surface.s === 'globe') {
+      let gx = (x - g.cx) / g.r, gy = (y - g.cy) / g.r;
+      const rho = Math.hypot(gx, gy);
+      if (rim && rho > 1 && rho < RIM_GRAB) { gx *= .999 / rho; gy *= .999 / rho; }
+      onTap(unOrtho(gx, gy, view.current.lon, view.current.lat), { x: e.clientX, y: e.clientY });
+    }
     else {
       const at = mapToLonLat(x, y, g.w, g.h, g.mapView);
       onTap(Math.abs(at.lat) <= 90 && Math.abs(at.lon) <= 180 ? at : null, { x: e.clientX, y: e.clientY });

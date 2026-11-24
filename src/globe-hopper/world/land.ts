@@ -34,19 +34,19 @@ export const LANDFORMS = [
   { id: 'island', name: 'island', means: 'An island is land with water all round it.', ask: 'Which one is land with water all round it?', symbol: true, clash: ['coast'] },
   { id: 'desert', name: 'desert', means: 'A desert is a very dry place that gets very little rain.', ask: 'Which one is a very dry place with very little rain?', symbol: true, clash: [] },
   { id: 'plain', name: 'plain', means: 'A plain is wide, flat land.', ask: 'Which one is wide, flat land?', symbol: true, clash: ['valley', 'desert'] },
-  { id: 'volcano', name: 'volcano', means: 'A volcano is a mountain that can let out hot, melted rock.', ask: 'Which one can let out hot, melted rock?', symbol: true, clash: ['mountain', 'hill'] },
+  { id: 'volcano', name: 'volcano', means: 'A volcano is a place where hot, melted rock comes up from inside the Earth.', ask: 'Which one can let out hot, melted rock?', symbol: true, clash: ['mountain', 'hill'] },
   { id: 'coast', name: 'coast', means: 'A coast is the land beside the sea.', ask: 'Which one is the land beside the sea?', symbol: true, clash: ['island', 'river'] },
 ] as const satisfies readonly Landform[];
 export const landform = (id: LandformId): Landform => LANDFORMS.find(l => l.id === id)!;
 /** Level 1 never puts a hill beside a mountain or a volcano: from the side, which is "higher" is a judgment, not a shape. */
 export const LOOK_ALIKE: readonly (readonly [LandformId, LandformId])[] = [['hill', 'mountain'], ['hill', 'volcano'], ['valley', 'river']];
 
-export interface Spot extends LonLat { readonly name: string }
-/** Hot: low, wet, right by the equator. */
+export interface Spot extends LonLat { readonly name: string; readonly land?: boolean }
+/** Hot: low, wet, right by the equator. The steamy scene (Level 2) uses only the ones on land: a jungle, not the open sea. */
 export const HOT: readonly Spot[] = [
-  { name: 'the Amazon', lon: -60, lat: -3 }, { name: 'the Congo', lon: 20, lat: 0 }, { name: 'Borneo', lon: 114, lat: 1 },
-  { name: 'Sumatra', lon: 101, lat: 0 }, { name: 'the middle of the Pacific', lon: -150, lat: 0 }, { name: 'the middle of the Atlantic', lon: -25, lat: 2 },
-  { name: 'the Indian Ocean near the equator', lon: 75, lat: -2 }, { name: 'Gabon', lon: 11.5, lat: -0.5 },
+  { name: 'the Amazon', lon: -60, lat: -3, land: true }, { name: 'the Congo', lon: 20, lat: 0, land: true }, { name: 'Borneo', lon: 114, lat: 1, land: true },
+  { name: 'Sumatra', lon: 101, lat: 0, land: true }, { name: 'the middle of the Pacific', lon: -150, lat: 0 }, { name: 'the middle of the Atlantic', lon: -25, lat: 2 },
+  { name: 'the Indian Ocean near the equator', lon: 75, lat: -2 }, { name: 'Gabon', lon: 11.5, lat: -0.5, land: true },
 ];
 /** Cold: far toward a pole. */
 export const COLD: readonly Spot[] = [

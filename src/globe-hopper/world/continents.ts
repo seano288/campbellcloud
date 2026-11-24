@@ -28,7 +28,7 @@ export interface Continent {
 
 export const CONTINENTS = [
   { id: 'africa', name: 'Africa', colour: '#f59b2e', ink: '#8a4a00', safe: { lon: 21, lat: 5, r: 8 }, face: { lon: 18, lat: 2 },
-    line: 'Africa is the hottest continent.', from: { start: 'europe', go: 'south' } },
+    line: 'The equator goes across the middle of Africa.', from: { start: 'europe', go: 'south' } },
   { id: 'europe', name: 'Europe', colour: '#ef5a7a', ink: '#8c1c36', safe: { lon: 17, lat: 49, r: 4 }, face: { lon: 15, lat: 50 },
     line: 'Europe is the second smallest continent.', from: { start: 'africa', go: 'north' } },
   { id: 'asia', name: 'Asia', colour: '#f5cf3b', ink: '#7d6400', safe: { lon: 92, lat: 41, r: 8 }, face: { lon: 95, lat: 35 },
@@ -48,12 +48,16 @@ export const continent = (id: ContinentId): Continent => CONTINENTS.find(c => c.
 /** Land drawn on the maps but never a continent's answer. Greenland is an island, not a continent (and never a choice). */
 export const APART_COLOURS = { greenland: '#e4ecf2', oceania: '#f2aa9c', islands: '#d9d9d9' } as const;
 
-/** "Which continent is south of Europe?": only the questions with one plain answer, and the choices that are plainly wrong for each. */
+/** "Which continent is south of Europe?": only the questions with one plain answer, and the choices that are plainly wrong for each.
+ *  A wrong choice must not lie that way at all, even partly or slantwise: Antarctica is south of every other continent, South America and
+ *  Australia are south of Europe too (lower on the map), and Europe and Asia are north of South America. world.test.ts checks each wrong
+ *  choice against the outlines, and against the way the lessons go ("Start at Europe. Go east. This is Asia.").
+ *  Each has exactly two wrong choices, so all three are always the same three. */
 export const NEIGHBOURS: readonly { readonly from: ContinentId; readonly way: Way; readonly answer: ContinentId; readonly wrong: readonly ContinentId[] }[] = [
-  { from: 'europe', way: 'south', answer: 'africa', wrong: ['namerica', 'australia', 'samerica', 'antarctica'] },
-  { from: 'africa', way: 'north', answer: 'europe', wrong: ['australia', 'samerica', 'antarctica', 'namerica'] },
-  { from: 'namerica', way: 'south', answer: 'samerica', wrong: ['europe', 'asia', 'australia', 'africa'] },
-  { from: 'samerica', way: 'north', answer: 'namerica', wrong: ['australia', 'asia', 'antarctica', 'europe'] },
-  { from: 'europe', way: 'east', answer: 'asia', wrong: ['namerica', 'samerica', 'antarctica', 'australia'] },
+  { from: 'europe', way: 'south', answer: 'africa', wrong: ['namerica', 'asia'] },
+  { from: 'africa', way: 'north', answer: 'europe', wrong: ['australia', 'samerica', 'antarctica'] },
+  { from: 'namerica', way: 'south', answer: 'samerica', wrong: ['europe', 'asia'] },
+  { from: 'samerica', way: 'north', answer: 'namerica', wrong: ['australia', 'antarctica'] },
+  { from: 'europe', way: 'east', answer: 'asia', wrong: ['namerica', 'samerica', 'antarctica'] },
   { from: 'samerica', way: 'south', answer: 'antarctica', wrong: ['europe', 'asia', 'namerica', 'africa'] },
 ];

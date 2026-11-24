@@ -2,8 +2,8 @@
 //
 // The first miss gets the brief's short lesson, and "Try again!":
 // - Land and Water: the land lights up (or the water is named), the poles are marked or the equator is drawn as a belt round the middle.
-// - Continents: the globe turns to the continent, it glows, its name is said and its line is spoken ("This is Africa. Africa is the
-//   hottest continent.").
+// - Continents: the globe turns to the continent, it glows, its name is said and its line is spoken ("This is Africa. The equator goes
+//   across the middle of Africa.").
 // - Oceans: the ocean fills with colour, it is named and its line is said.
 // - Shape of the Land: the landform is drawn from the side and from above, with one plain sentence ("An island is land with water all
 //   round it.").

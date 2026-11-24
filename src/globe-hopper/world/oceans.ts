@@ -34,12 +34,14 @@ export const OCEANS = [
 export type OceanName = (typeof OCEANS)[number]['name'];
 export const ocean = (id: OceanId): Ocean => OCEANS.find(o => o.id === id)!;
 
-/** "Which ocean is between Africa and Australia?": only plain ones, with choices that are plainly wrong. */
-export const BETWEEN: readonly { readonly a: ContinentId; readonly b: ContinentId | 'pole'; readonly answer: OceanId; readonly wrong: readonly OceanId[] }[] = [
+/** "Which ocean is between Africa and Australia?": only plain ones, with choices that are plainly wrong. On the flat map the Pacific is
+ *  split at its left and right edges, so Asia and North America (and Australia and South America) have the Atlantic between them there:
+ *  those two are asked on a globe turned to the Pacific (`face`), where the Pacific plainly lies between the two lit continents. */
+export const BETWEEN: readonly { readonly a: ContinentId; readonly b: ContinentId | 'pole'; readonly answer: OceanId; readonly wrong: readonly OceanId[]; readonly face?: { readonly lon: number; readonly lat: number } }[] = [
   { a: 'africa', b: 'australia', answer: 'indian', wrong: ['arctic', 'atlantic'] },
   { a: 'namerica', b: 'europe', answer: 'atlantic', wrong: ['indian', 'pacific', 'southern'] },
   { a: 'samerica', b: 'africa', answer: 'atlantic', wrong: ['indian', 'arctic', 'pacific'] },
-  { a: 'asia', b: 'namerica', answer: 'pacific', wrong: ['indian', 'atlantic', 'southern'] },
-  { a: 'australia', b: 'samerica', answer: 'pacific', wrong: ['arctic', 'atlantic'] },
+  { a: 'asia', b: 'namerica', answer: 'pacific', wrong: ['indian', 'atlantic', 'southern'], face: { lon: -170, lat: 30 } },
+  { a: 'australia', b: 'samerica', answer: 'pacific', wrong: ['arctic', 'atlantic'], face: { lon: -140, lat: -25 } },
   { a: 'antarctica', b: 'pole', answer: 'southern', wrong: ['arctic', 'atlantic', 'indian'] },
 ];

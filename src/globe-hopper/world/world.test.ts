@@ -51,6 +51,31 @@ describe('the continents and oceans', () => {
     expect(BETWEEN.find(b => b.a === 'namerica' && b.b === 'europe')!.wrong).not.toContain('arctic');
     expect(BETWEEN.find(b => b.a === 'asia' && b.b === 'namerica')!.wrong).not.toContain('arctic');
   });
+  // "Which continent is south of Europe?" with Antarctica among the choices has two right answers: Antarctica is south of Europe too. A
+  // wrong choice must have less than half its land that way, past the edge of the continent asked about; the answer most of it.
+  it('each neighbour question has one answer that lies that way, and no wrong choice that does (measured on the outlines)', () => {
+    const land: Record<string, { lon: number; lat: number; w: number }[]> = {};
+    for (let lat = -89.5; lat < 90; lat += 1.5) for (let lon = -179.5; lon < 180; lon += 1.5) {
+      const g = landAt(lon, lat);
+      if (g && (CONTINENT_IDS as readonly string[]).includes(g)) (land[g] ??= []).push({ lon, lat, w: Math.cos((lat * Math.PI) / 180) });
+    }
+    const edge = (c: string) => { const p = land[c]!; return { s: Math.min(...p.map(x => x.lat)), n: Math.max(...p.map(x => x.lat)), e: Math.max(...p.map(x => x.lon)) }; };
+    const shareThatWay = (w: string, from: string, way: string) => {
+      const e = edge(from), p = land[w]!, all = p.reduce((t, q) => t + q.w, 0);
+      const that = (q: { lon: number; lat: number }) => way === 'south' ? q.lat < e.s : way === 'north' ? q.lat > e.n
+        : way === 'east' ? (((q.lon - e.e) % 360) + 360) % 360 < 150 && q.lat > e.s - 10 && q.lat < e.n + 10 : false;
+      return p.filter(that).reduce((t, q) => t + q.w, 0) / all;
+    };
+    for (const n of NEIGHBOURS) {
+      expect(n.wrong.length, `${n.way} of ${n.from}`).toBeGreaterThanOrEqual(2);
+      expect(shareThatWay(n.answer, n.from, n.way), `${n.answer} is ${n.way} of ${n.from}`).toBeGreaterThan(.6);
+      for (const w of n.wrong) expect(shareThatWay(w, n.from, n.way), `${w} as a wrong choice for ${n.way} of ${n.from}`).toBeLessThan(.5);
+      // Antarctica lies south of every other continent, so it is never a wrong choice for "south of"
+      if (n.way === 'south') expect(n.wrong).not.toContain('antarctica');
+    }
+    // and the lessons go the same way: "Start at Europe. Go south. This is Africa."
+    for (const c of CONTINENTS) { const n = NEIGHBOURS.find(x => x.from === c.from.start && x.way === c.from.go); if (n) expect(n.answer).toBe(c.id); }
+  });
 });
 
 describe('the flat map', () => {

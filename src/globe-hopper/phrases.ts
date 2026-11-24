@@ -66,17 +66,16 @@ const MEETING = ['Here is a new continent!', 'Here it is on the globe. And here 
 // ---------- the Rocket Base ----------
 const BASE = [
   'It costs', 'Bolts.', 'You need', 'You need about', 'more Bolts.', 'You got', 'Build this first:', 'Fly this first:', 'You need a bigger rocket to lift this!',
-  'You need a taller tower for this rocket!', 'Build', 'Rockets', 'Parts', 'Paint', 'Payloads', 'Station', 'Photos', 'Logbook',
+  'Build', 'Rockets', 'Parts', 'Paint', 'Payloads', 'Station', 'Photos', 'Logbook',
   'You have 1 Launch!', 'Launches!', 'Play a Round to earn a Launch!', 'You can build more of these!', 'Watch the launch!', 'Tap again to leave.',
-  'This rocket can lift', 'This payload weighs', 'It waits for the next Launch.', 'Put it on your Station!', 'Tap a glowing spot to put it there.',
-  'Design your module!', 'Shape', 'Colour', 'Windows', 'Solar panels', 'Dish', 'Night launches!', 'Day launches!', 'Your rocket flies next!',
-  'Your Station has', 'modules.', 'You have taken', 'photos.', 'Your best launch:', 'Most places in one orbit:', 'You have flown', 'launches.',
+  'This rocket can lift', 'It waits for the next Launch.', 'Put it on your Station!', 'Tap a glowing spot to put it there.',
+  'Shape', 'Colour', 'Windows', 'Solar panels', 'Dish', 'Night launches!', 'Day launches!', 'Your rocket flies next!',
   'This rocket is too tall for your tower.', ...SHAPES,
 ] as const;
 
 // ---------- the Launch and the orbit ----------
 const LAUNCH = [
-  'Lift off!', 'Hold your finger on the screen to fire the engines!', 'Move your finger left or right to steer!', 'Follow the arrows up through the clouds!',
+  'Lift off!', 'Hold your finger on the screen to fire the engines!', 'Move your finger left or right to steer!',
   'Into the clouds!', 'Bump!', 'Back on the path!', 'Tap to drop the boosters!', 'Tap to drop the main stage!', 'Boosters away!', 'Main stage away!',
   'Look! The sky is turning black.', 'You made it to orbit!', 'Let the payload go! Tap!', 'Payload away!', 'Fly over', 'and take a picture!', 'Then', 'Tap when it is right under the camera!',
   'Not yet!', 'Snap!', 'It went past. Here it comes again!', 'Got it!', 'Free time! Tap to take a picture of anything you fly over.', 'You took a picture of',
@@ -86,9 +85,10 @@ const LAUNCH = [
 ] as const;
 
 type EarnedPhrase = EarnedLine<typeof CUR>;
-type StarLine = `You are a ${ModeName} star!`;
+type Article<N extends string> = N extends `${'A' | 'E' | 'I' | 'O' | 'U'}${string}` ? 'an' : 'a';
+type StarLine = { [N in ModeName]: `You are ${Article<N>} ${N} star!` }[ModeName];
 type ModePhrase = ModeName | StarLine | `You opened ${ModeName}!`;
-export const starLine = (name: ModeName) => `You are a ${name} star!` as StarLine;
+export const starLine = (name: ModeName) => `You are ${/^[AEIOU]/.test(name) ? 'an' : 'a'} ${name} star!` as StarLine;
 const modePhrases = (): ModePhrase[] => MODE_IDS.flatMap(m => [MODE_NAMES[m], starLine(MODE_NAMES[m]), `You opened ${MODE_NAMES[m]}!`] as const);
 export const numberPhrases = () => Array.from({ length: NUMBERS_TO + 1 }, (_, n) => `${n}` as `${number}`);
 export const RANK_NAMES = RANKS.map(r => r.name);

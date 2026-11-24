@@ -29,6 +29,15 @@ describe('the Launch', () => {
       expect(bad.t).toBeGreaterThan(good.t);
     }
   });
+  // a personal best that doing nothing wins would tell him trying is worse: the rocket flying itself counts for nothing
+  it('never rates a Launch he left to fly itself as smooth: doing nothing is one star, and the clumsy child beats it', () => {
+    for (const setup of setups) {
+      const idle = flyWith(setup, 'nothing', 4), bad = flyWith(setup, 'clumsy', 4);
+      expect(starsFor(smoothness(idle))).toBe(1);
+      expect(smoothness(bad)).toBeGreaterThan(smoothness(idle));
+      expect(starsFor(smoothness(bad))).toBeGreaterThanOrEqual(2);
+    }
+  });
   it('counts down from ten, then lifts off', () => {
     const s = createSim(setups[0]!);
     const ticks: number[] = [];

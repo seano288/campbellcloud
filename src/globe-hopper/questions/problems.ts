@@ -3,7 +3,7 @@
 // on the continent, ocean or mark asked about, on another lit one (a miss), or somewhere nobody could argue about (ignored: it neither
 // counts nor misses). problems.test.ts makes thousands and checks each one.
 import { int, pick, shuffle, type Rng } from '../../game/rng';
-import { arc, continentAt, landAt, oceanAt, surfaceAt, type LonLat, type MapView } from '../map/geo';
+import { arc, continentAt, landAt, MAP_BOTTOM, oceanAt, surfaceAt, type LonLat, type MapView } from '../map/geo';
 import { CONTINENT_IDS, CONTINENTS, NEIGHBOURS, type ContinentId, type Way } from '../world/continents';
 import { BETWEEN, OCEAN_IDS, type OceanId } from '../world/oceans';
 import { COLD, HOT, landform, LANDFORM_IDS, LANDFORMS, LOOK_ALIKE, MILD, type LandformId, type Spot } from '../world/land';
@@ -59,6 +59,9 @@ const cap = (s: string) => s[0]!.toUpperCase() + s.slice(1);
 
 /** How close (degrees round the globe) a tap must be to a pin to count as tapping it. Pins are always at least PIN_APART from each other. */
 export const PIN_R = 9, PIN_APART = 24;
+/** "Tap the North Pole" on a globe seen side-on: the pole is its very top, so the cap above this latitude counts (EarthView also takes a
+ *  finger just over the rim as the nearest point on it). Any higher and the cap is a sliver under a finger on a phone. */
+export const POLE_LAT = 55;
 
 /** The answer a tap at `at` gives, or null when it doesn't count either way. */
 export function judgeTap(stage: Stage, at: LonLat | null): string | null {
@@ -73,7 +76,7 @@ export function judgeTap(stage: Stage, at: LonLat | null): string | null {
   if (t.by === 'surface') return surfaceAt(at.lon, at.lat);
   if (t.by === 'continent') { const c = continentAt(at.lon, at.lat); return c && t.among.includes(c) ? c : null; }
   if (t.by === 'ocean') { const o = oceanAt(at.lon, at.lat); return o && t.among.includes(o) ? o : null; }
-  if (t.by === 'poles') return at.lat >= 62 ? 'npole' : at.lat <= -62 ? 'spole' : Math.abs(at.lat) <= 9 ? 'equator' : null;
+  if (t.by === 'poles') return at.lat >= POLE_LAT ? 'npole' : at.lat <= -POLE_LAT ? 'spole' : Math.abs(at.lat) <= 9 ? 'equator' : null;
   return null;
 }
 
@@ -95,8 +98,9 @@ function globeQ(level: Level, r: Rng): Question {
     const said = { npole: 'Tap the North Pole.', spole: 'Tap the South Pole.', equator: 'Tap the equator.' } as const, shown = { npole: 'Tap the North Pole', spole: 'Tap the South Pole', equator: 'Tap the equator' } as const;
     return { kind: 'globe', level, ask: [said[want]], text: shown[want], stage: { type: 'earth', surface: { s: 'globe', lon: int(r, -180, 179), lat: 0 }, tap: { by: 'poles' } }, answer: want, needs: [], about: want };
   }
-  // north or south of the equator: a place well away from it, ringed, with the equator drawn
-  const pool = PLACES.filter(p => Math.abs(p.lat) >= 20 && Math.abs(p.lat) <= 70), place = pick(r, pool);
+  // north or south of the equator: a place well away from it, ringed, with the equator drawn. North or south is picked first, half and
+  // half: most places in the tables are in the north, and a child who always said "North" would otherwise be right three times in four.
+  const north = r() < .5, pool = PLACES.filter(p => Math.abs(p.lat) >= 20 && Math.abs(p.lat) <= 70 && (p.lat > 0) === north), place = pick(r, pool);
   const onMap = r() < .5;
   return {
     kind: 'globe', level, ask: ['Is this place north or south of the equator?'], text: 'North or south of the equator?',
@@ -134,7 +138,7 @@ function oceanQ(level: Level, r: Rng): Question {
     const A = CONTINENTS.find(c => c.id === b.a)!.name;
     if (b.b === 'pole') return { kind: 'ocean', level, ask: ['Which ocean goes all the way round Antarctica?'], text: 'Which ocean goes all the way round Antarctica?', stage: { type: 'earth', surface: { s: 'globe', lon: 20, lat: -55 }, lit: ['antarctica'] }, choices, answer: b.answer, needs: ['antarctica'], about: b.answer };
     const B = CONTINENTS.find(c => c.id === b.b)!.name;
-    return { kind: 'ocean', level, ask: ['Which ocean is between', A, 'and', B], text: `Which ocean is between ${A} and ${B}?`, stage: { type: 'earth', surface: { s: 'map' }, lit: [b.a, b.b as ContinentId] }, choices, answer: b.answer, needs: [b.a, b.b as ContinentId], about: b.answer };
+    return { kind: 'ocean', level, ask: ['Which ocean is between', A, 'and', B], text: `Which ocean is between ${A} and ${B}?`, stage: { type: 'earth', surface: b.face ? { s: 'globe', ...b.face } : { s: 'map' }, lit: [b.a, b.b as ContinentId] }, choices, answer: b.answer, needs: [b.a, b.b as ContinentId], about: b.answer };
   }
   const among = level === 1 ? (['pacific', 'atlantic'] as OceanId[]) : [...OCEAN_IDS];
   const target = pick(r, among), name = OCEAN_NAMES[target];
@@ -179,7 +183,8 @@ function climateQ(level: Level, r: Rng): Question {
     };
   }
   if (level === 2) {
-    const [hot, cold] = twoSpots(r, HOT, COLD), scene = r() < .5 ? 'snow' : 'steam';
+    // a steamy jungle is on land: no spot in the middle of the sea
+    const [hot, cold] = twoSpots(r, HOT.filter(h => h.land), COLD), scene = r() < .5 ? 'snow' : 'steam';
     return {
       kind: 'climate', level, ask: [scene === 'snow' ? 'It is snowy and icy here.' : 'It is hot and steamy here.', 'Where on the Earth could it be? Tap it.'], text: 'Where could it be?',
       stage: { type: 'scene', scene, surface: { s: 'map' }, pins: shuffle(r, [{ id: 'hot', at: hot, look: 'pin', label: '?' }, { id: 'cold', at: cold, look: 'pin', label: '?' }] as Pin[]) },
@@ -209,7 +214,8 @@ function placeQ(level: Level, r: Rng): Question {
     const oc = (o.where as { c: ContinentId }).c;
     if (oc !== home && !others.some(x => (x.where as { c: ContinentId }).c === oc) && [place, ...others].every(x => arc(x, o) >= PIN_APART)) others.push(o);
   }
-  const pins = shuffle(r, [place, ...others].map(p => ({ id: p.id, at: { lon: p.lon, lat: p.lat }, look: 'pin', label: p.emoji }) as Pin));
+  // the South Pole is the bottom edge of the flat map, which stops at MAP_BOTTOM: its pin stands just above it
+  const pins = shuffle(r, [place, ...others].map(p => ({ id: p.id, at: { lon: p.lon, lat: Math.max(MAP_BOTTOM + 3, p.lat) }, look: 'pin', label: p.emoji }) as Pin));
   return { kind: 'place', level, ask: [place.ask, 'Tap its pin.'], text: place.ask, stage: { type: 'earth', surface: { s: 'map' }, pins }, answer: place.id, needs: [home], about: place.id };
 }
 

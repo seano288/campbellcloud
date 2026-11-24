@@ -92,6 +92,8 @@ html,body{background:var(--night)}
 .gh-stage>.gh-earth.map{width:min(100%,200cqh);height:auto}
 .gh-earth.globe{height:100%;width:auto;aspect-ratio:1;max-width:100%}
 .gh-stage>.gh-earth.globe{width:min(100cqw,100cqh);height:min(100cqw,100cqh)}
+.gh-shape-globe{pointer-events:none;position:absolute;left:8px;bottom:8px;width:min(42cqw,42cqh);height:min(42cqw,42cqh);border-radius:50%;background:rgba(3,4,12,.75);animation:gh-pop .35s ease-out}
+.gh-shape-globe .gh-earth{width:100%;height:100%}
 .gh-shape{width:min(100cqw,100cqh*1.3);height:min(100cqh,100cqw*.8);border-radius:18px;background:var(--night);border:4px solid #000;box-shadow:0 5px 0 #000}
 /* landform cards */
 .gh-cards{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:calc(12px*var(--u));width:min(100%,calc(100cqh*4.4));align-items:center}

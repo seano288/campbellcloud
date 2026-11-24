@@ -87,6 +87,13 @@ describe('a Round and a Launch', () => {
     expect(putModule(b, 'pl:lab', 3, 3)).toBeNull();
     expect(putModule(b, 'pl:lab', 1, 0)!.station.length).toBe(2);
   });
+  // with a small rocket the core (weight 3) waits on the ground, and Solar Panels (weight 2) used to fly first and become the Station's middle
+  it('a module that builds on another waits until that one has flown, so the Station Core is always the first module up', () => {
+    const bought = { ...freshBase(), owned: [...freshBase().owned, 'pl:core'], waiting: ['pl:core'] };
+    expect(missingNeed(bought, { kind: 'item', id: 'pl:solar' })).toBe('pl:core');
+    expect(buyable(bought, { kind: 'item', id: 'pl:solar' })).toBe(false);
+    expect(missingNeed({ ...bought, waiting: [], flownPayloads: ['pl:core'] }, { kind: 'item', id: 'pl:solar' })).toBeNull();
+  });
   it('a rocket needs a tower tall enough; the flyback booster needs the landing pad and the spaceplane the runway', () => {
     expect(missingNeed(freshBase(), { kind: 'item', id: 'r:launcher' })).toBe('b:tower1');
     expect(missingNeed(freshBase(), { kind: 'item', id: 'r:flyback' })).toBe('b:landing');

@@ -20,7 +20,7 @@ import { CONTINENTS } from '../world/continents';
 import { OCEANS } from '../world/oceans';
 import { PLACES } from '../world/places';
 import {
-  BUILDINGS, DECALS, FLAMES, itemOf, KINDS, PAINTS, PAYLOADS, partsFor, REPEATS, ROCKET_KINDS, ROCKETS, SLOTS, type Item, type PayloadItem, type RepeatId, type RocketKind, type Slot,
+  BUILDINGS, DECALS, FLAMES, itemOf, KINDS, MOST_HANGARS, PAINTS, PAYLOADS, partsFor, REPEATS, ROCKET_KINDS, ROCKETS, SLOTS, type Item, type PayloadItem, type RepeatId, type RocketKind, type Slot,
 } from './catalog';
 import {
   bestLift, buyable, canStand, dishes, fit, flyingKind, goalOf, has, liftOf, lookOf, massOf, missingNeed, myRockets, nameOfPayload, pads, pick, planLaunch, priceOf, putModule,
@@ -65,7 +65,7 @@ function BaseView({ a }: { a: BaseState }) {
       <div class="gh-buildings" aria-hidden="true">
         <span title="Hut">🛖</span>
         {built.map(b => <span key={b.id}>{b.icon}</span>)}
-        {Array.from({ length: Math.min(12, a.more.hangar) }, (_, i) => <span key={`h${i}`}>🏠</span>)}
+        {Array.from({ length: Math.min(MOST_HANGARS, a.more.hangar) }, (_, i) => <span key={`h${i}`}>🏠</span>)}
         {Array.from({ length: Math.min(12, a.more.dish) }, (_, i) => <span key={`d${i}`}>📡</span>)}
       </div>
     </div>

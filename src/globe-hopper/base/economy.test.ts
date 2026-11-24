@@ -86,7 +86,7 @@ describe('how long the rewards last (the scripted child)', () => {
   it('through the first 100 Rounds, something new to buy is never more than three Rounds away', () => expect(gaps(100)).toBeLessThanOrEqual(3));
   it('after 2,000 Rounds there is still something new every Round, and nothing reads "all done"', () => {
     expect(long.offered.every(Boolean)).toBe(true);
-    // the last 100 Rounds still buy things (new modules, hangars, dishes) and fly new photo missions
+    // the last 100 Rounds still buy things (new Station modules he designs) and fly new photo missions
     expect(long.newAt.filter(r => r > 1900).length).toBeGreaterThan(5);
   });
   it('nothing takes more than about 40 Rounds of saving, and only a handful more than 15', () => {
@@ -106,6 +106,16 @@ describe('how long the rewards last (the scripted child)', () => {
     let a = freshBase();
     for (const id of ['pad', 'hangar', 'dish', 'module'] as const) for (let k = 0; k < 40; k++) { const p = priceOf({ ...a, more: { ...a.more, [id]: k } }, { kind: 'more', id }); expect(p).toBeLessThanOrEqual(400); if (p > 100) expect(p % 10).toBe(0); }
     a = { ...a };
+  });
+  // past what shows, "Another Hangar" bought nothing he could see, and "Another Dish" nothing the orbit used
+  it('every thing bought again does something: the last dish still lengthens free time, the last hangar is still drawn', async () => {
+    const { repeatOf, MOST_HANGARS } = await import('./catalog');
+    const { freeFor, TUNING } = await import('../orbit/sim');
+    const most = repeatOf('dish').most;
+    expect(freeFor(3 + most, false)).toBe(TUNING.maxFree);
+    expect(freeFor(3 + most - 1, false)).toBeLessThan(TUNING.maxFree);
+    expect(repeatOf('hangar').most).toBeLessThanOrEqual(MOST_HANGARS);
+    expect(repeatOf('module').most).toBe(Infinity);
   });
   it('has at least 250 named things to earn in the fixed catalogue', async () => {
     const { CATALOGUE_SIZE } = await import('./base');

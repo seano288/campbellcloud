@@ -113,7 +113,7 @@ function EarthStage({ q, lesson, answer, lit: litChoice }: { q: Question; lesson
   // on a narrow screen the map zooms in on Europe only when Europe is the answer (every other target stays in view)
   const europe = q.answer === 'europe' && !(st.type === 'earth' && st.pins?.length);
   const onTap = (at: LonLat | null) => answer.tap(judgeTap(st, at));
-  const earth = <EarthView surface={st.surface} look={look} face={lesson.face.value} rays={lesson.rays.value} europe={europe} onTap={onTap} label={q.text} />;
+  const earth = <EarthView surface={st.surface} look={look} face={lesson.face.value} rays={lesson.rays.value} europe={europe} rim={st.type === 'earth' && st.tap?.by === 'poles'} onTap={onTap} label={q.text} />;
   if (st.type === 'scene') return <div class="gh-scene-row"><SceneArt scene={st.scene} />{earth}</div>;
   void litChoice;
   return earth;
@@ -168,7 +168,11 @@ export function QuestionView({ current, waiting }: { current: Current; waiting: 
   const ready = useAsked(current, q, setLit), lesson = lessonFor(current.signal), answer = useAnswer(current, ready, waiting);
   void possibleAnswers;
   const st = q.stage;
-  const stage = st.type === 'shape' ? <ShapeStage id={st.continent} /> : st.type === 'cards' ? <Cards q={q} answer={answer} lesson={lesson} /> : <EarthStage q={q} lesson={lesson} answer={answer} lit={lit} />;
+  // a shape by itself has no Earth to turn: its lesson brings a globe up beside it, turned to the continent and glowing
+  const shapeGlobe = st.type === 'shape' && lesson.face.value
+    ? <div class="gh-shape-globe"><EarthView surface={{ s: 'globe', lon: lesson.face.value.lon - 60, lat: lesson.face.value.lat }} face={lesson.face.value} look={{ glow: lesson.glow.value }} label={nameOf(q.answer)} /></div>
+    : null;
+  const stage = st.type === 'shape' ? <><ShapeStage id={st.continent} />{shapeGlobe}</> : st.type === 'cards' ? <Cards q={q} answer={answer} lesson={lesson} /> : <EarthStage q={q} lesson={lesson} answer={answer} lit={lit} />;
   return <Shell current={current} q={q} ready={answer.can} lesson={lesson} setLit={setLit} stage={stage} controls={q.choices ? <Choices q={q} answer={answer} lesson={lesson} lit={lit} /> : undefined} />;
 }
 

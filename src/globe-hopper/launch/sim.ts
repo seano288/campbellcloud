@@ -75,8 +75,8 @@ export interface Sim {
   wobble: number;
   /** The stages still on, bottom first; and the one waiting to be dropped (empty), if any, and for how long. */
   stages: Stage[]; empty: Stage | null; emptyT: number;
-  /** Seconds burning in the path and out of it, for his smoothest Launch. */
-  inside: number; outside: number;
+  /** Seconds he flew it himself (a finger on the screen) in the path and out of it, and seconds it flew itself, for his smoothest Launch. */
+  inside: number; outside: number; idle: number;
   wasInside: boolean; seenClouds: boolean; seenSpace: boolean; lastTick: number;
   readonly clouds: { alt: number; x: number; r: number; hit: boolean }[];
   readonly rng: Rng;
@@ -100,15 +100,20 @@ export function createSim(setup: LaunchSetup): Sim {
     return { alt, x: pathX(alt) + side * (T.halfWidth + 50 + rng() * 60), r: 55 + rng() * 25, hit: false };
   });
   return {
-    setup, phase: 'count', t: 0, pt: 0, alt: 0, x: 0, tilt: 0, wobble: 0, stages, empty: null, emptyT: 0, inside: 0, outside: 0,
+    setup, phase: 'count', t: 0, pt: 0, alt: 0, x: 0, tilt: 0, wobble: 0, stages, empty: null, emptyT: 0, inside: 0, outside: 0, idle: 0,
     wasInside: true, seenClouds: false, seenSpace: false, lastTick: 11, clouds, rng, events: [],
   };
 }
 
 const to = (s: Sim, p: Phase) => { s.phase = p; s.pt = 0; };
 export const inPath = (s: Pick<Sim, 'alt' | 'x'>) => Math.abs(s.x - pathX(s.alt)) <= T.halfWidth;
-/** How smooth the Launch was: the share of the climb spent in the path, 0 to 1. */
-export const smoothness = (s: Pick<Sim, 'inside' | 'outside'>) => (s.inside + s.outside ? s.inside / (s.inside + s.outside) : 1);
+/** How smooth the Launch was, 0 to 1: the share of the time he flew it himself that he kept it in the path. Time it flew itself (no finger)
+ *  counts for nothing, so doing nothing is never his smoothest Launch; flying most of the climb (SELF_SHARE) is all it asks. */
+export const SELF_SHARE = .6;
+export function smoothness(s: Pick<Sim, 'inside' | 'outside' | 'idle'>): number {
+  const hand = s.inside + s.outside, all = hand + s.idle;
+  return all ? s.inside / Math.max(hand, all * SELF_SHARE) : 1;
+}
 /** Stars for the Launch, by how smooth it was. */
 export const starsFor = (smooth: number): 1 | 2 | 3 => (smooth >= .85 ? 3 : smooth >= .6 ? 2 : 1);
 
@@ -148,7 +153,7 @@ export function stepSim(s: Sim, input: Input = {}) {
   const v = (burning ? (inside ? T.climb : T.offPath) : s.pt > T.idleAfter ? T.idle : T.idle * .5) * heavy * waiting;
   s.alt = Math.min(T.orbit, s.alt + v * Math.cos(s.tilt) * dt * (1 - Math.min(.6, s.wobble * .4)));
   s.x += v * Math.sin(s.tilt) * dt * 1.6 + s.wobble * Math.sin(s.t * 14) * 8 * dt;
-  if (burning || s.pt > T.idleAfter) { if (inside) s.inside += dt; else s.outside += dt; }
+  if (input.burn) { if (inside) s.inside += dt; else s.outside += dt; } else if (burning || s.pt > T.idleAfter) s.idle += dt;
   // clouds only wobble it
   if (s.alt > T.cloudLow - 40 && !s.seenClouds) { s.seenClouds = true; s.events.push({ t: 'clouds' }); }
   for (const c of s.clouds) {

@@ -39,11 +39,13 @@ const say = (x: string) => x as Phrase;
 
 /** Lines that don't matter are dropped while the voice is mid-sentence, so it never queues up behind the action. */
 function commentator(voice: VoiceScope) {
-  let talking = false;
+  // which line is talking: a line cut off by a newer one finishes too, and must not mark the newer one as done
+  let talking = 0, n = 0;
   return (line: readonly Phrase[], must = false) => {
     if (talking && !must) return;
-    talking = true;
-    void voice.say(...line).then(() => { talking = false; });
+    const mine = ++n;
+    talking = mine;
+    void voice.say(...line).then(() => { if (talking === mine) talking = 0; });
   };
 }
 function missionLine(targets: readonly { id: TargetId }[]): Phrase[] {
@@ -200,6 +202,7 @@ export function LaunchScreen({ replay = false }: { replay?: boolean }) {
       if (pay.bestSmooth) { sChime(); await voice.say('New best!', 'Smoothest launch!'); }
       if (pay.bestCaught) { sChime(); await voice.say('New best!', 'Most places in one orbit!'); }
       if (pay.newPayload) { sChime(); await voice.say(pay.newPayload.startsWith('m:') || PAYLOADS.find(p => p.id === pay.newPayload)?.kind === 'module' ? 'It joined your Station!' : 'Your satellite is in orbit!'); }
+      else await voice.say(plan.payload === TEST_PAYLOAD.id ? 'The test payload flew!' : 'Supplies for the Station!');
       if (plan.kind === 'flyback' && has(start.base, 'b:landing')) await voice.say('The booster landed on the pad!');
       if (plan.kind === 'spaceplane' && has(start.base, 'b:runway')) await voice.say('The spaceplane landed on the runway!');
       if (pay.patch) { sFanfare(); confetti(40, voice.signal); await voice.say('A new patch for your wall!'); }
