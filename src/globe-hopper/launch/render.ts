@@ -1,6 +1,8 @@
-// Draws the Launch from the side on a 2D canvas: the base on the ground (the pad, the tower, the buildings he has), the sky going from
+// Draws the Launch from the side on a 2D canvas: his base on the ground, drawn once into a canvas of its own (art/base.ts: the pad, the
+// tower and every building he has) and slid down as he climbs, the sky going from
 // blue to black with stars, the clouds, the wide path (dotted chevrons once he has the Control Room), his rocket with its flame and the
 // stages falling away. The camera follows the rocket. No art files and no library; a few dozen shapes a frame, tuned for an iPad 9.
+import { drawBase, type BaseScene } from '../art/base';
 import { drawRocket, rocketSize, type RocketLook } from '../art/rocket';
 import { pathX, TUNING, type Sim, type Stage } from './sim';
 
@@ -15,8 +17,8 @@ export interface SceneSetup {
   readonly night: boolean;
   /** The path drawn plainly (the Control Room), and wider (Mission Control: drawn only; the sim is the same). */
   readonly guide: boolean;
-  /** The base's buildings he owns, by catalogue id, to stand on the ground. */
-  readonly buildings: readonly string[];
+  /** His base, to stand on the ground round the pad. */
+  readonly base: BaseScene;
   readonly reduced: boolean;
 }
 
@@ -29,6 +31,8 @@ export function createScene(canvas: HTMLCanvasElement, setup: SceneSetup): Launc
   const size = rocketSize(setup.look);
   const falling: Falling[] = [];
   let lastStages: Stage[] | null = null;
+  // his base, drawn once at this size with the pad of the rocket that flies in the middle
+  let ground: { img: HTMLCanvasElement; padX: number; groundY: number } | null = null;
   const stars = Array.from({ length: 70 }, (_, i) => ({ x: (i * 137.5) % 1, y: (i * 61.8) % 1, r: i % 7 === 0 ? 2 : 1.2 }));
   const smoke: { x: number; alt: number; r: number; life: number }[] = [];
 
@@ -40,13 +44,17 @@ export function createScene(canvas: HTMLCanvasElement, setup: SceneSetup): Launc
     // world units to pixels: about 520 units of height in view; the rocket drawn a good size
     k = H / 520;
     rocketPx = Math.min(H * .3, W * .5) / size.h;
+    const img = document.createElement('canvas'), bw = W * 2, u = (size.h * rocketPx) / 232, bh = 400 * u;
+    img.width = Math.round(bw * dpr); img.height = Math.round(bh * dpr);
+    const g = img.getContext('2d');
+    if (g) { g.scale(dpr, dpr); const at = drawBase(g, setup.base, bw, bh, { u, hideFlying: true, centerFlying: true, noSky: true }); ground = { img, padX: at.padX, groundY: at.groundY }; }
   }
   resize();
 
   function frame(s: Sim, now: number) {
     ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
     const camAlt = s.alt, camX = s.x;
-    const rocketY = H * .62; // where the rocket's base is on screen
+    const rocketY = H * .68; // where the rocket's base is on screen (low, so the sky ahead is big and the apron below is short)
     const sy = (alt: number) => rocketY - (alt - camAlt) * k, sx = (x: number) => W / 2 + (x - camX) * k;
     // sky: blue near the ground, black in space (night is dark from the start)
     const up = Math.min(1, s.alt / TUNING.space);
@@ -60,10 +68,8 @@ export function createScene(canvas: HTMLCanvasElement, setup: SceneSetup): Launc
     // the ground and the base
     const groundY = sy(0);
     if (groundY < H + 40) {
-      ctx.fillStyle = setup.night ? '#1d2b1d' : '#6fae52'; ctx.fillRect(0, groundY, W, H - groundY + 40);
-      ctx.fillStyle = setup.night ? '#3a3f48' : '#b8bec6'; ctx.fillRect(sx(-70), groundY - 6, 140 * k, 10); // the pad
-      ctx.strokeStyle = '#14161b'; ctx.lineWidth = 3; ctx.strokeRect(sx(-70), groundY - 6, 140 * k, 10);
-      drawGround(ctx, setup, sx, groundY, k);
+      ctx.fillStyle = setup.night ? '#3a3f48' : '#a7adb6'; ctx.fillRect(0, groundY, W, H - groundY + 40);
+      if (ground) ctx.drawImage(ground.img, sx(0) - ground.padX, groundY - ground.groundY, ground.img.width / dpr, ground.img.height / dpr);
     }
     // the path: chevrons up the middle, faint edges (plain ones with the Control Room)
     const pathA = setup.guide ? .9 : .5;
@@ -112,26 +118,4 @@ export function createScene(canvas: HTMLCanvasElement, setup: SceneSetup): Launc
 
   function toSteer(x: number) { return Math.max(-1, Math.min(1, (x - W / 2) / (W * .3))); }
   return { resize, frame, toSteer };
-}
-
-/** The base's buildings on the ground, left and right of the pad, simple shapes in their colours. */
-function drawGround(ctx: CanvasRenderingContext2D, setup: SceneSetup, sx: (x: number) => number, gy: number, k: number) {
-  const has = (id: string) => setup.buildings.includes(id);
-  const block = (x: number, w: number, h: number, fill: string) => { ctx.fillStyle = fill; ctx.fillRect(sx(x), gy - h * k, w * k, h * k); ctx.strokeStyle = '#14161b'; ctx.lineWidth = 2.5; ctx.strokeRect(sx(x), gy - h * k, w * k, h * k); };
-  // the tower beside the pad, taller with each level
-  const level = 1 + ['b:tower1', 'b:tower2', 'b:tower3'].filter(has).length, th = 80 + level * 55;
-  ctx.strokeStyle = '#c0392b'; ctx.lineWidth = 3;
-  const tx = sx(-60), tw = 22 * k;
-  ctx.strokeRect(tx, gy - th * k, tw, th * k);
-  for (let y = 0; y < th; y += 18) { ctx.beginPath(); ctx.moveTo(tx, gy - y * k); ctx.lineTo(tx + tw, gy - (y + 18) * k); ctx.stroke(); }
-  if (has('b:arm')) { ctx.fillStyle = '#8a9099'; ctx.fillRect(tx + tw, gy - th * k * .8, 26 * k, 6); }
-  block(-160, 50, 26, '#d9dde2'); // the hut
-  if (has('b:vab')) block(-330, 110, 150, '#eef1f5');
-  if (has('b:control')) block(120, 70, 40, '#5b8cc0');
-  if (has('b:fuel1')) { ctx.fillStyle = '#f6f8fb'; ctx.beginPath(); ctx.arc(sx(230), gy - 22 * k, 22 * k, 0, Math.PI * 2); ctx.fill(); ctx.stroke(); }
-  if (has('b:water')) block(270, 24, 90, '#9fb7cc');
-  if (has('b:dish1')) { ctx.fillStyle = '#e8edf2'; ctx.beginPath(); ctx.arc(sx(330), gy - 50 * k, 26 * k, Math.PI * .9, Math.PI * 1.9); ctx.closePath(); ctx.fill(); ctx.stroke(); block(326, 8, 40, '#8a9099'); }
-  if (has('b:lights')) for (const x of [-120, 90]) { block(x, 6, 120, '#5b616c'); ctx.fillStyle = setup.night ? '#fff6b0' : '#ffe58a'; ctx.fillRect(sx(x - 6), gy - 126 * k, 18 * k, 8 * k); }
-  if (has('b:stand')) block(400, 90, 24, '#e63946');
-  if (has('b:flags')) for (const x of [-220, -200, -180]) { block(x, 3, 60, '#5b616c'); ctx.fillStyle = ['#e63946', '#2f8fe8', '#ffd23f'][Math.abs(x / 20) % 3]!; ctx.fillRect(sx(x + 3), gy - 60 * k, 18 * k, 11 * k); }
 }

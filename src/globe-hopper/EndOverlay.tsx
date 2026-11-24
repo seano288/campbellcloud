@@ -9,6 +9,7 @@ import { earnedLine } from '../currency/kind';
 import { IconButton } from '../ui/bits';
 import { CurrencyIcon } from '../ui/currency';
 import { CUR } from './branding';
+import { EarthLimb } from './art/EarthLimb';
 import { player } from './game';
 import { MODE_NAMES } from './learning';
 import { starLine, type Phrase } from './phrases';
@@ -17,7 +18,7 @@ import { useVoiceScope } from './voice';
 
 const order = (e: RoundEvent) => (e.kind === 'star' ? 3 : 2);
 function eventLines(e: RoundEvent): Phrase[] {
-  if (e.kind === 'levelUp') return ['Level up!'];
+  if (e.kind === 'levelUp') return ['Level up!', MODE_NAMES[e.mode]]; // which kind: its name is a clip of its own
   if (e.kind === 'star') return [starLine(MODE_NAMES[e.mode])];
   return [`You opened ${MODE_NAMES[e.mode]}!`];
 }
@@ -25,7 +26,7 @@ function eventLines(e: RoundEvent): Phrase[] {
 export function EndOverlay({ result: r, onLaunch, onBase, onAgain, onHome }: { result: Round; onLaunch(): void; onBase(): void; onAgain(): void; onHome(): void }) {
   const voice = useVoiceScope();
   const [pile, setPile] = useState(r.beforeBalance), [bump, setBump] = useState(false);
-  const [lines, setLines] = useState<Phrase[]>([]), [awake, setAwake] = useState(false), [earned, setEarned] = useState(false);
+  const [lines, setLines] = useState<string[]>([]), [awake, setAwake] = useState(false), [earned, setEarned] = useState(false);
   useEffect(() => {
     void playMoments([
       async () => {
@@ -38,7 +39,7 @@ export function EndOverlay({ result: r, onLaunch, onBase, onAgain, onHome }: { r
         for (const e of [...r.events].sort((a, b) => order(a) - order(b))) {
           if (!voice.active) return;
           const said = eventLines(e);
-          setLines(ls => [...ls, ...said]);
+          setLines(ls => [...ls, said.join(' ')]);
           if (e.kind === 'levelUp') { sFanfare(); confetti(30, voice.signal); } else sChime();
           await voice.say(...said);
         }
@@ -50,6 +51,7 @@ export function EndOverlay({ result: r, onLaunch, onBase, onAgain, onHome }: { r
   const b = player.state.value.base;
   return (
     <div class="reward gh-reward">
+      <EarthLimb lon={([...r.roundId].reduce((n, ch) => n + ch.charCodeAt(0), 0) * 37) % 360 - 180} />
       <h2>Round done!</h2>
       <div class="bigpile"><CurrencyIcon kind={CUR} size={80} /><span class={bump ? 'bump' : ''}>{pile}</span></div>
       {earned && <div class="earned-race">🚀 +1 Launch</div>}

@@ -10,7 +10,13 @@ import { confetti } from '../../celebrate/effects';
 import { IconButton } from '../../ui/bits';
 import { CurrencyIcon, CurrencyPile } from '../../ui/currency';
 import { rocketPic } from '../art/rocket';
+import { BaseCanvas } from '../art/BaseCanvas';
+import { PartPic } from '../art/PartPic';
+import { ContinentShape } from '../art/ContinentShape';
+import { MiniGlobe } from '../art/MiniGlobe';
+import { buildingPic, sceneFor } from '../art/base';
 import { drawModule, drawStation, iconOfModule } from '../art/station';
+import { drawGlobe } from '../art/earth';
 import { CUR } from '../branding';
 import { buy, player, updateBase } from '../game';
 import { baseTab, launch, screen, watch } from '../nav';
@@ -20,11 +26,11 @@ import { CONTINENTS } from '../world/continents';
 import { OCEANS } from '../world/oceans';
 import { PLACES } from '../world/places';
 import {
-  BUILDINGS, DECALS, FLAMES, itemOf, KINDS, MOST_HANGARS, PAINTS, PAYLOADS, partsFor, REPEATS, ROCKET_KINDS, ROCKETS, SLOTS, type Item, type PayloadItem, type RepeatId, type RocketKind, type Slot,
+  BUILDINGS, DECALS, FLAMES, itemOf, KINDS, PAINTS, PAYLOADS, partsFor, REPEATS, ROCKET_KINDS, ROCKETS, SLOTS, type Item, type PayloadItem, type RepeatId, type RocketKind, type Slot,
 } from './catalog';
 import {
-  bestLift, buyable, canStand, dishes, fit, flyingKind, goalOf, has, liftOf, lookOf, massOf, missingNeed, myRockets, nameOfPayload, pads, pick, planLaunch, priceOf, putModule,
-  rankOf, RANKS, selectGoal, towerLevel, wantKey, type BaseState, type Want,
+  bestLift, buyable, canStand, dishes, fit, flyingKind, goalOf, has, liftOf, lookOf, massOf, missingNeed, nameOfPayload, pads, pick, planLaunch, priceOf, putModule,
+  LEGEND_EVERY, rankOf, RANKS, selectGoal, towerLevel, wantKey, type BaseState, type Want,
 } from './base';
 import { freeSpots, MODULE_COLOURS, PANELS_MAX, SHAPES, suggestModule, WINDOWS_MAX, type ModuleLook } from './station';
 import { patchFor } from './missions';
@@ -37,6 +43,8 @@ export const TABS = [
 ] as const;
 type TabId = (typeof TABS)[number]['id'];
 const byPrice = <T extends { price: number }>(xs: readonly T[]) => [...xs].sort((a, b) => a.price - b.price);
+/** Which end of his rocket a part tile shows: his own rocket with that part fitted, cropped to where the part is. */
+const PART_CROP: Record<Slot, 'top' | 'mid' | 'end'> = { nose: 'top', capsule: 'top', upper: 'mid', main: 'mid', boosters: 'end', engines: 'end', fins: 'end' };
 const SLOT_NAMES: Record<Slot, string> = { nose: 'Nose', capsule: 'Capsule', upper: 'Upper Stage', main: 'Main Stage', boosters: 'Boosters', engines: 'Engines', fins: 'Fins' };
 const nameOf = (w: Want) => (w.kind === 'item' ? itemOf(w.id).name : REPEATS.find(r => r.id === w.id)!.name);
 const iconOf = (w: Want) => (w.kind === 'item' ? itemOf(w.id).icon : REPEATS.find(r => r.id === w.id)!.icon);
@@ -45,31 +53,9 @@ const RAINBOW = 'linear-gradient(90deg,#e63946,#ff7a00,#ffd23f,#2fa84f,#2f8fe8,#
 const swatchBg = (hex: string) => (hex === 'rainbow' ? RAINBOW : hex);
 const said = (x: string | number) => `${x}` as Phrase;
 
-/** His base from the side: the rockets on their pads, the tower, and every building he owns. */
+/** His base from the side, drawn: the rockets on their pads, the tower, and every building he owns in its place (art/base.ts). */
 function BaseView({ a }: { a: BaseState }) {
-  const rockets = myRockets(a).filter(k => canStand(a, k)).sort(k => (k === flyingKind(a) ? -1 : 1)).slice(0, pads(a));
-  const built = BUILDINGS.filter(b => has(a, b.id) && b.does !== 'tower');
-  return (
-    <div class={cls('gh-base-view', a.night && 'night')} aria-label="Your Rocket Base" role="img">
-      <div class="gh-sky" />
-      <div class="gh-pads">
-        {rockets.map((k, i) => (
-          <div key={k} class={cls('gh-pad', i === 0 && 'flying')}>
-            {i === 0 && <i class={`gh-tower t${towerLevel(a)}`} aria-hidden="true" />}
-            <img src={rocketPic(lookOf(a, k), 170)} alt="" />
-            <span class="gh-pad-slab" />
-          </div>
-        ))}
-        {Array.from({ length: Math.max(0, pads(a) - rockets.length) }, (_, i) => <div key={`e${i}`} class="gh-pad empty"><span class="gh-pad-slab" /></div>)}
-      </div>
-      <div class="gh-buildings" aria-hidden="true">
-        <span title="Hut">🛖</span>
-        {built.map(b => <span key={b.id}>{b.icon}</span>)}
-        {Array.from({ length: Math.min(MOST_HANGARS, a.more.hangar) }, (_, i) => <span key={`h${i}`}>🏠</span>)}
-        {Array.from({ length: Math.min(12, a.more.dish) }, (_, i) => <span key={`d${i}`}>📡</span>)}
-      </div>
-    </div>
-  );
+  return <div class="gh-base-view"><BaseCanvas scene={sceneFor(a)} opts={{ fit: true }} label="Your Rocket Base" /></div>;
 }
 
 /** The Station in orbit; while he has a module to put on, the free spots glow and a tap puts it there. */
@@ -77,6 +63,7 @@ function StationView({ a, placing, onPlace }: { a: BaseState; placing: string | 
   const ref = useRef<HTMLCanvasElement>(null), geo = useRef<ReturnType<typeof drawStation> | null>(null);
   useEffect(() => {
     const c = ref.current!, ctx = c.getContext('2d')!;
+    const still = typeof matchMedia === 'function' && matchMedia('(prefers-reduced-motion:reduce)').matches;
     let raf = 0;
     const draw = (ms: number) => {
       raf = requestAnimationFrame(draw);
@@ -86,8 +73,13 @@ function StationView({ a, placing, onPlace }: { a: BaseState; placing: string | 
       ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
       const g = ctx.createLinearGradient(0, 0, 0, r.height); g.addColorStop(0, '#03040c'); g.addColorStop(1, '#0d1f45');
       ctx.fillStyle = g; ctx.fillRect(0, 0, r.width, r.height);
-      ctx.fillStyle = '#2f7fd6'; ctx.beginPath(); ctx.arc(r.width / 2, r.height * 1.9, r.height * 1.15, 0, Math.PI * 2); ctx.fill();
       ctx.fillStyle = '#fff'; for (let i = 0; i < 40; i++) ctx.fillRect((i * 97.3) % r.width, (i * 41.7) % (r.height * .7), 1.5, 1.5);
+      // the Earth below, turning slowly, in the same colours as everywhere else
+      const er = Math.max(r.width * .62, r.height * .95), ey = r.height * .8 + er;
+      const halo = ctx.createRadialGradient(r.width / 2, ey, er * .98, r.width / 2, ey, er * 1.06);
+      halo.addColorStop(0, 'rgba(120,190,255,.6)'); halo.addColorStop(1, 'rgba(120,190,255,0)');
+      ctx.fillStyle = halo; ctx.beginPath(); ctx.arc(r.width / 2, ey, er * 1.06, 0, Math.PI * 2); ctx.fill();
+      drawGlobe(ctx, r.width / 2, ey, er, { lon: still ? 20 : 20 - ms / 1000 * 1.5, lat: -38 }, { lw: Math.max(1.2, er / 260), night: a.night });
       geo.current = drawStation(ctx, a.station, a.designs, r.width, r.height, ms / 1000, placing ? freeSpots(a.station) : []);
     };
     raf = requestAnimationFrame(draw);
@@ -177,11 +169,13 @@ export function BaseScreen() {
     const onTap = () => (item.cat === 'rocket' ? tapRocket(item.kind) : owned && wearable ? fitIt(item) : owned ? say(item.name as Phrase) : tapWant(w));
     const swatch = item.cat === 'paint' || item.cat === 'flame' ? <span class="swatch-dot" style={{ background: swatchBg(item.hex) }} />
       : item.cat === 'rocket' ? <img src={rocketPic(has(a, item.id) ? lookOf(a, item.kind) : { ...lookOf(a, 'sounding'), kind: item.kind }, 90)} alt="" />
+      : item.cat === 'building' ? <img class="bpic" src={buildingPic(item.id.slice(2))} alt="" />
+      : item.cat === 'part' ? <PartPic look={{ ...look, [item.slot]: item.id }} crop={PART_CROP[item.slot]} />
       : <span class="tile-icon" aria-hidden="true">{item.icon}</span>;
     const extra = item.cat === 'part' && item.lift ? <span class="tile-lift">💪{item.lift}</span> : item.cat === 'payload' ? <span class="tile-lift">⚖️{item.mass}</span> : null;
     const flying = item.cat === 'rocket' && flyingKind(a) === item.kind;
     return (
-      <button key={item.id} class={cls('gh-tile', owned && 'owned', (worn(item) || flying) && 'worn', need && 'locked', afford && 'afford', picked && wantKey(picked) === item.id && 'picked',
+      <button key={item.id} class={cls('gh-tile', item.cat === 'rocket' && 'rocket-tile', owned && 'owned', (worn(item) || flying) && 'worn', need && 'locked', afford && 'afford', picked && wantKey(picked) === item.id && 'picked',
         item.cat === 'payload' && a.flownPayloads.includes(item.id) && 'flown')} aria-label={item.name} onClick={onTap}>
         {swatch}
         <span class="tile-name">{item.name}</span>{extra}
@@ -194,7 +188,7 @@ export function BaseScreen() {
     if (!open && a.more[id] === 0) return null;
     return (
       <button key={id} class={cls('gh-tile', 'repeat', need && 'locked', !need && open && price <= balance && 'afford', picked && wantKey(picked) === `more:${id}` && 'picked')} aria-label={r.name} onClick={() => (open ? tapWant(w) : say(r.name as Phrase))}>
-        {id === 'module' ? <ModulePreview l={design} /> : <span class="tile-icon" aria-hidden="true">{r.icon}</span>}
+        {id === 'module' ? <ModulePreview l={design} /> : <img class="bpic" src={buildingPic(id)} alt="" />}
         <span class="tile-name">{r.name}</span>
         {a.more[id] > 0 && <span class="tile-count">×{a.more[id]}</span>}
         {need ? <span class="tile-tag">🔒</span> : open ? <span class="tile-cost"><CurrencyIcon kind={CUR} size={16} />{price}</span> : <span class="tile-tag">✔︎</span>}
@@ -301,13 +295,18 @@ export function BaseScreen() {
   );
 }
 
-/** The photo wall: every continent and ocean from orbit (grey until he has photographed it), and the patches he has won. */
+/** The photo wall: every continent by its own shape and every ocean on a little globe, in their colours once he has photographed them
+ *  from orbit (grey shapes until then, so he can see what is still to find), and the patches he has won. */
 function PhotoWall({ a }: { a: BaseState }) {
   const got = new Set(a.photos);
   return (
     <div class="gh-wall">
-      {CONTINENTS.map(c => <span key={c.id} class={cls('gh-photo', got.has(`c:${c.id}`) && 'got')} style={{ '--c': c.colour } as Record<string, string>}><i aria-hidden="true">🗺️</i>{c.name}</span>)}
-      {OCEANS.map(o => <span key={o.id} class={cls('gh-photo', 'sea', got.has(`o:${o.id}`) && 'got')} style={{ '--c': o.tint } as Record<string, string>}><i aria-hidden="true">🌊</i>{o.name}</span>)}
+      {CONTINENTS.map(c => { const has = got.has(`c:${c.id}`); return (
+        <span key={c.id} class={cls('gh-photo', has && 'got')}><ContinentShape id={c.id} colour={has ? c.colour : '#4a515c'} /><b>{c.name}</b></span>
+      ); })}
+      {OCEANS.map(o => { const has = got.has(`o:${o.id}`); return (
+        <span key={o.id} class={cls('gh-photo', 'sea', has && 'got')}><MiniGlobe at={o.safe} ring={false} look={has ? { ocean: o.id } : { lit: [] }} /><b>{o.name}</b></span>
+      ); })}
     </div>
   );
 }
@@ -320,15 +319,23 @@ function PhotoList({ a }: { a: BaseState }) {
     <div class="tiles">{places.slice(-120).map(p => <span key={p.id} class="gh-tile owned"><span class="tile-icon" aria-hidden="true">{p.emoji}</span><span class="tile-name">{p.name}</span></span>)}</div>
   </>;
 }
+/** His logbook: how far to the next rank, his bests and his counts, each with a word he can read, and the ranks he has climbed. */
 function Logbook({ a, dishes: d }: { a: BaseState; dishes: number }) {
-  const rank = rankOf(a.flown);
+  const rank = rankOf(a.flown), at = rank.number ? rank.next - LEGEND_EVERY : RANKS[rank.index]!.at;
+  const span = Math.max(1, rank.next - at), done = Math.min(span, a.flown - at);
+  const stat = (icon: string, n: number | string, word: string) => <div class="log-stat"><span class="ls-i" aria-hidden="true">{icon}</span><b>{n}</b><small>{word}</small></div>;
   return (
     <div class="gh-log">
-      <div class="log-row">🚀 <b>{a.flown}</b> <small>→ {rank.next}</small></div>
-      <div class="log-row">🎖️ <b>{rank.name}{rank.number ? ` ${rank.number}` : ''}</b></div>
-      <div class="log-row">🏅 <b>{a.bests.smooth}%</b> · 📷 <b>{a.bests.caught}</b></div>
-      <div class="log-row">🧩 <b>{a.station.length}</b> · 📡 <b>{d}</b> · 🛰️ <b>{a.flownPayloads.length}</b></div>
-      <div class="tiles ranks">{RANKS.map(r => <span key={r.name} class={cls('gh-tile', a.flown >= r.at && 'owned')}><span class="tile-name">{r.name}</span><span class="tile-tag">{r.at}</span></span>)}</div>
+      <div class="log-next">
+        <span class="log-rank">🎖️ {rank.name}{rank.number ? ` ${rank.number}` : ''}</span>
+        <span class="goal-bar" aria-hidden="true"><i style={{ width: `${(done / span) * 100}%` }} /></span>
+        <span class="log-to">🚀 {a.flown} / {rank.next}</span>
+      </div>
+      <div class="log-stats">
+        {stat('🚀', a.flown, 'Launches')}{stat('📷', a.photos.length, 'Photos')}{stat('🏅', `${a.bests.smooth}%`, 'Smoothest')}
+        {stat('🎯', a.bests.caught, 'Best orbit')}{stat('🧩', a.station.length, 'Station')}{stat('🛰️', a.flownPayloads.length, 'In orbit')}{stat('📡', d, 'Dishes')}
+      </div>
+      <div class="tiles ranks">{RANKS.map(r => <span key={r.name} class={cls('gh-tile', a.flown >= r.at && 'owned', r.name === rank.name && 'worn')}><span class="tile-name">{r.name}</span><span class="tile-tag">🚀 {r.at}</span></span>)}</div>
     </div>
   );
 }

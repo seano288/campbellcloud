@@ -131,7 +131,9 @@ export function drawGlobe(ctx: CanvasRenderingContext2D, cx: number, cy: number,
   // a glowing continent: a wide pulsing halo stroked before the fills, so only its outer edge shows
   const glowing = look.glow ? paths.find(x => x.id === look.glow) : undefined;
   if (glowing?.any) { const pulse = .55 + .45 * Math.sin((look.t ?? 0) * 5); ctx.strokeStyle = `rgba(255,255,255,${pulse})`; ctx.lineWidth = lw * 7; ctx.stroke(glowing.p); ctx.strokeStyle = OUTLINE; ctx.lineWidth = lw * 2; ctx.stroke(glowing.p); }
-  for (const g of paths) if (g.any) { ctx.fillStyle = fillOf(g.id, look); ctx.fill(g.p); }
+  // each country is filled and then stroked thinly in the same colour, which seals the hairline seams between neighbours
+  ctx.lineWidth = lw * .7;
+  for (const g of paths) if (g.any) { const c = fillOf(g.id, look); ctx.fillStyle = c; ctx.fill(g.p); ctx.strokeStyle = c; ctx.stroke(g.p); }
   ctx.fillStyle = WATER; ctx.beginPath(); for (const ring of VLAKES) globePath(ctx, ring, turn, cx, cy, r); ctx.fill();
   if (look.belt) {
     ctx.strokeStyle = '#ff3b3b'; ctx.lineWidth = Math.max(3, r / 40); ctx.setLineDash([r / 14, r / 22]);
@@ -173,13 +175,14 @@ export function drawMap(ctx: CanvasRenderingContext2D, w: number, h: number, vie
   for (const g of paths) ctx.stroke(g.p);
   const glowing = look.glow ? paths.find(z => z.id === look.glow) : undefined;
   if (glowing) { const pulse = .55 + .45 * Math.sin((look.t ?? 0) * 5); ctx.strokeStyle = `rgba(255,255,255,${pulse})`; ctx.lineWidth = lw * 8; ctx.stroke(glowing.p); ctx.strokeStyle = OUTLINE; ctx.lineWidth = lw * 2; ctx.stroke(glowing.p); }
-  for (const g of paths) { ctx.fillStyle = fillOf(g.id, look); ctx.fill(g.p); }
+  ctx.lineWidth = lw * .7;
+  for (const g of paths) { const c = fillOf(g.id, look); ctx.fillStyle = c; ctx.fill(g.p); ctx.strokeStyle = c; ctx.stroke(g.p); }
   ctx.fillStyle = WATER; ctx.beginPath(); for (const r of LAKE_RINGS) ring(ctx, r); ctx.fill();
   if (look.belt) { ctx.strokeStyle = '#ff3b3b'; ctx.lineWidth = Math.max(3, s * .9); ctx.setLineDash([s * 6, s * 4]); ctx.beginPath(); ctx.moveTo(x(-180), y(0)); ctx.lineTo(x(180), y(0)); ctx.stroke(); ctx.setLineDash([]); }
   ctx.restore();
   ctx.strokeStyle = OUTLINE; ctx.lineWidth = 3; ctx.strokeRect(x(-180), y(MAP_TOP), 360 * s, (MAP_TOP - MAP_BOTTOM) * s);
   if (look.names) for (const c of CONTINENTS) label(ctx, c.name, x(c.safe.lon), y(c.safe.lat), Math.max(11, Math.min(20, s * 4.5)), c.ink);
-  for (const m of look.marks ?? []) drawMark(ctx, m, x(m.at.lon), y(m.at.lat), Math.max(16, Math.min(30, s * 7)), look.t ?? 0);
+  for (const m of look.marks ?? []) drawMark(ctx, m, x(m.at.lon), y(m.at.lat), Math.max(20, Math.min(36, s * 8.5)), look.t ?? 0);
   ctx.restore();
 }
 

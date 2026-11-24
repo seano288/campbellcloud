@@ -13,11 +13,13 @@ import { confetti } from '../../celebrate/effects';
 import { earnedLine } from '../../currency/kind';
 import { IconButton } from '../../ui/bits';
 import { CurrencyIcon } from '../../ui/currency';
-import { rocketPic } from '../art/rocket';
+import { sceneFor } from '../art/base';
+import { BaseCanvas } from '../art/BaseCanvas';
+import { MiniGlobe } from '../art/MiniGlobe';
 import { has, planLaunch, rankOf, type LaunchPay } from '../base/base';
 import { PAYLOADS, ROCKET_KINDS, SUPPLIES, TEST_PAYLOAD } from '../base/catalog';
 import { targetEmoji, targetLabel, targetSaid, whereSaid } from '../base/labels';
-import type { TargetId } from '../base/missions';
+import { targetOf, type TargetId } from '../base/missions';
 import { CUR } from '../branding';
 import { player, settleLaunch } from '../game';
 import { launch as launchAgain, screen } from '../nav';
@@ -92,7 +94,7 @@ export function LaunchScreen({ replay = false }: { replay?: boolean }) {
     if (phase !== 'launch') return;
     const stop = new AbortController();
     const s: Sim = createSim({ boosters: !!(start.base.rockets[plan.kind] && (plan.look.boosters !== 'p:boosters:none' || plan.kind === 'heavy')), upper: ROCKET_KINDS[plan.kind].upper, load: plan.load, calm: plan.calm, seed: plan.m.n });
-    const scene = createScene(canvas.current!, { look: plan.look, night: plan.night, guide: plan.guide, buildings: start.base.owned, reduced: reduced() });
+    const scene = createScene(canvas.current!, { look: plan.look, night: plan.night, guide: plan.guide, base: sceneFor(start.base, plan.night), reduced: reduced() });
     if (import.meta.env.DEV) Object.assign(window, { __launch: s });
     const sayIt = commentator(voice), unkey = keyHandler(), rng = seeded(7);
     engine.current = engineSound();
@@ -232,10 +234,10 @@ export function LaunchScreen({ replay = false }: { replay?: boolean }) {
       <div class="launch-screen ls-card" data-phase="card">
         <header class="ls-head"><IconButton label="Rocket Base" onClick={leave}>🏗️</IconButton><h1>Launch {plan.m.n}</h1>{plan.night && <span class="ms-chip" aria-label="Night">🌙</span>}</header>
         <div class="ls-route">
-          <div class="ls-rocket"><img src={rocketPic(plan.look, 230)} alt="" /><strong>{ROCKET_KINDS[plan.kind].name}</strong></div>
+          <div class="ls-rocket"><BaseCanvas scene={sceneFor(start.base, plan.night)} opts={{ centerFlying: true, zoom: 1.4, ground: .9 }} label={`${ROCKET_KINDS[plan.kind].name} on the pad`} /><strong>{ROCKET_KINDS[plan.kind].name}</strong></div>
           <div class="ls-brief">
             <div class="ls-payload"><span class="e" aria-hidden="true">{payloadIcon}</span><span>{plan.payloadName}</span></div>
-            <div class="ls-mission">{plan.m.targets.map((t, i) => <span key={t.id} class="ls-target"><b>{i + 1}</b> {targetEmoji(t.id)} {targetLabel(t.id)}</span>)}</div>
+            <div class="ls-mission">{plan.m.targets.map((t, i) => <span key={t.id} class="ls-target"><b>{i + 1}</b><MiniGlobe at={targetOf(t.id)} class="ls-target-globe" />{targetLabel(t.id)}</span>)}</div>
             {plan.m.patch && <div class="ls-patch"><PatchBadge patch={plan.m.patch} size={56} /> 🎁</div>}
           </div>
         </div>
@@ -268,7 +270,7 @@ export function LaunchScreen({ replay = false }: { replay?: boolean }) {
           <h2>Launch {plan.m.n}!</h2>
           <div class="ls-stars" aria-label={`${result.stars} stars`}>{'⭐'.repeat(result.stars)}<small>{Math.round(result.smooth * 100)}%</small></div>
           {result.pay && <div class="ms-row"><span class="result-bolts"><CurrencyIcon kind={CUR} size={36} />+{result.pay.bolts}</span></div>}
-          <div class="ls-photos">{result.caught.slice(0, 8).map(id => <span key={id} class="ls-photo">{targetEmoji(id)} {targetLabel(id)}</span>)}</div>
+          <div class="ls-photos">{result.caught.slice(0, 8).map(id => <span key={id} class="ls-photo"><MiniGlobe at={targetOf(id)} class="ls-photo-globe" />{targetLabel(id)}</span>)}</div>
           {result.pay?.bestSmooth && <div class="won-line">🏅 Smoothest launch!</div>}
           {result.pay?.bestCaught && <div class="won-line">📷 Most places in one orbit!</div>}
           {result.pay?.newPayload && <div class="won-line">{payloadIcon} {plan.payloadName}</div>}

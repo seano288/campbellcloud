@@ -1,13 +1,16 @@
-// Home: one Play tile, the biggest thing on the screen (every Round mixes the kinds he has opened), the Rocket Base tile with his rocket on
-// its pad and his Launches waiting, the next photo mission, and a board with his Level in each kind. Tapping a kind says its name; a
-// locked one says what opens it.
+// Home: one Play tile, the biggest thing on the screen: the Earth turning with his rocket in orbit round it (every Round mixes the kinds
+// he has opened). The Rocket Base tile shows his base as he has built it, with his Launches waiting; the next photo mission sits on a
+// little globe; and a board shows his Level in each kind. Tapping a kind says its name; a locked one says what opens it.
 import { useEffect } from 'preact/hooks';
 import type { ComponentChildren } from 'preact';
 import { sBad } from '../audio/sfx';
 import { LevelDots } from '../ui/bits';
-import { rocketPic } from './art/rocket';
+import { BaseCanvas } from './art/BaseCanvas';
+import { sceneFor } from './art/base';
+import { MiniGlobe } from './art/MiniGlobe';
+import { PlayGlobe } from './art/PlayGlobe';
 import { flyingKind, lookOf, rankOf } from './base/base';
-import { mission } from './base/missions';
+import { mission, targetOf } from './base/missions';
 import { player } from './game';
 import { LOCKED_HINTS, MODE_IDS, MODE_NAMES, type ModeId } from './learning';
 import { screen } from './nav';
@@ -34,19 +37,21 @@ export function Home({ status }: { status: ComponentChildren }) {
       <header class="home-head"><h1>Globe Hopper</h1>{status}</header>
       <div class="home gh-home">
         <button class="tile t-play" aria-label="Play" onClick={() => { if (voice.active) startRound(); }}>
-          <span class="gh-play-globe" aria-hidden="true"><i /></span>
-          <span class="gh-play-orbit" aria-hidden="true">🚀</span>
+          <PlayGlobe look={lookOf(b, flyingKind(b))} />
           <span class="e">▶</span>
         </button>
         <button class="tile t-base" aria-label="Rocket Base" onClick={() => { if (voice.active) screen.value = 'base'; }}>
-          <img class="gh-tile-rocket" src={rocketPic(lookOf(b, flyingKind(b)), 150)} alt="" />
+          <BaseCanvas scene={sceneFor(b)} opts={{ centerFlying: true, ground: .86, fit: true }} label="" class="gh-tile-base" />
           <span class="nm">Rocket Base</span>
-          {b.launches > 0 && <span class="race-badge" aria-hidden="true">🚀{b.launches}</span>}
+          {b.launches > 0 && <span class="race-badge" aria-hidden="true">🚀 {b.launches}</span>}
         </button>
         <div class="tile t-next" aria-label="Next mission">
-          <span class="board-head" aria-hidden="true">📷 Next</span>
-          <span class="next-dest" aria-hidden="true">{next.targets.map(t => <span key={t.id} class="nd-name">{targetLabel(t.id)}</span>)}</span>
-          <span class="cup-count" aria-hidden="true">🎖️ {rank.name}{rank.number ? ` ${rank.number}` : ''}</span>
+          <MiniGlobe at={targetOf(next.targets[0]!.id)} class="next-globe" />
+          <span class="next-words">
+            <span class="board-head" aria-hidden="true">📷 Next</span>
+            <span class="next-dest" aria-hidden="true">{next.targets.map(t => <span key={t.id} class="nd-name">{targetLabel(t.id)}</span>)}</span>
+            <span class="cup-count" aria-hidden="true">🎖️ {rank.name}{rank.number ? ` ${rank.number}` : ''}</span>
+          </span>
         </div>
         <div class="tile t-kinds" role="group" aria-label="My Levels">
           <h2 class="kinds-head">My Levels</h2>

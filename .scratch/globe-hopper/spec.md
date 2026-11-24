@@ -242,13 +242,24 @@ Found by playing every kind at every Level (right, one miss, two misses) at 810�
 - **Another Hangar past 12 and Another Dish past 5** bought nothing he could see or use; now capped there. New Station Modules stay endless.
 - **Voice**: "You are a Oceans star!" is now "an"; Lagos is said "Lay-goss" (still heard as "LEGOs" before), Flagpoles "Flag poles"; 12 lines the game never said were removed (895 clips). Three "did you know" lines resolved (see the table).
 
-Not changed, for the parent to weigh: a Meeting takes one of a Round's five places and pays its Bolt like an answer (7 in all, early on); the Base's tab bar scrolls sideways on a phone; Weather Mast was once heard as "Weather Masked" (heard right on re-recording).
+Not changed, for the parent to weigh: a Meeting takes one of a Round's five places and pays its Bolt like an answer (7 in all, early on); ~~the Base's tab bar scrolls sideways on a phone~~ (fixed in pass 3); Weather Mast was once heard as "Weather Masked" (heard right on re-recording).
+
+## Pass 3 (design), 2026-11-24
+
+Judged from screenshots at 810×1080, 1080×810, 390×844 and 844×390 on a new save, Level 2 and 3 saves and a well-stocked base. Defaults for the parent to confirm:
+
+- **The Rocket Base is drawn** (`art/base.ts`): a launch site by the sea, from the side. Hills and the sea with a beach (the Recovery Ship sails on it), then three depths of buildings: the big ones far off (assembly building, Mission Control, school, museum, observatory, test stand, spin trainer, factory), hangars, dishes and working buildings nearer, the tanks, masts, lights and flags beside the pads, and the vehicles, stands, shops and signs on the apron in front, with the road, fence and runway across it. Every one of the 54 buildings has its own drawing (a test checks none is missing); hangars and dishes bought again add more. At night the windows light and the floodlights shine on the pad. It is drawn once per change, never per frame. The same drawing is the Home tile, the Launch card (closer in), the ground under the Launch, and each Build tile's picture.
+- **Rocket part tiles** show his own rocket with that part fitted, cropped to where the part goes, so he sees the difference before he buys it. Rocket tiles are bigger.
+- **Home**: Play is the real Earth turning (30 frames a second; still with Reduce Motion), with his own rocket going round it on an orbit ring, and the green ▶ at the Earth's foot. The next mission shows on a small globe turned to the place. On a phone held sideways the next-mission tile steps aside so the Levels keep 44-point rows.
+- **The Station** floats over the real Earth (turning slowly), not a plain blue arc. **The photo wall** shows each continent by its own shape and each ocean on a globe, grey until photographed. **The Logbook** says what each number is ("Launches", "Photos", "Smoothest") and shows a bar to the next rank.
+- **Colour world**: the edge of space (black above, deep blue, the violet of the high sky low down) behind Home, the Rounds, the Launch card and the end of a Round, which shows the top of the Earth from orbit. The icon is the Earth with a rocket on a yellow orbit ring on a violet sunburst, apart from Rover Code's and Deep Light's navy.
+- **"Level up!"** now names the kind, on screen and aloud ("Level up! Continents"), using clips that already existed. The Base tab bar fits a 390-wide phone without scrolling. Landform cards in portrait are two over one, bigger. Map pins are drawn bigger. The yellow Base buttons read in ink.
+- The globe and map seal hairline seams between neighbouring countries (each is stroked thinly in its own colour after filling).
 
 ## Not done (pass 1)
 
 - **No real iPad or Safari testing.** Most needs checking there: the globe's frame rate on an iPad 9 (orbit and Meetings draw a full globe every frame); holding a finger to burn while steering, and the Drop button with the other hand; taps on Europe and on small places at phone size; the voice's timing on iPad Safari.
 - **The voice was not listened to by ear**, only checked by speech-to-text (above). Least likely to sound right: Lagos, Manaus, Aconcagua, Quito, Krakatoa, Kilauea, Cotopaxi, Iguazu, Addis Ababa, Svalbard, and the long chained lines ("Fly over" + a name + "and take a picture!").
 - The flat map does not yet zoom for other small targets on a phone (only Europe); the pins and safe areas are large enough by the tests, but not checked by eye at 390 wide for every place.
-- The base is drawn with emoji for its buildings on the Base screen and simple shapes in the Launch; a design pass could draw them properly.
-- Recovery Ship, Astronaut Bus and most "look" buildings appear on the base but do not appear in the Launch scene.
+- ~~The base is drawn with emoji~~ and ~~most buildings missing from the Launch~~: done in pass 3 (below).
 - No Trophies/medals beyond patches and ranks.
