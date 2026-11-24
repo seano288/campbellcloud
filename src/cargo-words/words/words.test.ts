@@ -95,9 +95,11 @@ describe('Add-Ons', () => {
   it('every word is its parts joined, and means what its parts say', () => {
     for (const a of ADD_ON_WORDS) {
       expect(partsOf(a).join(''), a.word).toBe(a.word);
-      if (a.add === 'un') expect(a.means).toMatch(/^(not |take|open|pull)/);
+      // the lesson says "Un means not." and "Ful means full of.", so every word must mean just that, with its base word in it
+      expect(a.means, a.word).toContain(a.base);
+      if (a.add === 'un') expect(a.means).toMatch(/^not /);
       if (a.add === 're') expect(a.means).toMatch(/ again$/);
-      if (a.add === 'ful') expect(a.means).toMatch(/^(full of|as much as)/);
+      if (a.add === 'ful') expect(a.means).toMatch(/^full of /);
       if (a.add === 'less') expect(a.means).toMatch(/^without/);
       if (a.add === 'er') expect(a.means).toMatch(/^more /);
       if (a.add === 'est') expect(a.means).toMatch(/^the most /);
@@ -120,6 +122,19 @@ describe('Add-Ons', () => {
       const t = WORDS.find(w => w.word === a.base) ? typesOf(WORDS.find(w => w.word === a.base)!.syls) : [typeOf(a.base, true)];
       expect(t.includes(null), a.base).toBe(false);
     }
+  });
+});
+
+describe('words are lowercase and in Andika', () => {
+  it('every place a word or a container is written uses Andika, the school font', async () => {
+    const { readFileSync } = await import('node:fs');
+    const css = readFileSync(new URL('../cargo-words.css', import.meta.url), 'utf8');
+    for (const sel of ['.cw-box .cw-plate', '.cw-word', '.cw-inline', '.cw-split', '.cw-word-btn']) {
+      const rule = css.match(new RegExp(`(^|[}\\s])${sel.replace(/[.*]/g, m => `\\${m}`)}\\{([^}]*)\\}`, 'm'));
+      expect(rule?.[2], sel).toMatch(/font:[^;]*Andika/);
+    }
+    // and on the canvas: the containers on the quay and the ship
+    expect(readFileSync(new URL('../art/container.ts', import.meta.url), 'utf8')).toMatch(/px Andika/);
   });
 });
 

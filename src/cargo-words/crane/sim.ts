@@ -178,7 +178,9 @@ export function stepCrane(c: Crane, input: Input, dt = STEP) {
   }
   if (c.phase === 'loading') {
     if (input.to !== null && c.mode === 'rest') { c.target = clamp(input.to, minX(c), maxX(c)); c.lowerAt = null; }
-    if (input.lower !== null && c.mode === 'rest') {
+    // a tap is kept until the grab has gone down there: more taps while the trolley is on its way don't send it somewhere else, or a
+    // child tapping fast all over the screen never gets a container lowered at all (found in the browser, pass 2). A drag still moves it.
+    if (input.lower !== null && c.mode === 'rest' && c.lowerAt === null) {
       // ⬇ while the trolley is still sliding: lower where it's heading
       if (input.lower === true) c.lowerAt = c.target;
       else { c.target = clamp(input.lower, minX(c), maxX(c)); c.lowerAt = c.target; }
@@ -327,6 +329,13 @@ export const clumsyChild: Child = (c, rng) => {
   if (c.mode !== 'rest' || c.lowerAt !== null || rng() > 0.03) return NO_INPUT;
   const x = minX(c) + rng() * (maxX(c) - minX(c)), k = rng();
   return k < 0.3 ? { to: x, lower: null } : k < 0.4 ? { to: null, lower: true } : { to: null, lower: x };
+};
+
+/** Taps somewhere along the boom (or ⬇) every few frames, whatever the crane is doing: a child mashing the screen. */
+export const mashingChild: Child = (c, rng) => {
+  if (rng() > 0.3) return NO_INPUT;
+  const x = minX(c) + rng() * (maxX(c) - minX(c));
+  return rng() < 0.15 ? { to: null, lower: true } : { to: null, lower: x };
 };
 
 /** Plays a whole go with a scripted child; stops at `most` seconds. */

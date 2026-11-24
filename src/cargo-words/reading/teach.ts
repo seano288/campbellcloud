@@ -65,7 +65,7 @@ const NUMBERS: Record<number, Phrase> = { 1: 'One.', 2: 'Two.', 3: 'Three.', 4: 
 const word = (w: string) => w as Phrase;
 
 /** The fuller lesson's start: he taps each container to hear it, then hears the whole word. */
-async function tapEach(q: Pick<Question, 'syls' | 'word'>, v: VoiceScope, lesson: Lesson, said = true) {
+async function tapEach(q: Pick<Question, 'syls' | 'word'> & { parts?: readonly Phrase[] }, v: VoiceScope, lesson: Lesson, said = true) {
   const n = q.syls.length;
   lesson.row.value = q.syls.map(text => ({ text }));
   await v.say('Tap each container to hear it.');
@@ -74,7 +74,7 @@ async function tapEach(q: Pick<Question, 'syls' | 'word'>, v: VoiceScope, lesson
     if (!(await waitTap(lesson, v, i))) return;
     sClink();
     lesson.row.value = q.syls.map((text, j) => ({ text, lit: j <= i }));
-    await v.say(syl(q.syls[i]!));
+    await v.say(q.parts?.[i] ?? syl(q.syls[i]!));
   }
   if (said && v.active) { await v.wait(250); await v.say(word(q.word)); }
 }
@@ -98,6 +98,7 @@ const SPLIT_LINES: Record<SplitWhy, Phrase[]> = {
   le: ['The l e takes the letter before it.'],
   open: ['The first vowel says its name.', 'Split right after it.'],
   closed: ['The first vowel is short.', 'Keep the next letter with it.'],
+  ck: ['The first vowel is short.', 'The c k stays with it.'],
   vowels: ['Two vowels that each say a sound.', 'Split between them.'],
 };
 const R_LINES = { ar: 'A and r say ar.', or: 'O and r say or.', er: 'E and r say er.', ir: 'I and r say er.', ur: 'U and r say er.' } as const satisfies Record<string, Phrase>;
@@ -112,7 +113,8 @@ function rSpot(q: Pick<Question, 'syls'>, i: number): [number, number] {
 export async function lessonOf(p: Asking, _answer: string, full: boolean, v: VoiceScope, lesson: Lesson, answered = true) {
   const q = p.q;
   const secret = !answered && (q.kind === 'read' || (q.kind === 'r' && q.form === 'read'));
-  if (full) await tapEach(q.kind === 'addon' ? { syls: q.syls, word: q.word } : q, v, lesson, q.kind !== 'count' && !secret);
+  // an Add-Ons word's containers are the add-on (a syllable clip, "(un)") and the base word (a word clip, "happy")
+  if (full) await tapEach(q.kind === 'addon' ? { syls: q.syls, word: q.word, parts: q.syls.map(s => (s === q.add.add ? syl(s) : word(s))) } : q, v, lesson, q.kind !== 'count' && !secret);
   if (!v.active) return;
   switch (q.kind) {
     case 'count': {

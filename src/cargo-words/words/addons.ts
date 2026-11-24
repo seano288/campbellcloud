@@ -3,6 +3,10 @@
 // again, helpful is full of help, endless is without an end. Never a word that only looks like one (uncle, under, until, refuse, really,
 // reptile). Plain data, no game code.
 //
+// Un here only ever means not: unpack, unzip, unplug and unload (un- as "undo") are left out, since the lesson says "Un means not." Retell
+// is left out because Aria says it "retail" however it's written. Handful and armful are left out too: they mean as much as a hand holds,
+// not full of a hand, so "Ful means full of." does not fit them.
+//
 // - `means`: what the whole word means, said after "Which word means" (Level 2) and in the lesson ("Unlock means not locked.").
 // - `pic`: an emoji for Level 1 (un and re only), where the base word's picture is offered beside it when it has one (`basePic`).
 // - `near`: two real words that look like the base word but are not inside the whole word, for Level 3's "Which word is hiding in careful?"
@@ -33,12 +37,8 @@ export const ADD_ON_WORDS: readonly AddOnWord[] = [
   // un: not
   a('unlock', 'lock', 'un', 'not locked', ['luck', 'lick'], { pic: '🔓', basePic: '🔒' }),
   a('unhappy', 'happy', 'un', 'not happy', ['hop', 'pup'], { pic: '☹️', basePic: '😀' }),
-  a('unpack', 'pack', 'un', 'take things out', ['peck', 'pick']),
-  a('unzip', 'zip', 'un', 'open the zip', ['zap', 'sip']),
   a('unsafe', 'safe', 'un', 'not safe', ['save', 'same']),
   a('unwell', 'well', 'un', 'not well', ['will', 'wet']),
-  a('unplug', 'plug', 'un', 'pull the plug out', ['plum', 'slug']),
-  a('unload', 'load', 'un', 'take the load off', ['road', 'loaf']),
   a('unclean', 'clean', 'un', 'not clean', ['clap', 'cream']),
   a('unlit', 'lit', 'un', 'not lit', ['lid', 'let']),
   a('unfit', 'fit', 'un', 'not fit', ['fat', 'fist']),
@@ -48,7 +48,6 @@ export const ADD_ON_WORDS: readonly AddOnWord[] = [
   a('reload', 'load', 're', 'load again', ['road', 'loaf'], { pic: '🔄' }),
   a('refill', 'fill', 're', 'fill again', ['fell', 'film']),
   a('repaint', 'paint', 're', 'paint again', ['pant', 'print']),
-  a('retell', 'tell', 're', 'tell again', ['till', 'bell']),
   a('restart', 'start', 're', 'start again', ['stamp', 'stark']),
   a('reheat', 'heat', 're', 'heat again', ['hat', 'meat']),
   a('replant', 'plant', 're', 'plant again', ['plank', 'slant']),
@@ -63,8 +62,6 @@ export const ADD_ON_WORDS: readonly AddOnWord[] = [
   a('thankful', 'thank', 'ful', 'full of thanks', ['think', 'tank']),
   a('playful', 'play', 'ful', 'full of play', ['pray', 'plan']),
   a('useful', 'use', 'ful', 'full of use', ['fuse', 'muse']),
-  a('handful', 'hand', 'ful', 'as much as a hand holds', ['band', 'hard']),
-  a('armful', 'arm', 'ful', 'as much as arms hold', ['art', 'farm']),
   // less: without
   a('helpless', 'help', 'less', 'without help', ['held', 'kelp']),
   a('careless', 'care', 'less', 'without care', ['core', 'cart']),
@@ -96,7 +93,7 @@ export const COMPARE_BASES = ['long', 'short', 'dark', 'thick'] as const;
 export type CompareBase = (typeof COMPARE_BASES)[number];
 
 /** Never on the Add-Ons table: they only look like an add-on and a word. */
-export const NOT_ADD_ONS: readonly string[] = ['uncle', 'under', 'until', 'unit', 'refuse', 'really', 'reptile', 'ready', 'remote', 'never', 'number', 'butter', 'hammer', 'tiger', 'paper', 'river', 'sister', 'winter', 'corner'];
+export const NOT_ADD_ONS: readonly string[] = ['unpack', 'unzip', 'unplug', 'unload', 'retell', 'handful', 'armful', 'uncle', 'under', 'until', 'unit', 'refuse', 'really', 'reptile', 'ready', 'remote', 'never', 'number', 'butter', 'hammer', 'tiger', 'paper', 'river', 'sister', 'winter', 'corner'];
 
 /** The joined word, and what's written on each container. */
 export const partsOf = (w: AddOnWord): [string, string] => (FRONT.includes(w.add) ? [w.add, w.base] : [w.base, w.add]);

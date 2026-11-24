@@ -19,6 +19,7 @@ import { int, pick, shuffle, type Rng } from '../../game/rng';
 import type { Stretch } from '../../modes/progress';
 import { ADD_ON_WORDS, COMPARE_BASES, partsOf, type AddOnWord, type CompareBase } from '../words/addons';
 import { NEW_HERE, rSoundOf, rSpellingOf, typeOf, typesOf, type NewType } from '../words/sounds';
+import { saidAs } from '../words/said';
 import { pictureClash, WORDS, wordOf, type LongWord } from '../words/words';
 
 export const KINDS = ['count', 'build', 'split', 'read', 'r', 'addon'] as const;
@@ -38,7 +39,7 @@ export interface AddCompareQ extends Base { readonly kind: 'addon'; readonly for
 export type Question = CountQ | (BuildQ & { kind: 'build' }) | SplitQ | (ReadQ & { kind: 'read' }) | (BuildQ & { kind: 'r' }) | (ReadQ & { kind: 'r' }) | GapQ | AddPicQ | AddMeansQ | AddHideQ | AddCompareQ;
 
 /** Why a word breaks where it does: the short line the Split It lesson says. */
-export type SplitWhy = 'compound' | 'twin' | 'two' | 'open' | 'closed' | 'vowels' | 'le';
+export type SplitWhy = 'compound' | 'twin' | 'two' | 'open' | 'closed' | 'ck' | 'vowels' | 'le';
 
 // ---------- what the words use ----------
 
@@ -69,9 +70,12 @@ export function splitWhy(w: LongWord): SplitWhy {
   if (x === y) return 'twin';
   if (vowel(x) && vowel(y)) return 'vowels';
   if (vowel(x)) return 'open';
-  if (vowel(y)) return 'closed';
+  // rock|et: the c k is one sound, and stays with the short vowel
+  if (vowel(y)) return a.endsWith('ck') ? 'ck' : 'closed';
   return 'two';
 }
+/** The letters between the first syllable's vowel and the second's: two for nap|kin, three for pump|kin. */
+const middleOf = (w: LongWord) => w.syls[0]!.slice(w.syls[0]!.search(/[aeiou][^aeiou]*$/) + 1) + w.syls[1]!.slice(0, Math.max(0, w.syls[1]!.search(/[aeiouy]/)));
 /** The longest word Split It asks. */
 export const SPLIT_MOST = 7;
 /** The Level a word is split at: twin letters and joined words first, then two different letters, then one letter (said slowly). */
@@ -79,6 +83,8 @@ export function splitLevel(w: LongWord): Level | null {
   // each letter is at least 44px wide so its cut is a whole tap target: seven letters fit a phone upright
   if (w.syls.length !== 2 || w.word.length > SPLIT_MOST) return null;
   const why = splitWhy(w);
+  // "Two letters in the middle. Split between them." can't find pump|kin or ham|ster, with three letters there
+  if (why === 'two' && middleOf(w).length !== 2) return null;
   return why === 'compound' || why === 'twin' ? 1 : why === 'two' || why === 'le' ? 2 : 3;
 }
 
@@ -125,35 +131,55 @@ function makeBuild(level: Level, stretch: Stretch, rng: Rng): BuildQ & { kind: '
 function otherSyllable(w: LongWord, rng: Rng): string {
   for (;;) {
     const o = pick(rng, pick(rng, two).syls);
-    if (!w.syls.includes(o) && !w.syls.some(s => s[0] === o[0]) && !isRude(o)) return o;
+    if (!w.syls.includes(o) && !w.syls.some(s => s[0] === o[0]) && !isRude(o) && !soundsLikeOne(w, o)) return o;
   }
 }
 
-/** A spare that looks or sounds close to one of the word's syllables: two letters swapped (gar, gra), another vowel (den, din), b for d,
- *  or a bossy r that says another sound (der, dar). Never one of the word's own, never a whole word that would fit, never rude. */
+/** A spare that looks or sounds close to one of the word's syllables: two letters swapped into a blend (gar, gra), another vowel (den, din),
+ *  b for d, or a bossy r that says another sound (der, dar). Never one of the word's own, never a whole word that would fit, never rude,
+ *  and never one he could hear in the word: another vowel only in the syllable he hears said strongly (rock-et is said "rock-it", so "it"
+ *  beside "et" would be as right as the answer), and no swap that only moves an l e (ble and bel sound the same at the end of a word). */
 export function closeSpare(w: LongWord, rng: Rng, rOnly = false): string {
-  const options = new Set<string>();
-  for (const s of w.syls) {
+  const options = new Set<string>(), strong = stressedOf(w);
+  w.syls.forEach((s, i) => {
     const r = rSpellingOf(s);
     if (r && rSoundOf(s)) {
       const sound = rSoundOf(s)!;
       for (const other of ['ar', 'or', 'er'] as const) if (other !== sound) options.add(s.replace(r, other));
-      continue;
+      return;
     }
-    if (rOnly) continue;
-    // swap two letters next to each other around the vowel: gar -> gra, den -> dne is out (not sayable), so only before a vowel
+    if (rOnly) return;
     const v = s.search(/[aeiou]/);
-    if (v > 0 && v < s.length - 1 && !'aeiou'.includes(s[v + 1]!)) options.add(s.slice(0, v) + s[v + 1] + s[v] + s.slice(v + 2));
-    if (v >= 0 && v === s.length - 1 && v >= 2) options.add(s.slice(0, v - 1) + s[v] + s[v - 1]);
-    // another short vowel
-    if (v >= 0 && typeOf(s, false) === 'closed') for (const o of 'aeiou') if (o !== s[v]) options.add(s.slice(0, v) + o + s.slice(v + 1));
-    // b and d, p and q look alike
+    // swap an r or l round the vowel to make a blend he can say: gar -> gra, cro -> cor (never "dne" or "tmie")
+    if (v > 0 && v < s.length - 1 && 'rl'.includes(s[v + 1]!) && BLEND_STARTS.includes(s.slice(0, v) + s[v + 1])) options.add(s.slice(0, v) + s[v + 1] + s[v] + s.slice(v + 2));
+    if (v >= 2 && v === s.length - 1 && s[v - 1] === 'r') options.add(s.slice(0, v - 1) + s[v] + s[v - 1]);
+    // another vowel, only where the vowel is said strongly (ti-ger, tay-ger)
+    const type = typeOf(s, i === w.syls.length - 1);
+    if (v >= 0 && strong.includes(i) && (type === 'closed' || type === 'open')) for (const o of 'aeiou') if (o !== s[v]) options.add(s.slice(0, v) + o + s.slice(v + 1));
+    // a magic e or a vowel team losing a letter: time, tim; rain, ran; coat, cot
+    if (type === 'vce') options.add(s.slice(0, -1));
+    if (type === 'team' && /^[^aeiou]*[aeiou]{2}[^aeiouwy]+$/.test(s)) options.add(s.slice(0, v + 1) + s.slice(v + 2));
+    // b and d look alike
     if (s.includes('b')) options.add(s.replace('b', 'd'));
     if (s.includes('d')) options.add(s.replace('d', 'b'));
-  }
-  const fine = [...options].filter(o => !w.syls.includes(o) && !isRude(o) && /[aeiou]/.test(o) && !wouldFit(w, o));
+  });
+  const fine = [...options].filter(o => !w.syls.includes(o) && !isRude(o) && /[aeiou]/.test(o) && !wouldFit(w, o) && !soundsLikeOne(w, o));
   return fine.length ? pick(rng, fine) : otherSyllable(w, rng);
 }
+/** How the voice says the container at `i` (its clip), without the doubled letters the respelling adds ("ell"). */
+export const heardAs = (syls: readonly string[], i: number) => saidAs(syls.join(''), syls, i).replace(/([^aeiou])\1/g, '$1').replace(/!$/, '');
+/** The spare, put in the place of one of the word's containers, sounds just like it: ba-be is heard as ba-by, rock-it as rock-et. */
+export const soundsLikeOne = (w: LongWord, spare: string) =>
+  w.syls.some((_, i) => heardAs(w.syls.map((x, j) => (j === i ? spare : x)), i) === heardAs(w.syls, i));
+/** Blends a swap may make at the start of a syllable. */
+const BLEND_STARTS = ['br', 'cr', 'dr', 'fr', 'gr', 'pr', 'tr', 'bl', 'cl', 'fl', 'gl', 'pl', 'sl', 'spr', 'str', 'scr', 'spl'];
+/** Words said strongly on a syllable after the first (un-TIL, fan-TAS-tic); every other word is said strongly on its first. */
+export const STRESSED_LATER: Readonly<Record<string, number>> = {
+  until: 1, pretend: 1, hotel: 1, invent: 1, thirteen: 1, fantastic: 1, potato: 1, violin: 2, volcano: 1, unhappy: 1, invisible: 1,
+};
+/** The syllables said strongly: the first (or STRESSED_LATER's), and both halves of two small words joined (sun+set). */
+export const stressedOf = (w: LongWord): number[] => (w.compound ? [0, 1] : [STRESSED_LATER[w.word] ?? 0]);
+
 /** The spare would make another word on the table if it took a syllable's place. */
 function wouldFit(w: LongWord, spare: string) {
   return w.syls.some((_, i) => { const made = w.syls.map((s, j) => (j === i ? spare : s)).join(''); return WORDS.some(x => x.word === made); });
@@ -284,7 +310,7 @@ function orders(boxes: readonly string[], n: number): string[] {
 /** Never on a container, alone or as a spare: rude, frightening or unkind. */
 export const RUDE: readonly string[] = ['ass', 'butt', 'bum', 'poo', 'pee', 'wee', 'fart', 'crap', 'damn', 'hell', 'sex', 'tit', 'cock', 'dick', 'nob', 'pis', 'piss', 'die', 'dead', 'kill', 'gun', 'dum', 'dumb', 'gay', 'hoe', 'jap', 'wop', 'fag', 'cum', 'puke', 'barf', 'snot', 'turd', 'fatso', 'stab', 'war'];
 /** Never inside a word or a container (grass and butter are fine, so "ass" and "butt" are only checked whole). */
-export const RUDE_INSIDE: readonly string[] = ['fart', 'crap', 'damn', 'sex', 'piss', 'dick', 'cock', 'turd', 'fag', 'kill', 'dead', 'poo'];
+export const RUDE_INSIDE: readonly string[] = ['fart', 'crap', 'damn', 'sex', 'piss', 'dick', 'cock', 'turd', 'fag', 'kill', 'dead', 'poo', 'tit', 'dragon', 'pimp'];
 export const isRude = (s: string) => RUDE.includes(s) || RUDE_INSIDE.some(r => s.includes(r));
 
 export const wordInfo = (w: string) => wordOf(w);

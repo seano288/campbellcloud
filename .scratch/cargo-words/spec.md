@@ -1,6 +1,6 @@
 # Spec: Cargo Words (reading long words a syllable at a time; build a container port and work the crane)
 
-Status: built on 2026-11-23 (pass 1 of 3: build), playable at `/cargo-words/` with a tile in **Learning Games** on the landing page,
+Status: built on 2026-11-23 (pass 1 of 3: build; pass 2: bugs and sound, same day), playable at `/cargo-words/` with a tile in **Learning Games** on the landing page,
 after Jetway. Every decision below is a **default for the parent to confirm**. Not yet run on a real iPad or in Safari. The name is still
 a working name.
 
@@ -43,8 +43,10 @@ words, 'sun+set'), following a school dictionary's end-of-line breaks (Merriam-W
 rules: two consonants between vowels split between them, a digraph, vowel team or bossy r never splits, one consonant goes with the second
 syllable after a long first vowel (ti|ger) and with the first after a short one (cab|in), consonant-le takes the consonant before it
 (tur|tle). The rules are a test (`words/words.test.ts`). Words whose break is argued over, or whose sounds break the rules, are left out
-and listed (`ARGUED` and `NOT_HERE` in `words/words.ts`; see "Words left out" below). **The breaks were not looked up word by word in a
-dictionary this session** (see Not done).
+and listed (`ARGUED` and `NOT_HERE` in `words/words.ts`; see "Words left out" below). **Pass 2 went through the whole table word by word** against
+Merriam-Webster's breaks (from memory: no dictionary could be fetched) and took out the words where the dictionary and the school rule part
+(art-ist, mess-y, fluff-y, as pass 1 did with dirty) and the joined words the dictionary writes as two (hot dog, road map, and pine cone,
+written both ways).
 
 **Unstressed syllables.** An unstressed syllable often says a softer vowel (the "et" in rocket, the "a" in salad). That is how long words
 sound; the table keeps such words and the voice says each syllable as it sounds in its word. Where an open syllable is said two ways in
@@ -68,7 +70,12 @@ new Level 1 (fill the r team) and Level 3 (load with an r spare), so the kind is
 
 **Rules the tests enforce** (`reading/problems.test.ts`, 450 generated questions of each kind and Level, across Stretches; `words/words.test.ts`):
 
-- Exactly one choice is right, in every kind (every possible answer, including every order of the containers, is checked).
+- Exactly one choice is right, in every kind (every possible answer, including every order of the containers, is checked), **and by
+  sound, not only by spelling** (pass 2): a spare container never sounds like the one it would stand in for, in that place in the word, as
+  the voice says it (rock-et is said "rock-it", so "it" is never beside "et"; ba-by's "by" says "bee", so "be" is never beside it). A spare
+  changes its vowel only in the syllable said strongly (`STRESSED_LATER` lists the words not said strongly on their first), never moves an l e
+  (ble and bel sound alike), and is always a container he can say (gra, cor, tim, ran; never "dne" or "tmie"). Bossy R only asks an ar or or
+  that is said strongly (for-GOT says "fer", so forgot is out).
 - Every word has one agreed set of break points that follows the syllable rules; *lemon*, *every*, *family* and *different* are left out.
 - Read It never says the word before he answers (the question's lines and 🔎's lesson are checked); its pictures can't be mistaken for each
   other (look-alike groups: no rabbit beside bunny, sunset beside sunrise, telescope beside microscope ...), and other pictures start with
@@ -76,9 +83,13 @@ new Level 1 (fill the r team) and Level 3 (load with an r spare), so the kind is
 - Every syllable is made only of sounds he has met in Dino Dig or a type met here first; a question that needs a new type waits for its
   Meeting (and a heard Level 1 question never needs one).
 - Split It at Level 3 always says the word slowly, a syllable at a time.
-- Add-Ons words mean what their parts say (un: not ..., re: ... again, ful: full of, less: without, er: more, est: the most); *uncle*,
-  *under*, *until*, *refuse* and *really* never appear as add-on words.
-- Words are lowercase, in Andika.
+- Split It's lesson finds the break (pass 2, a test for every word): "Two letters in the middle" only where there are exactly two (pump-kin,
+  ham-ster and lob-ster, with three, are not Split It words); rock|et and the other ck words get their own line, "The c k stays with it.",
+  since "Keep the next letter with it" would split roc|ket.
+- Add-Ons words mean what their parts say (un: not ..., re: ... again, ful: full of, less: without, er: more, est: the most), with the
+  base word in the meaning; *uncle*, *under*, *until*, *refuse* and *really* never appear as add-on words. Pass 2 took out unpack, unzip,
+  unplug and unload (un- as "undo", not "not") and handful and armful (as much as a hand holds, not full of a hand).
+- Words are lowercase, in Andika (pass 2: a test reads the stylesheet and the canvas drawing; the Crane now loads Andika before it draws).
 - Nothing rude or frightening on a container or a spare, or inside a word (*sturdy* is out; *goblin*, *bandit*, *dragon*, *spider* and
   *monster* are out). "ass" and "butt" are checked only as whole containers, since grass and butter are fine.
 
@@ -117,13 +128,15 @@ Ship, so he sees the reward before his first purchase. Flat 2D canvas, no 3D or 
 `npx vite tools/cargo-words`), then dressed. From the side: the quay with a row of containers (two high when there are many), the water,
 the ship at the quay. He **drags** the trolley along the boom (it follows his finger at the trolley's speed) and **taps to lower** the grab:
 a tap on a container sends the crane there and lowers it; the ⬇ Lower button lowers where it is (or where it's heading, if it's still
-sliding). Over a container the grab lines up and **locks on by itself**, lifts, and the container says its syllable. Over the ship it lines
+sliding). A tap is kept until the grab has gone down: more taps while the trolley is on its way are ignored (pass 2: a child tapping fast
+all over the screen sent it somewhere new each time and never got a container lowered); a drag still moves it. Over a container the grab lines up and **locks on by itself**, lifts, and the container says its syllable. Over the ship it lines
 up with the nearest stack and sets the container down square. The ship **sits lower** as it fills; when it's full its horn sounds and it
 sails. A row on the ship that reads a whole word, left to right, says the word.
 
 It **cannot be failed and has no clock** (`crane/sim.ts`, tested): lowering over the water, an empty spot or a full stack just lifts again;
 carrying over the quay it keeps hold (nothing goes back, so every lift is a step on); the swing is a damped pendulum capped well short of the
-next stack. A careful scripted child and a clumsy one (random taps, drags and ⬇ presses) both fill every ship shape with every crane. A
+next stack. A careful scripted child and a clumsy one (random taps, drags and ⬇ presses) both fill every ship shape with every crane, and
+a mashing one (a tap somewhere every few frames) loads a container in its first minute and fills every ship in the end. A
 middling ship takes the careful child 25 to 90 seconds (the browser tour's 2-container Tug: 22 seconds). If he does nothing for 15 seconds
 the voice tells him what to tap.
 
@@ -168,7 +181,9 @@ The guide's three layers:
 
 1. **The endless layer** (`port/sea.ts`, all seeded: the same on a reload). **Visiting ships**: every go without one of his own ships
    loads a ship generated from the go's number: its kind, its length and height (growing a stack about every eight goes and a tier about
-   every twenty, as far as his crane reaches, so bigger ships arrive as his cranes get better), its colours, funnel mark and two-word name
+   every twenty, as far as his crane reaches, so bigger ships arrive as his cranes get better; once there it still varies, up to two stacks
+   shorter and a tier lower, so not every go is the biggest ship there is: pass 2 found 2,955 of 3,000 visitors with the Giant Gantry were
+   all 18 containers, a minute or more of loading every go), its colours, funnel mark and two-word name
    (each word a clip). **The sea chart never ends**: past the 24 named harbours, chart harbours are generated from their number, each with
    a two-word name from clips (216 names, then numbered) and a flag made from parts (12 colours, 8 patterns, 16 symbols) for his flag wall.
    **Every fifth go brings a special crate**: 12 hand-made prizes (Shiny Gold Box, Treasure Chest, Mermaid Statue, Ferris Wheel ...), then
@@ -188,16 +203,17 @@ The guide's three layers:
 **Measured with the scripted child** (`port/economy.test.ts`: every answer right first try, every Ship loaded, the cheapest new thing always
 bought first, an again-and-again thing when nothing new is for sale):
 
-- **Bolts a Round: 10.1** (a Round's 6 and its Ship's 4 to 6) over the first 300 Rounds. No Round and Ship pays more than 12, under Turbo
+- **Bolts a Round: 10.6** (a Round's 6 and its Ship's 4 to 6) over the first 300 Rounds (pass 2: up from 10.1, as a quickest loading is
+  now kept for each number of containers, so it is beaten a little more often). No Round and Ship pays more than 12, under Turbo
   Tally's 15.
-- **The fixed catalogue lasts 742 Rounds** (every named harbour by Round 476, every Trophy by Round 742). At the guide's first guess of
+- **The fixed catalogue lasts 721 Rounds** to buy (every named harbour by Round 461, every Trophy by Round 792). At the guide's first guess of
   about 20 Rounds an hour that is about 37 hours; the tour measured a Round with two deliberate misses at 72 seconds and a go at the Crane
   at 22 seconds for the smallest ship, so a perfect child plays nearer 30 Rounds an hour early on, fewer as ships grow.
 - **The longest gap between new things: 3 Rounds in the first 100** (7 in the first 300). His first purchase is in Round 1.
 - After 2,000 Rounds something new is still on offer every Round (a new harbour and flag every go, a special crate every fifth, the
   again-and-again things), and no state reads "all done".
-- The dearest thing, the Giant Gantry (380), is 37.7 Rounds of saving; eight things take more than 15 (Giant Gantry, Cruise Liner,
-  Container Ship, Floating Crane, Deep-Water Quay, Twin Grab, Car Carrier; the Gantry Crane at 14.9 is just under). The twelve dearest are
+- The dearest thing, the Giant Gantry (380), is 35.9 Rounds of saving; seven things take more than 15 (Giant Gantry, Cruise Liner,
+  Container Ship, Floating Crane, Deep-Water Quay, Twin Grab, Car Carrier). The twelve dearest are
   all cranes, parts, ships and pieces.
 
 **Economy defaults, for the parent to confirm.** One Ship per Round, the first free; Ships don't expire, and one is used only when it sails
@@ -206,8 +222,8 @@ Prices up to 100 in ones, then whole tens to 400. Everything is kept; nothing is
 
 **Competition.** **None against a rival**, by the brief, so there is nothing to balance and no three-children win-rate test. His
 **personal bests** are kept and cheered when beaten ("Tallest stack! New best!", "Quickest loading! New best!", one Bolt): the tallest
-stack he has built on a ship, and his quickest loading of each size of ship (small, middle, big, giant), measured from his first touch to
-the last container on. The time is never shown while he loads; there is no clock he can lose to. They are on the Sea Chart.
+stack he has built on a ship, and his quickest loading of each ship size, kept for each number of containers (pass 2: it was kept for four
+classes, and a best set on a ship of 10 could never be beaten on one of 18), measured from his first touch to the last container on. The time is never shown while he loads; there is no clock he can lose to. They are on the Sea Chart.
 
 ## Look
 
@@ -220,25 +236,30 @@ pass: pass 3 is the design pass (the Port's pieces are boxes with emoji; ships a
 
 ## Voice
 
-Aria at -8%, recorded with `tools/make_voice.py --collection cargo-words`: 1,376 phrases in 1,330 clips in `public/cargo-words-voice/`
-(17 MB). Every word on the tables is a clip, and **every syllable is a clip said alone** ("(rab)"), said as it sounds in its word: alone,
+Aria at -8%, recorded with `tools/make_voice.py --collection cargo-words`: 1,327 phrases in 1,283 clips in `public/cargo-words-voice/`
+(16 MB; pass 2 took out 47 clips with the words it removed). Every word on the tables is a clip, and **every syllable is a clip said alone** ("(rab)"), said as it sounds in its word: alone,
 the voice reads "ti" as the letters T and I and "py" as P and Y, so each syllable is respelled by rule (`words/said.ts`: an open vowel says
 its name, "tie"; consonant-le "tul"; final y "pee"; er/ir/ur "ur"; a closed syllable doubles its last letter where the voice would read
 letters, "ell", "ick") and the rules' output is merged into `make_voice.py`'s said_as through `tools/cargo-words/said.ts`.
 
 **Checked with speech-to-text.** Every word and syllable clip (about 610) was transcribed back with faster-whisper small.en. Words: all
-heard right except "retell" (heard "retail") and "hopeful" ("helpful"): retell is now in Jenny's voice and hopeful is said "hope-ful", both
-then heard right. Syllables: the rule outputs it heard as letters or another word were respelled (`FIXED` in `words/said.ts`: bas "baz",
+heard right except "retell" (heard "retail") and "hopeful" ("helpful"): hopeful is said "hope-ful", then heard right; retell is out (pass
+2). Syllables: the rule outputs it heard as letters or another word were respelled (`FIXED` in `words/said.ts`: bas "baz",
 en, cac "kack", et "it", thir "thuhr", gle "guhl", nal "nul", zle "zuhl", plas "plaz", dile "dial", mer "murr", num "numm" (Aria said
 "number"), sal "sal!"). Aria's "(cat)" came out "Kate" (as every reading game found), "(mag)" "Meg", "(buck)" was heard as a swear word
-and "(got)" as nothing at all, however written; those four are in Jenny's voice, then heard right. One word was taken out because its
+and "(got)" as nothing at all, however written (pass 2 tried again: kat, catt, magg, buk, buhk, gaht, re-tell ... all the same). Pass 1 put
+them in a second voice (Jenny); pass 2 took their words out instead (catnap, magnet, magnetic, bucket, forgot, retell), since a different
+voice for one syllable of a word, in the lesson and on the Crane, is worse than one word fewer. One word was taken out because its
 syllable could not be recorded cleanly (*velvet*: "vel" came out "they'll"). Numbers to 100 are a clip each, prices past 100 whole tens
 (`PRICE_TENS`, "You need about 140 more Bolts." as Turbo Tally).
 
-Speech-to-text is a weak judge of a lone syllable (it writes "Tie" for "ti", "a" for "uh", "T" for "tee"), so these still need a person to
-hear them: **(sal)** (heard "sow"), **(puz)** ("poos"), **(tic)** and **(tick)** ("take"), **(ket)** ("cat"), **(ab)** ("ebb"),
-**(fin)** ("thin"), **(met)** ("net"), **(bot)** ("but"), **(hob)** ("hub"), **(nev)** ("nav"), **(fect)** ("fact"), **(pock)**
-("POC"), **(thun)** ("fun"), and the four in Jenny's voice beside Aria's (a different voice in the middle of a word).
+Pass 2 transcribed every word and syllable clip again with small.en, and every doubtful one with a second, larger recogniser
+(large-v3-turbo). Respelled where both then heard it right: ket "kit" (as in bas-ket, mar-ket; was heard "cat"), ab "abb" ("ebb"), puz
+"puzz" ("poos"), plas "plass" ("applause"), sol "saul", fect "fikt" (as in per-fect; was "fact"). Speech-to-text is a weak judge of a lone
+syllable, so these still need a person to hear them, worst first: **(fic)** (both hear "thick", however spelt), **(cop)** ("cup"),
+**(thun)** ("fun"/"than"), **(blis)** ("bless"), **(gle)** ("cool"), **(hob)** ("hub"), **(pock)** ("puck"), **(oc)** ("ark"),
+**(tle)** ("tell"), **(tus)** ("tess"), **(nis)** ("ness"), **(jol)** ("jowl"), **(fect)**, **(puz)**, **(sal)** ("sow"), and the words
+**ticket** (small.en heard "take it") and **sheepdog** ("sheet dog").
 
 ## Sounds
 
@@ -272,19 +293,34 @@ a go at the Crane lands in the Port with the Ship unused.
 ## Words left out
 
 - **Break argued over** (`ARGUED`): lemon, melon, every, family, different, seven, camel, hamburger, burger, surfer, morning, forest,
-  lollipop, kitchen, dirty, shorten, holiday.
+  lollipop, kitchen, dirty, shorten, holiday; pass 2: artist, messy, fluffy (dictionary art-ist, mess-y, fluff-y), hotdog, roadmap,
+  pinecone (two words in the dictionary, or written both ways).
+- **Bossy R with two right answers** (pass 2): forgot (for-GOT says "fer", so er fits as well as or).
+- **Add-Ons that don't mean what the lesson says** (pass 2): unpack, unzip, unplug, unload (un- as "undo"), handful, armful.
+- **Split It only** (pass 2: three letters in the middle, so "Two letters in the middle" can't find the break): pumpkin, hamster, lobster
+  stay in every other kind.
 - **Sounds that break the rules or aren't met**: carrot, parrot (a not ar), zebra, panda, sofa, banana (final a says uh), tomato, piano,
   lizard, doctor, dollar, water, waffle, monkey, donkey, turkey, cookie, rooster, butterfly, strawberry, blueberry, pickle, castle, pencil,
   circus, bagel, elephant, dolphin, penguin, squirrel, wonderland, sunflower, cinema, armor, starlight, muscle, hammerhead, polish, cherry
   and berry (cher/ber say "chair"/"bear"), taco (ta says tah).
 - **One syllable said two ways** (each syllable has one clip): open, even, acorn, maple, total, pony, salamander, armadillo.
 - **Not nice or frightening**: goblin, bandit, monster, dragon, spider, turbo, fortress, pimple, sturdy (a rude word inside), peacock,
-  bumblebee and hornet (a syllable alone sounds rude).
-- **Couldn't be recorded cleanly**: velvet.
+  bumblebee and hornet (a syllable alone sounds rude); pass 2: pimple (listed here by pass 1 but still on the table), title (a rude word
+  inside), snapdragon (a dragon inside).
+- **Couldn't be recorded cleanly**: velvet; pass 2: catnap, magnet, magnetic, bucket, retell (Aria says "(cat)" as Kate, "(mag)" as Meg,
+  "(buck)" like a swear word and "retell" as "retail" however they're written; pass 1 had put those clips in a second voice, Jenny, which
+  changed voice in the middle of a word, so the words came out instead), and forgot's "(got)" (silence).
 - Medal, metal and pedal sound like other words.
 
 ## Not done
 
+- **Pass 2 (bugs and sound) checked**, in Chromium: the tour at all four sizes on a new save and on Level 2 and Level 3 saves (missing
+  twice on every question at Levels 2 and 3), and with each kind alone at Levels 1, 2 and 3 on a sideways phone (missing twice on every
+  question); the tour now also fails on a 404, a line with no clip, two voice clips at once and the sound left paused (it pauses it before
+  the second question). Separately: a reload mid-Round (back in it, answers kept), mid-Crane (back in the Port, Ship and Bolts unchanged)
+  and on the result card (nothing paid twice); the tab hidden and shown with the sound paused (it comes back); 35 seconds doing nothing at
+  the Crane (two hints, nothing lost); mashing the Crane (sails in under two minutes); a save owning every fixed thing with 5,000 Bolts
+  (the again-and-again things, the Goal and a 15-container visitor, 59 seconds to load). Still not on an iPad.
 - **Not run on a real iPad 9, an iPhone or in Safari/WebKit.** Checked in Chromium (Playwright) with `tools/cargo-words/tour.ts` at
   810×1080, 1080×810, 390×844 and 844×390, on a new save and on saves with every kind open at Level 2 and at Level 3 (each a whole Round
   with deliberate first and second misses, a purchase, a go at the Crane to the ship sailing, the Sea Chart and "Watch it run"), plus a

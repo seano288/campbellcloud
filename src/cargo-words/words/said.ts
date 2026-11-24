@@ -41,7 +41,10 @@ function closed(s: string): string {
  *  another word, and the spelling it says right. */
 export const FIXED: Readonly<Record<string, string>> = {
   bas: 'baz', en: 'en', cac: 'kack', et: 'it', tus: 'tus', pus: 'pus', thir: 'thuhr', gle: 'guhl', nal: 'nul', ter: 'tur', er: 'urr',
-  sal: 'sal!', jol: 'jahl', vis: 'vizz', tle: 'tul', ny: 'knee', po: 'poe', zle: 'zuhl', plas: 'plaz', dile: 'dial', mer: 'murr', num: 'numm',
+  sal: 'sal!', jol: 'jahl', vis: 'vizz', tle: 'tul', ny: 'knee', po: 'poe', zle: 'zuhl', dile: 'dial', mer: 'murr', num: 'numm',
+  // pass 2, checked with two recognisers (small.en and large-v3-turbo): "ket" was heard "cat" (it says "kit" in basket and market), "ab"
+  // "ebb", "puz" "poos", "fect" "fact" (it says "fikt" in perfect), "sahl" "Saul"/"cell", "plaz" "applause"
+  ket: 'kit', ab: 'abb', puz: 'puzz', fect: 'fikt', sol: 'saul', plas: 'plass',
 };
 
 /** The syllable at `i` in `word`, as the voice should say it alone. */

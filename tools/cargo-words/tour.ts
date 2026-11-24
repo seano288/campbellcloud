@@ -10,6 +10,8 @@
 // upright). TOUR_SAVE=fresh|levels: a brand-new player, or one with every kind open at Level 2 (TOUR_LEVEL=1|2|3 picks another) and some
 // Bolts; at Level 3 he hasn't met the new syllable types yet, so the Meetings come. TOUR_WINDOW=0..10 sets how far into the Level he is.
 // TOUR_ONLY=split (or another kind) opens only that kind in the levels save, to look at one kind on every screen size.
+// TOUR_MISS=all misses twice on every question, not only the first of each kind. It also fails on any request that 404s, a line with no
+// clip, two voice clips playing at once, and the sound left paused (it pauses it on purpose before the second question, as the iPad does).
 import { mkdirSync } from 'node:fs';
 import { chromium, webkit } from 'playwright';
 
@@ -34,11 +36,32 @@ const browser = process.env.TOUR_BROWSER === 'webkit' ? await webkit.launch() : 
 const problems: string[] = [];
 const page = await browser.newPage({ viewport: VIEW, deviceScaleFactor: 1, hasTouch: true });
 await page.addInitScript(() => {
-  const w = window as unknown as { __clips: number }, start = AudioBufferSourceNode.prototype.start;
-  w.__clips = 0;
-  AudioBufferSourceNode.prototype.start = function (...a: Parameters<typeof start>) { if ((this.buffer?.duration ?? 0) > .05) w.__clips++; return start.apply(this, a); };
+  const w = window as unknown as { __clips: number; __overlaps: string[]; __ctx?: AudioContext }, start = AudioBufferSourceNode.prototype.start, stop = AudioBufferSourceNode.prototype.stop;
+  w.__clips = 0; w.__overlaps = [];
+  // voice clips (recorded buffers longer than a blip): two playing at once means a chained line overlapped or cut itself off
+  const playing = new Map<AudioBufferSourceNode, number>();
+  AudioBufferSourceNode.prototype.start = function (...a: Parameters<typeof start>) {
+    if ((this.buffer?.duration ?? 0) > .05 && (this as unknown as { voice?: boolean }).voice) {
+      w.__clips++;
+      // one that has reached its end is done, even if its 'ended' event hasn't come round yet (the next clip starts from the one before)
+      const now = this.context.currentTime;
+      for (const [s, end] of playing) if (end <= now + 0.03) playing.delete(s);
+      if (playing.size) w.__overlaps.push(`${playing.size} playing at clip ${w.__clips} (${[...playing.values()].map(e => (e - now).toFixed(2)).join(',')}s left)`);
+      playing.set(this, now + this.buffer!.duration);
+      this.addEventListener('ended', () => playing.delete(this));
+    }
+    return start.apply(this, a);
+  };
+  // the voice plays straight to the speakers; the noise in the sound effects goes through a filter first
+  const connect = AudioBufferSourceNode.prototype.connect as (...a: unknown[]) => unknown;
+  AudioBufferSourceNode.prototype.connect = function (this: AudioBufferSourceNode, ...a: unknown[]) { if (a[0] instanceof AudioDestinationNode) (this as unknown as { voice?: boolean }).voice = true; return connect.apply(this, a); } as typeof AudioBufferSourceNode.prototype.connect;
+  AudioBufferSourceNode.prototype.stop = function (...a: Parameters<typeof stop>) { playing.delete(this); return stop.apply(this, a); };
+  const Ctx = window.AudioContext;
+  window.AudioContext = class extends Ctx { constructor(...a: ConstructorParameters<typeof Ctx>) { super(...a); w.__ctx = this; } } as typeof AudioContext;
 });
 page.on('pageerror', e => problems.push(`pageerror: ${e.message}`));
+page.on('response', r => { if (r.status() >= 400) problems.push(`HTTP ${r.status()}: ${r.url()}`); });
+page.on('requestfailed', r => problems.push(`request failed: ${r.url()} ${r.failure()?.errorText ?? ''}`));
 page.on('console', m => { if (m.type() === 'error' && !/favicon|manifest|MIME/.test(m.text())) problems.push(`console: ${m.text()}`); });
 await page.addInitScript(s => {
   if (sessionStorage.getItem('seeded')) return;
@@ -153,7 +176,10 @@ for (let r = 1; r <= ROUNDS; r++) {
     await shot(`q${++asked}-${id}`);
     if (p.mode === 'meet') await tap('Go');
     else {
-      const miss = !missedKinds.has(p.mode); // one deliberate miss in every kind he meets
+      // one deliberate miss in every kind he meets (TOUR_MISS=all: two misses on every question)
+      const miss = process.env.TOUR_MISS === 'all' || !missedKinds.has(p.mode);
+      // the Math Bots bug: the device pauses the sound mid-Round; his next tap must wake it, and the voice carry on
+      if (asked === 2) await page.evaluate(() => (window as unknown as { __ctx?: AudioContext }).__ctx?.suspend());
       await answer(p, miss);
       if (miss) {
         missedKinds.add(p.mode);
@@ -260,6 +286,9 @@ await page.waitForTimeout(5000);
 await shot('watch');
 
 const clips = await page.evaluate(() => (window as unknown as { __clips: number }).__clips);
+const overlaps = await page.evaluate(() => (window as unknown as { __overlaps: string[] }).__overlaps);
+if (overlaps.length) problems.push(`voice clips overlapped ${overlaps.length} times: ${overlaps.slice(0, 3).join('; ')}`);
+if (await page.evaluate(() => (window as unknown as { __ctx?: AudioContext }).__ctx?.state) !== 'running') problems.push('the sound is still paused at the end');
 console.log(`${tag}: ${asked} questions, missed in ${[...missedKinds].join(' ')}, ${lessonTaps} lesson taps, ${clips} voice clips played, Round ${roundSecs.toFixed(0)}s, Crane ${goSecs.toFixed(0)}s, goes ${after?.goes ?? 0}, total ${((Date.now() - t0) / 1000).toFixed(0)}s`);
 console.log(problems.length ? `PROBLEMS:\n${[...new Set(problems)].join('\n')}` : 'no problems');
 await browser.close();

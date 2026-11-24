@@ -9,7 +9,7 @@ import { MEETINGS } from '../learning';
 import { NEW_HERE, rSoundOf, typesOf } from '../words/sounds';
 import { pictureClash, wordOf, WORDS } from '../words/words';
 import { askedClips, askedFor } from './asked';
-import { allAnswers, closeSpare, isRightAnswer, isRude, KINDS, makeQuestion, needsOf, PIC_ALIKE, splitLevel, stageOf, type Level, type Question } from './problems';
+import { allAnswers, breakAt, closeSpare, isRightAnswer, isRude, KINDS, makeQuestion, needsOf, PIC_ALIKE, splitLevel, splitWhy, stageOf, stressedOf, heardAs, type Level, type Question } from './problems';
 
 const N = 450;
 function* all(kind: (typeof KINDS)[number], level: Level) {
@@ -51,9 +51,16 @@ describe('each Level matches its row', () => {
       expect(q.boxes.filter(b => q.syls.includes(b)).join('|')).not.toBe(q.syls.join('|'));
     }
   });
-  it('Level 3\'s spare looks or sounds close: it shares letters with a syllable of the word', () => {
+  it('Level 3\'s spare looks or sounds close: one letter away from a syllable of the word (changed, dropped or two swapped)', () => {
+    // (pass 2: was "shares two letters", which a two-letter container one vowel away (pi, pe) failed and an unrelated one (net, ten) passed)
+    const oneAway = (a: string, b: string) => {
+      if (a === b) return false;
+      if (a.length === b.length) { const d = [...a].map((c, i) => (c === b[i] ? -1 : i)).filter(i => i >= 0); return d.length === 1 || (d.length === 2 && d[1] === d[0]! + 1 && a[d[0]!] === b[d[1]!] && a[d[1]!] === b[d[0]!]); }
+      const [long, short] = a.length > b.length ? [a, b] : [b, a];
+      return long.length === short.length + 1 && [...long].some((_, i) => long.slice(0, i) + long.slice(i + 1) === short);
+    };
     let close = 0, n = 0;
-    for (const q of all('build', 3)) if (q.kind === 'build' && q.spare) { n++; if (q.syls.some(s => [...q.spare!].filter(c => s.includes(c)).length >= Math.min(2, q.spare!.length))) close++; }
+    for (const q of all('build', 3)) if (q.kind === 'build' && q.spare) { n++; if (q.syls.some(s => oneAway(s, q.spare!))) close++; }
     expect(close / n).toBeGreaterThan(0.9);
   });
   it('Split It: joined words and twin letters, then two different letters, then one letter in the middle, said slowly', () => {
@@ -127,6 +134,46 @@ describe('sounds he has met', () => {
   });
   it('a question needs exactly the new types its word uses', () => {
     for (const w of WORDS) expect(needsOf(w.syls)).toEqual([...new Set(typesOf(w.syls).filter(t => (NEW_HERE as readonly string[]).includes(t!)))]);
+  });
+});
+
+describe('one right answer by sound, not only by spelling', () => {
+  /** How the voice says this container in this place in the word (the clip he would hear), and how it says a spare there. */
+  const heard = heardAs;
+  it('a spare never sounds like the container it would stand in for (rock-et is said "rock-it", so "it" is never beside "et")', () => {
+    for (const [kind, level] of [['build', 2], ['build', 3], ['r', 3]] as const) for (const q of all(kind, level)) {
+      if (!('spare' in q) || !q.spare) continue;
+      q.syls.forEach((_, i) => {
+        const swapped = q.syls.map((x, j) => (j === i ? q.spare! : x));
+        expect(heard(swapped, i), `${q.word}: ${q.spare} for ${q.syls[i]}`).not.toBe(heard(q.syls, i));
+      });
+    }
+  });
+  it('a spare is a container he can say: no "dne" or "tmie"', () => {
+    for (const q of all('build', 3)) if (q.kind === 'build' && q.spare) expect(q.spare, q.word).toMatch(/^([^aeiouy]*|[bcdfgpt][rl]|s[ptc][rl]?)[aeiouy]+[^aeiou]*e?$/);
+  });
+  it('Bossy R asks only an ar or or that is said strongly, never one said "er" (for-GOT)', () => {
+    for (const q of all('r', 1)) if (q.kind === 'r' && q.form === 'gap') {
+      const s = q.syls[q.gap]!;
+      if (rSoundOf(s) !== 'er') expect(stressedOf(wordOf(q.word)), `${q.word} ${s}`).toContain(q.gap);
+    }
+  });
+});
+
+describe('Split It: the rule the lesson says finds the break', () => {
+  const vowel = (ch: string) => 'aeiou'.includes(ch);
+  for (const w of WORDS.filter(x => splitLevel(x) !== null)) it(w.syls.join('|'), () => {
+    const why = splitWhy(w), at = breakAt(w), word = w.word;
+    // the letters between the first vowel sound and the next
+    const v1 = word.search(/[aeiou]/), end1 = v1 + (word.slice(v1).match(/^[aeiou]+/)![0].length), v2 = word.slice(end1).search(/[aeiouy]/) + end1, middle = word.slice(end1, v2);
+    if (why === 'compound') return; // two small words he can read
+    if (why === 'twin') expect(word[at - 1]).toBe(word[at]);
+    if (why === 'two') { expect(middle, 'two letters between the vowels').toHaveLength(2); expect(at).toBe(end1 + 1); }
+    if (why === 'le') expect(word.slice(at)).toMatch(/^[^aeiou]le$/);
+    if (why === 'open') expect(at).toBe(end1);
+    if (why === 'closed') { expect(middle).toHaveLength(1); expect(at).toBe(end1 + 1); }
+    if (why === 'ck') { expect(middle).toBe('ck'); expect(at).toBe(end1 + 2); }
+    if (why === 'vowels') expect(vowel(word[at - 1]!) && vowel(word[at]!)).toBe(true);
   });
 });
 

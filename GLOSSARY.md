@@ -843,7 +843,7 @@ _Avoid_: claw, game (to him)
 **Harbour**: a place on the Sea Chart his loaded ship sails to. Twenty-four named ones in order, each sending back a crate (a decoration, a container colour, a stripe or a company mark, never sold); one that needs a piece of his port waits. Past them, chart harbours are made on the spot from their number, without end, each with a flag made from parts for his flag wall.
 _Avoid_: level, route, island (for all of them)
 
-**Sea Chart**: the board of harbours, his flag wall, his bests (tallest stack, quickest loading of each size of ship), the tonnage and his Trophies.
+**Sea Chart**: the board of harbours, his flag wall, his bests (tallest stack, quickest loading for each number of containers), the tonnage and his Trophies.
 
 **Special crate**: what every fifth go brings back: twelve hand-made prizes, then numbered Lucky Containers made from parts. Never sold.
 

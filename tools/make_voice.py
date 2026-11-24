@@ -251,16 +251,12 @@ COLLECTION_SPEECH = {
     # Cargo Words says every syllable alone, written "(rab)". Alone, the voice reads "ti" as the letters T and I and "py" as P and Y, so
     # each syllable is said as it sounds in its word, respelled by the rules in src/cargo-words/words/said.ts (printed by
     # tools/cargo-words/said.ts and merged into said_as here): "(ti)" is said "tie", "(tle)" "tull", "(ger)" "gur", "(el)" "ell".
-    # Speech-to-text (small.en) on every word and syllable clip heard Aria's "(cat)" as "Kate" (as every reading game found), "(mag)" as
-    # "Meg", "retell" as "retail" and "hopeful" as "helpful" however they were written; Jenny's cat, mag and retell are heard as written,
-    # and "hope-ful" keeps its hope.
+    # Speech-to-text (small.en) heard "hopeful" as "helpful"; "hope-ful" keeps its hope. Aria says "(cat)" as "Kate", "(mag)" as "Meg",
+    # "(buck)" like a swear word, "(got)" as nothing and "retell" as "retail" however they're written, so their words were taken out
+    # (catnap, magnet, magnetic, bucket, forgot, retell) rather than say one syllable of a word in a second voice.
     'cargo-words': {
         'said_from': 'tools/cargo-words/said.ts',
         'said_as': {'hopeful': 'hope-ful'},
-        # and Aria's "(buck)" (bucket) was heard as a swear word and her "(got)" (forgot) as nothing at all, however written; Jenny's
-        # are heard as written
-        'voice_for': {'(cat)': 'en-US-JennyNeural', '(mag)': 'en-US-JennyNeural', 'retell': 'en-US-JennyNeural',
-                      '(buck)': 'en-US-JennyNeural', '(got)': 'en-US-JennyNeural'},
     },
 }
 

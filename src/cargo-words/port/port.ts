@@ -23,12 +23,12 @@ export interface Dress { name: number; hull: string; mark: string }
 export interface Bests {
   /** The tallest stack he has built on a ship. */
   stack: number;
-  /** His quickest loading of each size of ship, in seconds. */
-  quick: Partial<Record<SizeClass, number>>;
+  /** His quickest loading of each ship size, by how many containers it takes ("12": seconds). Kept per number of containers, not per
+   *  class of size: a best set on a ship of 10 could never be beaten on a ship of 18. */
+  quick: Record<string, number>;
 }
-export const SIZE_CLASSES = ['small', 'middle', 'big', 'giant'] as const;
-export type SizeClass = (typeof SIZE_CLASSES)[number];
-export const sizeOf = (s: ShipShape): SizeClass => { const n = capacity(s); return n <= 3 ? 'small' : n <= 6 ? 'middle' : n <= 9 ? 'big' : 'giant'; };
+/** The key his quickest loading of this ship is kept under. */
+export const quickKey = (s: ShipShape) => String(capacity(s));
 
 export interface PortState {
   /** Catalogue items bought, crates and special prizes won. */
@@ -100,7 +100,7 @@ export function readPort(raw: unknown): PortState {
     goal, ships: count(raw.ships, 99), goes: count(raw.goes),
     visited: Array.isArray(raw.visited) ? HARBOURS.map(x => x.id).filter(id => (raw.visited as unknown[]).includes(id)) : [],
     chart: Math.max(HARBOURS.length + 1, count(raw.chart, 10_000_000)), tonnes: count(raw.tonnes),
-    bests: { stack: count(bests.stack, 99), quick: Object.fromEntries(SIZE_CLASSES.flatMap(k => (isAmount(quick[k]) && (quick[k] as number) > 0 ? [[k, Math.min(9999, quick[k] as number)]] : []))) },
+    bests: { stack: count(bests.stack, 99), quick: Object.fromEntries(Object.entries(quick).flatMap(([k, v]) => (/^[1-9]\d?$/.test(k) && isAmount(v) && (v as number) > 0 ? [[k, Math.min(9999, v as number)]] : []))) },
     trophies: Array.isArray(raw.trophies) ? TROPHIES.map(t => t.id).filter(id => (raw.trophies as unknown[]).includes(id)) : [],
     last: typeof raw.last === 'string' ? raw.last : null,
   };
@@ -271,7 +271,7 @@ export interface GoPay {
   trophies: string[];
 }
 export function payFor(p: PortState, plan: GoPlan, res: GoResult): GoPay {
-  const named = plan.harbour.n <= HARBOURS.length, size = sizeOf(plan.shape);
+  const named = plan.harbour.n <= HARBOURS.length, size = quickKey(plan.shape);
   const bestStack = res.tallest > p.bests.stack && p.goes > 0;
   const was = p.bests.quick[size], bestQuick = res.seconds !== null && was !== undefined && res.seconds < was;
   const tonnes = res.loaded * tonnesEach(p);
@@ -286,7 +286,7 @@ export function payFor(p: PortState, plan: GoPlan, res: GoResult): GoPay {
 }
 /** The go is done: the Ship is used, the harbour visited, the tonnes counted, bests kept, and what came back is his. */
 export function finishGo(p: PortState, plan: GoPlan, res: GoResult, pay: Pick<GoPay, 'tonnes' | 'crate' | 'special'>): PortState {
-  const named = plan.harbour.n <= HARBOURS.length, size = sizeOf(plan.shape), was = p.bests.quick[size];
+  const named = plan.harbour.n <= HARBOURS.length, size = quickKey(plan.shape), was = p.bests.quick[size];
   const owned = [...p.owned, ...[pay.crate?.id, pay.special?.id].filter((id): id is string => !!id && !p.owned.includes(id))];
   const quick = res.seconds !== null && (was === undefined || res.seconds < was) ? { ...p.bests.quick, [size]: Math.round(res.seconds) } : p.bests.quick;
   return withTrophies({

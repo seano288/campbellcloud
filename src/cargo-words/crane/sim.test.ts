@@ -2,7 +2,7 @@
 // with every crane, and the ship sails. The swing never reaches the next stack. A row on the ship that reads a word is said.
 import { describe, expect, it } from 'vitest';
 import { seeded } from '../../game/rng';
-import { BASE_SPEC, capacity, carefulChild, clumsyChild, COL, createCrane, MOST_SWING, NO_INPUT, playWith, quayColX, REST_Y, shipColX, stepCrane, takeEvents, type CraneSpec, type ShipShape } from './sim';
+import { BASE_SPEC, capacity, carefulChild, clumsyChild, mashingChild, COL, createCrane, MOST_SWING, NO_INPUT, playWith, quayColX, REST_Y, shipColX, stepCrane, takeEvents, type CraneSpec, type ShipShape } from './sim';
 
 const SHAPES: ShipShape[] = [{ cols: 2, tiers: 1 }, { cols: 2, tiers: 2 }, { cols: 3, tiers: 2 }, { cols: 4, tiers: 2 }, { cols: 4, tiers: 3 }, { cols: 5, tiers: 3 }, { cols: 6, tiers: 2 }, { cols: 6, tiers: 3 }];
 const SPECS: CraneSpec[] = [BASE_SPEC, { trolley: 30, cable: 22, twin: false }, { trolley: 40, cable: 30, twin: true }];
@@ -21,6 +21,18 @@ describe('the Crane', () => {
       }
     });
   }
+  // (pass 2: a child tapping all over the screen every few frames never got a container lowered, since each tap sent the trolley
+  // somewhere else before it arrived; a tap is now kept until the grab has gone down)
+  it('a child mashing the screen still loads a container every minute or so, and fills every ship in the end', () => {
+    for (const ship of SHAPES) for (const [k, spec] of SPECS.entries()) {
+      if (capacity(ship) > 12 && k === 0) continue;
+      const rng = seeded(ship.cols * 13 + ship.tiers + k), c = createCrane(spec, ship, wordsFor(capacity(ship)));
+      while (c.t < 60) stepCrane(c, mashingChild(c, rng));
+      expect(c.loaded, `${ship.cols}x${ship.tiers} crane ${k}: in the first minute`).toBeGreaterThanOrEqual(1);
+      playWith(c, mashingChild, rng, 3600);
+      expect(c.phase, `${ship.cols}x${ship.tiers} crane ${k}`).toBe('done');
+    }
+  });
   it('takes the careful child about a minute for a middling ship, and less with a better crane', () => {
     const t = (spec: CraneSpec, ship: ShipShape) => playWith(createCrane(spec, ship, wordsFor(capacity(ship))), carefulChild, seeded(1)).doneAt!;
     const mid = t(BASE_SPEC, { cols: 3, tiers: 2 });

@@ -17,7 +17,7 @@ import { CUR } from '../branding';
 import { player, settleGo } from '../game';
 import { load, screen } from '../nav';
 import { syl, type Phrase } from '../phrases';
-import { boxLookFor, craneLook, planGo, rankOf, sizeOf, specOf, TROPHIES, type GoPay } from '../port/port';
+import { boxLookFor, craneLook, planGo, quickKey, rankOf, specOf, TROPHIES, type GoPay } from '../port/port';
 import { FlagView } from '../port/ChartScreen';
 import { HARBOURS, chartHarbour } from '../port/sea';
 import { SHIP_NAMES } from '../port/catalog';
@@ -46,7 +46,7 @@ export function CraneScreen() {
   const words = useMemo(() => cargoFor(state.words, capacity(plan.shape), plan.n), []);
   const harbourWords = (h = plan.harbour): Phrase[] => h.n <= HARBOURS.length ? [h.name as Phrase] : (() => { const c = chartHarbour(h.n); return [c.first, c.second, ...(c.round && c.round + 1 <= 100 ? [`${c.round + 1}` as Phrase] : [])]; })();
   const shipWords: Phrase[] = plan.visitor ? [plan.visitor.first, plan.visitor.second] : [SHIP_NAMES[p.fleet[plan.own!]?.name ?? 0]!];
-  const size = sizeOf(plan.shape), best = p.bests.quick[size];
+  const best = p.bests.quick[quickKey(plan.shape)];
   const [phase, setPhase] = useState<Phase>('card'), [armed, setArmed] = useState(false), [pay, setPay] = useState<GoPay | null>(null);
   const [loaded, setLoaded] = useState(0), [carrying, setCarrying] = useState(false);
   const canvas = useRef<HTMLCanvasElement>(null), pending = useRef<Input>({ to: null, lower: null }), finger = useRef<{ id: number; x: number; moved: boolean; worldX: number } | null>(null);
@@ -60,6 +60,8 @@ export function CraneScreen() {
   useEffect(() => {
     if (phase !== 'live') return;
     const stop = new AbortController();
+    // the containers' syllables are drawn on the canvas in Andika, which the page only fetches once something on it uses the font
+    void document.fonts?.load('700 32px Andika').catch(() => {});
     const c = createCrane(specOf(p), plan.shape, words);
     const scene = createCraneScene(canvas.current!);
     sceneRef.current = scene;

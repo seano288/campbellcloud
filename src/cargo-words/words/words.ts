@@ -29,23 +29,23 @@ const ENTRIES = [
   'skunk 🦨', 'milk 🥛', 'snake 🐍', 'flag 🚩', 'brush 🪥', 'fork 🍴',
 
   // ---------- two beats: small words joined ----------
-  'sun+set 🌅', 'cup+cake 🧁', 'pan+cake 🥞', 'hot+dog 🌭', 'back+pack 🎒', 'bath+tub 🛁', 'lap+top 💻', 'lip+stick 💄', 'hand+bag 👜',
-  'pad+lock 🔒', 'sun+rise 🌄', 'cob+web 🕸️', 'pig+pen', 'gum+drop', 'hand+stand', 'bed+time', 'in+side', 'cat+nap', 'dust+pan',
+  'sun+set 🌅', 'cup+cake 🧁', 'pan+cake 🥞', 'back+pack 🎒', 'bath+tub 🛁', 'lap+top 💻', 'lip+stick 💄', 'hand+bag 👜',
+  'pad+lock 🔒', 'sun+rise 🌄', 'cob+web 🕸️', 'pig+pen', 'gum+drop', 'hand+stand', 'bed+time', 'in+side', 'dust+pan',
   'sand+box', 'hill+top', 'sun+lamp', 'pop+corn 🍿', 'snow+man ⛄', 'sail+boat ⛵', 'rain+bow 🌈', 'tea+pot 🫖', 'pea+nut 🥜',
   'mail+box 📫', 'snow+flake ❄️', 'star+fish', 'sea+weed', 'rain+coat', 'pin+wheel', 'bird+bath', 'farm+yard',
-  'oat+meal', 'day+time', 'road+map', 'sheep+dog', 'pine+cone',
+  'oat+meal', 'day+time', 'sheep+dog',
 
   // ---------- two beats: twin letters in the middle ----------
   'rab|bit 🐇', 'kit|ten', 'mit|ten 🧤', 'muf|fin', 'ten|nis 🎾', 'rib|bon 🎀', 'sum|mit', 'hap|pen', 'pup|pet', 
   'muf|fin', 'traf|fic', 
   // ---------- two beats: two different letters in the middle ----------
-  'nap|kin', 'pic|nic', 'bas|ket 🧺', 'pump|kin 🎃', 'cac|tus 🌵', 'trum|pet 🎺', 'mag|net 🧲', 'hel|met ⛑️', 'den|tist', 'in|sect',
+  'nap|kin', 'pic|nic', 'bas|ket 🧺', 'pump|kin 🎃', 'cac|tus 🌵', 'trum|pet 🎺', 'hel|met ⛑️', 'den|tist', 'in|sect',
   'plas|tic', 'prob|lem', 'con|test', 'sand|wich 🥪', 'pret|zel 🥨', 'nut|meg', 'fab|ric', 'ab|sent', 'at|las', 'un|til', 'in|vent',
   'chil|dren', 'pub|lic', 'tin|sel', 
   // ---------- two beats: one letter in the middle, a short first vowel (cab|in) ----------
   'cab|in', 'wag|on', 'rob|in', 'plan|et 🪐', 'com|et ☄️', 'fin|ish', 'vis|it', 'hab|it', 'pan|ic', 'sal|ad 🥗', 'lim|it', 
   'lev|el', 'mod|el', 'rap|id', 'rad|ish', 'sol|id', 
-  'rock|et 🚀', 'tick|et 🎫', 'jack|et 🧥', 'buck|et 🪣', 'pock|et', 'chick|en 🐔', 'pack|et', 'lock|et', 
+  'rock|et 🚀', 'tick|et 🎫', 'jack|et 🧥', 'pock|et', 'chick|en 🐔', 'pack|et', 'lock|et', 
   // ---------- two beats: one letter in the middle, a first vowel that says its name (ti|ger) ----------
   'ti|ger 🐅', 'ro|bot 🤖', 'mu|sic 🎵', 'ba|con 🥓', 'pa|per 📄', 'si|lent', 'hu|man', 'ho|tel 🏨', 'fi|nal',
   'pi|lot', 'ze|ro', 'mo|ment', 'pu|pil', 'pre|tend', 'so|lo', 'ru|by', 'ba|by 👶', 'ti|ny', 
@@ -53,20 +53,20 @@ const ENTRIES = [
   // ---------- two beats: a consonant-le at the end ----------
   'tur|tle 🐢', 'ap|ple 🍎', 'can|dle 🕯️', 'pur|ple', 'puz|zle 🧩', 'bub|ble 🫧', 'bee|tle 🪲', 'nee|dle 🪡', 'ea|gle 🦅', 'bot|tle 🍼',
   'ket|tle', 'lit|tle', 'mid|dle', 'rid|dle', 'ta|ble', 'ca|ble', 'sim|ple', 'jun|gle', 'tum|ble', 'pud|dle', 'pad|dle',
-  'hur|dle', 'cra|dle', 'ti|tle', 'pim|ple',
+  'hur|dle', 'cra|dle',
   // ---------- two beats: a y at the end that says ee ----------
-  'hap|py', 'bun|ny', 'pup|py', 'fun|ny', 'sun|ny', 'sil|ly', 'jel|ly', 'can|dy 🍬', 'pen|ny', 'fluf|fy', 'mud|dy', 
-  'mes|sy', 'hob|by', 'jol|ly', 'par|ty 🥳', 
+  'hap|py', 'bun|ny', 'pup|py', 'fun|ny', 'sun|ny', 'sil|ly', 'jel|ly', 'can|dy 🍬', 'pen|ny', 'mud|dy',
+  'hob|by', 'jol|ly', 'par|ty 🥳', 
   // ---------- two beats: bossy r ----------
-  'gar|den', 'mar|ket', 'car|pet', 'tar|get 🎯', 'gar|lic 🧄', 'bar|ber', 'ar|tist', 'cor|ner', 'tur|nip', 'thir|teen',
+  'gar|den', 'mar|ket', 'car|pet', 'tar|get 🎯', 'gar|lic 🧄', 'bar|ber', 'cor|ner', 'tur|nip', 'thir|teen',
   'per|fect', 'sis|ter', 'win|ter', 'sum|mer', 'din|ner', 'let|ter ✉️', 'lad|der 🪜', 'ham|mer 🔨', 'but|ter 🧈', 'pep|per 🌶️',
   'sil|ver', 'num|ber', 'ham|ster 🐹', 'lob|ster 🦞', 'riv|er', 'clev|er', 'nev|er', 'chap|ter', 'blis|ter', 'zip|per', 'sup|per',
-  'mar|ble', 'har|vest', 'or|bit', 'for|got', 
+  'mar|ble', 'har|vest', 'or|bit',
   
 
   // ---------- three beats ----------
-  'fan|tas|tic', 'mag|net|ic', 'grass+hop|per 🦗', 'pep|per|mint', 'car|pen|ter', 'thun|der|storm ⛈️', 'bar|ber|shop', 'lum|ber|jack',
-  'fish|er|man', 'hum|ming|bird', 'snap|drag|on', 'oc|to|pus 🐙', 'pine+ap|ple 🍍', 'po|ta|to 🥔', 'vi|o|lin 🎻', 'croc|o|dile 🐊',
+  'fan|tas|tic', 'grass+hop|per 🦗', 'pep|per|mint', 'car|pen|ter', 'thun|der|storm ⛈️', 'bar|ber|shop', 'lum|ber|jack',
+  'fish|er|man', 'hum|ming|bird', 'oc|to|pus 🐙', 'pine+ap|ple 🍍', 'po|ta|to 🥔', 'vi|o|lin 🎻', 'croc|o|dile 🐊',
   'tel|e|scope 🔭', 'mi|cro|scope 🔬', 'sat|el|lite 🛰️', 'vol|ca|no 🌋', 'u|ni|corn 🦄', 'in|ter|net', 'un|hap|py',
    
   // ---------- four beats ----------
@@ -86,6 +86,13 @@ export const ARGUED: Readonly<Record<string, string>> = {
   kitchen: 'kitch-en (dictionary) or kit-chen (school)', dirty: 'dirt-y or dir-ty', shorten: 'short-en or shor-ten', holiday: 'the i says uh or ee',
   polish: 'said two ways (Polish)', medal: 'said like metal', metal: 'said like medal', pedal: 'said like peddle', cherry: 'cher says chair, not the er of her',
   berry: 'ber says bear, not the er of her', taco: 'ta says tah, not the name of a',
+  // the dictionary writes these as two words (hot dog, road map, pine cone), or don't agree on it, so there is no one word to split
+  hotdog: 'two words in the dictionary: hot dog', roadmap: 'two words in the dictionary: road map', pinecone: 'one word or two (pine cone), by dictionary',
+  // a word and an ending, which Merriam-Webster keeps whole (art-ist, mess-y, fluff-y) and school rules split by the letters (ar-tist,
+  // mes-sy, fluf-fy), as with dirty
+  artist: 'art-ist (dictionary) or ar-tist (school)', messy: 'mess-y (dictionary) or mes-sy (school)', fluffy: 'fluff-y (dictionary) or fluf-fy (school)',
+  // its first syllable is said "fer" (for-GOT), so er would be as right as or in Bossy R
+  forgot: 'for says fer: or and er both fit',
 };
 
 /** Left out for what they mean or how they sound alone, not their breaks. */
@@ -98,6 +105,11 @@ export const NOT_HERE: Readonly<Record<string, string>> = {
   // syllable has one clip, and the picture words were kept)
   open: 'o said two ways (violin)', even: 'e said two ways (telescope)', acorn: 'a said two ways', maple: 'ma said two ways (armadillo)',
   total: 'to said two ways (octopus)', pony: 'po said two ways (potato)', salamander: 'a said uh', armadillo: 'ma said muh',
+  pimple: 'not nice', title: 'a rude word hides inside it', snapdragon: 'a dragon hides inside it',
+  // Aria can't say these syllables alone however they're written ("cat" comes out "Kate", "mag" "Meg", "buck" heard as a swear word,
+  // "got" as nothing), and a second voice in the middle of a word is worse than leaving the word out
+  catnap: 'Aria says cat alone as Kate', magnet: 'Aria says mag alone as Meg', magnetic: 'Aria says mag alone as Meg',
+  bucket: 'Aria says buck alone like a swear word',
 };
 
 // ---------- reading the entries ----------
@@ -127,5 +139,7 @@ export const LOOK_ALIKE: readonly (readonly string[])[] = [
   ['rocket', 'satellite', 'comet', 'planet'], ['sailboat', 'boat', 'ship'], ['jacket', 'mitten'], ['snowman', 'snowflake'], ['bird', 'eagle', 'chicken'],
   ['lobster', 'crab', 'shrimp'], ['beetle', 'grasshopper'], ['thunderstorm', 'rainbow'], ['padlock', 'locket'],
   ['bottle', 'milk'], ['tiger', 'lion'], ['crocodile', 'turtle'],
+  // 🍼 is a baby's bottle, ✉️ a letter in the 📫 and on 📄, 🎒 and 👜 are both bags, 🐹 and 🐇 small and furry, 🎻 and 🎺 make 🎵
+  ['baby', 'bottle'], ['letter', 'mailbox', 'paper'], ['backpack', 'handbag'], ['hamster', 'rabbit'], ['music', 'violin', 'trumpet'],
 ];
 export const pictureClash = (a: string, b: string) => a === b || LOOK_ALIKE.some(g => g.includes(a) && g.includes(b));

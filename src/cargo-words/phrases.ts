@@ -51,7 +51,7 @@ const QUESTIONS = [
 const TEACHING = [
   'Not quite!', "Let's look together.", 'Try again!', 'Tap each container to hear it.', 'One.', 'Two.', 'Three.', 'Four.',
   'Two small words.', 'Split between them.', 'Two letters the same in the middle.', 'Two letters in the middle.', 'The l e takes the letter before it.',
-  'The first vowel says its name.', 'Split right after it.', 'The first vowel is short.', 'Keep the next letter with it.', 'Two vowels that each say a sound.',
+  'The first vowel says its name.', 'Split right after it.', 'The first vowel is short.', 'Keep the next letter with it.', 'The c k stays with it.', 'Two vowels that each say a sound.',
   'A and r say ar.', 'O and r say or.', 'E and r say er.', 'I and r say er.', 'U and r say er.',
   'means', 'is hiding in', 'This one is the', ...Object.values(ADD_ON_MEANS),
 ] as const;

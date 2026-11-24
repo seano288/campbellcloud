@@ -113,12 +113,13 @@ const FUNNEL_MARKS = ['⚓', '⭐', '🌊', '☀️', '🐟', '🐳', '❤️', 
 const KINDS_BY_SIZE: [number, ShipKind[]][] = [[3, ['tug', 'fishing', 'research']], [6, ['ferry', 'feeder', 'icebreaker', 'tanker']], [99, ['carcarrier', 'boxship', 'liner', 'feeder']]];
 
 export interface Visitor { readonly n: number; readonly look: ShipLook; readonly shape: ShipShape; readonly first: VisitorWord; readonly second: VisitorWord }
-/** The visiting ship for go `n`, as big as his crane reaches: it grows by a stack about every eight goes and a tier about every twenty,
- *  with a little variety, so some small ships still come. */
+/** The visiting ship for go `n`, up to as big as his crane reaches: it grows by a stack about every eight goes and a tier about every
+ *  twenty, and once it reaches his crane's size it still varies (up to two stacks shorter and a tier lower), so every go isn't the
+ *  biggest ship there is and some quicker ones still come. */
 export function visitor(n: number, reach: ShipShape): Visitor {
   const rng = seeded(n * 104729 + 3);
-  const cols = Math.max(2, Math.min(reach.cols, 2 + Math.floor(n / 8) - int(rng, 0, 1)));
-  const tiers = Math.max(1, Math.min(reach.tiers, 1 + Math.floor(n / 20) - (rng() < 0.3 ? 1 : 0)));
+  const cols = Math.max(2, Math.min(reach.cols, 2 + Math.floor(n / 8)) - int(rng, 0, 2));
+  const tiers = Math.max(1, Math.min(reach.tiers, 1 + Math.floor(n / 20)) - (rng() < 0.35 ? 1 : 0));
   const size = cols * tiers, kinds = KINDS_BY_SIZE.find(([most]) => size <= most)![1];
   const first = pick(rng, VISITOR_FIRST), second = pick(rng, VISITOR_SECOND);
   const hull = pick(rng, HULLS);

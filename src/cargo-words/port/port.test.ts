@@ -7,7 +7,7 @@ import { capacity, carefulChild, clumsyChild, createCrane, playWith } from '../c
 import { cargoFor } from '../crane/cargo';
 import { CRANES, FOR_SALE, ITEMS, REPEATS, repeatPrice, SHIP_SHAPES, SHIPS, STARTERS, craneSpec } from './catalog';
 import {
-  berths, bought, canLoad, finishGo, freshPort, has, missingNeed, nextHarbour, payFor, planGo, proposePurchase, rankOf, readPort, reachOf, sizeOf, specOf, waiting, type PortState,
+  berths, bought, canLoad, finishGo, freshPort, has, missingNeed, nextHarbour, payFor, planGo, proposePurchase, rankOf, readPort, reachOf, quickKey, specOf, waiting, type PortState,
 } from './port';
 import { chartHarbour, CRATES, FIRST_CHART, HARBOURS, isSpecialId, specialFor, SPECIAL_EVERY, SPECIALS, visitor } from './sea';
 import { PLACES, STRIPS, VEHICLES } from './plot';
@@ -171,5 +171,18 @@ describe('the endless layer, thousands of each', () => {
       for (const x of words) expect(WORDS.some(t => t.word === x.join(''))).toBe(true);
     }
   });
-  it('sizes of ship', () => { expect(sizeOf({ cols: 2, tiers: 1 })).toBe('small'); expect(sizeOf({ cols: 6, tiers: 3 })).toBe('giant'); });
+  it('a quickest loading is kept for each number of containers, so a best on a ship of 10 is never set against a ship of 18', () => {
+    expect(quickKey({ cols: 2, tiers: 1 })).toBe('2'); expect(quickKey({ cols: 6, tiers: 3 })).toBe('18');
+    let p = freshPort();
+    const plan = (cols: number, tiers: number) => ({ ...planGo(p), shape: { cols, tiers } });
+    p = finishGo(p, plan(5, 2), { loaded: 10, tallest: 2, seconds: 40 }, { tonnes: 0, crate: null, special: null });
+    // an 18-container ship is a new size: it sets its own best, and doesn't have to beat the 10's 40 seconds
+    expect(payFor(p, plan(6, 3), { loaded: 18, tallest: 3, seconds: 90 }).bestQuick).toBe(false);
+    p = finishGo(p, plan(6, 3), { loaded: 18, tallest: 3, seconds: 90 }, { tonnes: 0, crate: null, special: null });
+    expect(p.bests.quick).toEqual({ 10: 40, 18: 90 });
+    expect(payFor(p, plan(6, 3), { loaded: 18, tallest: 3, seconds: 80 }).bestQuick).toBe(true);
+    expect(payFor(p, plan(5, 2), { loaded: 10, tallest: 2, seconds: 41 }).bestQuick).toBe(false);
+    expect(readPort(JSON.parse(JSON.stringify(p))).bests.quick).toEqual({ 10: 40, 18: 90 });
+    expect(readPort({ bests: { quick: { 0: 5, small: 4, 18: -1, 12: 'x', 7: 30 } } }).bests.quick).toEqual({ 7: 30 });
+  });
 });

@@ -10,11 +10,10 @@ import { screen } from '../nav';
 import type { Phrase } from '../phrases';
 import { useVoice } from '../voice';
 import { itemOf } from './catalog';
-import { flagsOf, has, nextHarbour, rankOf, SIZE_CLASSES, TROPHIES, type SizeClass } from './port';
-import { HARBOURS, type Flag } from './sea';
+import { flagsOf, has, nextHarbour, rankOf, TROPHIES } from './port';
+import { chartHarbour, HARBOURS, type Flag } from './sea';
 
 const cls = (...xs: (string | false | null | undefined)[]) => xs.filter(Boolean).join(' ');
-const SIZE_ICON: Record<SizeClass, string> = { small: '🚤', middle: '⛴️', big: '🚢', giant: '🛳️' };
 
 /** A flag made from parts: two or three colours in a pattern, and a symbol. */
 export function FlagView({ f, size = 56 }: { f: Flag; size?: number }) {
@@ -65,7 +64,7 @@ export function ChartScreen() {
             );
           })}
           {next.n > HARBOURS.length && (
-            <button class="cw-harbour next chart" aria-label={next.name} onClick={() => { sChime(); say('Sail to'); }}>
+            <button class="cw-harbour next chart" aria-label={next.name} onClick={() => { sChime(); const c = chartHarbour(next.n); say('Sail to', c.first, c.second, ...(c.round && c.round + 1 <= 100 ? [`${c.round + 1}` as Phrase] : [])); }}>
               <span class="hn">{next.n}</span><span class="hi" aria-hidden="true">{next.icon}</span><span class="hname">{next.name}</span>
             </button>
           )}
@@ -78,7 +77,7 @@ export function ChartScreen() {
           <div class="cw-board" aria-label="Bests">
             <h2>🏅 Bests</h2>
             <p>🧱 Tallest stack: {p.bests.stack}</p>
-            <div class="cw-bests">{SIZE_CLASSES.map(s => <span key={s}>{SIZE_ICON[s]} {p.bests.quick[s] !== undefined ? `${p.bests.quick[s]}s` : '–'}</span>)}</div>
+            <div class="cw-bests">{Object.entries(p.bests.quick).sort(([a], [b]) => Number(a) - Number(b)).map(([n, t]) => <span key={n}>📦{n} {t}s</span>)}</div>
           </div>
           <div class="cw-board" aria-label="Flags">
             <h2>🚩 Flags {flags.length}</h2>

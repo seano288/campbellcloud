@@ -41,7 +41,9 @@ describe('the lessons', () => {
         const full = await lesson(q, true);
         expect(full.taps, q.word).toBe(q.syls.length);
         expect(full.said).toContain('Tap each container to hear it.');
-        for (const s of q.syls) expect(full.said).toContain(syl(s));
+        // (pass 2: the fuller lesson's lines weren't checked, and Add-Ons' base word was said as a syllable clip that doesn't exist, "(happy)")
+        for (const s of full.said) expect(recorded.has(s), `${q.word}: ${s}`).toBe(true);
+        for (const s of q.syls) expect(full.said).toContain(q.kind === 'addon' && s === q.add.base ? s : syl(s));
       }
     });
   }
@@ -55,7 +57,7 @@ describe('the lessons', () => {
     for (const q of questions('split', 10)) if (q.kind === 'split') {
       const { said, row } = await lesson(q, false);
       expect(row).toBeNull();
-      expect(said.some(s => /Split|takes the letter|Keep the next letter/.test(s))).toBe(true);
+      expect(said.some(s => /Split|takes the letter|Keep the next letter|stays with it/.test(s))).toBe(true);
     }
   });
   it('Bossy R lights the vowel and its r as one sound', async () => {

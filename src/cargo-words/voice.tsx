@@ -46,7 +46,21 @@ const trimmedAudio: PlaybackControls<AudioBuffer> = {
   },
 };
 const playback = createPlayback<Phrase, AudioBuffer>({ ...cargoVoice, ...trimmedAudio });
-export const createVoiceScope = (parent?: AbortSignal): VoiceScope => playback.scope(parent);
+/** In development a line with no recording is an error on the console (the browser tour fails on it), since Phrase lets any lowercase
+ *  word or number through the type check and a missing clip is otherwise just silence. */
+const recorded = new Set<string>(cargoVoice.phrases.filter(p => cargoVoice.clips[p]));
+function checked(scope: VoiceScope): VoiceScope {
+  if (!import.meta.env.DEV) return scope;
+  const check = (items: Item[]) => { for (const it of items) for (const p of typeof it === 'string' ? [it] : it.parts) if (!recorded.has(p)) console.error(`Cargo Words has no clip for "${p}"`); };
+  return new Proxy(scope, {
+    get(target, key) {
+      if (key === 'say' || key === 'sayMore') return (...items: Item[]) => { check(items); return target[key](...items); };
+      const v = Reflect.get(target, key, target);
+      return typeof v === 'function' ? v.bind(target) : v;
+    },
+  });
+}
+export const createVoiceScope = (parent?: AbortSignal): VoiceScope => checked(playback.scope(parent));
 export const speaking = playback.speaking;
 
 export const VoiceContext = createContext<VoiceScope | null>(null);
