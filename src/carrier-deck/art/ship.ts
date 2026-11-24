@@ -7,6 +7,7 @@ import { prizeById } from '../ship/missions';
 import { airWing, capacity, catapults, deckLen, has, lifts, lookOf, SHIP_NAMES, wires, type ShipState } from '../ship/ship';
 import { TUNING, wireX } from '../mission/sim';
 import { airLook, drawAircraft, OUTLINE } from './aircraft';
+import { drawAircraftTop } from './topdown';
 
 export const DECK = TUNING.deckAlt;
 type Ship = Pick<ShipState, 'owned' | 'more' | 'hullPaint' | 'flag' | 'mark' | 'name' | 'looks' | 'flying'>;
@@ -126,25 +127,35 @@ export function drawCarrierSide(ctx: CanvasRenderingContext2D, a: Ship, x: numbe
       ctx.fillStyle = c.hex; ctx.beginPath(); ctx.arc(cx, -DECK - 21.5 + bob, 2.6, Math.PI, 0); ctx.fill();
     });
   }
-  // his aircraft parked along the deck (the one flying out is left off)
+  // his aircraft on the deck: the one he flies waits on the first catapult, near the bow, a little bigger than the rest, so the aircraft
+  // on the deck is plainly his (its paint, tail art and number); the others are parked aft of the island. In a Mission the one flying
+  // out is drawn by the Mission itself (skipPlane), so it isn't here twice.
   if (opts.parked) {
-    const parked = airWing(a).filter(m => m !== opts.skipPlane).slice(0, Math.max(1, Math.floor(len / 110)));
-    parked.forEach((m, i) => drawAircraft(ctx, airLook(m, lookOf(a, m)), 50 + i * ((len * .5) / Math.max(1, parked.length)), -DECK - 6, .55, t));
+    const hero = opts.skipPlane === undefined && has(a, `air:${a.flying}`) ? a.flying : null;
+    const room = Math.max(1, Math.floor((islandX(len) - 40) / 62));
+    const parked = airWing(a).filter(m => m !== opts.skipPlane && m !== hero).slice(0, hero ? room : Math.max(1, Math.floor(len / 110)));
+    parked.forEach((m, i) => drawAircraft(ctx, airLook(m, lookOf(a, m)), 46 + i * ((islandX(len) - 70) / Math.max(1, parked.length)), -DECK - 6, .6, t));
+    if (hero) { const c = catapultTracks(len, catapults(a))[0]!; drawAircraft(ctx, airLook(hero, lookOf(a, hero)), c.x0 + (c.x1 - c.x0) * .3, -DECK - 6, .82, t); }
   }
   ctx.restore();
 }
 
-/** The deck from above: an outline of the hull, the angled deck, catapult tracks, wires, lifts, the island and the markings. Fits
- *  `w` × `h` pixels with the bow to the right. */
+/** How wide the deck is from above: a short ship is broad for its length, a long one a little broader, so it never becomes a sliver. */
+export const beamOf = (len: number) => Math.max(76, Math.min(190, len * .17));
+/** The deck from above: an outline of the hull, the angled deck, catapult tracks, wires, lifts, the island, the markings and his
+ *  aircraft drawn from above in their paint (the one he flies on the first catapult). Fits `w` × `h` pixels with the bow to the right. */
 export function drawCarrierTop(ctx: CanvasRenderingContext2D, a: Ship, w: number, h: number, t = 0) {
-  const len = deckLen(a), beam = 70, k = Math.min((w * .9) / (len + 40), (h * .8) / (beam * 1.6));
-  ctx.save(); ctx.translate((w - (len + 40) * k) / 2, h / 2); ctx.scale(k, k); ctx.lineJoin = 'round';
+  const len = deckLen(a), beam = beamOf(len), lane = beam / 6, k = Math.min((w * .92) / (len + 70), (h * .84) / (beam * 1.25));
+  ctx.save(); ctx.translate((w - (len + 40) * k) / 2 + 20 * k, h / 2); ctx.scale(k, k); ctx.lineJoin = 'round';
   // the sea's wake behind
-  ctx.fillStyle = 'rgba(255,255,255,.25)'; ctx.beginPath(); ctx.moveTo(0, -beam * .3); ctx.lineTo(-60, -beam); ctx.lineTo(-60, beam); ctx.lineTo(0, beam * .3); ctx.fill();
+  ctx.fillStyle = 'rgba(255,255,255,.25)'; ctx.beginPath(); ctx.moveTo(0, -beam * .3); ctx.lineTo(-60, -beam * .6); ctx.lineTo(-60, beam * .6); ctx.lineTo(0, beam * .3); ctx.fill();
   const deck = '#3a4150', hull = hullHex(a) === 'dazzle' ? '#7d8894' : hullHex(a);
   outlineFill(ctx, [[0, -beam * .45], [len * .9, -beam * .5], [len + 40, 0], [len * .9, beam * .5], [0, beam * .45]], hull, 4);
   outlineFill(ctx, [[4, -beam * .4], [len * .88, -beam * .44], [len + 30, 0], [len * .88, beam * .44], [4, beam * .4]], deck, 2);
-  if (owns(a, 'angled')) outlineFill(ctx, [[0, -beam * .25], [len * .55, -beam * .7], [len * .62, -beam * .55], [10, beam * .15]], deck, 2);
+  if (owns(a, 'angled')) outlineFill(ctx, [[0, -beam * .25], [len * .55, -beam * .62], [len * .62, -beam * .5], [10, beam * .15]], deck, 2);
+  // the deck's edge lines, in white
+  ctx.strokeStyle = '#f4f6fa'; ctx.lineWidth = 2; ctx.setLineDash([14, 8]);
+  ctx.beginPath(); ctx.moveTo(10, -beam * .36); ctx.lineTo(len * .86, -beam * .4); ctx.moveTo(10, beam * .36); ctx.lineTo(len * .86, beam * .4); ctx.stroke(); ctx.setLineDash([]);
   // the markings
   const markId = a.mark, prize = prizeById(markId), m = prize?.kind === 'mark' ? { hex: prize.hex, shape: prize.shape } : (itemOf(markId) as MarkItem);
   if (markId !== 'mark:none') {
@@ -157,45 +168,70 @@ export function drawCarrierTop(ctx: CanvasRenderingContext2D, a: Ship, w: number
     if (m.shape === 'wave') { ctx.beginPath(); for (let x = 10; x < len; x += 4) ctx.lineTo(x, Math.sin(x / 14) * 6); ctx.stroke(); }
     if (m.shape === 'number') { ctx.font = '900 40px Nunito, sans-serif'; ctx.textAlign = 'center'; ctx.textBaseline = 'middle'; ctx.fillText(String(a.name + 1), len * .82, 0); }
   }
-  ctx.strokeStyle = '#f4f6fa'; ctx.lineWidth = 1.5;
+  ctx.strokeStyle = '#f4f6fa'; ctx.lineWidth = 2;
   for (let i = 1; i <= wires(a); i++) { const x = wireX({ stern: 0 }, i); ctx.beginPath(); ctx.moveTo(x, -beam * .3); ctx.lineTo(x, beam * .3); ctx.stroke(); }
-  ctx.strokeStyle = '#ffd23f'; ctx.lineWidth = 3;
-  for (const c of catapultTracks(len, catapults(a))) { const y = c.lane * 12; ctx.beginPath(); ctx.moveTo(c.x0, y); ctx.lineTo(c.x1, y); ctx.stroke(); }
-  for (const [i, lx] of [len * .44, len * .72, len * .2].slice(0, lifts(a)).entries()) box(ctx, lx - 16, (i % 2 ? -1 : 1) * beam * .44 - 12, 32, 24, '#5a6370', 2, 2);
-  if (owns(a, 'island')) box(ctx, islandX(len) - 24, beam * .2, 48, 20, '#8e9aa6', 3, 3);
+  const cats = catapultTracks(len, catapults(a));
+  ctx.strokeStyle = '#ffd23f'; ctx.lineWidth = 4;
+  for (const c of cats) { const y = -c.lane * lane; ctx.beginPath(); ctx.moveTo(c.x0, y); ctx.lineTo(c.x1, y); ctx.stroke(); }
+  for (const [i, lx] of [len * .44, len * .72, len * .2].slice(0, lifts(a)).entries()) box(ctx, lx - 18, (i % 2 ? -1 : 1) * beam * .44 - 13, 36, 26, '#5a6370', 2, 2);
+  if (owns(a, 'island')) box(ctx, islandX(len) - 26, beam * .22, 52, beam * .2, '#8e9aa6', 3, 3);
   if (owns(a, 'skijump')) { ctx.fillStyle = 'rgba(255,255,255,.25)'; ctx.fillRect(len - 20, -beam * .3, 40, beam * .6); }
-  // his aircraft, small from above
-  airWing(a).slice(0, 8).forEach((md, i) => {
-    const l = airLook(md, lookOf(a, md)), x = 40 + i * Math.max(30, (len * .6) / 8), y = -beam * .22;
-    ctx.save(); ctx.translate(x, y); ctx.fillStyle = l.paint === 'rainbow' ? '#ffd23f' : l.paint; ctx.strokeStyle = OUTLINE; ctx.lineWidth = 2;
-    ctx.beginPath(); ctx.moveTo(12, 0); ctx.lineTo(-10, -3); ctx.lineTo(-10, 3); ctx.closePath(); ctx.fill(); ctx.stroke();
-    ctx.beginPath(); ctx.moveTo(2, -11); ctx.lineTo(-3, -11); ctx.lineTo(-3, 11); ctx.lineTo(2, 11); ctx.closePath(); ctx.fill(); ctx.stroke();
-    ctx.restore();
+  // his aircraft from above: the one he flies on the first catapult, the others parked nose-out in two rows aft of the island
+  const hero = has(a, `air:${a.flying}`) ? a.flying : null, look = (md: Model) => airLook(md, lookOf(a, md));
+  const others = airWing(a).filter(md => md !== hero), step = Math.max(40, beam * .42), rows = [beam * .2, -beam * .2];
+  const perRow = Math.max(1, Math.floor((islandX(len) - 60) / step));
+  others.slice(0, perRow * 2).forEach((md, i) => {
+    const row = i % 2, col = Math.floor(i / 2), y = rows[row]!;
+    drawAircraftTop(ctx, look(md), 44 + col * step, y, Math.min(.9, beam / 120), t, row ? -.5 : .5);
   });
-  void t;
+  if (hero && cats[0]) drawAircraftTop(ctx, look(hero), cats[0].x0 + (cats[0].x1 - cats[0].x0) * .25, -cats[0].lane * lane, Math.min(1.05, beam / 100), t);
   ctx.restore();
 }
 
 /** The rooms inside, for the cutaway: each a part he can build, with its picture. */
 export const ROOMS = PARTS.filter(p => p.does === 'room' || p.does === 'hangar' || p.does === 'bay');
-/** The carrier cut away: the hangar deck with his aircraft in it, and the rooms below, lit when built, dark outlines when not. */
-export function drawCutaway(ctx: CanvasRenderingContext2D, a: Ship, w: number, h: number, t = 0) {
-  const len = deckLen(a), k = Math.min((w * .92) / (len + 40), (h * .9) / (DECK + 120));
-  ctx.save(); ctx.translate((w - (len + 40) * k) / 2, h * .5 + (DECK * k) / 2); ctx.scale(k, k);
-  outlineFill(ctx, [[0, -DECK], [len, -DECK], [len + 34, -DECK - 2], [len - 40, 34], [12, 34], [-6, -DECK + 18]], '#c9d1da');
-  // the hangar deck
-  const built = (id: string) => owns(a, id);
-  box(ctx, 14, -DECK + 6, len - 30, 34, built('hangar') ? '#eef1f5' : 'rgba(255,255,255,.2)', 2);
-  const inHangar = airWing(a).slice(0, capacity(a));
-  inHangar.slice(0, Math.floor((len - 40) / 52)).forEach((m, i) => drawAircraft(ctx, airLook(m, lookOf(a, m)), 44 + i * 52, -DECK + 38, .45, t));
-  // the rooms below, in fixed places
+/** How deep the cutaway is drawn below the waterline: deeper than the side view, so the rooms have room. */
+export const CUT_KEEL = 66;
+/** The carrier cut away, stern at x, waterline at y, `k` pixels a unit: the flight deck on top, the hangar deck under it with his
+ *  aircraft (lit once the hangar is built), and two decks of rooms below, each a lit room with its floor, a porthole and its picture
+ *  standing on the floor once it is built, a dark one waiting to be built. Ladders join the decks; a dashed line marks the waterline. */
+export function drawCutaway(ctx: CanvasRenderingContext2D, a: Ship, x: number, y: number, k: number, t = 0) {
+  const len = deckLen(a), hex = hullHex(a), hull = hex === 'dazzle' ? '#7d8894' : hex, built = (id: string) => owns(a, id);
+  ctx.save(); ctx.translate(x, y); ctx.scale(k, k); ctx.lineJoin = 'round'; ctx.lineCap = 'round';
+  const shell: [number, number][] = [[0, -DECK], [len, -DECK], [len + 34, -DECK - 2], [len - 50, CUT_KEEL], [16, CUT_KEEL], [-6, -DECK + 18]];
+  outlineFill(ctx, shell, hull);
+  // inside the shell: the decks
+  const inX = 12, inW = len - 40, hangarTop = -DECK + 6, hangarH = 40, row1 = hangarTop + hangarH + 6, roomH = 30;
+  box(ctx, inX, hangarTop, inW, hangarH, built('hangar') ? '#e9edf2' : '#4a5262', 2.5, 3);
+  if (built('hangar')) { ctx.fillStyle = '#ffd23f'; ctx.fillRect(inX + 4, hangarTop + hangarH - 6, inW - 8, 3); }
+  const inHangar = airWing(a).slice(0, capacity(a)).filter(m => m !== a.flying);
+  inHangar.slice(0, Math.max(0, Math.floor((inW - 20) / 58))).forEach((m, i) => drawAircraft(ctx, airLook(m, lookOf(a, m)), inX + 34 + i * 58, hangarTop + hangarH - 6, .5, t));
+  // the rooms, in fixed places, two decks of them from the stern forward (where the view starts); the engines and stores fill the rest
   const rooms = ROOMS.filter(r => r.does === 'room');
-  const cols = Math.max(4, Math.ceil(rooms.length / 2)), cw = (len - 50) / cols;
+  const cols = Math.ceil(rooms.length / 2), cw = Math.min(inW / cols, 76), left = inX + Math.min(40, inW - cols * cw);
+  for (const [ex, ew] of [[inX, left - inX - 4], [left + cols * cw, inX + inW - left - cols * cw]] as const) if (ew > 8) box(ctx, ex, row1, ew, roomH * 2 + 4, '#4a5262', 2, 3);
   rooms.forEach((r, i) => {
-    const x = 20 + (i % cols) * cw, y = -DECK + 44 + Math.floor(i / cols) * 24, on = built(r.id.slice(5));
-    box(ctx, x, y, cw - 4, 20, on ? '#fff3c4' : 'rgba(255,255,255,.15)', 1.5, 3);
-    if (on) emoji(ctx, r.icon, x + (cw - 4) / 2, y + 10, 13);
+    const rx = left + (i % cols) * cw, ry = row1 + Math.floor(i / cols) * (roomH + 4), on = built(r.id.slice(5)), w = cw - 4;
+    box(ctx, rx, ry, w, roomH, on ? '#ffe9a8' : '#2c323e', 2, 3);
+    if (on) {
+      ctx.fillStyle = '#c98b4a'; ctx.fillRect(rx + 2, ry + roomH - 6, w - 4, 4); // the floor
+      ctx.fillStyle = '#9fd0ff'; ctx.beginPath(); ctx.arc(rx + w - 7, ry + 8, 3, 0, Math.PI * 2); ctx.fill(); ctx.lineWidth = 1.2; ctx.strokeStyle = OUTLINE; ctx.stroke(); // a porthole
+      emoji(ctx, r.icon, rx + w / 2 - 2, ry + roomH / 2, Math.min(18, w * .42));
+    } else { ctx.strokeStyle = '#ffffff30'; ctx.lineWidth = 1.5; ctx.setLineDash([4, 4]); ctx.strokeRect(rx + 4, ry + 4, w - 8, roomH - 8); ctx.setLineDash([]); }
   });
+  // ladders between the decks
+  ctx.strokeStyle = '#ffd23f'; ctx.lineWidth = 2;
+  for (const lx of [left - 2, left + cols * cw + 2]) {
+    ctx.beginPath(); ctx.moveTo(lx - 2.5, hangarTop + hangarH); ctx.lineTo(lx - 2.5, row1 + roomH * 2 + 4); ctx.moveTo(lx + 2.5, hangarTop + hangarH); ctx.lineTo(lx + 2.5, row1 + roomH * 2 + 4); ctx.stroke();
+    for (let ly = hangarTop + hangarH + 4; ly < row1 + roomH * 2; ly += 6) { ctx.beginPath(); ctx.moveTo(lx - 2.5, ly); ctx.lineTo(lx + 2.5, ly); ctx.stroke(); }
+  }
+  // the flight deck on top, with its white edge and the aircraft he flies on it
+  ctx.fillStyle = '#3a4150'; ctx.fillRect(-4, -DECK - 6, len + 36, 8); ctx.strokeStyle = OUTLINE; ctx.lineWidth = 3; ctx.strokeRect(-4, -DECK - 6, len + 36, 8);
+  ctx.fillStyle = '#ffd23f'; for (let dx = 20; dx < len; dx += 28) ctx.fillRect(dx, -DECK - 3, 14, 2);
+  if (has(a, `air:${a.flying}`)) drawAircraft(ctx, airLook(a.flying, lookOf(a, a.flying)), len * .72, -DECK - 6, .8, t);
+  // the waterline, across the hull
+  ctx.strokeStyle = 'rgba(255,255,255,.7)'; ctx.lineWidth = 2; ctx.setLineDash([10, 8]);
+  ctx.beginPath(); ctx.moveTo(-4, 0); ctx.lineTo(len + 8, 0); ctx.stroke(); ctx.setLineDash([]);
   ctx.restore();
 }
 

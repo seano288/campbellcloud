@@ -64,7 +64,8 @@ function Shell({ current, kind, title, onSay, stage, controls, ready, lesson }: 
     </div>
   );
 }
-const Title = ({ mode }: { mode: Asking['mode'] }) => <><span class="cd-kind-icon" aria-hidden="true">{MODE_ICONS[mode]}</span>{MODE_NAMES[mode]}</>;
+/** The kind's name beside its jersey: each kind wears one of the deck crew's colours, on Home and here. */
+const Title = ({ mode }: { mode: Asking['mode'] }) => <><span class="cd-jersey" aria-hidden="true"><span>{MODE_ICONS[mode]}</span></span>{MODE_NAMES[mode]}</>;
 
 // ---------- the wheels: one for each digit ----------
 
@@ -135,8 +136,7 @@ function StoryWheels({ current, q, waiting }: { current: Current; q: OneProblem 
   return (
     <Shell current={current} lesson={lesson} ready={w.ok} kind={`${q.kind} wheels`} title={<Title mode={current.problem.mode} />} onSay={story.again}
       stage={<div class={cls('cd-picture', drawing(lesson) && 'lesson-on')}>
-        <div class="cd-noun" aria-hidden="true">{NOUN_ICON[s.noun]}</div>
-        <StoryCard sentences={s.sentences} shown={story.shown} lit={lesson.lit.value ?? story.lit} />
+        <StoryCard noun={NOUN_ICON[s.noun]} sentences={s.sentences} shown={story.shown} lit={lesson.lit.value ?? story.lit} />
         {showRows && <PairRows rows={rows!} noun={s.noun} />}
         <LessonPicture lesson={lesson} />
       </div>}
@@ -174,8 +174,7 @@ function TwoView({ current, q, waiting }: { current: Current; q: TwoProblem; wai
     <Shell current={current} lesson={lesson} ready={w.ok} kind={`two wheels ${q.stepped ? `step-${middle === null ? 1 : 2}` : ''}`} title={<Title mode="two" />}
       onSay={() => { if (middle === null) story.again(); else void tellRest(0); }}
       stage={<div class={cls('cd-picture', drawing(lesson) && 'lesson-on')}>
-        <div class="cd-noun" aria-hidden="true">{NOUN_ICON[s.noun]}</div>
-        <StoryCard sentences={sentences} shown={shownAll} lit={lesson.lit.value ?? story.lit} />
+        <StoryCard noun={NOUN_ICON[s.noun]} sentences={sentences} shown={shownAll} lit={lesson.lit.value ?? story.lit} />
         {middle !== null && <div class="cd-middle">✓ <b class="cd-num">{middle}</b></div>}
         <LessonPicture lesson={lesson} />
       </div>}
@@ -200,8 +199,7 @@ function PickView({ current, q, waiting }: { current: Current; q: PickProblem; w
   return (
     <Shell current={current} lesson={lesson} ready={can} kind="pick" title={<Title mode="pick" />} onSay={story.again}
       stage={<div class={cls('cd-picture', drawing(lesson) && 'lesson-on')}>
-        <div class="cd-noun" aria-hidden="true">{NOUN_ICON[s.noun]}</div>
-        <StoryCard sentences={s.sentences} shown={story.shown} lit={lesson.lit.value ?? story.lit} extraAt={null} />
+        <StoryCard noun={NOUN_ICON[s.noun]} sentences={s.sentences} shown={story.shown} lit={lesson.lit.value ?? story.lit} extraAt={null} />
         <LessonPicture lesson={lesson} />
       </div>}
       controls={<div class={cls('choices', 'cd-sentences', `n${q.choices.length}`)}>{q.choices.map(c => (

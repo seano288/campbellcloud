@@ -9,6 +9,7 @@ import { confetti } from '../../celebrate/effects';
 import { IconButton } from '../../ui/bits';
 import { CurrencyIcon, CurrencyPile } from '../../ui/currency';
 import { airLook, aircraftPic } from '../art/aircraft';
+import { Jersey } from '../art/Jersey';
 import { drawCarrierSide, drawCarrierTop, drawCutaway, drawFleetShip } from '../art/ship';
 import { DECK_CURRENCY } from '../branding';
 import { buy, player, updateShip } from '../game';
@@ -49,36 +50,78 @@ const priceLine = (n: number): Phrase[] => { const s = sayable(n); return ['It c
 const RAINBOW = 'linear-gradient(90deg,#e63946,#ff7a00,#ffd23f,#2fa84f,#2f8fe8,#7b4bd1)';
 const swatchBg = (hex: string) => (hex === 'rainbow' ? RAINBOW : hex === 'dazzle' ? 'repeating-linear-gradient(45deg,#2a3038 0 8px,#c9d1da 8px 16px)' : hex);
 
-/** His carrier, drawn to fit: from the side on the sea (with his aircraft parked and the Fleet behind), from above, or cut away. */
+/** How the ship is framed: big enough to see its aircraft and crew (at least `fill` of the frame's height), and when that is wider than
+ *  the frame it drifts slowly from stern to bow and back, pausing at each end, and his finger can drag it along. */
+const FRAME = {
+  side: { above: 200, fill: .5, horizon: .62 },
+  inside: { above: 92, fill: .58, horizon: .52 },
+  /** seconds for one drift from end to end, and the pause at each end */
+  drift: 10, pause: 1.6,
+} as const;
+/** His carrier, drawn to fit: from the side on the sea (the aircraft he flies on the catapult, the rest parked, the Fleet sailing
+ *  alongside), from above, or cut away. */
 export function CarrierView({ a, view = 'side', class: c = '' }: { a: ShipState; view?: 'side' | 'top' | 'inside'; class?: string }) {
   const ref = useRef<HTMLCanvasElement>(null);
+  const pan = useRef({ p: 0, dir: 1, hold: 0, drag: null as null | { x: number; p: number; span: number } });
   useEffect(() => {
     const canvas = ref.current!, ctx = canvas.getContext('2d')!;
-    let raf = 0;
+    let raf = 0, last = 0;
     const draw = (ms: number) => {
       raf = requestAnimationFrame(draw);
       const r = canvas.getBoundingClientRect(), dpr = Math.min(2, devicePixelRatio || 1);
       if (!r.width) return;
       if (canvas.width !== Math.round(r.width * dpr)) { canvas.width = Math.round(r.width * dpr); canvas.height = Math.round(r.height * dpr); }
-      const t = ms / 1000;
+      const t = ms / 1000, dt = last ? Math.min(.1, t - last) : 0;
+      last = t;
       ctx.setTransform(dpr, 0, 0, dpr, 0, 0); ctx.clearRect(0, 0, r.width, r.height);
-      const sky = ctx.createLinearGradient(0, 0, 0, r.height); sky.addColorStop(0, '#8fd0ff'); sky.addColorStop(.62, '#cdeaff'); sky.addColorStop(.62, '#1f4f8a'); sky.addColorStop(1, '#12233f');
-      ctx.fillStyle = sky; ctx.fillRect(0, 0, r.width, r.height);
-      if (view === 'top') { ctx.fillStyle = '#1f4f8a'; ctx.fillRect(0, 0, r.width, r.height); drawCarrierTop(ctx, a, r.width, r.height, t); return; }
-      if (view === 'inside') { ctx.fillStyle = '#1f4f8a'; ctx.fillRect(0, r.height * .45, r.width, r.height); drawCutaway(ctx, a, r.width, r.height, t); return; }
-      const len = deckLen(a), k = Math.min((r.width * .92) / (len + 60), (r.height * .62) / 200);
-      const water = r.height * .62 + 10 * k;
+      if (view === 'top') { ctx.fillStyle = '#1f4f8a'; ctx.fillRect(0, 0, r.width, r.height); drawSeaRipples(ctx, r.width, r.height, t); drawCarrierTop(ctx, a, r.width, r.height, t); return; }
+      const f = FRAME[view], len = deckLen(a), wide = len + 60;
+      const k = Math.max(Math.min((r.width * .92) / wide, (r.height * f.horizon) / f.above), (r.height * f.fill) / f.above);
+      const over = Math.max(0, wide * k - r.width * .96);
+      // the drift: from stern to bow and back, unless his finger has it
+      const pn = pan.current;
+      if (over > 0 && !pn.drag && !reducedMotion()) {
+        if (pn.hold > 0) pn.hold -= dt;
+        else { pn.p += (pn.dir * dt) / FRAME.drift; if (pn.p >= 1 || pn.p <= 0) { pn.p = Math.max(0, Math.min(1, pn.p)); pn.dir = -pn.dir; pn.hold = FRAME.pause; } }
+      }
+      if (pn.drag) pn.drag.span = over;
+      const ease = (x: number) => .5 - Math.cos(Math.PI * x) / 2;
+      const x0 = over > 0 ? r.width * .02 + 30 * k - over * ease(pn.p) : (r.width - (len + 34) * k) / 2;
+      const water = r.height * f.horizon + 10 * k;
+      const sky = ctx.createLinearGradient(0, 0, 0, water);
+      sky.addColorStop(0, '#8fd0ff'); sky.addColorStop(1, '#cdeaff');
+      ctx.fillStyle = sky; ctx.fillRect(0, 0, r.width, water);
+      const sea = ctx.createLinearGradient(0, water, 0, r.height);
+      sea.addColorStop(0, '#1f4f8a'); sea.addColorStop(1, '#12233f');
+      ctx.fillStyle = sea; ctx.fillRect(0, water, r.width, r.height - water);
+      if (view === 'inside') { drawCutaway(ctx, a, x0, water, k, t); return; }
       const fleet = [...FLEET.filter(s => has(a, s.id)).map(s => s.ship), ...a.yard.slice(-6).map(n => yardShip(n).look)];
-      drawCarrierSide(ctx, a, (r.width - (len + 34) * k) / 2, water, k, t, { parked: true });
+      drawCarrierSide(ctx, a, x0, water, k, t, { parked: true });
       // the Fleet sails alongside, nearer to him than the carrier, small
-      fleet.slice(0, 8).forEach((s, i) => drawFleetShip(ctx, s, r.width * (((i * .16 + t * .006) % 1.1) - .05), water + 46 * k, k * .45, t));
+      const kf = Math.min(k, (r.width * .92) / wide * 1.6);
+      fleet.slice(0, 8).forEach((s, i) => drawFleetShip(ctx, s, r.width * (((i * .16 + t * .006) % 1.1) - .05), water + 46 * kf, kf * .45, t));
       ctx.fillStyle = 'rgba(255,255,255,.35)';
       for (let x = (t * 20) % 60 - 60; x < r.width; x += 60) ctx.fillRect(x, water + 4, 30, 2);
     };
     raf = requestAnimationFrame(draw);
     return () => cancelAnimationFrame(raf);
   }, [a, view]);
-  return <canvas ref={ref} class={cls('carrier-canvas', c)} role="img" aria-label="Your carrier" />;
+  // his finger drags a long ship along; it drifts again after a moment
+  const down = (e: PointerEvent) => { pan.current.drag = { x: e.clientX, p: pan.current.p, span: 0 }; };
+  const move = (e: PointerEvent) => {
+    const d = pan.current.drag;
+    if (!d || !d.span) return;
+    const p = d.p - (e.clientX - d.x) / d.span;
+    pan.current.p = Math.max(0, Math.min(1, p));
+  };
+  const up = () => { if (pan.current.drag) { pan.current.drag = null; pan.current.hold = 3; } };
+  return <canvas ref={ref} class={cls('carrier-canvas', c)} role="img" aria-label="Your carrier" onPointerDown={down} onPointerMove={move} onPointerUp={up} onPointerCancel={up} onPointerLeave={up} />;
+}
+const reducedMotion = () => typeof matchMedia === 'function' && matchMedia('(prefers-reduced-motion:reduce)').matches;
+/** The sea from above: soft white ripples drifting past. */
+function drawSeaRipples(ctx: CanvasRenderingContext2D, w: number, h: number, t: number) {
+  ctx.strokeStyle = 'rgba(255,255,255,.18)'; ctx.lineWidth = 2; ctx.lineCap = 'round';
+  for (let y = 18; y < h; y += 34) for (let x = ((t * 12 + y * 7) % 90) - 90; x < w; x += 90) { ctx.beginPath(); ctx.moveTo(x, y); ctx.lineTo(x + 26, y); ctx.stroke(); }
 }
 
 export function ShipScreen() {
@@ -140,6 +183,7 @@ export function ShipScreen() {
     const swatch = item.cat === 'paint' || item.cat === 'hull' ? <span class="swatch-dot" style={{ background: swatchBg(item.hex) }} />
       : item.cat === 'aircraft' ? <img src={aircraftPic(airLook(item.model, lookOf(a, item.model)), 160, 80)} alt="" />
       : item.cat === 'flag' ? <span class="swatch-flag" style={{ background: item.colors.length > 1 ? `linear-gradient(${item.pattern === 'v' ? 90 : 180}deg,${item.colors.map((c, i) => `${c} ${(i / item.colors.length) * 100}% ${((i + 1) / item.colors.length) * 100}%`).join(',')})` : item.colors[0] }} />
+      : item.cat === 'crew' && !item.vehicle ? <Jersey hex={item.hex} class="swatch-jersey" />
       : item.cat === 'mark' ? <span class="swatch-mark" style={{ color: item.hex }}>{({ stripe: '═', dash: '┅', circle: '◯', star: '★', number: '7', arrow: '➤', check: '▦', wave: '〰' } as const)[item.shape]}</span>
       : <span class="tile-icon" aria-hidden="true">{item.cat === 'tail' && !item.glyph ? '▫️' : item.icon}</span>;
     return (

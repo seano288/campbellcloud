@@ -196,11 +196,13 @@ export function MissionScreen() {
       <div class="mission-screen ms-card" data-phase="card" style={{ '--sea': place.sea, '--sky': place.sky } as Record<string, string>}>
         <header class="ms-head"><IconButton label="Carrier" onClick={leave}>🚢</IconButton>
           <h1>{m.name ?? `📻 ${CALLS[m.job]}`}</h1>
-          <span class="ms-chip">{place.icon} {place.name}{plan.night ? ' 🌙' : ''}</span></header>
+          {plan.night && <span class="ms-chip" aria-label="Night">🌙</span>}</header>
         <div class="ms-route">
-          <PatchBadge patch={m.patch} size={96} />
-          <div class="ms-job"><span class="ms-job-icon" aria-hidden="true">{JOB_ICON[m.job === 'winch' && !spec.hover ? 'drop' : m.job]}</span></div>
-          <div class="ms-plane"><img src={aircraftPic(look, 200, 100)} alt="" /><strong>{spec.name}</strong>{plan.suited && <span class="ms-suits">👍</span>}</div>
+          <div class="ms-brief">
+            <PatchBadge patch={m.patch} size={112} />
+            <div class="ms-job"><span class="ms-job-icon" aria-hidden="true">{JOB_ICON[m.job === 'winch' && !spec.hover ? 'drop' : m.job]}</span><span class="ms-place">{place.icon} {place.name}</span></div>
+          </div>
+          <div class="ms-plane"><img src={aircraftPic(look, 280, 130, .96)} alt="" /><div class="ms-deck"><strong>{spec.name}</strong></div>{plan.suited && <span class="ms-suits" aria-hidden="true">👍</span>}</div>
         </div>
         <div class="ms-foot">
           {rec && <span class="ms-best" aria-label="Your best">🏅 {'🛬'.repeat(rec.bestGrade)} {'⭐'.repeat(rec.bestStars)}</span>}
@@ -226,7 +228,7 @@ export function MissionScreen() {
       {phase === 'live' && hud === 'deck' && (
         <div class="ms-acts">
           <button class="ms-act launch pulse" aria-label="Launch" onPointerDown={e => { e.preventDefault(); hold.current = true; }} onPointerUp={() => { hold.current = false; }} onPointerCancel={() => { hold.current = false; }} onPointerLeave={() => { hold.current = false; }}>
-            <span class="gauge"><i ref={gaugeEl} /></span><b>{spec.hover ? '🚁' : '🛫'}</b>
+            <b aria-hidden="true">{spec.hover ? '🚁' : '🛫'}</b><span class="gauge"><i ref={gaugeEl} /></span>
           </button>
         </div>
       )}

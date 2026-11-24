@@ -1,36 +1,58 @@
-// The Home Screen icon: the carrier's bow from the side with one jet lifting off it. A grey bow juts in from the left over navy water,
-// its dark flight deck striped yellow and white, a puff of catapult steam at the deck's edge, and a chunky yellow jet climbing away up
-// and to the right with a deck-crew green tail. Navy sea and a bright sky keep it apart from Treasure Fleet (a sailing ship) and Jetway
-// (at the gate). Thick dark outlines, like the family's icons, so it reads at Home Screen size. One 512×512 SVG made in code;
+// The Home Screen icon: the carrier's bow from the side with one jet lifting off it, at dawn. A grey bow juts in from the lower left
+// over a navy sea, its dark flight deck edged in white and dashed in yellow along the catapult, a red waterline under it and a puff of
+// catapult steam at the deck's edge. A chunky jet in deck-crew blue, with a yellow wing and a green fin, climbs away up and to the
+// right. The sunburst every sibling icon has spins out from the jet, in sunrise golds: warm where Time Flies and Treasure Fleet are
+// blue, open sea where Jetway is an airport gate. Thick dark outlines so it reads at Home Screen size. One 512×512 SVG made in code;
 // tools/icons.ts rasterises it at build time, and the landing tile uses it.
-const BG = '#3d93dc';
-const O = '#14161b';
+const BG = '#ff9a3d', RAY = '#ffb65e', SEA = '#12305e', SEA2 = '#1f4f8a', O = '#14161b';
+const HULL = '#8e9aa6', HULL2 = '#6b7783', DECK = '#3a4150', WHITE = '#f4f6fa', YELLOW = '#ffd23f', RED = '#c8202f';
+const JET = '#2f8fe8', JET2 = '#1d6cc0', FIN = '#2fa84f';
+/** The jet's middle: the rays spin out from here. */
+const JET_AT = { x: 322, y: 178 };
 const line = (w: number) => `stroke="${O}" stroke-width="${w}" stroke-linejoin="round" stroke-linecap="round"`;
+const rad = (d: number) => (d * Math.PI) / 180;
+const f1 = (n: number) => n.toFixed(1);
 
-/** The sky and the sea, edge to edge, outside the safe-zone scaling. */
+const rays = () => Array.from({ length: 14 }, (_, i) => {
+  const step = 360 / 14, a0 = rad(i * step - 6.5), a1 = rad(i * step + 6.5), r = 800, { x, y } = JET_AT;
+  return `<path d="M${x} ${y} L${f1(x + r * Math.cos(a0))} ${f1(y + r * Math.sin(a0))} L${f1(x + r * Math.cos(a1))} ${f1(y + r * Math.sin(a1))} Z" fill="${RAY}"/>`;
+}).join('');
+
+/** The sky, its rays and the sea, edge to edge, outside the safe-zone scaling. */
 const backdrop = () => `
-  <rect width="512" height="512" fill="${BG}"/>
-  <circle cx="420" cy="96" r="54" fill="#ffe27a" fill-opacity=".9"/>
-  <rect x="0" y="372" width="512" height="140" fill="#1f3a68"/>
-  <path d="M0 400 Q32 388 64 400 T128 400 T192 400 T256 400 T320 400 T384 400 T448 400 T512 400" fill="none" stroke="#6fb3ff" stroke-width="8" stroke-linecap="round"/>
-  <path d="M0 446 Q32 434 64 446 T128 446 T192 446 T256 446 T320 446 T384 446 T448 446 T512 446" fill="none" stroke="#4f8ad8" stroke-width="8" stroke-linecap="round"/>`;
+  <rect width="512" height="512" fill="${BG}"/>${rays()}
+  <rect x="0" y="388" width="512" height="124" fill="${SEA}"/>
+  <path d="M0 388 H512" stroke="${O}" stroke-width="6"/>
+  <path d="M250 420 Q282 408 314 420 T378 420 T442 420 T506 420" fill="none" stroke="${SEA2}" stroke-width="10" stroke-linecap="round"/>
+  <path d="M120 466 Q152 454 184 466 T248 466 T312 466 T376 466 T440 466 T504 466" fill="none" stroke="${SEA2}" stroke-width="10" stroke-linecap="round"/>`;
 
-const art = () => `
-  <path d="M-30 268 H322 L372 252 L330 404 H-30 Z" fill="#8e9aa6" ${line(14)}/>
-  <path d="M-30 330 H352" stroke="#6b7783" stroke-width="16"/>
-  <path d="M-30 236 H368 L372 268 H-30 Z" fill="#3a4150" ${line(12)}/>
-  <path d="M10 252 H350" stroke="#ffd23f" stroke-width="10" stroke-dasharray="40 22"/>
-  <path d="M40 244 H220" stroke="#f4f6fa" stroke-width="6"/>
-  <circle cx="356" cy="222" r="26" fill="#f4f6fa" ${line(8)}/>
-  <circle cx="318" cy="216" r="18" fill="#f4f6fa" ${line(8)}/>
-  <circle cx="290" cy="228" r="12" fill="#f4f6fa" ${line(7)}/>
-  <g transform="translate(372 150) rotate(-24)">
-    <path d="M-70 -8 L-96 -54 H-70 L-34 -10 Z" fill="#2fa84f" ${line(10)}/>
-    <path d="M-90 0 Q-90 -22 -54 -22 H42 Q86 -22 104 0 Q86 20 42 20 H-54 Q-90 20 -90 0 Z" fill="#ffd23f" ${line(12)}/>
-    <path d="M40 -18 Q62 -22 80 -10 L58 -2 Z" fill="#2a4a6a" ${line(7)}/>
-    <path d="M-20 8 L-52 58 H-22 L18 10 Z" fill="#ffc400" ${line(10)}/>
-    <path d="M-92 -6 L-130 -12 M-92 6 L-138 10" stroke="#ff7a00" stroke-width="12" stroke-linecap="round"/>
+/** The bow, from the left edge out to its raked stem. */
+const bow = () => `
+  <path d="M-40 300 H262 L306 292 L252 440 H-40 Z" fill="${HULL}" ${line(14)}/>
+  <path d="M-40 400 H266" stroke="${RED}" stroke-width="22"/>
+  <path d="M-40 388 H270" stroke="${O}" stroke-width="5"/>
+  <path d="M-40 340 H286" stroke="${HULL2}" stroke-width="10"/>
+  <path d="M-40 272 H300 L310 300 H-40 Z" fill="${DECK}" ${line(12)}/>
+  <path d="M-30 280 H292" stroke="${WHITE}" stroke-width="6"/>
+  <path d="M0 290 H280" stroke="${YELLOW}" stroke-width="9" stroke-dasharray="34 20"/>
+  <circle cx="60" cy="366" r="9" fill="${O}"/><circle cx="110" cy="366" r="9" fill="${O}"/><circle cx="160" cy="366" r="9" fill="${O}"/>
+  <path d="M222 318 L240 346" stroke="${O}" stroke-width="9" stroke-linecap="round"/>
+  <circle cx="300" cy="256" r="24" fill="${WHITE}" ${line(8)}/>
+  <circle cx="262" cy="250" r="18" fill="${WHITE}" ${line(7)}/>
+  <circle cx="232" cy="260" r="12" fill="${WHITE}" ${line(6)}/>`;
+
+/** The jet, climbing away to the upper right. */
+const jet = () => `
+  <g transform="translate(${JET_AT.x} ${JET_AT.y}) rotate(-24) scale(1.3)">
+    <path d="M-118 -10 L-170 -18 M-118 10 L-176 14" stroke="${WHITE}" stroke-width="12" stroke-linecap="round" opacity=".9"/>
+    <path d="M-62 -10 L-92 -64 H-60 L-22 -12 Z" fill="${FIN}" ${line(10)}/>
+    <path d="M-104 0 Q-104 -24 -64 -24 H46 Q96 -24 118 0 Q96 22 46 22 H-64 Q-104 22 -104 0 Z" fill="${JET}" ${line(12)}/>
+    <path d="M-96 8 H90" stroke="${JET2}" stroke-width="8" stroke-linecap="round"/>
+    <path d="M42 -20 Q70 -26 92 -10 L64 -2 Z" fill="#bfe6ff" ${line(8)}/>
+    <path d="M-30 6 L-70 66 H-34 L18 10 Z" fill="${YELLOW}" ${line(10)}/>
   </g>`;
+
+const art = () => `${bow()}${jet()}`;
 
 /** The icon as SVG. scale shrinks the art (not the sky and sea): 0.8 keeps it inside a maskable icon's safe zone. */
 export function iconSvg(scale = 1): string {

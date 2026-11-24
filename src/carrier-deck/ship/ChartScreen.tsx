@@ -5,6 +5,7 @@ import { useEffect } from 'preact/hooks';
 import { sChime, sNope } from '../../audio/sfx';
 import { IconButton } from '../../ui/bits';
 import { CurrencyPile } from '../../ui/currency';
+import { Jersey } from '../art/Jersey';
 import { DECK_CURRENCY } from '../branding';
 import { player, updateShip } from '../game';
 import { fly, screen } from '../nav';
@@ -72,9 +73,16 @@ export function ChartScreen() {
           </button>
         </section>
         <section class="logbook" aria-label="Logbook">
-          <div class="jersey" aria-hidden="true">{'▬'.repeat(Math.min(12, rank.index + 1))}</div>
-          <div class="log-line"><b>{rank.name}{rank.number ? ` ${rank.number}` : ''}</b> · ⏱️ {Math.floor(a.minutes / 60)} h · 🛫 {a.flown} · 🛬🛬🛬 {a.perfect}</div>
-          <button class="chip-btn" aria-label={rank.name} onClick={() => say(rank.name)}>🎖️ {rank.name}</button>
+          <h2>Logbook</h2>
+          <div class="log-top">
+            <Jersey hex="#2fa84f" stripes={rank.index + 1} class="log-jersey" />
+            <div class="log-stats">
+              <span class="log-stat">⏱️ {Math.floor(a.minutes / 60)} h</span>
+              <span class="log-stat">🛫 {a.flown}</span>
+              <span class="log-stat">🛬🛬🛬 {a.perfect}</span>
+            </div>
+          </div>
+          <button class="chip-btn" aria-label={rank.name} onClick={() => say(rank.name)}>🎖️ {rank.name}{rank.number ? ` ${rank.number}` : ''}</button>
         </section>
         <section class="patches" aria-label="Patches">
           <h2>Patches</h2>

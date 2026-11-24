@@ -140,10 +140,11 @@ export function drawAircraft(ctx: CanvasRenderingContext2D, l: AirLook, x: numbe
 }
 
 const pics = new Map<string, string>();
-/** The aircraft as a small picture, for the shop's tiles and the end of a Round. Cached. */
-export function aircraftPic(l: AirLook, w = 160, h = 90): string {
+/** The aircraft as a small picture, for the shop's tiles and the end of a Round. Cached. `ground`: where its wheels sit, as a share of
+ *  the height (near 1 to stand it on something drawn under the picture, as on Home's catapult and the Mission's card). */
+export function aircraftPic(l: AirLook, w = 160, h = 90, ground = .82): string {
   if (typeof document === 'undefined') return '';
-  const key = JSON.stringify([l, w, h]);
+  const key = JSON.stringify([l, w, h, ground]);
   const hit = pics.get(key);
   if (hit) return hit;
   const c = document.createElement('canvas');
@@ -151,8 +152,8 @@ export function aircraftPic(l: AirLook, w = 160, h = 90): string {
   const ctx = c.getContext('2d');
   if (!ctx) return '';
   ctx.scale(2, 2);
-  const L = AIRCRAFT[l.model].len, k = Math.min((w * .86) / L, (h * .8) / 50);
-  drawAircraft(ctx, l, w / 2, h * .82, k, .1);
+  const L = AIRCRAFT[l.model].len, k = Math.min((w * .86) / L, (h * ground * .97) / 50);
+  drawAircraft(ctx, l, w / 2, h * ground, k, .1);
   const url = c.toDataURL();
   pics.set(key, url);
   return url;

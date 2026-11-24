@@ -15,9 +15,9 @@ export const NOUN_ICON: Record<Noun, string> = { jets: '✈️', helicopters: '�
 // ---------- the story card ----------
 
 /** The story so far: `shown` sentences, the `lit` one being said. Numbers are big and boxed; the question is the last line. */
-export function StoryCard({ sentences, shown, lit, extraAt }: { sentences: readonly Sentence[]; shown: number; lit: number | null; extraAt?: number | null }) {
+export function StoryCard({ sentences, shown, lit, extraAt, noun }: { sentences: readonly Sentence[]; shown: number; lit: number | null; extraAt?: number | null; noun?: string }) {
   return (
-    <ol class="cd-story" aria-label="The story">
+    <ol class="cd-story" aria-label="The story" data-noun={noun}>
       {sentences.slice(0, shown).map((s, i) => (
         <li key={i} class={cls(lit === i && 'lit', i === sentences.length - 1 && 'q', extraAt === i && 'extra')}>
           {s.text.split(/(\d+)/).map((part, j) => (/^\d+$/.test(part) ? <b key={j} class="cd-num">{part}</b> : part))}
@@ -119,7 +119,7 @@ export function PairRows({ rows, noun }: { rows: Rows; noun: Noun }) {
     </div>
   );
   return (
-    <div class={cls('cd-pairs', rows.paired && 'paired', rows.big > 30 && 'many')} role="img" aria-label="Two rows to compare">
+    <div class={cls('cd-pairs', rows.paired && 'paired', rows.big > 30 && 'many')} style={{ '--cols': String(Math.max(rows.big, rows.small, 10)) }} role="img" aria-label="Two rows to compare">
       {row(rows.big, rows.bigLabel, 'big')}
       {row(rows.small, rows.smallLabel, 'small')}
     </div>

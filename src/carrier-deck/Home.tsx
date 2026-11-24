@@ -6,7 +6,8 @@ import type { ComponentChildren } from 'preact';
 import { sBad } from '../audio/sfx';
 import { LevelDots } from '../ui/bits';
 import { CarrierView } from './ship/ShipScreen';
-import { planMission, rankOf, voyageChart } from './ship/ship';
+import { lookOf, planMission, rankOf, voyageChart } from './ship/ship';
+import { airLook, aircraftPic } from './art/aircraft';
 import { chart } from './ship/missions';
 import { player } from './game';
 import { LOCKED_HINTS, MODE_IDS, MODE_NAMES, type ModeId } from './learning';
@@ -32,9 +33,12 @@ export function Home({ status }: { status: ComponentChildren }) {
     <div class="screen home-screen cd-home-screen">
       <header class="home-head"><h1>Carrier Deck</h1>{status}</header>
       <div class="home cd-home">
-        {/* Play is the catapult's green light on the flight deck */}
+        {/* Play is the catapult: the aircraft he flies waits on the flight deck, and the big green light is the go */}
         <button class="tile t-play" aria-label="Play" onClick={() => { if (voice.active) startRound(); }}>
-          <span class="flight-deck" aria-hidden="true"><i class="track" /><i class="steam" /></span>
+          <span class="flight-deck" aria-hidden="true">
+            <i class="track" /><i class="steam" />
+            <img class="on-cat" src={aircraftPic(airLook(a.flying, lookOf(a, a.flying)), 240, 100, .96)} alt="" />
+          </span>
           <span class="e">▶</span>
         </button>
         <button class="tile t-ship" aria-label="Carrier" onClick={() => { if (voice.active) screen.value = 'ship'; }}>
@@ -42,17 +46,17 @@ export function Home({ status }: { status: ComponentChildren }) {
           {a.missions > 0 && <span class="race-badge" aria-hidden="true">🛫{a.missions}</span>}
         </button>
         <button class="tile t-chart" aria-label="Chart" onClick={() => { if (voice.active) screen.value = 'chart'; }}>
-          <span class="board-head" aria-hidden="true">🗺️ Voyage</span>
+          <span class="course" aria-hidden="true" />
           <span class="next-dest" aria-hidden="true"><span class="nd-icon">{here.icon}</span><span class="nd-name">{here.name}</span></span>
-          <span class="nm">Chart</span><span class="cup-count" aria-hidden="true">{plan.m.patch.glyph} {rank.name}{rank.number ? ` ${rank.number}` : ''}</span>
+          <span class="nm">Chart</span><span class="rank-pip" aria-hidden="true">{plan.m.patch.glyph} {rank.name}{rank.number ? ` ${rank.number}` : ''}</span>
         </button>
         <div class="tile t-kinds" role="group" aria-label="My Levels">
           <h2 class="kinds-head">My Levels</h2>
           {MODE_IDS.map(id => {
             const m = modes[id];
             return (
-              <button key={id} class={`kind ${m.opened ? '' : 'locked'} ${m.opened && m.fresh ? 'fresh' : ''}`} aria-label={MODE_NAMES[id]} onClick={() => tap(id)}>
-                <span class="ki">{m.opened ? MODE_ICONS[id] : '🔒'}</span>
+              <button key={id} class={`kind j-${id} ${m.opened ? '' : 'locked'} ${m.opened && m.fresh ? 'fresh' : ''}`} aria-label={MODE_NAMES[id]} onClick={() => tap(id)}>
+                <span class="cd-jersey" aria-hidden="true"><span>{m.opened ? MODE_ICONS[id] : '🔒'}</span></span>
                 <span class="kb"><span class="kn">{MODE_NAMES[id]}</span><LevelDots level={m.opened ? m.level : 0} /></span>
                 {m.opened && m.starred && <span class="badge">⭐</span>}
               </button>
