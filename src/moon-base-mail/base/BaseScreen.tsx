@@ -10,15 +10,18 @@ import { confetti } from '../../celebrate/effects';
 import { IconButton } from '../../ui/bits';
 import { CurrencyIcon, CurrencyPile } from '../../ui/currency';
 import { Shown } from '../art/pics';
+import { genLook, homeLook, moduleUrl } from '../art/modules';
+import { astronautSvg, svgUrl } from '../art/people';
 import { CUR } from '../branding';
 import { buy, player, updateBase } from '../game';
 import { baseTab, land, screen, walk } from '../nav';
 import { needLine, said, sayable, type Phrase } from '../phrases';
 import { useVoice } from '../voice';
-import { BADGES, buyable, crewOf, goalOf, GROWN, harvestOf, has, missingNeed, move, place, priceOf, rocksOf, selectGoal, stageOf, wantKey, wear, type Want } from './base';
-import { BaseMap, moduleName, moduleWords, ModuleArt } from './BaseMap';
+import { BADGES, buyable, crewOf, suitHex, goalOf, GROWN, harvestOf, has, missingNeed, move, place, priceOf, rocksOf, selectGoal, stageOf, wantKey, wear, type Want } from './base';
+import { Lander, meUrl, ModuleArt } from '../art/bits';
+import { BaseMap, moduleName, moduleWords } from './BaseMap';
 import { BUGGY, DECOR, DOME_PAINTS, FLAGS, HELMETS, itemOf, LANDERS, MODULES, PAINTS, PARTS, PLANTS, REPEATS, SUITS, type Item, type RepeatId } from './catalog';
-import { plantFor, specialById, type MoonRock, type Special } from './gen';
+import { moduleFor, plantFor, specialById, type MoonRock, type Special } from './gen';
 
 /** A special's name as the voice says it: a named prize is one clip; a lucky statue is its colour, its thing and "Statue". */
 export const specialWords = (sp: Special): Phrase[] => (sp.lucky ? [said(sp.lucky.colour), said(sp.lucky.word), 'Statue', ...(sp.lucky.number ? ['Number' as const, `${sp.lucky.number}` as Phrase] : [])] : [said(sp.name)]);
@@ -109,7 +112,13 @@ export function BaseScreen() {
   const inUse = (item: Item) => [b.paint, b.domePaint, b.suit, b.helmet, b.flag, b.lights, `lander:${b.lander}`].includes(item.id);
   const tile = (item: Item) => {
     const w: Want = { kind: 'item', id: item.id }, owned = has(b, item.id), need = !owned && missingNeed(b, w), afford = !owned && !need && item.price <= balance;
-    const art = item.hex && ['paint', 'dome', 'suit'].includes(item.cat) ? <span class="swatch-dot" style={{ background: item.hex }} /> : <span class="tile-icon" aria-hidden="true">{item.icon}</span>;
+    // modules, suits, helmets and dome paints are shown drawn, as they will look; the rest by their emoji
+    const helmet = b.helmet.replace('helmet:', ''), pattern = (id: string) => (id === 'suit:stripe' ? 'stripe' : id === 'suit:star' ? 'star' : null);
+    const art = item.cat === 'module' ? <ModuleArt id={item.id} b={b} size={60} />
+      : item.cat === 'suit' ? <img class="tile-art person" src={svgUrl(astronautSvg(item.hex ?? '#ff8c1a', helmet, 0, pattern(item.id)))} alt="" />
+        : item.cat === 'helmet' ? <img class="tile-art person" src={svgUrl(astronautSvg(suitHex(b), item.id.replace('helmet:', ''), 0, pattern(b.suit)))} alt="" />
+          : item.cat === 'dome' && item.hex ? <img class="tile-art" src={moduleUrl(homeLook(item.hex))} alt="" />
+            : item.hex && item.cat === 'paint' ? <span class="swatch-dot" style={{ background: item.hex }} /> : <span class="tile-icon" aria-hidden="true">{item.icon}</span>;
     const used = owned && inUse(item), planted = item.cat === 'plant' && owned ? stageOf(b, b.planted[item.id] ?? b.rounds) : null;
     return (
       <button key={item.id} class={cls('mb-tile', owned && 'owned', used && 'worn', need && 'locked', afford && 'afford', picked && wantKey(picked) === item.id && 'picked')}
@@ -125,7 +134,9 @@ export function BaseScreen() {
     const w: Want = { kind: 'more', id }, r = REPEATS.find(x => x.id === id)!, need = missingNeed(b, w), price = priceOf(b, w);
     return (
       <button key={id} class={cls('mb-tile', 'repeat', need && 'locked', !need && price <= balance && 'afford', picked && wantKey(picked) === `more:${id}` && 'picked')} aria-label={r.name} onClick={() => tapWant(w)}>
-        <span class="tile-icon" aria-hidden="true">{r.icon}</span><span class="tile-name">{r.name}</span>
+        {/* a New Module shows the very module it will be: they are made from parts, and the next one is known */}
+        {id === 'module' ? <img class="tile-art" src={moduleUrl(genLook(moduleFor(b.more.module)))} alt="" /> : <span class="tile-icon" aria-hidden="true">{r.icon}</span>}
+        <span class="tile-name">{r.name}</span>
         {b.more[id] > 0 && <span class="tile-count">×{b.more[id]}</span>}
         {need ? <span class="tile-tag">🔒</span> : <span class="tile-cost"><CurrencyIcon kind={CUR} size={16} />{price}</span>}
       </button>
@@ -135,35 +146,33 @@ export function BaseScreen() {
   const goalPrice = goal ? priceOf(b, goal) : 0;
   const shown = (i: Item) => i.price > 0 || has(b, i.id);
   return (
-    <div class="screen airport-screen mb-base-screen">
+    <div class="screen mb-base-screen">
       <header class="mb-head">
         <IconButton label="Home" onClick={() => { if (voice.active) screen.value = 'home'; }}>🏠</IconButton>
         <h1>Moon Base</h1>
-        <span class="pax-board" aria-label={`${crew.length + 5} crew`}>👩‍🚀 {crew.length + 5} <small>🪨 {b.goes}</small></span>
+        <span class="mb-crew-count" aria-label={`${crew.length + 5} crew`}>👩‍🚀 {crew.length + 5} <small>🪨 {b.goes}</small></span>
         <CurrencyPile kind={CUR} count={balance} />
       </header>
-      <div class="airport-main">
-        <div class={cls('airport-view', 'mb-map-view', b.toPlace && 'placing')}>
+      <div class="mb-base-main">
+        <div class={cls('mb-map-view', b.toPlace && 'placing')}>
           {b.toPlace && <div class="mb-place-tip"><ModuleArt id={b.toPlace} b={b} size={36} /> Tap a plot!</div>}
           {lifted && <div class="mb-place-tip">Tap where it goes</div>}
           <BaseMap b={b} onPlot={tapPlot} selected={lifted} placing={!!b.toPlace || !!lifted} />
         </div>
-        <div class="airport-side">
-          <button class={cls('big-btn', 'go', 'fly-btn', 'mb-land', b.landings > 0 && !b.toPlace && 'pulse')} aria-label="Land the supply ship"
+        <div class="mb-base-side">
+          <button class={cls('big-btn', 'go', 'mb-land', b.landings > 0 && !b.toPlace && 'pulse')} aria-label="Land the supply ship"
             onClick={() => { if (!voice.active) return; if (b.landings > 0) land(); else { sNope(); say('Play a Round to earn a Landing!'); } }}>
-            <span class="fly-plane" aria-hidden="true">🛬</span><span class="fly-word">Land</span><span class="race-count">{b.landings}</span>
-            <span class="fly-to">{b.pending.length ? `📦 ${moduleName(b.pending.at(-1)!)}` : '📦 Supplies'}</span>
+            <Lander size={48} /><span class="land-word">Land</span><span class="land-count">{b.landings}</span>
+            <span class="land-to">{b.pending.length ? `📦 ${moduleName(b.pending.at(-1)!)}` : '📦 Supplies'}</span>
           </button>
           {goal && (
-            <button class="goal-chip mb-goal" aria-label={`Goal: ${nameOf(goal)}`} onClick={() => tapWant(goal)}>
+            <button class="mb-goal" aria-label={`Goal: ${nameOf(goal)}`} onClick={() => tapWant(goal)}>
               <span class="goal-icon" aria-hidden="true">{iconOf(goal)}</span>
               <span class="goal-bar"><i style={{ width: `${Math.min(100, (balance / Math.max(1, goalPrice)) * 100)}%` }} /></span>
               <span class="goal-num">{Math.min(balance, goalPrice)}/{goalPrice}</span>
             </button>
           )}
-          <div class="side-row">
-            <button class="big-btn side-btn" aria-label="Walk the base" onClick={() => { if (voice.active) walk(); }}><span aria-hidden="true">🧑‍🚀</span><span class="side-word">Walk</span></button>
-          </div>
+          <button class="big-btn mb-walk-btn" aria-label="Walk the base" onClick={() => { if (voice.active) walk(); }}><img src={meUrl(b)} alt="" /><span class="side-word">Walk</span></button>
         </div>
       </div>
       {picked && (
@@ -179,7 +188,7 @@ export function BaseScreen() {
         {TABS.map(t => <button key={t.id} role="tab" aria-selected={tab === t.id} aria-label={t.name} class={cls('mb-tab', tab === t.id && 'on')} onClick={() => { baseTab.value = t.id; setPicked(null); say(said(t.name)); }}><span aria-hidden="true">{t.icon}</span><span class="tab-name">{t.name}</span></button>)}
       </div>
       <div class="mb-tray">
-        {tab === 'garden' && <div class="fleet-bar"><span class="chip-note">🧺 {harvestOf(b)}</span>{Object.keys(b.planted).filter(k => k.startsWith('bed:')).slice(-8).map(k => { const pl = plantFor(Number(k.slice(4))); return <span key={k} class="chip-note" style={{ color: pl.hex }}>🌿 {pl.colour} {pl.word} {'•'.repeat(stageOf(b, b.planted[k]!))}</span>; })}</div>}
+        {tab === 'garden' && <div class="mb-harvest"><span class="chip-note">🧺 {harvestOf(b)}</span>{Object.keys(b.planted).filter(k => k.startsWith('bed:')).slice(-8).map(k => { const pl = plantFor(Number(k.slice(4))); return <span key={k} class="chip-note" style={{ color: pl.hex }}>🌿 {pl.colour} {pl.word} {'•'.repeat(stageOf(b, b.planted[k]!))}</span>; })}</div>}
         {tab === 'rocks' && (
           <div class="tiles mb-rocks">
             {!has(b, 'module:workshop') && <div class="chip-note">🔒 {itemOf('module:workshop').name}</div>}

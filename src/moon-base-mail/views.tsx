@@ -2,10 +2,11 @@
 // reads that sentence (and counts as help, as in Sentence Express's What Happened). When he taps "I read it", the question is said and
 // its answers appear; the letter stays on screen while he answers. Written answers each have their own speaker. Taps wait until the
 // question has been said. A miss is never marked with a red X: the lesson lights the letter (reading/teach.ts).
-import { useEffect, useState } from 'preact/hooks';
+import { useEffect, useLayoutEffect, useRef, useState } from 'preact/hooks';
 import type { ComponentChildren } from 'preact';
 import { sClink, sNope } from '../audio/sfx';
 import type { ProblemInstance } from '../learning/round';
+import { Stamp } from './art/bits';
 import { Diagram } from './art/Diagram';
 import { Pic, Shown, baseWordPic } from './art/pics';
 import { heard } from './game';
@@ -61,6 +62,34 @@ function Sentence({ text, line, lesson }: { text: string; line: number; lesson: 
   );
 }
 
+/** The letter's type is as large as lets every sentence fit the paper (between 15px on a sideways phone and 42px on an iPad), so a short
+ *  letter reads big and a long one still fits beside its question without scrolling. It is measured again when the paper changes size,
+ *  and when `key` changes (the sentences turning into buttons, say). */
+const FIT_MIN = 15, FIT_MAX = 42;
+function useFitText(ref: { current: HTMLElement | null }, key: string) {
+  useLayoutEffect(() => {
+    const box = ref.current, lines = box?.querySelector<HTMLElement>('.mb-lines');
+    if (!box || !lines) return;
+    const fits = () => lines.scrollHeight <= lines.clientHeight + 1 && lines.scrollWidth <= lines.clientWidth + 1;
+    const set = (px: number) => box.style.setProperty('--fs', `${px}px`);
+    let last = '';
+    const fit = () => {
+      const size = `${box.clientWidth}x${box.clientHeight}`;
+      if (size === last) return;
+      last = size;
+      let lo = FIT_MIN, hi = FIT_MAX;
+      set(hi);
+      if (fits()) return;
+      while (hi - lo > 0.5) { const mid = (lo + hi) / 2; set(mid); if (fits()) lo = mid; else hi = mid; }
+      set(Math.floor(lo));
+    };
+    fit();
+    const seen = new ResizeObserver(fit);
+    seen.observe(box);
+    return () => seen.disconnect();
+  }, [key]);
+}
+
 /** The letter: paper, a stamp, who it is to and from, and a speaker beside each sentence. For What Came Next at Levels 2 and 3 the
  *  sentences are mixed up and are what he taps; for "Which one does not belong?" he taps a sentence too. */
 function Letter({ current, p, shown, lesson, tapLine, numbers, canSay, tapping }: {
@@ -68,9 +97,11 @@ function Letter({ current, p, shown, lesson, tapLine, numbers, canSay, tapping }
 }) {
   const lit = lesson.lit.value, ordered = lesson.ordered.value;
   const order = ordered !== null && p.kind === 'order' && !p.pics ? p.lines.map((_, i) => i) : shown;
+  const paper = useRef<HTMLDivElement>(null);
+  useFitText(paper, `${p.id}|${tapLine ? 'tap' : 'read'}`);
   return (
-    <div class={cls('mb-letter', p.kind === 'fact' && 'report', tapping && 'tapping')}>
-      <div class="mb-letter-head"><span class="mb-to" lang="en">{p.kind === 'fact' ? 'Fact File' : LETTER_TO}</span><span class="mb-stamp" aria-hidden="true">🌙</span></div>
+    <div ref={paper} class={cls('mb-letter', p.kind === 'fact' && 'report', tapping && 'tapping')}>
+      <div class="mb-letter-head"><span class="mb-to" lang="en">{p.kind === 'fact' ? 'Fact File' : LETTER_TO}</span><Stamp /></div>
       <ol class="mb-lines">
         {order.map(i => {
           const line = p.lines[i]!, n = numbers?.[i];
@@ -173,8 +204,10 @@ export function QuestionView({ current, waiting }: { current: Current; waiting: 
   }
 
   const ready = stage === 'ready' && !waiting && !c.done;
+  // when he taps the sentences themselves, the letter takes the whole width (from the start, so its lines don't move once he has read it)
+  const wide = qq.form === 'line' || (ordering && !p.pics);
   return (
-    <div class={cls('game', 'mb', `k-${p.kind}`, `l-${p.level}`, `f-${qq.form}`)} data-ready={ready ? 'yes' : stage === 'reading' && !waiting ? 'read' : 'no'}>
+    <div class={cls('game', 'mb', `k-${p.kind}`, `l-${p.level}`, `f-${qq.form}`, wide && 'wide')} data-ready={ready ? 'yes' : stage === 'reading' && !waiting ? 'read' : 'no'}>
       <div class="ask mb-ask-bar">
         <span class="mb-kind" aria-hidden="true">{MODE_NAMES[p.kind]}</span>
         {stage === 'ready' || stage === 'asking' ? <>
@@ -214,7 +247,7 @@ export function MeetView({ current, waiting }: { current: ProblemInstance<Meet, 
       <div class="ask"><h2>New words</h2></div>
       <div class="mb-meet">
         <div class="mb-meet-words">{words.map((b, i) => (
-          <button key={b.word} class={cls('mb-meet-word', (lit === i || lit >= words.length) && 'lit')} aria-label={b.word} onClick={() => say(b.word, i)}>
+          <button key={b.word} class={cls('mb-meet-word', lit === i && 'lit', lit >= words.length && 'met')} aria-label={b.word} onClick={() => say(b.word, i)}>
             <Shown show={baseWordPic(b.word)} size={52} /><span lang="en">{b.word}</span>
           </button>
         ))}</div>

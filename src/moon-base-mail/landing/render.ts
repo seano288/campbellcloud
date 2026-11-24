@@ -1,9 +1,11 @@
 // The Landing on a 2D canvas, from the side: a black sky with stars and the Earth (which hangs still over the Moon: from the near side it
-// never rises or sets), the grey hills and craters, the pad with its lights, and the supply ship with its legs, its paint, its lights and
-// its engine's flame. The camera follows the ship and keeps the ground in view. Pieces are few, so it holds 60 fps on an iPad 9.
+// never rises or sets), far grey hills that drift slower than the ground, the moon's ground with its craters, the landing pad (a deck on
+// legs with a striped edge, an H and blinking lights), and the supply ship with its legs and feet, its paint, its window, its lights,
+// the crate it carries and its engine's flame. Only the picture is drawn here; how the ship moves is sim.ts. The camera follows the ship and keeps the ground in view. Pieces are few, so it holds 60 fps on an iPad 9.
 import type { LanderKind } from '../base/catalog';
 import { groundAt, landingLength, STEP_X, type LandingPlan } from '../base/gen';
 import type { Sim } from './sim';
+import { drawEarth } from '../art/sky';
 
 export interface Look { kind: LanderKind; paint: string; lights: string | null; carrying: boolean }
 
@@ -32,14 +34,17 @@ export function createScene(canvas: HTMLCanvasElement, plan: LandingPlan) {
     const g = groundAt(plan, s.x), wantY = Math.max(g + 40, Math.min(s.y - 30, g + 140));
     camY += (wantY - camY) * 0.08;
     ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
-    ctx.fillStyle = plan.night ? '#05070f' : '#0b1022';
-    ctx.fillRect(0, 0, w, h);
+    const sky = ctx.createLinearGradient(0, 0, 0, h);
+    sky.addColorStop(0, plan.night ? '#020309' : '#05070f'); sky.addColorStop(1, plan.night ? '#0b1022' : '#1b2446');
+    ctx.fillStyle = sky; ctx.fillRect(0, 0, w, h);
     for (const st of stars) { ctx.fillStyle = '#ffffffcc'; ctx.beginPath(); ctx.arc(((st.x * w * 1.6 - camX * 0.08) % w + w) % w, st.y * h * 0.7, st.r, 0, 7); ctx.fill(); }
     // the Earth, high in the sky
-    const ex = w * 0.8, ey = h * 0.16, er = Math.max(18, h * 0.07);
-    ctx.fillStyle = '#3a86ff'; ctx.beginPath(); ctx.arc(ex, ey, er, 0, 7); ctx.fill();
-    ctx.fillStyle = '#2ec45a'; ctx.beginPath(); ctx.ellipse(ex - er * 0.25, ey - er * 0.1, er * 0.35, er * 0.22, 0.4, 0, 7); ctx.fill();
-    ctx.fillStyle = '#05070f88'; ctx.beginPath(); ctx.arc(ex + er * 0.45, ey, er, 0, 7); ctx.fill();
+    drawEarth(ctx, w * 0.8, h * 0.16, Math.max(20, h * 0.07));
+    // far hills, drifting slower than the ground
+    const [, horizon] = toScreen(0, g + 30);
+    ctx.fillStyle = '#4a505c'; ctx.strokeStyle = '#111'; ctx.lineWidth = 2.5; ctx.beginPath(); ctx.moveTo(0, h);
+    for (let sx = 0; sx <= w + 24; sx += 24) { const wx = sx + camX * sc * 0.3; ctx.lineTo(sx, horizon - 30 * sc * (0.6 + 0.4 * Math.sin(wx * 0.006) * Math.sin(wx * 0.0023 + 1))); }
+    ctx.lineTo(w + 24, h); ctx.closePath(); ctx.fill(); ctx.stroke();
     // the ground
     const x0 = Math.max(0, toWorld(-20)), x1 = Math.min(landingLength(plan), toWorld(w + 20));
     ctx.beginPath();
@@ -48,14 +53,30 @@ export function createScene(canvas: HTMLCanvasElement, plan: LandingPlan) {
     for (let x = x0; x <= x1; x += STEP_X / 4) { const [px, py] = toScreen(x, groundAt(plan, x)); ctx.lineTo(px, py); }
     const [sx1] = toScreen(x1, 0);
     ctx.lineTo(sx1, h); ctx.closePath();
-    ctx.fillStyle = '#8a8f99'; ctx.fill();
+    const soil = ctx.createLinearGradient(0, toScreen(0, g)[1], 0, h);
+    soil.addColorStop(0, '#a4aab4'); soil.addColorStop(1, '#6d727c');
+    ctx.fillStyle = soil; ctx.fill();
     ctx.lineWidth = 3; ctx.strokeStyle = '#111'; ctx.stroke();
-    for (const c of plan.craters) { const [cx, cy] = toScreen(c.x, groundAt(plan, c.x)); ctx.fillStyle = '#5d626c'; ctx.beginPath(); ctx.ellipse(cx, cy + 2, c.r * sc * 0.8, c.d * sc * 0.35, 0, 0, 7); ctx.fill(); }
-    // the pad and its lights
+    for (const c of plan.craters) {
+      const [cx, cy] = toScreen(c.x, groundAt(plan, c.x)), rx = c.r * sc * 0.8, ry = c.d * sc * 0.35;
+      ctx.fillStyle = '#5d626c'; ctx.beginPath(); ctx.ellipse(cx, cy + 2, rx, ry, 0, 0, 7); ctx.fill();
+      ctx.strokeStyle = '#c3c8d1'; ctx.lineWidth = 2; ctx.beginPath(); ctx.ellipse(cx, cy + 3, rx, ry, 0, 0.15, Math.PI - 0.15); ctx.stroke();
+    }
+    // the pad: a deck on legs, its edge striped, an H in the middle, a light at each end and one in the middle
     const padY = groundAt(plan, plan.padX), [pl, py] = toScreen(plan.padX - plan.padW / 2, padY), [pr] = toScreen(plan.padX + plan.padW / 2, padY);
-    ctx.fillStyle = '#d9dde3'; ctx.fillRect(pl, py - 6, pr - pl, 8); ctx.strokeRect(pl, py - 6, pr - pl, 8);
+    ctx.strokeStyle = '#111'; ctx.lineWidth = 2.5;
+    ctx.fillStyle = '#5d626c'; for (const lx of [pl + 8, pr - 12]) { ctx.fillRect(lx, py - 2, 4, 6); }
+    ctx.fillStyle = '#d9dde3'; ctx.fillRect(pl, py - 8, pr - pl, 7); ctx.strokeRect(pl, py - 8, pr - pl, 7);
+    ctx.save(); ctx.beginPath(); ctx.rect(pl, py - 3, pr - pl, 3); ctx.clip();
+    for (let sx = pl - 10; sx < pr; sx += 10) { ctx.fillStyle = '#ffd23f'; ctx.beginPath(); ctx.moveTo(sx, py); ctx.lineTo(sx + 5, py - 3); ctx.lineTo(sx + 10, py - 3); ctx.lineTo(sx + 5, py); ctx.fill(); }
+    ctx.restore();
+    const mid = (pl + pr) / 2; ctx.strokeStyle = '#3b424c'; ctx.lineWidth = 2; ctx.beginPath(); ctx.moveTo(mid - 5, py - 7); ctx.lineTo(mid - 5, py - 3); ctx.moveTo(mid + 5, py - 7); ctx.lineTo(mid + 5, py - 3); ctx.moveTo(mid - 5, py - 5); ctx.lineTo(mid + 5, py - 5); ctx.stroke();
+    ctx.strokeStyle = '#111';
     const blink = Math.floor(t * 3) % 2 === 0;
-    for (const [lx, on] of [[pl, blink], [pr, !blink], [(pl + pr) / 2, true]] as const) { ctx.fillStyle = on ? '#ffd23f' : '#6b5a1f'; ctx.beginPath(); ctx.arc(lx, py - 10, 6, 0, 7); ctx.fill(); ctx.stroke(); }
+    for (const [lx, on] of [[pl, blink], [pr, !blink], [mid, true]] as const) {
+      if (on) { const glow = ctx.createRadialGradient(lx, py - 12, 2, lx, py - 12, 18); glow.addColorStop(0, 'rgba(255,210,63,.6)'); glow.addColorStop(1, 'rgba(255,210,63,0)'); ctx.fillStyle = glow; ctx.fillRect(lx - 18, py - 30, 36, 36); }
+      ctx.lineWidth = 2.5; ctx.fillStyle = on ? '#ffd23f' : '#6b5a1f'; ctx.beginPath(); ctx.arc(lx, py - 12, 5.5, 0, 7); ctx.fill(); ctx.stroke();
+    }
     // a pointer to the pad when it is off the screen
     if (pr < 0 || pl > w) {
       const right = pl > w, ax = right ? w - 30 : 30, ay = h * 0.45;
@@ -74,9 +95,12 @@ export function createScene(canvas: HTMLCanvasElement, plan: LandingPlan) {
     if (s.engine) { const f = 10 + Math.sin(t * 40) * 3; ctx.fillStyle = '#ff8c1a'; ctx.beginPath(); ctx.moveTo(-4 * k, 2 * k); ctx.lineTo(0, (8 + f) * k * 0.6); ctx.lineTo(4 * k, 2 * k); ctx.closePath(); ctx.fill(); }
     // legs
     ctx.beginPath(); ctx.moveTo(-6 * k * wide, -2 * k); ctx.lineTo(-11 * k * wide, 6 * k); ctx.moveTo(6 * k * wide, -2 * k); ctx.lineTo(11 * k * wide, 6 * k); ctx.stroke();
+    ctx.beginPath(); ctx.moveTo(-14 * k * wide, 6 * k); ctx.lineTo(-8 * k * wide, 6 * k); ctx.moveTo(8 * k * wide, 6 * k); ctx.lineTo(14 * k * wide, 6 * k); ctx.stroke();
     // body
     ctx.fillStyle = look.paint;
     ctx.beginPath(); ctx.moveTo(-8 * k * wide, -2 * k); ctx.lineTo(-6 * k * wide, -14 * k * tall); ctx.lineTo(6 * k * wide, -14 * k * tall); ctx.lineTo(8 * k * wide, -2 * k); ctx.closePath(); ctx.fill(); ctx.stroke();
+    ctx.fillStyle = 'rgba(0,0,0,.18)'; ctx.beginPath(); ctx.moveTo(2 * k * wide, -2 * k); ctx.lineTo(3 * k * wide, -14 * k * tall); ctx.lineTo(6 * k * wide, -14 * k * tall); ctx.lineTo(8 * k * wide, -2 * k); ctx.closePath(); ctx.fill();
+    ctx.fillStyle = '#5b6270'; ctx.beginPath(); ctx.moveTo(-4 * k, -2 * k); ctx.lineTo(4 * k, -2 * k); ctx.lineTo(3 * k, 1.5 * k); ctx.lineTo(-3 * k, 1.5 * k); ctx.closePath(); ctx.fill(); ctx.stroke();
     if (look.kind === 'star') { ctx.fillStyle = '#ffd23f'; ctx.beginPath(); ctx.arc(0, -18 * k * tall, 3 * k, 0, 7); ctx.fill(); ctx.stroke(); }
     if (look.kind === 'hopper') { ctx.beginPath(); ctx.arc(-11 * k, 7 * k, 2 * k, 0, 7); ctx.arc(11 * k, 7 * k, 2 * k, 0, 7); ctx.stroke(); }
     if (look.kind === 'crane') { ctx.beginPath(); ctx.moveTo(6 * k, -12 * k); ctx.lineTo(16 * k, -18 * k); ctx.lineTo(16 * k, -6 * k); ctx.stroke(); }

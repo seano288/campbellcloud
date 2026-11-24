@@ -1,5 +1,5 @@
 // The Fact File's labelled pictures, drawn in code. Each part has a written label (in Andika) that is a button: he reads the labels and
-// taps the part the question asks for. A thin line joins each label to its part.
+// taps the part the question asks for. A thin line joins each label to its part. A label near the edge is kept whole inside the picture.
 import type { JSX } from 'preact';
 import { DIAGRAMS, type DiagramId } from '../mail/diagrams';
 
@@ -49,7 +49,7 @@ export function Diagram({ id, onTap, lit, wrong, disabled }: { id: DiagramId; on
         const p = d.parts[part]!;
         return (
           <button key={part} class={`mb-label ${lit === part ? 'hint' : ''} ${wrong.includes(part) ? 'wrong' : ''}`} lang="en" disabled={disabled && lit !== part}
-            style={{ left: `${p.label[0] * 100}%`, top: `${p.label[1] * 100}%` }} aria-label={part} onClick={() => onTap(part)}>{part}</button>
+            style={{ left: `clamp(48px, ${p.label[0] * 100}%, calc(100% - 48px))`, top: `clamp(25px, ${p.label[1] * 100}%, calc(100% - 25px))` }} aria-label={part} onClick={() => onTap(part)}>{part}</button>
         );
       })}
     </div>

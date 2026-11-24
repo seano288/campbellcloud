@@ -1,10 +1,11 @@
-// Home: one Play tile, the biggest thing on the screen (every Round mixes the kinds he has opened), the Moon Base tile with his base on
-// it and his Landings waiting, and a board with his Level in each kind. Tapping a kind says its name; a locked one says what opens it.
+// Home: one Play tile, the biggest thing on the screen (every Round mixes the kinds he has opened): a letter from the base, sealed with
+// a green ▶, under the Earth. The Moon Base tile shows his base standing on the moon, with his Landings waiting, and a board holds his
+// Level in each kind. Tapping a kind says its name; a locked one says what opens it.
 import { useEffect } from 'preact/hooks';
 import type { ComponentChildren } from 'preact';
 import { sBad } from '../audio/sfx';
 import { LevelDots } from '../ui/bits';
-import { BaseMap } from './base/BaseMap';
+import { BaseSkyline, Lander, Stamp } from './art/bits';
 import { player } from './game';
 import { LOCKED_HINTS, MODE_IDS, MODE_NAMES, type ModeId } from './learning';
 import { screen } from './nav';
@@ -29,14 +30,17 @@ export function Home({ status }: { status: ComponentChildren }) {
     <div class="screen home-screen mb-home-screen">
       <header class="home-head"><h1>Moon Base Mail</h1>{status}</header>
       <div class="home mb-home">
-        {/* Play is a letter with a moon for its stamp */}
+        {/* Play is a letter from the base, sealed with ▶ */}
         <button class="tile t-play" aria-label="Play" onClick={() => { if (voice.active) startRound(); }}>
-          <span class="mb-play-letter" aria-hidden="true"><i class="flap" /><i class="stamp">🌙</i></span>
-          <span class="e">▶</span>
+          <span class="mb-envelope" aria-hidden="true">
+            <i class="flap"><i /></i><Stamp size={44} /><i class="addr" />
+            <span class="e">▶</span>
+          </span>
         </button>
         <button class="tile t-base" aria-label="Moon Base" onClick={() => { if (voice.active) screen.value = 'base'; }}>
-          <BaseMap b={b} mini /><span class="nm">Moon Base</span>
-          {b.landings > 0 && <span class="race-badge" aria-hidden="true">🛬{b.landings}</span>}
+          <BaseSkyline b={b} />
+          <span class="nm">Moon Base</span>
+          {b.landings > 0 && <span class="mb-landings" aria-hidden="true"><Lander size={26} />{b.landings}</span>}
         </button>
         <div class="tile t-kinds" role="group" aria-label="My Levels">
           <h2 class="kinds-head">My Levels</h2>

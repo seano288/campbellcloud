@@ -4,7 +4,7 @@ import { unlockAudio } from '../audio/context';
 import { CurrencyPile } from '../ui/currency';
 import { HoldForProgress } from '../ui/MoveProgress';
 import { BuildLabel } from '../ui/BuildLabel';
-import { BaseMap } from './base/BaseMap';
+import { BaseSkyline } from './art/bits';
 import { BaseScreen } from './base/BaseScreen';
 import { CUR } from './branding';
 import { player, SAVE_KEY } from './game';
@@ -36,7 +36,7 @@ function Start() {
   return (
     <div class="start mb-start">
       <HoldForProgress game="moon-base-mail" keys={[SAVE_KEY, PLACE_KEY]}><h1>Moon Base<br />Mail</h1></HoldForProgress>
-      <div class="start-art"><BaseMap b={player.state.value.base} mini /></div>
+      <div class="start-art"><BaseSkyline b={player.state.value.base} /></div>
       <button class="big-btn go start-btn" aria-label="Start" onClick={() => {
         if (!voice.active) return;
         unlockAudio(); // sound needs this tap on iPad Safari

@@ -7,6 +7,8 @@ import { confetti } from '../celebrate/effects';
 import { playMoments } from '../celebrate/sequence';
 import { earnedLine } from '../currency/kind';
 import { IconButton } from '../ui/bits';
+import { Earth, Lander, ModuleArt } from './art/bits';
+import { HOME } from './base/base';
 import { CurrencyIcon } from '../ui/currency';
 import { CUR } from './branding';
 import { player } from './game';
@@ -50,18 +52,19 @@ export function EndOverlay({ result: r, onLand, onBase, onAgain, onHome }: { res
   const b = player.state.value.base;
   return (
     <div class="reward mb-reward">
+      <Earth cls="mb-earth reward-earth" />
       <h2>Round done!</h2>
       <div class="bigpile"><CurrencyIcon kind={CUR} size={80} /><span class={bump ? 'bump' : ''}>{pile}</span></div>
-      {earned && <div class="earned-race">🛬 +1 Landing</div>}
+      {earned && <div class="mb-earned"><Lander size={40} /> +1 Landing</div>}
       <div class="lines">{lines.map((l, i) => <div key={i}>{l}</div>)}</div>
       <div class={`btns ${awake ? '' : 'asleep'}`}>
-        <button class="big-btn garage mb-base-btn" aria-label="Moon Base" onClick={go(onBase)}><span class="e">🌕</span><span class="btn-word">Base</span></button>
-        <button class={`big-btn go race-btn mb-land-btn ${awake ? 'pulse' : ''}`} aria-label="Land the ship" onClick={go(onLand)}>
-          <span class="race-flag" aria-hidden="true">🛬</span>
-          <span class="race-word">Land</span>
-          <span class="race-count">{b.landings}</span>
+        <button class="big-btn garage mb-base-btn" aria-label="Moon Base" onClick={go(onBase)}><ModuleArt id={HOME} b={b} size={56} /><span class="btn-word">Base</span></button>
+        <button class={`big-btn go mb-land-btn ${awake ? 'pulse' : ''}`} aria-label="Land the ship" onClick={go(onLand)}>
+          <Lander size={52} />
+          <span class="land-word">Land</span>
+          <span class="land-count">{b.landings}</span>
         </button>
-        <button class="big-btn go again second" aria-label="Play again" onClick={go(onAgain)}><span class="e">▶</span></button>
+        <button class="big-btn go mb-again" aria-label="Play again" onClick={go(onAgain)}><span class="e">▶</span></button>
       </div>
       <IconButton label="Home" class={awake ? '' : 'asleep'} onClick={go(onHome)}>🏠</IconButton>
     </div>

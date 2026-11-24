@@ -19,8 +19,9 @@ import { land, screen } from '../nav';
 import { said, type Phrase } from '../phrases';
 import { startRound } from '../round';
 import { useVoiceScope, type VoiceScope } from '../voice';
-import { BADGES, has, lightsHex, paintHex, planGo, specOf, type GoPay } from '../base/base';
-import { ModuleArt, moduleName, moduleWords } from '../base/BaseMap';
+import { BADGES, has, HOME, lightsHex, paintHex, planGo, specOf, type GoPay } from '../base/base';
+import { Earth, Lander, ModuleArt } from '../art/bits';
+import { moduleName, moduleWords } from '../base/BaseMap';
 import { RockArt, specialWords } from '../base/BaseScreen';
 import { rockFor } from '../base/gen';
 import { createScene } from './render';
@@ -127,13 +128,18 @@ export function LandingScreen() {
   if (phase === 'card') {
     return (
       <div class="screen landing-screen mb-card-screen">
-        <header class="mb-head"><IconButton label="Moon Base" onClick={exit}>🏠</IconButton><h1>Landing {plan.n}</h1></header>
+        <Earth cls="mb-earth sky-earth" />
+        <header class="mb-head"><IconButton label="Moon Base" onClick={exit}>🏠</IconButton><h1>Landing {plan.n}</h1>{plan.landing.night && <span class="mb-chip">🌙</span>}</header>
         <div class="mb-go-card">
-          <div class="mb-go-cargo">{plan.carrying ? <ModuleArt id={plan.carrying} b={b} size={72} /> : <span class="mb-crate" aria-hidden="true">📦</span>}
-            <span class="mb-go-name">{plan.carrying ? moduleName(plan.carrying) : 'Supplies'}</span></div>
-          {plan.special && <div class="mb-go-special">🎁 + <Shown show={plan.special.icon} size={32} /></div>}
-          <div class="mb-bests">🪶 {b.bests.soft ?? '–'} · 🎯 {b.bests.close ?? '–'}</div>
-          <button class="big-btn go go-btn pulse" aria-label="Go" onClick={() => { if (voice.active) setPhase('live'); }}><span class="e">🛬</span><span class="go-word">Go</span></button>
+          <div class="mb-go-cargo">
+            <span class="mb-go-ship"><Lander size={120} />
+              <span class="mb-go-load">{plan.carrying ? <ModuleArt id={plan.carrying} b={b} size={76} /> : <span class="mb-crate" aria-hidden="true">📦</span>}</span>
+            </span>
+            <span class="mb-go-name">{plan.carrying ? moduleName(plan.carrying) : 'Supplies'}</span>
+            {plan.special && <span class="mb-go-special">🎁 <Shown show={plan.special.icon} size={32} /></span>}
+          </div>
+          <div class="mb-bests" aria-label="Best landings"><span>🪶 {b.bests.soft ?? '–'}</span><span>🎯 {b.bests.close ?? '–'}</span></div>
+          <button class="big-btn go go-btn pulse" aria-label="Go" onClick={() => { if (voice.active) setPhase('live'); }}><Lander size={44} /><span class="go-word">Go</span></button>
         </div>
       </div>
     );
@@ -153,16 +159,19 @@ export function LandingScreen() {
         </button>
       )}
       {phase === 'end' && pay && result && (
-        <div class="reward mb-land-result fl-result">
-          <h2>{softWord(result.soft)}</h2>
-          <div class="mb-result-row"><span>🪶 {result.soft}{pay.bestSoft ? ' ⭐' : ''}</span><span>🎯 {result.close}{pay.bestClose ? ' ⭐' : ''}</span></div>
-          <div class="mb-result-row"><span class="mb-earn"><CurrencyIcon kind={CUR} size={36} /> +{pay.bolts}</span><span class="mb-rock"><RockArt r={rock} size={56} /> {rock.colour} {rock.word}</span></div>
-          {pay.special && <div class="mb-result-row">🎁 <Shown show={pay.special.icon} size={36} /> {pay.special.name}</div>}
-          <div class="mb-result-row">{pay.carrying ? <><ModuleArt id={pay.carrying} b={after} size={44} /> {moduleName(pay.carrying)}</> : <>📦 Supplies</>}</div>
-          <div class="btns">
-            <button class={`big-btn go ${after.toPlace ? 'pulse' : ''}`} aria-label="Moon Base" onClick={exit}><span class="e">🌕</span><span class="btn-word">Base</span></button>
-            {after.landings > 0 && !after.toPlace && <button class="big-btn go race-btn" aria-label="Land again" onClick={() => { if (voice.active) land(); }}><span class="race-flag">🛬</span><span class="race-count">{after.landings}</span></button>}
-            <button class="big-btn go again second" aria-label="Play" onClick={() => { if (voice.active) startRound(); }}><span class="e">▶</span></button>
+        <div class="mb-land-result fl-result">
+          <div class="mb-result-card">
+            <h2>{softWord(result.soft)}</h2>
+            {/* a Landing the ship finished by itself has no "closest" of his own, so only its softness shows */}
+            <div class="mb-result-row"><span>🪶 {result.soft}{pay.bestSoft ? ' ⭐' : ''}</span>{!result.assisted && <span>🎯 {result.close}{pay.bestClose ? ' ⭐' : ''}</span>}</div>
+            <div class="mb-result-row"><span class="mb-earn"><CurrencyIcon kind={CUR} size={36} /> +{pay.bolts}</span><span class="mb-rock"><RockArt r={rock} size={56} /> {rock.colour} {rock.word}</span></div>
+            {pay.special && <div class="mb-result-row">🎁 <Shown show={pay.special.icon} size={36} /> {pay.special.name}</div>}
+            <div class="mb-result-row">{pay.carrying ? <><ModuleArt id={pay.carrying} b={after} size={52} /> {moduleName(pay.carrying)}</> : <>📦 Supplies</>}</div>
+            <div class="btns">
+              <button class={`big-btn go ${after.toPlace ? 'pulse' : ''}`} aria-label="Moon Base" onClick={exit}><ModuleArt id={HOME} b={after} size={48} /><span class="btn-word">Base</span></button>
+              {after.landings > 0 && !after.toPlace && <button class="big-btn go mb-land-btn" aria-label="Land again" onClick={() => { if (voice.active) land(); }}><Lander size={44} /><span class="land-count">{after.landings}</span></button>}
+              <button class="big-btn go mb-again" aria-label="Play" onClick={() => { if (voice.active) startRound(); }}><span class="e">▶</span></button>
+            </div>
           </div>
         </div>
       )}
