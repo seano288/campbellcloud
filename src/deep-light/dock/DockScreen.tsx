@@ -82,7 +82,7 @@ export function DockScreen() {
     setTrial(k);
     if (tabOf(k) !== 'horn') sChime();
     const price = priceOf(k);
-    void voice.say(infoOf(k).name as Phrase, ...trickOf(k), 'It costs', n(price), 'Bolts.', ...(balance < price ? ['You need' as const, n(price - balance), 'more Bolts.' as const] : []));
+    void voice.say(infoOf(k).name as Phrase, ...trickOf(k), 'It costs', n(price), 'Pearls.', ...(balance < price ? ['You need' as const, n(price - balance), 'more Pearls.' as const] : []));
   }
   function buyTrial() {
     if (!trial || !voice.active || blocked) return;
@@ -90,7 +90,7 @@ export function DockScreen() {
     if (balance < price) {
       nope();
       updateDock(s => selectGoal(s, k));
-      void voice.say('You need', n(price - balance), 'more Bolts.', 'Play a Round to earn Bolts!');
+      void voice.say('You need', n(price - balance), 'more Pearls.', 'Play a Round to earn Pearls!');
       return;
     }
     const before = openZones(st);

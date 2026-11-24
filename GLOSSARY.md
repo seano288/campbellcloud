@@ -594,7 +594,11 @@ _Avoid_: level, map, location
 ## Deep Light
 
 Deep Light reuses Math Bots', Rover Code's and Hook and Ladder's terms where they mean the same thing (Mixed Round, Mastery, Stretch,
-Bolt, Goal, Paint, Rung). It has no Tune-Up and no Meetings. These are its own:
+Goal, Paint, Rung). It has no Tune-Up and no Meetings. These are its own:
+
+**Pearl**: Deep Light's Bolt, drawn as a pearl, earned and spent exactly as Bolts are, because a submarine dives for treasure
+from the sea floor, not machine parts. Every game names its currency in `src/currency/kind.ts`.
+_Avoid_: Bolt (in Deep Light it's always Pearls)
 
 **Game Modes (Deep Light)**: the six kinds of question, about light and sound (NGSS 1-PS4): Light to See (which cave can you see the
 crab in; tap everything that makes its own light; why can't you see it), Through or Not (which lets the light through; sort three by
@@ -641,7 +645,7 @@ _Avoid_: level, world
 
 **Dive**: what a finished Round earns (he starts with one): about a minute in a zone's dark sea, steering with a held finger, seeing only
 what his headlights touch and the animals that make their own light. Holding the light on an animal takes its **photo**; passing close
-to **treasure**, the Claw picks it up (a Bolt each). Then the submarine rises by itself. It can't be failed: nothing chases him and the
+to **treasure**, the Claw picks it up (a Pearl each). Then the submarine rises by itself. It can't be failed: nothing chases him and the
 edges of the sea only nudge him back. It's used, and paid, only when it ends.
 _Avoid_: trip, mission, level
 

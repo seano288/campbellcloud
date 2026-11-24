@@ -1,11 +1,12 @@
 // The single typed list of everything Deep Light says. tools/make_voice.py records a clip for each entry, the build fails if one is
 // missing, and say() accepts only these. Questions and lessons are whole sentences from the tables in science/things.ts, so each is
-// worded once. Prices and counts are chained from number clips ("It costs", "45", "Bolts."), a bought thing from "You got" and its
+// worded once. Prices and counts are chained from number clips ("It costs", "45", "Pearls."), a bought thing from "You got" and its
 // name, and an animal is its name, then its fact.
 //
 // Answer choices that are words or sentences are read out as they light (he can't read "frosted glass" or "It is too quiet." yet),
 // and so are pictures whose name he needs ("wax paper", "a horn"); a picture that says itself (a lit cave, a shadow) is not.
-import { BOLT, earnedLine, type EarnedLine } from '../currency/kind';
+import { earnedLine, type EarnedLine } from '../currency/kind';
+import { DEEP_CURRENCY } from './branding';
 import { ALL_NAMES, TAB_NAMES, type ItemName } from './dock/parts';
 import { TRICKS, type Trick } from './dock/subs';
 import { LOCKED_HINTS, MODE_IDS, MODE_NAMES, type ModeName } from './learning';
@@ -18,7 +19,7 @@ import { ANIMALS, type AnimalFact, type AnimalName } from './sea/animals';
 import { ZONES, type ZoneName } from './sea/zones';
 
 export const NUMBERS_TO = 100;
-/** The most Bolts said in one "You earned" line: a perfect Round pays 6, a Dive's treasure up to 3. */
+/** The most Pearls said in one "You earned" line: a perfect Round pays 6, a Dive's treasure up to 3. */
 export const MOST_EARNED = 10;
 
 const GAME = ["Let's go!", 'Round done!', 'Level up!', 'You kept trying!', 'Tap again to go home.'] as const;
@@ -32,7 +33,7 @@ export const SAID_NAMES = { mirror: 'a mirror' } as const;
 // ---------- the Dock, the Dive and the Logbook ----------
 
 const DOCK = [
-  'The Dock!', 'It costs', 'Bolts.', 'You need', 'more Bolts.', 'Play a Round to earn Bolts!', 'You got', 'You have everything!',
+  'The Dock!', 'It costs', 'Pearls.', 'You need', 'more Pearls.', 'Play a Round to earn Pearls!', 'You got', 'You have everything!',
   'You have 1 Dive!', 'Dives!', 'Tap Dive!', 'Play a Round to earn a Dive!', 'You earned a Dive!', 'Next dive:', 'A new place to dive!',
   'You need a stronger Hull to go there!', 'You need a better Claw to go there!', 'You need better Sonar to go there!', 'You need brighter Headlights to go there!',
   'You need a faster Motor to go there!',
@@ -53,7 +54,7 @@ const DIVE = [
 ] as const;
 const LOGBOOK = ['The Logbook!', 'Take pictures on a Dive to fill it!', 'Not found yet!'] as const;
 
-type EarnedPhrase = EarnedLine<typeof BOLT>;
+type EarnedPhrase = EarnedLine<typeof DEEP_CURRENCY>;
 type StarLine = `You are a ${ModeName} star!`;
 type ModePhrase = ModeName | StarLine | `You opened ${ModeName}!`;
 export const starLine = (name: ModeName) => `You are a ${name} star!` as StarLine;
@@ -83,7 +84,7 @@ const uniq = <T,>(xs: readonly T[]) => [...new Set(xs)];
 const vals = <T extends object>(o: T) => Object.values(o) as V<T>[];
 
 export const PHRASES = uniq<Phrase>([
-  ...GAME, ...CHEERS, ...Array.from({ length: MOST_EARNED }, (_, i) => earnedLine(BOLT, i + 1)), ...modePhrases(), ...vals(LOCKED_HINTS), ...numberPhrases(),
+  ...GAME, ...CHEERS, ...Array.from({ length: MOST_EARNED }, (_, i) => earnedLine(DEEP_CURRENCY, i + 1)), ...modePhrases(), ...vals(LOCKED_HINTS), ...numberPhrases(),
   // Light to See
   ...vals(SEE_Q), ...vals(WHY_Q), ...WHY_CHOICES.map(c => c.said), OWN_ASK, SUN_MOON_Q, ...vals(SEE_LINES), ...LIGHT_THINGS.map(t => t.name), MOON.name, ...vals(SAID_NAMES),
   // Through or Not

@@ -8,7 +8,7 @@
 //   npm run dev:deep-light   (in another shell)
 //   npx tsx tools/deep-light/tour.ts <url> <outDir>
 // TOUR_VIEW=portrait|landscape|phone|side picks the screen (iPad 9 sizes by default: 810×1080 upright). TOUR_SAVE=fresh|levels: a
-// brand-new player, or one with every kind open at Level 2 (TOUR_LEVEL=3 for Level 3), some Bolts, parts and photos, so the Dive goes
+// brand-new player, or one with every kind open at Level 2 (TOUR_LEVEL=3 for Level 3), some Pearls, parts and photos, so the Dive goes
 // deeper. TOUR_ROUNDS caps how many Rounds a levels save plays to miss once in every kind. TOUR_SLOW=4 slows the CPU fourfold during
 // the Dive (Chromium's throttle), a rough stand-in for an iPad 9. TOUR_DPR sets the device pixel ratio (1 by default; 2 is an iPad's).
 import { mkdirSync, writeFileSync } from 'node:fs';
@@ -246,7 +246,7 @@ await page.waitForTimeout(600);
 await shot('dock-trying');
 await page.getByRole('button', { name: 'Buy', exact: true }).tap();
 await page.waitForTimeout(3200);
-if (balance >= 4 && !(await saved()).dock?.owned?.includes('paint:orange')) problems.push(`Orange was not bought with ${balance} Bolts`);
+if (balance >= 4 && !(await saved()).dock?.owned?.includes('paint:orange')) problems.push(`Orange was not bought with ${balance} Pearls`);
 for (const t of ['Buddy', 'The Dock', 'Headlights', 'Hull']) { await page.getByRole('tab', { name: t, exact: true }).tap(); await page.waitForTimeout(250); }
 await shot('dock-hull-tab');
 await page.getByRole('button', { name: 'The Deep Trench', exact: true }).tap();

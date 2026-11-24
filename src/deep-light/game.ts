@@ -1,6 +1,6 @@
 // The saved game and how practice changes it. Everything goes through player.commit(), which saves it under its own key, so Deep
-// Light never touches another game's save on the same site. A Round pays Bolts through the shared currency and earns a Dive; the
-// Dock spends Bolts through the shared reward purchases.
+// Light never touches another game's save on the same site. A Round pays Pearls through the shared currency and earns a Dive; the
+// Dock spends Pearls through the shared reward purchases.
 import { createPracticeCoordinator } from '../app/coordination';
 import { createRewardPurchases } from '../app/purchaseCoordination';
 import { credit, readCurrency, type CurrencyState, type EarningsPolicy } from '../currency/currency';
@@ -66,7 +66,7 @@ export function settleDive(store: Pick<typeof player, 'commit'>, photographed: r
     if (s.dock.dives <= 0) return null;
     const done = finishDive(s.dock, photographed, treasure);
     pay = done.pay;
-    const paid = credit(s.currency, done.pay.bolts);
+    const paid = credit(s.currency, done.pay.pearls);
     return { ...s, dock: done.state, currency: paid.kind === 'accepted' ? paid.state : s.currency };
   });
   return pay;

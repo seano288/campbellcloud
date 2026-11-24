@@ -117,7 +117,7 @@ export function DiveScreen() {
       sFanfare(); confetti(40, voice.signal);
       const fresh = paid?.fresh.length ?? 0;
       const lines: Phrase[] = ['Dive done!', ...(fresh === 1 ? ['You found a new animal!' as const] : fresh > 1 ? ['You found' as const, `${fresh}` as Phrase, 'new animals!' as const] : []),
-        ...(fresh ? ['It is in your Logbook!' as const] : []), ...(paid && paid.bolts ? [earnedLine(DEEP_CURRENCY, paid.bolts)] : [])];
+        ...(fresh ? ['It is in your Logbook!' as const] : []), ...(paid && paid.pearls ? [earnedLine(DEEP_CURRENCY, paid.pearls)] : [])];
       void voice.say(...lines).then(() => { if (voice.active) setAwake(true); });
       setTimeout(() => { if (voice.active) setAwake(true); }, 8000); // a stalled voice never keeps the buttons asleep
     }
@@ -184,7 +184,7 @@ export function DiveScreen() {
           <div class="done-card">
             <h2>Dive done!</h2>
             {pay && pay.fresh.length > 0 && <div class="done-new" aria-label="New animals">{pay.fresh.map(id => <span key={id} class="done-animal"><AnimalPic id={id} label={animal(id).name} /><b>{animal(id).name}</b></span>)}</div>}
-            {pay && pay.bolts > 0 && <div class="done-pay">+{pay.bolts}<CurrencyIcon kind={DEEP_CURRENCY} size={32} /></div>}
+            {pay && pay.pearls > 0 && <div class="done-pay">+{pay.pearls}<CurrencyIcon kind={DEEP_CURRENCY} size={32} /></div>}
             <div class={`btns ${awake ? '' : 'asleep'}`}>
               <button class="big-btn garage to-dock" aria-label="Dock" onClick={go(() => { screen.value = 'dock'; })}><img src={subImage(look)} alt="" /></button>
               {dives > 0 && <button class="big-btn go dive-again pulse" aria-label="Dive again" onClick={go(goDive)}><span aria-hidden="true">🌊</span>{dives}</button>}

@@ -1,5 +1,5 @@
-// The Dock on the saved game. A Round earns Bolts and one Dive. A Dive photographs animals for his Logbook and picks up treasure,
-// which pays Bolts. Bolts buy parts, and better parts open deeper zones. The first Dive is free, so he sees the sea before his first
+// The Dock on the saved game. A Round earns Pearls and one Dive. A Dive photographs animals for his Logbook and picks up treasure,
+// which pays Pearls. Pearls buy parts, and better parts open deeper zones. The first Dive is free, so he sees the sea before his first
 // purchase; a Dive is used up only when it's finished (leaving halfway costs nothing and pays nothing), as in Hook and Ladder's Calls.
 import { isAmount } from '../../currency/amount';
 import { shuffle, type Rng } from '../../game/rng';
@@ -36,8 +36,8 @@ export interface DockState {
   done: number;
 }
 
-/** Bolts a treasure he picks up on a Dive pays (a default for the parent to confirm). */
-export const TREASURE_BOLTS = 1;
+/** Pearls a treasure he picks up on a Dive pays (a default for the parent to confirm). */
+export const TREASURE_PEARLS = 1;
 /** Treasures on each Dive. */
 export const TREASURES = 3;
 /** How long a Dive lasts before the submarine rises by itself, in seconds. */
@@ -219,12 +219,12 @@ export function diveAnimals(z: ZoneId, photos: readonly string[], rng: Rng, n = 
 /** A Round finished: one more Dive. */
 export const earnDive = (s: DockState): DockState => ({ ...s, dives: s.dives + 1 });
 
-export interface DivePay { bolts: number; fresh: AnimalId[] }
+export interface DivePay { pearls: number; fresh: AnimalId[] }
 /** The Dive is over: it's used, its treasure pays, and every animal he photographed for the first time goes in his Logbook. */
 export function finishDive(s: DockState, photographed: readonly AnimalId[], treasure: number): { state: DockState; pay: DivePay } {
   const fresh = [...new Set(photographed.filter(a => !s.photos.includes(a)))];
   return {
     state: { ...s, dives: Math.max(0, s.dives - 1), done: s.done + 1, photos: [...s.photos, ...fresh] },
-    pay: { bolts: Math.min(TREASURES, Math.max(0, treasure)) * TREASURE_BOLTS, fresh },
+    pay: { pearls: Math.min(TREASURES, Math.max(0, treasure)) * TREASURE_PEARLS, fresh },
   };
 }

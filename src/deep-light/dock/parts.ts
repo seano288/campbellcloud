@@ -3,7 +3,7 @@
 // The parts are the lesson: Headlights set how far and how wide his light reaches (he sees only what it touches), Sonar's ping draws
 // the outline of things his light can't reach (sound finding what light can't), a stronger Hull goes deeper, the Motor goes faster,
 // the Claw reaches further for treasure, and the Camera Flash lights the whole sea for a moment. The rest is how his submarine looks
-// and sounds, who rides in the window, and things for the Dock. No price is over 100 Bolts, the most the recorded numbers say.
+// and sounds, who rides in the window, and things for the Dock. No price is over 100 Pearls, the most the recorded numbers say.
 //
 // Since 2026-11-21 he also chooses which submarine he dives in (dock/subs.ts) and builds each one: a nose, a tail, fins and a top,
 // each drawn to fit every submarine (art/pieces.ts). Each submarine keeps its own build and its own looks; the parts are shared.

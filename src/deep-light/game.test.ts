@@ -9,7 +9,7 @@ import { MOST_EARNED, NUMBERS_TO } from './phrases';
 import { ANIMALS, animalsIn } from './sea/animals';
 import { ZONES } from './sea/zones';
 import {
-  allOwned, diveAnimals, diveZone, finishDive, fit, freshDock, gearOf, goalOf, isFitted, lookOf, openZones, pickZone, proposePurchase, readDock, TREASURE_BOLTS, TREASURES, zoneOpen,
+  allOwned, diveAnimals, diveZone, finishDive, fit, freshDock, gearOf, goalOf, isFitted, lookOf, openZones, pickZone, proposePurchase, readDock, TREASURE_PEARLS, TREASURES, zoneOpen,
 } from './dock/dock';
 import { ALL_KEYS, ALL_NAMES, CATALOGUE, FITTED, infoOf, keyOf, RUNGED, STARTERS, TABS, type ItemKey } from './dock/parts';
 import { SUBS, subDef } from './dock/subs';
@@ -49,7 +49,7 @@ describe('the save', () => {
 });
 
 describe('a Round', () => {
-  it('pays a Bolt for each clean answer and one for finishing, and earns a Dive', () => {
+  it('pays a Pearl for each clean answer and one for finishing, and earns a Dive', () => {
     const s = store(), practice = createPractice(s);
     const started = practice.start();
     if (started.kind !== 'accepted') throw new Error('no Round');
@@ -64,11 +64,11 @@ describe('a Round', () => {
     expect(s.state.dock.dives).toBe(freshDock().dives + 1);
   });
   it('the first Dive is free: a new player has one before any Round', () => expect(freshDock().dives).toBe(1));
-  it('every "You earned" line the game can say is recorded', () => expect(MOST_EARNED).toBeGreaterThanOrEqual(Math.max(MAX_BOLTS, TREASURES * TREASURE_BOLTS)));
+  it('every "You earned" line the game can say is recorded', () => expect(MOST_EARNED).toBeGreaterThanOrEqual(Math.max(MAX_BOLTS, TREASURES * TREASURE_PEARLS)));
 });
 
 describe('the Dock', () => {
-  it('has much more than the 150 things for 2,775 Bolts it started with (now about 250 for over 6,000), every price under the 100 the voice can say, and every starter free', () => {
+  it('has much more than the 150 things for 2,775 Pearls it started with (now about 250 for over 6,000), every price under the 100 the voice can say, and every starter free', () => {
     const buyable = ALL_KEYS.filter(k => infoOf(k).price > 0);
     expect(buyable.length).toBeGreaterThanOrEqual(240);
     expect(buyable.reduce((n, k) => n + infoOf(k).price, 0)).toBeGreaterThanOrEqual(2 * 2775);
@@ -156,13 +156,13 @@ describe('zones and Dives', () => {
     const done = finishDive(d, ['clownfish', 'turtle', 'turtle'], 2);
     expect(done.state.dives).toBe(0);
     expect(done.state.photos).toEqual(['clownfish', 'turtle']);
-    expect(done.pay).toEqual({ bolts: 2 * TREASURE_BOLTS, fresh: ['turtle'] });
-    expect(finishDive(d, [], 99).pay.bolts).toBe(TREASURES * TREASURE_BOLTS);
+    expect(done.pay).toEqual({ pearls: 2 * TREASURE_PEARLS, fresh: ['turtle'] });
+    expect(finishDive(d, [], 99).pay.pearls).toBe(TREASURES * TREASURE_PEARLS);
   });
-  it('settling a Dive pays Bolts, and does nothing without a Dive to use', () => {
+  it('settling a Dive pays Pearls, and does nothing without a Dive to use', () => {
     const s = store();
     const pay = settleDive(s, ['clownfish'], 1);
-    expect(pay).toEqual({ bolts: 1, fresh: ['clownfish'] });
+    expect(pay).toEqual({ pearls: 1, fresh: ['clownfish'] });
     expect(s.state.currency.balance).toBe(1);
     expect(s.state.dock.dives).toBe(0);
     expect(settleDive(s, ['turtle'], 3)).toBeNull();
@@ -176,7 +176,7 @@ describe('zones and Dives', () => {
 
 describe('his submarines', () => {
   const rich = (d = freshDock()) => ({ ...d, owned: [...ALL_KEYS] });
-  it('he starts in the Explorer Sub, and every other one costs Bolts and does something of its own', () => {
+  it('he starts in the Explorer Sub, and every other one costs Pearls and does something of its own', () => {
     expect(freshDock().sub).toBe('explorer');
     for (const s of SUBS.slice(1)) { expect(s.price).toBeGreaterThan(0); expect(s.trick).not.toBeNull(); }
     expect(new Set(SUBS.map(s => s.trick)).size).toBe(SUBS.length);
