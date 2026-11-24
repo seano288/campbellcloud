@@ -51,25 +51,24 @@ Play it, slowly, and say what happened.
 
 A second miss gets the fuller lesson: he does it himself with a finger, pushing the cart or moving the magnet, and the voice says what he is seeing.
 
-## Currency: Tickets
+## Currency: Tokens
 
-A park runs on tickets. Riders hand them over at the gate of each ride, and he spends them on track, rides and cars.
+A fairground runs on tokens. Riders drop one in the slot at each ride, and he spends them on track, rides and cars. Sentence Express already pays in Tickets, so this game does not.
 
-- One Ticket, many Tickets. Add `TICKET` to `src/currency/kind.ts`.
-- The icon is a red paper ticket with scalloped ends and a star punched in the middle, tilted a little.
-- When a Round ends, the tickets come out of a ticket booth in a strip and tear off one by one onto the pile.
-- A Ticket is never a price in money, and no ride shows a cost in dollars.
-- Food Truck's glossary uses "ticket" for a customer's order. The two games never meet, but say which one you mean in `GLOSSARY.md`.
+- One Token, many Tokens. Add `TOKEN` to `src/currency/kind.ts`.
+- The icon is a round red and white token with a star stamped in the middle and a ridged edge, like a fairground ride token. It must not look like a coin: no number and no head on it.
+- When a Round ends, the tokens drop out of a token machine one by one and clatter onto the pile.
+- A Token is never a price in money, and no ride shows a cost in dollars.
 
 ## Voice
 
-Every question is spoken. Answer pictures are not read out. New clips: the kind names, the names of the track pieces and rides, and the currency lines with "Tickets" (the earned line, the need line and the whole-ten prices; see the build guide's "Currency").
+Every question is spoken. Answer pictures are not read out. New clips: the kind names, the names of the track pieces and rides, and the currency lines with "Tokens" (the earned line, the need line and the whole-ten prices; see the build guide's "Currency").
 
 ## The reward: the Coaster, the Ride and the Park
 
 He builds a roller coaster one piece at a time and rides it. Flat 2D, from the side.
 
-- **The loop.** A finished Round earns Tickets and one Ride. Tickets buy track pieces, cars, and other rides for the park.
+- **The loop.** A finished Round earns Tokens and one Ride. Tokens buy track pieces, cars, and other rides for the park.
 - **Building.** The coaster is a row of pieces joined end to end: a lift hill, drops, humps, a loop, a corkscrew, a tunnel, a splash pool, a banked turn, a booster, brakes and the station. He picks the next piece from a tray, and it snaps on. There is no free drawing.
 - **The coaster obeys the Rounds.** The car's speed comes from the height it has fallen, less a little lost to the track. If he adds a hill taller than the car can climb, the builder shows the car slowing and rolling back, and offers the two honest fixes: a taller first hill or a booster. That moment is the lesson, so do not hide it by letting any track work.
 - **The Ride (action, 2D canvas, about 45 seconds).** He holds a lever to let the car go at the top of the lift, leans it with a finger to keep the riders' hands up, and taps for the camera at the big drop. The view follows the car.
@@ -79,7 +78,7 @@ He builds a roller coaster one piece at a time and rides it. Flat 2D, from the s
 
 Plan for at least 250 named things to earn from the first build, as the fixed catalogue under the endless layer described below: about 50 track pieces in several styles (wood, steel, mine train, space), 20 cars and trains, 30 paints, 30 park rides, 40 stands and pieces of scenery, 20 themes for the station, visitors' hats and balloons, and trophies. Economy defaults for the parent to confirm: one Ride per Round, the first one free on a starter coaster; the first new piece within two Rounds; prices up to 100 in ones, then whole tens up to 400.
 
-Use the glossary's words where they fit (Slot, Mod, Goal) and add the new ones (Ticket, Ride, Piece, Park, Thrill) to `GLOSSARY.md`.
+Use the glossary's words where they fit (Slot, Mod, Goal) and add the new ones (Token, Ride, Piece, Park, Thrill) to `GLOSSARY.md`.
 
 ## Never running out
 
@@ -94,7 +93,7 @@ The build guide's "Rewards that never run out" and "Competition" sections are re
 
 ## Look
 
-A fairground on a summer evening: candy red and white, bulb yellow, a teal sky going pink. Track is drawn as two rails on chunky supports, with the family's black outlines. Icon: a coaster car at the top of a hill with a ticket for a flag.
+A fairground on a summer evening: candy red and white, bulb yellow, a teal sky going pink. Track is drawn as two rails on chunky supports, with the family's black outlines. Icon: a coaster car at the top of a hill with a token for a sun behind it.
 
 Keep it apart from Sentence Express, which also has track and a train. There the track is a wooden toy on a table and the train is a sentence. Here the track is tall, the car is fast and the view is from the side.
 

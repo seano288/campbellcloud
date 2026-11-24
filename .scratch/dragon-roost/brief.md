@@ -18,7 +18,7 @@ Start the research from the standards above and the matching TEKS Grade 2 conven
 
 The research must settle what the kinds of word are called on screen. Most first-grade classrooms say noun, verb and adjective. The default is to use those words, each met first with its meaning ("A noun names a person, an animal, a place or a thing"), with a Meeting as Math Bots does for a new picture.
 
-**Every word must be one he can read.** Each word in a question is in the Sight Squad list, the Dino Dig list, the Word Wreckers tables or the Cargo Words tables, or it is in a short list of dragon words (dragon, egg, wing, roost, gem) met first with their picture and the voice. A test enforces this.
+**Every word must be one he can read.** Each word in a question is in the Sight Squad list, the Dino Dig list, the Word Wreckers tables or the Cargo Words tables, or it is in a short list of dragon words (dragon, egg, wing, roost, flame) met first with their picture and the voice. A test enforces this.
 
 ## Kinds
 
@@ -58,37 +58,37 @@ Rules the tests must enforce:
 
 A second miss gets the fuller lesson: the rule said in one sentence, then two more examples played before the question comes back.
 
-## Currency: Gems
+## Currency: Flames
 
-Dragons keep a hoard. He earns Gems, they pile up in the hoard cave, and he spends them on eggs, nests and gear.
+Dragons make fire, and fire is what keeps an egg warm. He earns Flames, they burn in the roost's hearth, and he spends them on eggs, nests and gear. Dino Dig already pays in Gems, so this game does not.
 
-- One Gem, many Gems. Add `GEM` to `src/currency/kind.ts`.
-- The icon is a cut red gem with a white glint, seen from the front.
-- When a Round ends, his dragon flies in and drops the Gems onto the hoard one by one, each with a chime.
-- The hoard cave shows the pile. Spending makes the number go down, but the cave never looks emptied: what he has bought is displayed there too.
-- Gems are not gold and not coins. Nothing is priced in money.
+- One Flame, many Flames. Add `FLAME` to `src/currency/kind.ts`.
+- The icon is a small friendly flame: orange outside, yellow inside, with a dark red outline.
+- When a Round ends, his dragon flies in and puffs the Flames onto the pile one by one, each with a soft whoosh.
+- The hearth in the roost burns brighter the more Flames he has. It never goes out, even at none.
+- Flames are never money. Nothing is priced in gold or coins.
 
 ## Voice
 
-Aria at -8%, which the build guide says matters most for reading. Every word and sentence in the tables is a recorded clip, since the lessons say them. Single short words are where the voice goes wrong, so listen to a sample of every kind and add fixes to `SAID_AS`. Contractions need the most care (*we're* against *were*, *he's* against *his*). The currency lines are recorded with "Gems" (see the build guide's "Currency").
+Aria at -8%, which the build guide says matters most for reading. Every word and sentence in the tables is a recorded clip, since the lessons say them. Single short words are where the voice goes wrong, so listen to a sample of every kind and add fixes to `SAID_AS`. Contractions need the most care (*we're* against *were*, *he's* against *his*). The currency lines are recorded with "Flames" (see the build guide's "Currency").
 
 ## The reward: the Roost, the Flight and the Eggs
 
 He hatches dragons, raises them and flies them. Flat 2D. The dragons are friendly: round, bright and never frightening.
 
-- **The loop.** A finished Round earns Gems and one Flight. Gems buy eggs, nests, tricks and gear. Each Round also warms every egg in a nest by one step.
+- **The loop.** A finished Round earns Flames and one Flight. Flames buy eggs, nests, tricks and gear. Each Round also warms every egg in a nest by one step.
 - **Eggs.** An egg hatches after a set number of Rounds, three for the first and more for rarer ones. Hatching is tied to Rounds, so it cannot be bought out early.
 - **Dragons.** Each is put together from parts: body, head, horns, wings, tail, colour, pattern and breath (fire, frost, sparks, bubbles, rainbow). When it hatches he names it by picking one describing word and one noun from two short lists (Spiky Storm, Tiny Ember). The words come from the game's tables and he is not tested on them.
 - **Growing.** A dragon grows through three stages as he flies it: hatchling, young and great.
 - **Tricks.** Each trick is a verb he has met: loop, dive, spin, roar, glide. He buys a trick and it becomes a button in the Flight.
-- **The Flight (action, 2D canvas, from the side, about a minute).** A held finger sets the dragon's height as it flies over hills, lakes and castles. He holds a button to breathe and taps a trick button. He lights beacons, pops clouds, races birds and gathers a few Gems.
+- **The Flight (action, 2D canvas, from the side, about a minute).** A held finger sets the dragon's height as it flies over hills, lakes and castles. He holds a button to breathe and taps a trick button. He lights beacons, pops clouds, races birds and gathers a few Flames.
 - **It cannot be failed.** Mountains and towers only bounce the dragon up and over. Nothing hurts it, and it breathes on beacons and clouds, never on people or animals.
-- **The Roost.** A mountain with ledges. He buys nests, perches, a hot spring, a waterfall, a slide, a hoard cave and a lookout. His dragons sleep, play and fly about.
+- **The Roost.** A mountain with ledges. He buys nests, perches, a hot spring, a waterfall, a slide, a hearth, a treasure cave and a lookout. His dragons sleep, play and fly about.
 - **Show off.** "Visit the roost": every dragon he has, wandering. Tap one and it does its tricks and its name is said.
 
 Plan for at least 250 named things to earn from the first build, as the fixed catalogue under the endless layer described below: about 40 named dragons with their eggs, 30 tricks, 40 pieces for the roost, 30 saddles and pieces of gear, 30 colours and patterns for breath and trails, 24 places to fly, 30 toys and treats, and trophies. Economy defaults for the parent to confirm: one Flight per Round, the first one free on a starter dragon; the first egg within two Rounds; prices up to 100 in ones, then whole tens up to 400.
 
-Use the glossary's words where they fit (Slot, Goal) and add the new ones (Gem, Egg, Roost, Flight, Trick, Hoard) to `GLOSSARY.md`.
+Use the glossary's words where they fit (Slot, Goal) and add the new ones (Flame, Egg, Roost, Flight, Trick, Hearth) to `GLOSSARY.md`.
 
 ## Never running out
 
@@ -102,7 +102,7 @@ The build guide's "Rewards that never run out" and "Competition" sections are re
 
 ## Look
 
-A mountain at dawn: warm rock, pink and gold sky, deep green valleys, and dragons in bright single colours with pale bellies. Words in questions sit on stone tablets set in Andika. Icon: a dragon's head peeking from a cracked egg with a gem beside it.
+A mountain at dawn: warm rock, pink and gold sky, deep green valleys, and dragons in bright single colours with pale bellies. Words in questions sit on stone tablets set in Andika. Icon: a dragon's head peeking from a cracked egg with a small flame above it.
 
 Keep it apart from Sky Writer and Time Flies, where he flies a plane. A dragon flaps, glides and breathes, and it is alive: it grows, sleeps and has a name.
 

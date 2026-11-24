@@ -82,12 +82,13 @@ Put the three numbers (currency earned a Round, Rounds to finish the catalogue, 
 
 ## Currency
 
-Most games so far pay in Bolts. That suits a garage, a hangar or a robot workshop, and it does not suit a farm or a dragon's cave. The parent asked on 2026-11-24 for each game to pay in something that belongs to its world. Every brief from the fourth batch on names its currency in a "Currency" section. An older brief that says Bolts keeps them unless the parent says otherwise.
+Every game started out paying in Bolts. That suits a garage, a hangar or a robot workshop, and it does not suit a farm or a dragon's roost. The parent asked on 2026-11-24 for each game to pay in something that belongs to its world, and six of the built games were changed that day (Doubloons, Paw Prints, Tickets, Gems, Pearls, Bricks). Every brief from the fourth batch on names its currency in a "Currency" section. An older brief that says Bolts keeps them unless the parent says otherwise.
 
-- **Add it as a kind, not as a rename.** `src/currency/kind.ts` holds each currency's name for one and for many (`BOLT`, `AMMO`). Add the new one there, draw its icon in `src/ui/currency.tsx`, and export it from the game's `branding.ts` as Sight Squad does with Ammo. Sight Squad is the model: read how its Camp, Goal bar, end overlay and phrases use `SQUAD_CURRENCY`.
+- **Add it as a kind, not as a rename.** `src/currency/kind.ts` holds each currency's name for one and for many (`BOLT`, `AMMO`, `DOUBLOON`, `GEM` and the rest). Add the new one there, draw its icon in `src/ui/currency.tsx`, and export it from the game's `branding.ts`. Dino Dig (Gems) and Sentence Express (Tickets) are the newest models: read how their screens, end overlays, phrases and tour scripts use the currency from `branding.ts`.
+- **One currency belongs to one game.** Read `kind.ts` before choosing. If the brief's currency has been taken since it was written, pick another that fits the world and say so in the report.
 - **Only the name and the picture change.** Earning, spending, prices, the save and every rule in "Rewards that never run out" stay as they are.
 - **It is never money.** No dollars, cents or coins with values. Bolts were made "deliberately not money" so that spending never asks him to count cash, and that still holds. Monster Truck Money and Food Truck own real money.
-- **It is said aloud.** The earned line, the need line, "It costs" and the whole-ten prices are recorded with this currency's word. Nothing in the game says or shows "Bolt", including the Round-done celebration, which flies Bolts today (`flyBolt` in `src/celebrate/effects.ts`): make it fly the game's own icon. A test fails if the word Bolt appears in the game's phrases or its screens.
+- **It is said aloud.** The earned line, the need line, "It costs" and the whole-ten prices are recorded with this currency's word. Nothing in the game says or shows "Bolt", including the Round-done celebration: check what flies onto the pile there, and do as the converted games do. A test fails if the word Bolt appears in the game's phrases or its screens.
 - **Listen to the word.** A short word can come out wrong from the voice by itself (see `SAID_AS`). Record "1 Seed" and "5 Seeds" early and listen.
 - **Add it to `GLOSSARY.md`** in the game's section, the way Ammo is there, with "Avoid: Bolt".
 
