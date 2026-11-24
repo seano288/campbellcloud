@@ -300,7 +300,7 @@ button.key-row:active{transform:translateY(3px);box-shadow:0 1px 0 #000}
 .prize-art{font-size:calc(110px*var(--u));line-height:1;filter:drop-shadow(0 0 22px var(--glow,#ffd23f));animation:pop .6s cubic-bezier(.2,1.5,.4,1)}
 .prize-name{font:900 calc(28px*var(--u)) Nunito,sans-serif;color:var(--yellow)}
 .result-isle{width:calc(140px*var(--u));height:calc(110px*var(--u));min-width:90px;min-height:70px}
-.result-bolts{display:flex;align-items:center;gap:8px;font:900 calc(34px*var(--u)) Nunito,sans-serif;color:#fff}
+.result-doubloons{display:flex;align-items:center;gap:8px;font:900 calc(34px*var(--u)) Nunito,sans-serif;color:#fff}
 .voy-result .btns{display:flex;gap:16px;align-items:center;flex-wrap:wrap;justify-content:center}
 .voy-result .big-btn.go{font-size:calc(36px*var(--u));padding:calc(16px*var(--u)) calc(36px*var(--u))}
 .hoard-btn{width:max(96px,calc(110px*var(--u)));height:max(96px,calc(110px*var(--u)));padding:0;background:#3a2716;font-size:calc(52px*var(--u))}

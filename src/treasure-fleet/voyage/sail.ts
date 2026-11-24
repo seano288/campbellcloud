@@ -1,6 +1,6 @@
 // The Voyage at sea, as a little simulation (drawn by draw.ts). Seen from above, the ship sails north up the screen. He steers by
 // touching where he wants to go: the ship's bow turns toward his finger (it never jumps there), and the water pushes it about a little.
-// Barrels float by to pick up (a Bolt each, three at most). Rocks only bump him aside. Now and then a sea monster's tentacles rise out of
+// Barrels float by to pick up (a Doubloon each, three at most). Rocks only bump him aside. Now and then a sea monster's tentacles rise out of
 // the water; the cannon button fires at them and they splash away. Nothing is lost and the ship always arrives: after about 25 seconds
 // the island comes into view and the ship sails in.
 //

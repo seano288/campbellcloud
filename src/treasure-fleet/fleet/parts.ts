@@ -1,5 +1,5 @@
 // The ship is built from four slots (Hull, Sails, Cannons, Figurehead) and a Flag. Each slot has a free starter and three upgrades
-// bought with Bolts, and each upgrade adds one Range. Range is what takes the ship further out: every island needs some (islands.ts).
+// bought with Doubloons, and each upgrade adds one Range. Range is what takes the ship further out: every island needs some (islands.ts).
 // It starts as a rowing boat with a bedsheet sail and ends as a galleon. The flag is only for looks: the skull is free, the shark and
 // the dragon cost a little, and its colours are his to choose for nothing.
 export const SLOTS = ['hull', 'sails', 'cannons', 'figurehead'] as const;

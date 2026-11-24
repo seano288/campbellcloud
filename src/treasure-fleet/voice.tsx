@@ -1,6 +1,6 @@
 // Treasure Fleet's recorded voice: its phrase collection, voice scopes tied to a screen's lifetime, and the context that hands them to
 // components. Built on the shared playback in src/voice/playback.ts. As in Math Bots, lines are chained from pieces ("It costs", "12",
-// "Bolts."), so each clip is trimmed of its recorded silence as it's decoded, and a clip also ends on the clock, because iPad Safari
+// "Doubloons."), so each clip is trimmed of its recorded silence as it's decoded, and a clip also ends on the clock, because iPad Safari
 // can pause the sound without saying so and taps wait for the voice.
 import { createContext, type ComponentChildren } from 'preact';
 import { useContext, useLayoutEffect, useMemo } from 'preact/hooks';

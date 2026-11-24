@@ -1,4 +1,4 @@
-// End of a Round: the Bolts he earned drop onto his pile one by one, a Round where he had to try again says he kept trying, he's told
+// End of a Round: the Doubloons he earned drop onto his pile one by one, a Round where he had to try again says he kept trying, he's told
 // he earned a Voyage, then each Level up, newly opened kind and star is announced. Only then do the buttons wake up: Set Sail is the
 // big one, with the island it goes to on it, beside his ship (the Shipyard) and ▶ for another Round.
 import { useEffect, useState } from 'preact/hooks';

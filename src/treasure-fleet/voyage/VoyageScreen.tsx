@@ -166,7 +166,7 @@ export function VoyageScreen() {
       setPhase('end');
       if (!paid) return;
       const lines: Phrase[] = paid.treasure ? [foundLine(isle.treasure)] : [backLine(isle.name), 'You found gold!'];
-      lines.push(earnedLine(FLEET_CURRENCY, paid.bolts));
+      lines.push(earnedLine(FLEET_CURRENCY, paid.doubloons));
       await voice.say(...lines);
     })();
   }
@@ -222,7 +222,7 @@ export function VoyageScreen() {
           {pay?.treasure
             ? <div class="prize"><span class="prize-art" style={{ '--glow': isle.glow }} aria-hidden="true">{isle.art}</span><span class="prize-name">{isle.treasure.replace(/^the /, 'The ')}</span></div>
             : <IslandBadge island={isle} class="result-isle" dug />}
-          {pay && <div class="result-bolts"><CurrencyIcon kind={FLEET_CURRENCY} size={40} />+{pay.bolts}</div>}
+          {pay && <div class="result-doubloons"><CurrencyIcon kind={FLEET_CURRENCY} size={40} />+{pay.doubloons}</div>}
           <div class="btns">
             <button class="big-btn garage hoard-btn" aria-label="Hoard" onClick={() => { if (voice.active) screen.value = 'hoard'; }}><span class="e">💎</span></button>
             <button class="big-btn garage my-ship" aria-label="Shipyard" onClick={() => { if (voice.active) screen.value = 'shipyard'; }}><ShipView ship={after.ship} label={null} sea={false} /></button>

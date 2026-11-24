@@ -1,5 +1,5 @@
 // The sixteen islands, nearest first (the second eight were added on 2026-11-14, when he had dug up all of the first). Each needs a ship with at least its Range. Each one's treasure goes in his Hoard the first time he
-// digs it up; going back pays Bolts but no new treasure. Each island has its own sand, trees and sea, and its own spot on the sea chart
+// digs it up; going back pays Doubloons but no new treasure. Each island has its own sand, trees and sea, and its own spot on the sea chart
 // (a map with a compass rose and a key, so the reward quietly uses what the questions teach; it is never a question).
 export interface Island {
   readonly id: string;

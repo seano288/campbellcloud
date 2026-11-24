@@ -12,7 +12,7 @@ import { ALL_NAMES, COLOURS, type ColourName, type EmblemName, type PartName } f
 import { ISLANDS, type IslandName, type TreasureName } from './fleet/islands';
 
 export const NUMBERS_TO = 100;
-/** The most Bolts said in one "You earned" line: a perfect Round pays 6, a Voyage up to 6. */
+/** The most Doubloons said in one "You earned" line: a perfect Round pays 6, a Voyage up to 6. */
 export const MOST_EARNED = 12;
 
 const GAME = ['Treasure Fleet!', "Let's go!", 'Round done!', 'Level up!', 'You kept trying!', 'Tap again to go home.'] as const;
@@ -97,7 +97,7 @@ const MEETING = [
 
 // ---------- the Shipyard ----------
 const SHIPYARD = [
-  'Shipyard!', 'Hull', 'Sails', 'Cannons', 'Figurehead', 'Flag', 'It costs', 'Bolts.', 'You need', 'more Bolts.', 'Play a Round to earn Bolts!',
+  'Shipyard!', 'Hull', 'Sails', 'Cannons', 'Figurehead', 'Flag', 'It costs', 'Doubloons.', 'You need', 'more Doubloons.', 'Play a Round to earn Doubloons!',
   'Range', 'You have 1 voyage ready!', 'voyages ready!', 'Tap Set Sail!', 'Play a Round to earn a voyage!', 'You earned a voyage!',
   'Next stop', 'Build a faster ship to get there!', 'You built everything!', 'Your ship can sail further!', 'This is your sea chart.',
 ] as const;

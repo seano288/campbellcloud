@@ -1,4 +1,4 @@
-// The Ship, the Voyage and the Hoard on the saved game. A finished Round earns Bolts and one Voyage. Bolts buy ship parts; Range takes
+// The Ship, the Voyage and the Hoard on the saved game. A finished Round earns Doubloons and one Voyage. Doubloons buy ship parts; Range takes
 // the ship to islands further out; the first dig on each island puts its treasure in his Hoard, and every Voyage pays the barrels he
 // picks up at sea and the gold in the chest. So the two pull the same way: Rounds buy the parts that reach the island with the next
 // treasure. A Voyage is only used up when the chest opens, so leaving halfway costs nothing (and pays nothing), as Rover Code's trips do.
@@ -97,13 +97,13 @@ export function destinationOf(f: Pick<FleetState, 'visits' | 'ship' | 'destinati
 }
 export const pickDestination = (f: FleetState, id: IslandId): FleetState | null => (canReach(f, island(id)) ? { ...f, destination: id } : null);
 
-/** Barrels he can pick up at sea (a Bolt each), and the gold in every chest: at most 6 a Voyage. */
+/** Barrels he can pick up at sea (a Doubloon each), and the gold in every chest: at most 6 a Voyage. */
 export const BARRELS = 3, CHEST_GOLD = 3;
 
-export interface VoyagePay { bolts: number; firstVisit: boolean; treasure: IslandId | null }
+export interface VoyagePay { doubloons: number; firstVisit: boolean; treasure: IslandId | null }
 export function payFor(f: FleetState, id: IslandId, barrels: number): VoyagePay {
   const firstVisit = !visited(f, id), treasure = !f.hoard.includes(id) ? id : null;
-  return { bolts: Math.min(BARRELS, Math.max(0, Math.floor(barrels))) + CHEST_GOLD, firstVisit, treasure };
+  return { doubloons: Math.min(BARRELS, Math.max(0, Math.floor(barrels))) + CHEST_GOLD, firstVisit, treasure };
 }
 /** The chest opened: the Voyage is used, the visit counted and the treasure his. */
 export function finishVoyage(f: FleetState, id: IslandId, pay: VoyagePay): FleetState {

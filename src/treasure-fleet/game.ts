@@ -1,6 +1,6 @@
 // The saved game and how practice changes it. Everything goes through player.commit(), which saves it under its own key, so Treasure
-// Fleet never touches another game's save on the same site. A Round pays Bolts through the shared currency and earns a Voyage; the
-// Shipyard spends Bolts on ship parts through the shared reward purchases.
+// Fleet never touches another game's save on the same site. A Round pays Doubloons through the shared currency and earns a Voyage; the
+// Shipyard spends Doubloons on ship parts through the shared reward purchases.
 import { createPracticeCoordinator } from '../app/coordination';
 import { createRewardPurchases } from '../app/purchaseCoordination';
 import { credit, readCurrency, type CurrencyState, type EarningsPolicy } from '../currency/currency';
@@ -65,7 +65,7 @@ export function settleVoyage(store: Pick<typeof player, 'commit'>, id: IslandId,
   store.commit(s => {
     if (s.fleet.voyages <= 0) return null;
     pay = payFor(s.fleet, id, barrels);
-    const paid = credit(s.currency, pay.bolts);
+    const paid = credit(s.currency, pay.doubloons);
     return { ...s, fleet: finishVoyage(s.fleet, id, pay), currency: paid.kind === 'accepted' ? paid.state : s.currency };
   });
   return pay;

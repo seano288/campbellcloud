@@ -250,7 +250,11 @@ _Avoid_: Mod, feature (to him)
 
 ## Treasure Fleet
 
-Treasure Fleet reuses Math Bots' and Rover Code's terms where they mean the same thing (Mixed Round, Mastery, Stretch, Bolt, Meeting, Goal, Part, Rung). It has no Tune-Up. These are its own:
+Treasure Fleet reuses Math Bots' and Rover Code's terms where they mean the same thing (Mixed Round, Mastery, Stretch, Meeting, Goal, Part, Rung). It has no Tune-Up. These are its own:
+
+**Doubloon**: Treasure Fleet's Bolt, drawn as a gold pirate coin, earned and spent exactly as Bolts are, because pirates
+sail for gold, not machine parts. Every game names its currency in `src/currency/kind.ts`.
+_Avoid_: Bolt, coin, gold piece (in Treasure Fleet it's always Doubloons)
 
 **Game Modes (Treasure Fleet)**: the five kinds of question, all asked on an island map: Where Is It (tap the thing in a position or direction from another), Map Key (what the symbols mean), Grid Square (name a square by its letter and number), Follow the Clues (spoken directions from a star to the treasure) and From Above (which map shows a scene seen from the side). Where Is It and Map Key are open from the start; Grid Square opens at Where Is It Level 2, From Above at Map Key Level 2, and Follow the Clues once both Where Is It and Map Key reach Level 2.
 
@@ -281,12 +285,12 @@ _Avoid_: launch, ticket
 
 **Island**: one of sixteen (Turtle Island, Palm Island, Parrot Island, Skull Rock, Mermaid Lagoon, Volcano Island, Kraken Reef, Starfall Island, Seashell Cove, Iceberg Island, Banana Island, Lighthouse Point, Shipwreck Bay, Thunder Isle, Ghost Island, Rainbow Reef), each needing more Range and each hiding one Treasure.
 
-**Treasure**: the named prize in an island's chest the first time he digs there (the Golden Compass, the Ruby Skull, the Kraken's Pearl...). Every chest also holds gold (Bolts).
+**Treasure**: the named prize in an island's chest the first time he digs there (the Golden Compass, the Ruby Skull, the Kraken's Pearl...). Every chest also holds gold (Doubloons).
 _Avoid_: Trophy (Trophies are earned by playing well; Treasures by sailing)
 
 **Hoard**: the cave where every Treasure he has found is shown, with his ship moored outside.
 
-**Barrel**: what floats by at sea, three a Voyage, one Bolt each.
+**Barrel**: what floats by at sea, three a Voyage, one Doubloon each.
 
 ## Wild Rescue
 

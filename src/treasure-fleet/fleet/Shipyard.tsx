@@ -63,7 +63,7 @@ export function Shipyard() {
     setTrial(k);
     sChime();
     const price = priceOf(k);
-    void voice.say(infoOf(k).name, 'It costs', n(price), 'Bolts.', ...(balance < price ? ['You need' as const, n(price - balance), 'more Bolts.' as const] : []));
+    void voice.say(infoOf(k).name, 'It costs', n(price), 'Doubloons.', ...(balance < price ? ['You need' as const, n(price - balance), 'more Doubloons.' as const] : []));
   }
   function buyTrial() {
     if (!trial || !voice.active || blocked) return;
@@ -71,7 +71,7 @@ export function Shipyard() {
     if (balance < price) {
       nope();
       updateFleet(f => selectGoal(f, k));
-      void voice.say('You need', n(price - balance), 'more Bolts.', 'Play a Round to earn Bolts!');
+      void voice.say('You need', n(price - balance), 'more Doubloons.', 'Play a Round to earn Doubloons!');
       return;
     }
     if (buy(k).kind === 'accepted') { setTrial(null); celebrate(k, infoOf(k).range > 0); }

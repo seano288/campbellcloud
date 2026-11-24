@@ -33,7 +33,7 @@ describe('the save', () => {
 });
 
 describe('a Round', () => {
-  it('pays a Bolt for each clean answer and one for finishing, and earns a Voyage', () => {
+  it('pays a Doubloon for each clean answer and one for finishing, and earns a Voyage', () => {
     const s = store(), practice = createPractice(s);
     const started = practice.start();
     if (started.kind !== 'accepted') throw new Error('no Round');
@@ -125,13 +125,13 @@ describe('a Voyage', () => {
     const s = store();
     expect(BARRELS + CHEST_GOLD).toBe(6);
     const first = settleVoyage(s, 'turtle', 2)!;
-    expect(first).toEqual({ bolts: 5, firstVisit: true, treasure: 'turtle' });
+    expect(first).toEqual({ doubloons: 5, firstVisit: true, treasure: 'turtle' });
     expect(s.state.currency.balance).toBe(5);
     expect(s.state.fleet.voyages).toBe(0);
     expect(s.state.fleet.hoard).toEqual(['turtle']);
     expect(settleVoyage(s, 'turtle', 3)).toBeNull(); // no Voyage left: nothing happens
     s.commit(st => ({ ...st, fleet: { ...st.fleet, voyages: 1 } }));
-    expect(settleVoyage(s, 'turtle', 99)).toEqual({ bolts: 6, firstVisit: false, treasure: null }); // revisiting pays Bolts, no new treasure
+    expect(settleVoyage(s, 'turtle', 99)).toEqual({ doubloons: 6, firstVisit: false, treasure: null }); // revisiting pays Doubloons, no new treasure
     expect(s.state.fleet.visits.turtle).toBe(2);
     expect(s.state.fleet.hoard).toEqual(['turtle']);
   });

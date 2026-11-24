@@ -5,7 +5,7 @@
 //   npm run dev:treasure-fleet   (in another shell)
 //   npx tsx tools/treasure-fleet/tour.ts <url> <outDir>
 // TOUR_VIEW=portrait|landscape|phone|side picks the screen (iPad 9 sizes by default: 810×1080 upright). TOUR_SAVE=fresh|levels: a
-// brand-new player, or one with every kind open at Level 2 (TOUR_LEVEL=1|2|3 picks another) and some Bolts. TOUR_BROWSER=webkit plays in WebKit.
+// brand-new player, or one with every kind open at Level 2 (TOUR_LEVEL=1|2|3 picks another) and some Doubloons. TOUR_BROWSER=webkit plays in WebKit.
 import { mkdirSync } from 'node:fs';
 import { chromium, webkit } from 'playwright';
 
@@ -165,7 +165,7 @@ if (balance >= 8) {
   await tap('Shark Flag');
   await tap('Buy');
   await page.waitForTimeout(3200);
-  if (!(await saved()).fleet?.owned?.includes('flag:shark')) problems.push(`nothing was bought with ${balance} Bolts`);
+  if (!(await saved()).fleet?.owned?.includes('flag:shark')) problems.push(`nothing was bought with ${balance} Doubloons`);
 }
 await page.getByRole('tab', { name: 'Flag' }).click();
 await tap('Red');
