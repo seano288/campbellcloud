@@ -12,7 +12,7 @@ import { genDesign } from './gen';
 
 export interface RoundLog {
   round: number;
-  /** Bolts this Round paid, the Job included. */
+  /** Bricks this Round paid, the Job included. */
   earned: number;
   /** Catalogue things bought this Round. */
   bought: string[];
@@ -37,7 +37,7 @@ export function simulate(rounds: number, keep: readonly number[] = []): Run {
     const news: string[] = [], bought: string[] = [];
     while (s.jobs > 0) {
       const job = nextJob(s), done = finishJob(s, job, collected);
-      earned += done.pay.bolts;
+      earned += done.pay.bricks;
       if (done.pay.named) news.push(done.pay.named.key);
       else news.push(`job:${s.done + 1}`);
       if (done.pay.district !== null) news.push(`d:${done.pay.district}`);

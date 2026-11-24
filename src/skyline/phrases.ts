@@ -1,6 +1,6 @@
 // The single typed list of everything Skyline says. tools/make_voice.py records a clip for each entry, the build fails if one is
 // missing, and say() accepts only these. Numbers and names are one clip each, chained into the lines around them ("It costs",
-// "12", "Bolts."; "3", "rows of", "4"), as in Math Bots and Turbo Tally.
+// "12", "Bricks."; "3", "rows of", "4"), as in Math Bots and Turbo Tally.
 import { earnedLine, type EarnedLine } from '../currency/kind';
 import { SKYLINE_CURRENCY } from './branding';
 import { BUILDINGS, DISTRICTS, JOB_NAMES, JOB_THINGS, NAMED_JOBS, PAINTS, PARTS, STREET_THINGS, TROPHIES, VEHICLES } from './city/catalog';
@@ -23,12 +23,12 @@ export function sayable(x: number): { said: `${number}`; exact: boolean } {
   const ten = Math.min(PRICE_TOP, Math.ceil(n / 10) * 10);
   return { said: `${ten}`, exact: ten === n };
 }
-/** "You need 12 more Bolts.", or "You need about 130 more Bolts." when it isn't a number the voice has. */
+/** "You need 12 more Bricks.", or "You need about 130 more Bricks." when it isn't a number the voice has. */
 export function needLine(x: number): Phrase[] {
   const { said, exact } = sayable(x);
-  return [exact ? 'You need' : 'You need about', said, 'more Bolts.'];
+  return [exact ? 'You need' : 'You need about', said, 'more Bricks.'];
 }
-/** The most Bolts said in one "You earned" line: a perfect Round pays 6, a Job up to 5. */
+/** The most Bricks said in one "You earned" line: a perfect Round pays 6, a Job up to 5. */
 export const MOST_EARNED = 6;
 
 const GAME = ["Let's go!", 'Level up!', 'You kept trying!', 'Tap again to go home.'] as const;
@@ -77,7 +77,7 @@ const MEETING = [
 
 // ---------- the City ----------
 const CITY = [
-  'City!', 'It costs', 'Bolts.', 'You need', 'You need about', 'more Bolts.', 'Play a Round to earn Bolts!', 'Play a Round to earn a Job!',
+  'City!', 'It costs', 'Bricks.', 'You need', 'You need about', 'more Bricks.', 'Play a Round to earn Bricks!', 'Play a Round to earn a Job!',
   'You have 1 Job ready!', 'Jobs ready!', 'Tap Job!', 'You earned a Job!', 'You got', 'Another floor!', 'floors high!', 'New land!',
   'Tap an empty plot to build on it.', 'Tap where it goes.', 'Moved!', 'It needs a big plot.', 'It needs a wide plot.',
   'It needs a small plot.', 'Buy more land to build more!', 'Your building', 'Roof', 'Windows', 'Walls', 'Sign',

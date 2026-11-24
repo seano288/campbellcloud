@@ -30,7 +30,7 @@ import { buildingThumb, emojiThumb, vehicleThumb } from './thumbs';
 
 type Tab = 'build' | 'vehicles' | 'paint' | 'street' | 'parts' | 'land' | 'fresh' | 'design' | 'bests';
 const TABS: readonly Tab[] = ['build', 'fresh', 'land', 'vehicles', 'paint', 'street', 'parts', 'design', 'bests'];
-const TAB_ICONS: Record<Tab, string> = { build: '🏠', fresh: '🏘️', land: '🗺️', vehicles: '🚌', paint: '🎨', street: '🌳', parts: '🧱', design: '✏️', bests: '🏆' };
+const TAB_ICONS: Record<Tab, string> = { build: '🏠', fresh: '🏘️', land: '🗺️', vehicles: '🚌', paint: '🎨', street: '🌳', parts: '🏗️', design: '✏️', bests: '🏆' };
 const TAB_NAMES = { build: 'Buildings', fresh: 'New Street', land: 'Land', vehicles: 'Vehicles', paint: 'Paint', street: 'Street', parts: 'Parts', design: 'Design', bests: 'Trophies' } as const satisfies Record<Tab, Phrase>;
 const price$ = (x: number): Phrase => sayable(x).said;
 
@@ -98,7 +98,7 @@ export function CityScreen() {
   // ---------- plots ----------
   function tapPlot(id: string | 'land' | null) {
     if (!voice.active || blocked || flying) return;
-    if (id === 'land') { setSelected(null); setTab('land'); void voice.say('Another block of land!', 'It costs', price$(landPrice(city.landBought)), 'Bolts.'); return; }
+    if (id === 'land') { setSelected(null); setTab('land'); void voice.say('Another block of land!', 'It costs', price$(landPrice(city.landBought)), 'Bricks.'); return; }
     if (!id) { setSelected(null); setMoving(null); return; }
     if (moving) {
       const from = moving;
@@ -126,7 +126,7 @@ export function CityScreen() {
     if (!p) return;
     if (!canGrow(city, selected)) { nope(); void voice.say('It is the top floor!'); return; }
     const price = floorPrice(p.floors);
-    if (balance < price) { nope(); void voice.say(...needLine(price - balance), 'Play a Round to earn Bolts!'); return; }
+    if (balance < price) { nope(); void voice.say(...needLine(price - balance), 'Play a Round to earn Bricks!'); return; }
     const was = player.state.peek().city, done = buy({ t: 'floor', plot: selected });
     if (done.kind !== 'accepted') { nope(); return; }
     const top = tallest(player.state.peek().city) === p.floors + 1;
@@ -137,14 +137,14 @@ export function CityScreen() {
   function tryOffer(o: Offer) {
     if (!voice.active || blocked) return;
     setTrial(o); sChime();
-    void voice.say(...o.said, 'It costs', price$(o.price), 'Bolts.', ...(balance < o.price ? needLine(o.price - balance) : []));
+    void voice.say(...o.said, 'It costs', price$(o.price), 'Bricks.', ...(balance < o.price ? needLine(o.price - balance) : []));
   }
   function buyTrial() {
     if (!trial || !voice.active || blocked) return;
     if (balance < trial.price) {
       nope();
       if (trial.request.t === 'item') updateCity(c => selectGoal(c, (trial.request as { key: ItemKey }).key));
-      void voice.say(...needLine(trial.price - balance), 'Play a Round to earn Bolts!');
+      void voice.say(...needLine(trial.price - balance), 'Play a Round to earn Bricks!');
       return;
     }
     const r = trial.request, before = player.state.peek().city;

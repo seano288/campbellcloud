@@ -1,6 +1,6 @@
 // The saved game and how practice changes it. Everything goes through player.commit(), which saves it under its own key, so Skyline
-// never touches another game's save on the same site. A Round pays Bolts through the shared currency and earns a Job; the City
-// spends Bolts through the shared reward purchases.
+// never touches another game's save on the same site. A Round pays Bricks through the shared currency and earns a Job; the City
+// spends Bricks through the shared reward purchases.
 import { createPracticeCoordinator } from '../app/coordination';
 import { createRewardPurchases } from '../app/purchaseCoordination';
 import { credit, readCurrency, type CurrencyState, type EarningsPolicy } from '../currency/currency';
@@ -71,7 +71,7 @@ export function settleJob(store: Pick<typeof player, 'commit'>, job: JobRef, mos
     if (s.city.jobs <= 0) return null;
     const done = finishJob(s.city, job, most);
     pay = done.pay;
-    const paid = credit(s.currency, done.pay.bolts);
+    const paid = credit(s.currency, done.pay.bricks);
     return { ...s, city: done.state, currency: paid.kind === 'accepted' ? paid.state : s.currency };
   });
   return pay;

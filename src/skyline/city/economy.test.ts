@@ -16,7 +16,7 @@ const lastCatalogueBuy = bought[bought.length - 1]!;
 describe('the economy', () => {
   it('reports its numbers', () => {
     const maxGap100 = Math.max(...gaps.filter((_, i) => bought[i]! <= 100));
-    console.log(`Bolts a Round: ${perRound.toFixed(2)}; catalogue: ${CATALOGUE_SIZE} named things, ${FOR_SALE.length} for sale for ${FOR_SALE.reduce((a, i) => a + i.price, 0)} Bolts; `
+    console.log(`Bricks a Round: ${perRound.toFixed(2)}; catalogue: ${CATALOGUE_SIZE} named things, ${FOR_SALE.length} for sale for ${FOR_SALE.reduce((a, i) => a + i.price, 0)} Bricks; `
       + `last catalogue purchase at Round ${lastCatalogueBuy}, everything (named Jobs too) at Round ${run.catalogueDoneAt}; longest gap between purchases: ${maxGap100} Rounds in the first 100, ${Math.max(...gaps)} overall`);
   });
   it('has at least 250 named things, and kinds that change how the reward plays', () => {

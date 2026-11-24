@@ -704,8 +704,13 @@ Heart, Spiral, Big Loop, Star, Figure Eight), drawing its shape in smoke.
 
 ## Skyline
 
-Skyline reuses Math Bots', Rover Code's and Turbo Tally's terms where they mean the same thing (Mixed Round, Mastery, Stretch, Bolt,
+Skyline reuses Math Bots', Rover Code's and Turbo Tally's terms where they mean the same thing (Mixed Round, Mastery, Stretch,
 Tune-Up, Meeting, Goal, Paint). These are its own:
+
+**Brick**: Skyline's Bolt, drawn as a red clay brick, earned and spent exactly as Bolts are, because a city is built from bricks,
+not machine parts. Every game names its currency in `src/currency/kind.ts`. A Brick Tower, the Red Brick House and the Red Brick wall
+are things he buys with Bricks, never the currency itself.
+_Avoid_: Bolt (in Skyline it's always Bricks)
 
 **Game Modes (Skyline)**: the six kinds of question, about equal groups, rows and the start of multiplying: Equal Groups (buses with the
 same number of people on each: are they equal, how many buses, how many on each, how many in all, then "4 groups of 5" with no picture),
@@ -721,7 +726,7 @@ _Avoid_: column (to him, until Times; he hears "in each row")
 **Turn-around**: the same building tipped on its side: 3 rows of 4 becomes 4 rows of 3, and the windows stay the same. Only the
 turn-around questions show the two side by side.
 
-**City**: what Bolts build: his city from above on a fixed grid of streets, Block by Block. People walk, traffic runs, and day turns to
+**City**: what Bricks build: his city from above on a fixed grid of streets, Block by Block. People walk, traffic runs, and day turns to
 night with the windows lighting up.
 _Avoid_: town (that's Hook and Ladder's and Word Wreckers')
 
@@ -729,7 +734,7 @@ _Avoid_: town (that's Hook and Ladder's and Word Wreckers')
 Hill and the Beach. Jobs open them (4, 12, 25, 45 and 70 Jobs); each one's first Block is his the moment it opens.
 
 **Block**: a piece of land the same size as every other, with a street all round it, cut into Plots. After the Districts the city grows
-east for ever, one Block at a time, bought with Bolts (a little dearer each time, then flat at 60).
+east for ever, one Block at a time, bought with Bricks (a little dearer each time, then flat at 60).
 
 **Plot**: one place in a Block where one building stands: small, wide or large. Standing a building he owns on a plot is free, and so is
 moving or swapping it; nothing on a plot is ever lost.

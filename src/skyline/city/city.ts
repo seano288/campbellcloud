@@ -1,6 +1,6 @@
 // The City on the saved game: the land he owns, what stands on each plot, what he has bought, his Jobs and his bests.
 //
-// A finished Round earns Bolts and one Job. Bolts buy things from the catalogue (catalog.ts), more land, another floor on a tower,
+// A finished Round earns Bricks and one Job. Bricks buy things from the catalogue (catalog.ts), more land, another floor on a tower,
 // a building off the fresh street (gen.ts) or one he designs himself. Jobs open Districts: each District's first Block is his the
 // moment it opens. Nothing bought is ever lost or used up: a building can be moved or swapped at any time and the old one stays
 // his, to stand somewhere else.
@@ -25,7 +25,7 @@ export interface CityState {
   owned: ItemKey[];
   /** Blocks of land he owns, by id (grid.ts). */
   blocks: number[];
-  /** Blocks bought with Bolts, for the price of the next one. */
+  /** Blocks bought with Bricks, for the price of the next one. */
   landBought: number;
   /** What stands on each plot, by plot id. An empty plot isn't listed. */
   plots: Record<string, Placed>;
@@ -57,8 +57,8 @@ export const FIRST_JOBS = 1;
 export const MAX_FLOORS = 30;
 export const PEOPLE_PER_FLOOR = 4;
 /** A Job pays this, and the first time he does a named Job, BONUS more. */
-export const JOB_BOLTS = 3, NAMED_BONUS = 2;
-export const MOST_JOB_BOLTS = JOB_BOLTS + NAMED_BONUS;
+export const JOB_BRICKS = 3, NAMED_BONUS = 2;
+export const MOST_JOB_BRICKS = JOB_BRICKS + NAMED_BONUS;
 
 export function freshCity(): CityState {
   const first = plotsOf(0);
@@ -347,7 +347,7 @@ export const jobKindOf = (j: JobRef) => ('named' in j ? j.named.kind : j.kind);
 export const earnJob = (s: CityState): CityState => ({ ...s, jobs: s.jobs + 1 });
 
 export interface JobPay {
-  bolts: number;
+  bricks: number;
   /** He did a named Job for the first time. */
   named: NamedJob | null;
   district: number | null;
@@ -355,13 +355,13 @@ export interface JobPay {
   /** A new best for the most in one Job. */
   best: boolean;
 }
-export function payForJob(s: CityState, job: JobRef): Pick<JobPay, 'bolts' | 'named'> {
+export function payForJob(s: CityState, job: JobRef): Pick<JobPay, 'bricks' | 'named'> {
   const first = 'named' in job && !s.named.includes(job.named.key);
-  return { bolts: JOB_BOLTS + (first ? NAMED_BONUS : 0), named: first ? (job as { named: NamedJob }).named : null };
+  return { bricks: JOB_BRICKS + (first ? NAMED_BONUS : 0), named: first ? (job as { named: NamedJob }).named : null };
 }
 /** The Job ended with `most` collected: it's used, counted, maybe opens a District, and his bests and trophies are kept. */
 export function finishJob(s: CityState, job: JobRef, most: number): { state: CityState; pay: JobPay } {
-  const { bolts, named } = payForJob(s, job), kind = jobKindOf(job);
+  const { bricks, named } = payForJob(s, job), kind = jobKindOf(job);
   const before = districtsOpen(s.done);
   let next: CityState = {
     ...s, jobs: Math.max(0, s.jobs - 1), done: s.done + 1,
@@ -373,7 +373,7 @@ export function finishJob(s: CityState, job: JobRef, most: number): { state: Cit
   const after = districtsOpen(next.done);
   const won = newTrophies(next);
   next = keepBests({ ...next, trophies: [...next.trophies, ...won.map(t => t.key)] });
-  return { state: next, pay: { bolts, named, district: after > before ? after - 1 : null, trophies: won, best: most > s.best.most && s.best.most > 0 } };
+  return { state: next, pay: { bricks, named, district: after > before ? after - 1 : null, trophies: won, best: most > s.best.most && s.best.most > 0 } };
 }
 
 // ---------- trophies ----------

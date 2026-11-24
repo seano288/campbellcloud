@@ -179,7 +179,7 @@ export function JobScreen() {
     if (pay.best) more.push('New best!');
     if (pay.district !== null) more.push('You opened a new District!', named(DISTRICTS[pay.district]!.name));
     for (const t of pay.trophies) more.push('You won', named(t.name));
-    void voice.say('Job done!', n(Math.min(total, 200)), named(j.thing), earnedLine(SKYLINE_CURRENCY, Math.min(6, pay.bolts)), ...more);
+    void voice.say('Job done!', n(Math.min(total, 200)), named(j.thing), earnedLine(SKYLINE_CURRENCY, Math.min(6, pay.bricks)), ...more);
   }, [phase, pay]);
 
   useEffect(() => { if (!ref || !j) screen.value = 'city'; }, []); // no Job to drive: back to the City (after render, not during it)
@@ -220,7 +220,7 @@ export function JobScreen() {
         <div class="job-result" role="dialog"><div class="result-card">
           <h2>Job done!</h2>
           <p class="result-total">{total} {j.thing.replace('!', '')}</p>
-          <div class="result-bolts"><CurrencyIcon kind={SKYLINE_CURRENCY} size={40} />+{pay.bolts}</div>
+          <div class="result-bricks"><CurrencyIcon kind={SKYLINE_CURRENCY} size={40} />+{pay.bricks}</div>
           {pay.best && <p class="result-line">⭐ New best!</p>}
           {pay.district !== null && <p class="result-line">🗺️ {DISTRICTS[pay.district]!.name}</p>}
           {pay.trophies.map(t => <p key={t.key} class="result-line">{t.emoji} {t.name}</p>)}

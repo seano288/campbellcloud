@@ -7,7 +7,7 @@
 //   npx tsx tools/skyline/tour.ts <url> <outDir>
 // TOUR_VIEW=portrait|landscape|phone|side picks the screen (810×1080, 1080×810, 390×844, 844×390). TOUR_SAVE=fresh|levels: a brand-new
 // player, or one with every kind open at Level 2 (TOUR_LEVEL=3 for Level 3, where he meets the × sign and its name on the way) and
-// some Bolts. TOUR_BROWSER=webkit plays in WebKit.
+// some Bricks. TOUR_BROWSER=webkit plays in WebKit.
 import { mkdirSync } from 'node:fs';
 import { chromium, webkit } from 'playwright';
 
@@ -171,9 +171,9 @@ try {
   if (balance >= 3) {
     await tap('Buy');
     await page.waitForTimeout(3200);
-    if (!(await saved()).city?.owned?.includes('f:bench')) problems.push(`the Bench was not bought with ${balance} Bolts`);
+    if (!(await saved()).city?.owned?.includes('f:bench')) problems.push(`the Bench was not bought with ${balance} Bricks`);
     await shot('city-bought');
-  } else problems.push(`only ${balance} Bolts after a Round`);
+  } else problems.push(`only ${balance} Bricks after a Round`);
   await page.getByRole('tab', { name: 'Buildings', exact: true }).click();
   await page.waitForTimeout(300);
   await tap('Little House');

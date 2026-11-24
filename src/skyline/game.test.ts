@@ -5,7 +5,7 @@ import { boltsFor } from '../round/rules';
 import { createStore, type BackingStore } from '../save/storage';
 import { BUILDINGS, DISTRICTS, NAMED_JOBS } from './city/catalog';
 import {
-  allPlots, canGrow, designsFor, districtsOpen, finishJob, floorPrice, freshCity, JOB_BOLTS, landPrice, MAX_FLOORS, NAMED_BONUS, nextBlock, nextJob, place,
+  allPlots, canGrow, designsFor, districtsOpen, finishJob, floorPrice, freshCity, JOB_BRICKS, landPrice, MAX_FLOORS, NAMED_BONUS, nextBlock, nextJob, place,
   population, proposePurchase, rankOf, readCity, swap, type CityState,
 } from './city/city';
 import { skylineSave, SAVE_VERSION, settleJob, createPractice } from './game';
@@ -71,16 +71,16 @@ describe('prices', () => {
 });
 
 describe('payouts', () => {
-  it('a Round pays a Bolt for each answer right first try and one for finishing', () => {
+  it('a Round pays a Brick for each answer right first try and one for finishing', () => {
     expect(boltsFor(['clean', 'clean', 'missed', 'clean', 'helped'])).toBe(4);
     expect(boltsFor(['clean', 'clean', 'clean', 'clean', 'clean'])).toBe(6);
   });
-  it('a Job pays a few Bolts, a little more the first time he does a named Job; never more than the voice can say', () => {
+  it('a Job pays a few Bricks, a little more the first time he does a named Job; never more than the voice can say', () => {
     const s = freshCity(), job = nextJob(s);
     const first = finishJob(s, job, 12);
-    expect(first.pay.bolts).toBe(JOB_BOLTS + NAMED_BONUS);
-    expect(finishJob(first.state, { n: 9, kind: 'bus' }, 12).pay.bolts).toBe(JOB_BOLTS);
-    expect(JOB_BOLTS + NAMED_BONUS).toBeLessThanOrEqual(MOST_EARNED);
+    expect(first.pay.bricks).toBe(JOB_BRICKS + NAMED_BONUS);
+    expect(finishJob(first.state, { n: 9, kind: 'bus' }, 12).pay.bricks).toBe(JOB_BRICKS);
+    expect(JOB_BRICKS + NAMED_BONUS).toBeLessThanOrEqual(MOST_EARNED);
   });
   it('a Job is used only when it is finished, and needs one to use', async () => {
     const store = createStore({ key: 'test', adapter: skylineSave, backing: memoryStorage() });
@@ -88,7 +88,7 @@ describe('payouts', () => {
     const job = nextJob(store.state.peek().city);
     expect(settleJob(store, job, 10)).not.toBeNull();
     expect(store.state.peek().city.jobs).toBe(0);
-    expect(store.state.peek().currency.balance).toBe(JOB_BOLTS + NAMED_BONUS);
+    expect(store.state.peek().currency.balance).toBe(JOB_BRICKS + NAMED_BONUS);
     expect(settleJob(store, job, 10)).toBeNull();
   });
   it('a finished Round earns one Job', async () => {
