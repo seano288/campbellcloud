@@ -1,5 +1,5 @@
 // A Dig, as a world with no drawing in it, so it can be tested and played by a script. A patch of ground (1000 × 640 world units),
-// covered in dirt he rubs away, with rocks on it he taps to crack, and the Dig's bones (one or two), its Bolts and maybe a fossil buried
+// covered in dirt he rubs away, with rocks on it he taps to crack, and the Dig's bones (one or two), its Gems and maybe a fossil buried
 // underneath. A bone comes loose once most of the dirt over it is gone and no rock sits on it; then he drags it to the crate.
 //
 // The dirt is a coarse grid of how much is left in each cell (0 to 1), which the screen mirrors by erasing its dirt picture with the same
@@ -19,7 +19,7 @@ export const LOOSE = .55;
 /** Seconds without progress before a hint, and before the dirt over the next bone falls away by itself. */
 export const HINT_S = 7, HELP_S = 18;
 
-export type Thing = 'bone' | 'bolt' | 'fossil';
+export type Thing = 'bone' | 'gem' | 'fossil';
 export interface Buried {
   id: number;
   thing: Thing;
@@ -70,7 +70,7 @@ const BONE_SIZE: Partial<Record<BoneId, [number, number]>> = {
 };
 
 /** A new Dig. `bones`: the kinds to bury (one or two); `rocks`: how many; `hp`: how many hits a rock takes. */
-export function createDig(o: { bones: readonly BoneId[]; bolts: number; fossil: boolean; rocks: number; hp: number }, rng: Rng): DigWorld {
+export function createDig(o: { bones: readonly BoneId[]; gems: number; fossil: boolean; rocks: number; hp: number }, rng: Rng): DigWorld {
   const dirt = new Float32Array(COLS * ROWS).fill(1), things: Buried[] = [], rocks: Rock[] = [];
   const crate = { x: W - 170, y: H - 150, w: 150, h: 130 };
   const fits = (x: number, y: number, hw: number, hh: number) =>
@@ -87,7 +87,7 @@ export function createDig(o: { bones: readonly BoneId[]; bolts: number; fossil: 
   };
   for (const k of o.bones) { const [w, h] = BONE_SIZE[k] ?? [130, 44]; place('bone', k, w / 2, h / 2); }
   if (o.fossil) place('fossil', null, 34, 34);
-  for (let i = 0; i < o.bolts; i++) place('bolt', null, 24, 24);
+  for (let i = 0; i < o.gems; i++) place('gem', null, 24, 24);
   // rocks: the first ones sit on the bones (so he cracks them to free them), the rest anywhere
   const bones = things.filter(t => t.thing === 'bone');
   for (let i = 0; i < o.rocks; i++) {
@@ -211,7 +211,7 @@ export function release(w: DigWorld, t: Buried, startX: number, startY: number):
 function send(t: Buried) { t.state = 'flying'; t.fly = 0; t.fx = t.px; t.fy = t.py; }
 
 const FLY_S = .6;
-/** Where the crate takes a thing (bones into the crate; Bolts and fossils up to the top corner, where the counter is). */
+/** Where the crate takes a thing (bones into the crate; Gems and fossils up to the top corner, where the counter is). */
 export const flyTarget = (w: DigWorld, t: Buried) => (t.thing === 'bone' ? { x: w.crate.x + w.crate.w / 2, y: w.crate.y + w.crate.h * .45 } : { x: W - 60, y: 40 });
 
 export interface Helpers {
@@ -259,7 +259,7 @@ export function step(w: DigWorld, dt: number, h: Helpers = {}): DigEvent[] {
 /** The next thing still under the dirt, bones first. */
 export const nextBuried = (w: DigWorld) => w.things.filter(t => t.state === 'buried').sort((a, b) => (a.thing === 'bone' ? 0 : 1) - (b.thing === 'bone' ? 0 : 1))[0] ?? null;
 export const bonesLeft = (w: DigWorld) => w.things.filter(t => t.thing === 'bone' && t.state !== 'crated').length;
-/** Every bone in the crate and every Bolt and fossil found. */
+/** Every bone in the crate and every Gem and fossil found. */
 export const finished = (w: DigWorld) => w.things.every(t => t.state === 'crated');
 /** How much of the whole patch is clear. */
 export const clearedShare = (w: DigWorld) => w.dirt.reduce((n, v) => n + (v < CLEAR ? 1 : 0), 0) / w.dirt.length;

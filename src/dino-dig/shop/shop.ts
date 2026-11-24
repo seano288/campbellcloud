@@ -1,4 +1,4 @@
-// Everything Bolts buy, as plain tables. Every price is at most 100 (the voice only has number clips up to 100). No row's id or price
+// Everything Gems buy, as plain tables. Every price is at most 100 (the voice only has number clips up to 100). No row's id or price
 // may change once a save holds it: a save keeps the ids it owns.
 //
 //   Tools      what he digs with: each clears more dirt a stroke and cracks rock in fewer taps, and opens a deeper dig site.
@@ -32,7 +32,7 @@ export type ToolId = (typeof TOOLS)[number]['id'];
 export const GADGETS = [
   { id: 'lamp', name: 'Headlamp', price: 12, pic: '🔦', line: 'A light shines where you dig!' },
   { id: 'finder', name: 'Bone Finder', price: 15, pic: '📡', line: 'It shows the bones under the dirt!' },
-  { id: 'goldscan', name: 'Bolt Finder', price: 18, pic: '🧲', line: 'It shows the Bolts under the dirt!' },
+  { id: 'goldscan', name: 'Gem Finder', price: 18, pic: '🔍', line: 'It shows the Gems under the dirt!' },
   { id: 'blower', name: 'Leaf Blower', price: 20, pic: '💨', line: 'Tap it to blow the dirt away!' },
   { id: 'magnet', name: 'Bone Magnet', price: 25, pic: '🪝', line: 'Bones fly to the crate by themselves!' },
   { id: 'hose', name: 'Water Hose', price: 30, pic: '🚿', line: 'Tap it to wash the mud away!' },
@@ -181,7 +181,7 @@ export const isItemKey = (x: unknown): x is ItemKey => (ALL_KEYS as readonly unk
 export const item = (k: ItemKey): Item => (TABLES[tabOf(k)] as readonly Item[]).find(i => i.id === idOf(k))!;
 /** What he owns from the start. */
 export const STARTERS: readonly ItemKey[] = ALL_KEYS.filter(k => item(k).price === 0);
-/** Everything that costs Bolts. */
+/** Everything that costs Gems. */
 export const FOR_SALE: readonly ItemKey[] = ALL_KEYS.filter(k => item(k).price > 0);
 export const TOTAL_PRICE = FOR_SALE.reduce((n, k) => n + item(k).price, 0);
 

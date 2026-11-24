@@ -6,7 +6,7 @@
 //   npm run dev:dino-dig   (in another shell)
 //   npx tsx tools/dino-dig/tour.ts <url> <outDir>
 // TOUR_VIEW=portrait|landscape|phone|side picks the screen (iPad 9 sizes by default: 810×1080 upright). TOUR_SAVE=fresh|levels: a
-// brand-new player, or one with every kind open at Level 2 (TOUR_LEVEL=3 for Level 3), every Pattern met, Bolts, tools and gadgets,
+// brand-new player, or one with every kind open at Level 2 (TOUR_LEVEL=3 for Level 3), every Pattern met, Gems, tools and gadgets,
 // a skeleton one bone from done and a living dinosaur. The Dig and the run are played with real touch events (Chrome DevTools
 // Protocol), as on the iPad. It fails on a page wider than the screen, a question that scrolls, or a button off screen or under 44px.
 import { mkdirSync } from 'node:fs';
@@ -182,9 +182,9 @@ await shot('shop-trying');
 if (balance >= want.price) {
   await tap('Buy');
   await page.waitForTimeout(1500);
-  if (!(await saved()).museum?.owned?.includes(want.key)) problems.push(`the ${want.item} was not bought with ${balance} Bolts`);
+  if (!(await saved()).museum?.owned?.includes(want.key)) problems.push(`the ${want.item} was not bought with ${balance} Gems`);
   await shot('shop-bought');
-} else problems.push(`only ${balance} Bolts for the ${want.item}`);
+} else problems.push(`only ${balance} Gems for the ${want.item}`);
 for (const t of ['Tools', 'Hats', 'Roars', 'Lands', 'Museum']) { await page.getByRole('tab', { name: t }).click(); await page.waitForTimeout(150); }
 await shot('shop-tabs');
 await page.getByRole('button', { name: 'Museum', exact: true }).first().click();
@@ -237,7 +237,7 @@ const before = await saved();
 await playDig('dig1');
 const after = await saved();
 if (after.museum.done !== before.museum.done + 1) problems.push(`a finished Dig was not counted (${before.museum.done} → ${after.museum.done})`);
-if (after.balance !== before.balance + 2) problems.push(`a finished Dig did not pay 2 Bolts (${before.balance} → ${after.balance})`);
+if (after.balance !== before.balance + 2) problems.push(`a finished Dig did not pay 2 Gems (${before.balance} → ${after.balance})`);
 
 // a whole skeleton comes alive, and he plays as it
 async function playRun(name: string) {

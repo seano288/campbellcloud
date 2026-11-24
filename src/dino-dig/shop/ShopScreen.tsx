@@ -1,4 +1,4 @@
-// The shop: what Bolts buy. Nine tabs (Tools, Gadgets, Colors, Markings, Hats, Roars, Gear, Lands, Museum), cheapest first. Tapping a
+// The shop: what Gems buy. Nine tabs (Tools, Gadgets, Colors, Markings, Hats, Roars, Gear, Lands, Museum), cheapest first. Tapping a
 // thing he hasn't got tries it (a look goes on his dinosaur in the picture, a roar plays) and says its name and price, with Buy beside
 // it when he can afford it; one he can't afford yet becomes his Goal. Tapping a thing he owns wears it (a look on the dinosaur he's
 // dressing, a land for the run) or switches it on and off (Gadgets and Gear). Looks belong to one dinosaur at a time: the row of his
@@ -84,10 +84,10 @@ export function ShopScreen() {
     }
     setTrying(k);
     const line = 'line' in i && i.line ? [i.line as Phrase] : tab === 'tool' ? ['It digs bigger and cracks rocks faster!' as const] : [];
-    if (balance >= i.price) void voice.say(i.name as Phrase, ...line, 'It costs', `${i.price}` as Phrase, 'Bolts.');
+    if (balance >= i.price) void voice.say(i.name as Phrase, ...line, 'It costs', `${i.price}` as Phrase, 'Gems.');
     else {
       updateMuseum(s => ({ ...s, goal: k }));
-      void voice.say(i.name as Phrase, ...line, 'You need', `${i.price - balance}` as Phrase, 'more Bolts.');
+      void voice.say(i.name as Phrase, ...line, 'You need', `${i.price - balance}` as Phrase, 'more Gems.');
     }
   }
   function buyIt() {

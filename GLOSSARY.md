@@ -488,8 +488,13 @@ _Avoid_: random call, endless mode
 ## Dino Dig
 
 Dino Dig reuses Word Wreckers' terms where they mean the same thing (Pattern, Meeting a Pattern, Sound box) and Math Bots', Rover Code's
-and Word Wreckers' (Mixed Round, Mastery, Bolt, Goal). It shares Word Wreckers' word list (`src/dino-dig/words/list.ts`). It has no
+and Word Wreckers' (Mixed Round, Mastery, Goal). It shares Word Wreckers' word list (`src/dino-dig/words/list.ts`). It has no
 Tune-Up. These are its own:
+
+**Gem**: Dino Dig's Bolt, drawn as a cut green gem, earned and spent exactly as Bolts are, because he digs Gems out of the
+ground with the bones, and machine parts don't belong at a dig site. A Round pays them, every Dig has two in its dirt, and the shop
+spends them. Every game names its currency in `src/currency/kind.ts`.
+_Avoid_: Bolt (in Dino Dig it's always Gems); jewel, crystal (the Crystal Geode and Purple Crystal are Fossils, not Gems)
 
 **Game Modes (Dino Dig)**: the five kinds of reading question: Read It (a word is shown, never said; tap its picture), Hear It (hear a
 word, tap the written word), Sound Swap ("This says cat. Make it say cot.": tap the sound to change, then the new one), Real or Silly (two
@@ -506,7 +511,7 @@ chip). Level 3 of Read It and Hear It offers them together; a miss on one shows 
 **Heard alike**: a pair the recorded voice says so nearly alike (pen / pin) that Hear It never offers them together.
 
 **Dig**: what a finished Round earns (he starts with one): a patch of ground at a dig site where he rubs the dirt away, taps rocks to crack
-them and drags each bone to the crate. A Dig finds one or two bones, two Bolts, and on every other Dig a fossil. It's used only when every
+them and drags each bone to the crate. A Dig finds one or two bones, two Gems, and on every other Dig a fossil. It's used only when every
 bone is in the crate.
 _Avoid_: job, trip, launch
 
@@ -516,7 +521,7 @@ dinosaurs at each, smallest first. Each needs a stronger Tool.
 **Tool**: what he digs with: the Brush (free), Trowel, Shovel, Pickaxe, Jackhammer and Digger. A better one clears more dirt a stroke,
 cracks rock in fewer taps, and opens the next dig site.
 
-**Gadget (Dino Dig)**: a bought thing that changes a Dig: the Headlamp, Bone Finder (bones show through the dirt), Bolt Finder, Leaf
+**Gadget (Dino Dig)**: a bought thing that changes a Dig: the Headlamp, Bone Finder (bones show through the dirt), Gem Finder (Gems show through the dirt), Leaf
 Blower, Bone Magnet (loose bones fly to the crate), Water Hose, Dynamite, Dig Dog, Rock Drone and Dig Robot. On once bought, unless he
 switches it off.
 

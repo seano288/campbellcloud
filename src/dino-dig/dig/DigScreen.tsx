@@ -1,6 +1,6 @@
 // A Dig, the reward for a Round. A card names the site ("A new Dig! Sandy Creek") and lets him pick another open site; then the patch
 // of ground: he rubs the dirt away with his finger, taps rocks to crack them, and drags each bone that comes loose to the crate. Two
-// Bolts are hidden in the dirt, and on every other Dig a fossil. When every bone is in the crate the Dig is done: the bones go to the
+// Gems are hidden in the dirt, and on every other Dig a fossil. When every bone is in the crate the Dig is done: the bones go to the
 // Museum, which shows them snapping onto the skeleton.
 //
 // Drawing (the iPad 9's risk is a big canvas erase): the dirt is its own small canvas at half the world's resolution (500 × 320),
@@ -25,7 +25,7 @@ import { justFound, screen } from '../nav';
 import type { Phrase } from '../phrases';
 import { useVoiceScope } from '../voice';
 import { BONE_NAMES, dino, fossil, site, SITES, type SiteId } from '../museum/dinos';
-import { bestTool, bonesOf, DIG_BOLTS, hasGadget, missingAt, nextDig, openSites, type Dig } from '../museum/state';
+import { bestTool, bonesOf, DIG_GEMS, hasGadget, missingAt, nextDig, openSites, type Dig } from '../museum/state';
 import { TOOLS } from '../shop/shop';
 import {
   bonesLeft, CELL, COLS, createDig, rocksFor, drag, finished, flyTarget, grab, H, hitRock, release, ROWS, rub, step, tap, W,
@@ -42,7 +42,7 @@ const sChip = () => { noise({ dur: .07, vol: .3, type: 'bandpass', f: 1800 }); t
 /** A world for this Dig, the same every time it's opened (so leaving and coming back is the same patch). */
 export function worldFor(dig: Dig, seed: number): DigWorld {
   const tier = site(dig.site).tier, d = dig.dino ? dino(dig.dino) : null;
-  return createDig({ bones: dig.bones.map(i => d!.bones[i]!), bolts: DIG_BOLTS, fossil: !!dig.fossil, ...rocksFor(tier) }, seeded(seed));
+  return createDig({ bones: dig.bones.map(i => d!.bones[i]!), gems: DIG_GEMS, fossil: !!dig.fossil, ...rocksFor(tier) }, seeded(seed));
 }
 
 /** The dirt's picture (or the pale rock floor under it): its colour, darker clumps and pebbles. */
@@ -63,7 +63,7 @@ export function DigScreen() {
   const [pickSite, setPickSite] = useState<SiteId | null>(null);
   const dig = useMemo(() => nextDig({ ...player.state.peek().museum, site: pickSite ?? player.state.peek().museum.site }), [pickSite]);
   const tool = bestTool(m), radius = tool.radius * 1.15;
-  const [phase, setPhase] = useState<Phase>('intro'), [armed, setArmed] = useState(false), [found, setFound] = useState({ bones: 0, bolts: 0, fossil: false });
+  const [phase, setPhase] = useState<Phase>('intro'), [armed, setArmed] = useState(false), [found, setFound] = useState({ bones: 0, gems: 0, fossil: false });
   const [uses, setUses] = useState({ blower: 3, dynamite: 1, hose: 2 }), [hoseOn, setHoseOn] = useState(0);
   const world = useRef<DigWorld | null>(null), canvas = useRef<HTMLCanvasElement>(null);
   const layers = useRef<{ base: HTMLCanvasElement; dirt: CanvasRenderingContext2D; dirtCanvas: HTMLCanvasElement; sprites: Map<number, HTMLCanvasElement>; stamps: Map<string, HTMLCanvasElement> } | null>(null);
@@ -88,7 +88,16 @@ export function DigScreen() {
       const sp = layer(t.hw * 2 + 20, t.hh * 2 + 20), c = sp.ctx;
       c.translate(sp.canvas.width / 2, sp.canvas.height / 2);
       if (t.thing === 'bone') { c.rotate(t.angle * .3); drawLooseBone(c, t.kind!, t.hw * 2); }
-      else if (t.thing === 'bolt') { c.fillStyle = '#ffd23f'; c.strokeStyle = '#000'; c.lineWidth = 4; c.beginPath(); for (let i = 0; i < 6; i++) { const a = i * Math.PI / 3; c.lineTo(Math.cos(a) * t.hw, Math.sin(a) * t.hw); } c.closePath(); c.fill(); c.stroke(); c.fillStyle = '#c99a00'; c.beginPath(); c.arc(0, 0, t.hw * .4, 0, Math.PI * 2); c.fill(); }
+      else if (t.thing === 'gem') {
+        // a cut green gem, like the Gem icon: its points are the icon's 40-wide drawing, centred and scaled to the thing
+        const k = t.hw / 17, pt = (x: number, y: number) => [(x - 20) * k, (y - 21) * k] as const;
+        const poly = (ps: readonly (readonly [number, number])[]) => { c.beginPath(); for (const [x, y] of ps) c.lineTo(...pt(x, y)); c.closePath(); };
+        c.lineJoin = 'round'; c.strokeStyle = '#0b5a3c';
+        poly([[11, 5], [29, 5], [37, 15], [20, 37], [3, 15]]); c.fillStyle = '#2fcf8f'; c.fill(); c.lineWidth = 4; c.stroke();
+        poly([[11, 5], [29, 5], [25, 15], [15, 15]]); c.fillStyle = '#8ff0c4'; c.fill();
+        c.lineWidth = 2; c.beginPath(); c.moveTo(...pt(3, 15)); c.lineTo(...pt(37, 15)); c.moveTo(...pt(15, 15)); c.lineTo(...pt(20, 37)); c.lineTo(...pt(25, 15));
+        c.moveTo(...pt(11, 5)); c.lineTo(...pt(15, 15)); c.moveTo(...pt(29, 5)); c.lineTo(...pt(25, 15)); c.stroke();
+      }
       else { c.fillStyle = '#d9cfbd'; c.strokeStyle = '#000'; c.lineWidth = 4; c.beginPath(); c.arc(0, 0, t.hw, 0, Math.PI * 2); c.fill(); c.stroke(); c.font = `${t.hw * 1.2}px ${EMOJI_FONT}`; c.textAlign = 'center'; c.textBaseline = 'middle'; c.fillText(dig.fossil ? fossil(dig.fossil).pic : '⭐', 0, 2); }
       sprites.set(t.id, sp.canvas);
     }
@@ -139,7 +148,7 @@ export function DigScreen() {
       if (e.kind === 'loose') {
         clearOver(e.thing);
         if (e.thing.thing === 'bone') { sPop(); say('A bone!', 'Drag it to the crate!'); }
-        else if (e.thing.thing === 'bolt') { sClink(); say('A Bolt!'); }
+        else if (e.thing.thing === 'gem') { sClink(); say('A Gem!'); }
         else { sChime(); say('A fossil!'); }
       }
       if (e.kind === 'crack') { sChip(); say('Crack!'); }
@@ -149,7 +158,7 @@ export function DigScreen() {
       if (e.kind === 'crated') {
         sClink();
         if (e.thing.thing === 'bone') { setFound(f => ({ ...f, bones: f.bones + 1 })); sChime(); }
-        if (e.thing.thing === 'bolt') setFound(f => ({ ...f, bolts: f.bolts + 1 }));
+        if (e.thing.thing === 'gem') setFound(f => ({ ...f, gems: f.gems + 1 }));
         if (e.thing.thing === 'fossil') setFound(f => ({ ...f, fossil: true }));
       }
     }
@@ -167,7 +176,7 @@ export function DigScreen() {
     if (dig.dino) justFound.value = { dino: dig.dino, had };
     const now = player.state.peek().museum, done = dig.dino && bonesOf(now, dig.dino) >= dino(dig.dino).bones.length;
     void voice.say(...(dig.bones.length ? ['Every bone is in the crate!' as const] : []), 'You found', ...dig.bones.map(i => BONE_NAMES[d!.bones[i]!]),
-      ...(dig.fossil ? ['A fossil!' as const, fossil(dig.fossil).name as Phrase] : []), earnedLine(DINO_CURRENCY, DIG_BOLTS), ...(done ? ['The skeleton is done!' as const] : []));
+      ...(dig.fossil ? ['A fossil!' as const, fossil(dig.fossil).name as Phrase] : []), earnedLine(DINO_CURRENCY, DIG_GEMS), ...(done ? ['The skeleton is done!' as const] : []));
   }
 
   // ---------- the loop ----------
@@ -216,7 +225,7 @@ export function DigScreen() {
     for (const t of w.things) if (t.state === 'buried') sprite(t);
     c.drawImage(L.dirtCanvas, 0, 0, W, H);
     // gadgets that see through the dirt
-    for (const t of w.things) if (t.state === 'buried' && ((finder && t.thing === 'bone') || (goldscan && t.thing === 'bolt'))) sprite(t, .28 + Math.sin(w.t * 4) * .08);
+    for (const t of w.things) if (t.state === 'buried' && ((finder && t.thing === 'bone') || (goldscan && t.thing === 'gem'))) sprite(t, .28 + Math.sin(w.t * 4) * .08);
     // the crate
     const cr = w.crate;
     c.fillStyle = '#9a6a3a'; c.strokeStyle = '#1b1410'; c.lineWidth = 5;
@@ -333,7 +342,7 @@ export function DigScreen() {
         <IconButton label={armed ? 'Tap again to leave' : 'Home'} class={armed ? 'armed' : ''} onClick={home}>🏠</IconButton>
         <span class="dig-site">{s.name}</span>
         <span class="dig-count" aria-label={`${dig.bones.length - left} of ${dig.bones.length} bones`}>🦴 {dig.bones.length - left}/{dig.bones.length}</span>
-        <span class="pilebox"><CurrencyIcon kind={DINO_CURRENCY} size={28} /> {found.bolts}</span>
+        <span class="pilebox"><CurrencyIcon kind={DINO_CURRENCY} size={28} /> {found.gems}</span>
       </div>
       <div class="dig-field">
         <canvas ref={canvas} class="dig-canvas" onPointerDown={down} onPointerMove={move} onPointerUp={up} onPointerCancel={up} />
@@ -375,7 +384,7 @@ export function DigScreen() {
             <div class="dig-finds">
               {dig.bones.map(i => <span key={i} class="dig-find">🦴<small>{BONE_NAMES[d!.bones[i]!]}</small></span>)}
               {dig.fossil && <span class="dig-find">{fossil(dig.fossil).pic}<small>{fossil(dig.fossil).name}</small></span>}
-              <span class="dig-find"><CurrencyIcon kind={DINO_CURRENCY} size={40} /><small>+{DIG_BOLTS}</small></span>
+              <span class="dig-find"><CurrencyIcon kind={DINO_CURRENCY} size={40} /><small>+{DIG_GEMS}</small></span>
             </div>
             <button class="big-btn go dig-go pulse" aria-label="Off to the Museum" onClick={() => { void voice.say('Off to the Museum!'); screen.value = 'museum'; }}>🏛️ Museum!</button>
           </div>

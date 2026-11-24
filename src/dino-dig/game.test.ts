@@ -5,7 +5,7 @@ import { createStore, type BackingStore } from '../save/storage';
 import { dinoSave, earnings, SAVE_KEY, SAVE_VERSION, settleDig } from './game';
 import { BONE_IDS, DINO_IDS, DINOS, FOSSILS, SITES, dino } from './museum/dinos';
 import {
-  bestTool, bonesOf, complete, DIG_BOLTS, finishDig, freshMuseum, goalOf, isOwned, lookOf, nextDig, openSites, proposePurchase, readMuseum, readyToWake, toggle, wake, wear,
+  bestTool, bonesOf, complete, DIG_GEMS, finishDig, freshMuseum, goalOf, isOwned, lookOf, nextDig, openSites, proposePurchase, readMuseum, readyToWake, toggle, wake, wear,
   type MuseumState,
 } from './museum/state';
 import { ALL_KEYS, ALL_NAMES, FOR_SALE, item, keyOf, STARTERS, TABLES, TABS, TOOLS, TOTAL_PRICE, type Item } from './shop/shop';
@@ -69,7 +69,7 @@ describe('the shop', () => {
     for (const n of ALL_NAMES) expect(PHRASES as readonly string[]).toContain(n);
     for (const t of TABS) { const ids = (TABLES[t] as readonly Item[]).map(i => i.id); expect(new Set(ids).size).toBe(ids.length); }
   });
-  it('sells a thing once, for its price, and only when he has the Bolts', () => {
+  it('sells a thing once, for its price, and only when he has the Gems', () => {
     const m = freshMuseum();
     expect(proposePurchase(m, 'tool:trowel', 9)).toMatchObject({ kind: 'rejected', reason: 'short' });
     const p = proposePurchase(m, 'tool:trowel', 10);
@@ -116,10 +116,10 @@ describe('the dinosaurs', () => {
 });
 
 describe('the economy', () => {
-  it('pays a Bolt for each first-try answer and one for finishing, and two for a Dig', () => {
+  it('pays a Gem for each first-try answer and one for finishing, and two for a Dig', () => {
     expect(earnings({ results: [{ outcome: 'clean' }, { outcome: 'clean' }, { outcome: 'missed' }, { outcome: 'helped' }, { outcome: 'clean' }] } as never)).toBe(boltsFor(['clean', 'clean', 'missed', 'helped', 'clean']));
     expect(boltsFor(['clean', 'clean', 'clean', 'clean', 'clean'])).toBe(6);
-    expect(DIG_BOLTS).toBe(2);
+    expect(DIG_GEMS).toBe(2);
   });
   it('starts with one free Dig, and a Dig finds one or two bones', () => {
     const m = freshMuseum();
@@ -136,13 +136,13 @@ describe('the economy', () => {
     expect(wake(m, 'raptor')).toBeNull();
   });
   it('fills the whole Museum and finds every fossil, buying each tool when it can, and never strands him', () => {
-    let m = freshMuseum(), digs = 0, bolts = 0;
+    let m = freshMuseum(), digs = 0, gems = 0;
     while (DINO_IDS.some(d => !complete(m, d)) && digs < 500) {
       const dig = nextDig(m);
       m = finishDig({ ...m, digs: 1 }, dig)!;
-      digs++; bolts += 6 + DIG_BOLTS;
+      digs++; gems += 6 + DIG_GEMS;
       const tool = TOOLS.find(t => !isOwned(m, keyOf('tool', t.id)));
-      if (tool && bolts >= tool.price) { const p = proposePurchase(m, keyOf('tool', tool.id), bolts); if (p.kind === 'ready') { m = p.state; bolts -= p.cost; } }
+      if (tool && gems >= tool.price) { const p = proposePurchase(m, keyOf('tool', tool.id), gems); if (p.kind === 'ready') { m = p.state; gems -= p.cost; } }
     }
     expect(DINO_IDS.every(d => complete(m, d))).toBe(true);
     expect(digs).toBeLessThan(60);
@@ -160,12 +160,12 @@ describe('the economy', () => {
     expect(nextDig(m).site).toBe('gully');
     expect(nextDig({ ...m, site: 'cliffs' }).site).toBe('creek');
   });
-  it('uses a Dig and pays its Bolts only when it is finished', async () => {
+  it('uses a Dig and pays its Gems only when it is finished', async () => {
     const backing = memory(), store = createStore({ key: SAVE_KEY, adapter: dinoSave, backing });
     await store.load();
     const dig = nextDig(store.state.peek().museum);
     expect(settleDig(store, dig)).toBe(true);
-    expect(store.state.peek().currency.balance).toBe(DIG_BOLTS);
+    expect(store.state.peek().currency.balance).toBe(DIG_GEMS);
     expect(store.state.peek().museum.digs).toBe(0);
     expect(bonesOf(store.state.peek().museum, 'compy')).toBe(2);
     expect(settleDig(store, dig)).toBe(false);

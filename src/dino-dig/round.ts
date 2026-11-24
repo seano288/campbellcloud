@@ -1,5 +1,5 @@
 // A Round: 5 correct answers on the shared Round engine (src/learning/round.ts), each question any kind he has opened (mix.ts), then a
-// Bolt for each one right on the first try and one for finishing, and one Dig. Meeting a new Pattern is one of the five. Level ups and
+// Gem for each one right on the first try and one for finishing, and one Dig. Meeting a new Pattern is one of the five. Level ups and
 // opened kinds are celebrated at the end. A miss comes back later as a new question with no Mastery credit; that lives in mix.ts, so
 // the shared engine is untouched.
 import { signal } from '@preact/signals';

@@ -1,10 +1,10 @@
-// The Dig, the Museum and the shop on the saved game. A finished Round earns Bolts and one Dig (he starts with one free). A Dig is at
+// The Dig, the Museum and the shop on the saved game. A finished Round earns Gems and one Dig (he starts with one free). A Dig is at
 // a site his best tool can reach and finds one or two bones of the first dinosaur there still missing some (two on the first Dig and
-// every other one after), two Bolts hidden in the dirt, and on every other Dig a fossil. Bones go onto the dinosaur's skeleton in the
+// every other one after), two Gems hidden in the dirt, and on every other Dig a fossil. Bones go onto the dinosaur's skeleton in the
 // Museum; a whole skeleton can be brought to life, and then he plays as it (the Alive run), as often as he likes.
 //
-// A Dig is used, and its Bolts paid, only when every bone is in the crate; leaving halfway costs nothing and pays nothing. Nothing he
-// owns or finds can be lost. With every dinosaur at the sites he can reach already found, a Dig still has its Bolts and fossil, and says
+// A Dig is used, and its Gems paid, only when every bone is in the crate; leaving halfway costs nothing and pays nothing. Nothing he
+// owns or finds can be lost. With every dinosaur at the sites he can reach already found, a Dig still has its Gems and fossil, and says
 // a better tool opens a deeper site; with everything found, it's a Dig just for fun.
 import { isAmount } from '../../currency/amount';
 import type { PurchaseProposal } from '../../rewards/purchase';
@@ -98,8 +98,8 @@ export const missingAt = (s: Pick<MuseumState, 'bones'>, x: SiteId) => dinosAt(x
 
 // ---------- a Dig ----------
 
-/** Bolts hidden in every Dig's dirt. */
-export const DIG_BOLTS = 2;
+/** Gems hidden in every Dig's dirt. */
+export const DIG_GEMS = 2;
 
 export interface Dig {
   site: SiteId;

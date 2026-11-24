@@ -5,5 +5,5 @@ export const dinoBranding = {
   theme: '#e9c46a',
 } as const;
 
-/** What his Rounds earn: Bolts, like the other games. They buy dig tools, gadgets and looks for his dinosaurs. */
-export { BOLT as DINO_CURRENCY } from '../currency/kind';
+/** What his Rounds earn: Gems, dug out of the ground with the bones. They buy dig tools, gadgets and looks for his dinosaurs. */
+export { GEM as DINO_CURRENCY } from '../currency/kind';

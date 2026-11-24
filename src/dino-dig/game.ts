@@ -1,6 +1,6 @@
 // The saved game and how practice changes it. Everything goes through player.commit(), which saves it under its own key, so Dino Dig
-// never touches another game's save on the same site. A Round pays Bolts through the shared currency and earns a Dig; the shop spends
-// Bolts through the shared reward purchases.
+// never touches another game's save on the same site. A Round pays Gems through the shared currency and earns a Dig; the shop spends
+// Gems through the shared reward purchases.
 import { createPracticeCoordinator } from '../app/coordination';
 import { createRewardPurchases } from '../app/purchaseCoordination';
 import { credit, readCurrency, type CurrencyState, type EarningsPolicy } from '../currency/currency';
@@ -8,7 +8,7 @@ import { boltsFor } from '../round/rules';
 import { browserStorage, createStore, type SaveAdapter } from '../save/storage';
 import { freshLearning, readLearning, recordSolved, startPractice, type Asked, type LearningChange, type LearningState } from './learning';
 import type { DinoId } from './museum/dinos';
-import { DIG_BOLTS, earnDig, finishDig, freshMuseum, proposePurchase, readMuseum, wake, type Dig, type MuseumState } from './museum/state';
+import { DIG_GEMS, earnDig, finishDig, freshMuseum, proposePurchase, readMuseum, wake, type Dig, type MuseumState } from './museum/state';
 
 export const SAVE_KEY = 'dino-dig-save';
 /** Saved progress is versioned like the other games: a version this build doesn't know reads as a blank save. */
@@ -59,13 +59,13 @@ export const buy = createRewardPurchases(player, { proposePurchase }, {
 export const updateMuseum = (change: (m: MuseumState) => MuseumState | null) =>
   player.commit(state => { const museum = change(state.museum); return museum ? { ...state, museum } : null; });
 
-/** Every bone is in the crate: the Dig is used, the Bolts found in the dirt are paid, the bones go on the skeleton and the fossil on
+/** Every bone is in the crate: the Dig is used, the Gems found in the dirt are paid, the bones go on the skeleton and the fossil on
  *  the shelf. False if there was no Dig. */
 export function settleDig(store: Pick<typeof player, 'commit'>, dig: Dig): boolean {
   return store.commit(s => {
     const museum = finishDig(s.museum, dig);
     if (!museum) return null;
-    const paid = credit(s.currency, DIG_BOLTS);
+    const paid = credit(s.currency, DIG_GEMS);
     return { ...s, museum, currency: paid.kind === 'accepted' ? paid.state : s.currency };
   }).kind === 'accepted';
 }

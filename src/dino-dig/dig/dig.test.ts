@@ -10,7 +10,7 @@ import {
 
 const DT = 1 / 30;
 const world = (tier: number, seed: number, bones = DINOS[tier * 2 - 1]!.bones.slice(0, 2), fossil = true) =>
-  createDig({ bones, bolts: 2, fossil, ...rocksFor(tier) }, seeded(seed));
+  createDig({ bones, gems: 2, fossil, ...rocksFor(tier) }, seeded(seed));
 
 /** A child who rubs where something is buried, taps the rocks on it, and drags each loose bone to the crate. */
 function playWell(w: DigWorld, radius: number, crack: number, rng: Rng, limit = 120): number {
@@ -102,7 +102,7 @@ describe('a Dig', () => {
     expect(held.state).toBe('loose');
     expect([held.px, held.py]).toEqual([100, 100]);
   });
-  it('puts the bones, Bolts and fossil where they fit, apart from each other and the crate', () => {
+  it('puts the bones, Gems and fossil where they fit, apart from each other and the crate', () => {
     for (const s of SITES) for (const seed of [1, 2, 3, 4, 5]) {
       const w = world(s.tier, seed);
       expect(w.things.filter(x => x.thing === 'bone')).toHaveLength(2);
