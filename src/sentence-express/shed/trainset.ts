@@ -1,5 +1,5 @@
 // The Train Set on the saved game: what he owns, his train (an engine, the cars coupled behind it, a paint), his Layout, the
-// stations open on the line and his Deliveries. A finished Round earns Bolts and one Delivery; he starts with one free Delivery so
+// stations open on the line and his Deliveries. A finished Round earns Tickets and one Delivery; he starts with one free Delivery so
 // he sees the reward before his first purchase. A Delivery is paid, and used, only when the cargo reaches Toy Town; finishing it
 // opens the next station, and the first Delivery from a station brings its gift piece of scenery. Nothing here can be lost.
 import { isAmount } from '../../currency/amount';
@@ -280,7 +280,7 @@ export function planShow(t: TrainSet): { layout: Layout; start: number; fixed: b
   return { layout: plan.layout, start: plan.townCell, fixed: plan.fixed };
 }
 
-export interface DeliveryPay { bolts: number; pickup: StationId; gift: string | null; opened: StationId | null }
+export interface DeliveryPay { tickets: number; pickup: StationId; gift: string | null; opened: StationId | null }
 
 /** The cargo is in Toy Town: pay, use the Delivery, give the gift on a station's first Delivery, open the next station. */
 export function finishDelivery(t: TrainSet, plan: Pick<Plan, 'layout' | 'pickup'>): { state: TrainSet; pay: DeliveryPay } {
@@ -295,7 +295,7 @@ export function finishDelivery(t: TrainSet, plan: Pick<Plan, 'layout' | 'pickup'
   const opened = t.open < LINE.length ? LINE[t.open]!.id : null;
   const open = opened ? t.open + 1 : t.open;
   if (opened) layout = placeStation(layout, opened);
-  const pay: DeliveryPay = { bolts: payFor(t.cars.length), pickup: plan.pickup, gift: gift?.id ?? null, opened };
+  const pay: DeliveryPay = { tickets: payFor(t.cars.length), pickup: plan.pickup, gift: gift?.id ?? null, opened };
   return {
     state: { ...t, owned, layout, open, delivered: first ? [...t.delivered, plan.pickup] : t.delivered, deliveries: Math.max(0, t.deliveries - 1), trips: t.trips + 1 },
     pay,

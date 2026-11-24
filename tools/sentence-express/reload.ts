@@ -92,7 +92,7 @@ p = await nextQuestion(null);
 for (let k = 0; k < 6 && p; k++) { await ready(); await answer(p); p = await nextQuestion(p); }
 await page.waitForSelector('.reward .btns:not(.asleep)', { timeout: 40000 }).catch(() => problems.push('the resumed Round never finished'));
 const after = await saved();
-if ((after.balance ?? 0) <= balance0 || (after.balance ?? 0) > balance0 + 6) problems.push(`the resumed Round paid ${(after.balance ?? 0) - balance0} Bolts`);
+if ((after.balance ?? 0) <= balance0 || (after.balance ?? 0) > balance0 + 6) problems.push(`the resumed Round paid ${(after.balance ?? 0) - balance0} Tickets`);
 if (after.trains?.deliveries !== 2) problems.push(`after a Round he has ${after.trains?.deliveries} Deliveries, not 2`);
 if ((await place()).round) problems.push('a finished Round is still in the place');
 
@@ -109,7 +109,7 @@ await page.waitForTimeout(600);
 await start();
 if (!(await page.locator('.layout-screen').count())) problems.push('a reload mid-Delivery did not land on the Layout');
 const d = await saved();
-if (d.trains?.deliveries !== 2 || d.balance !== after.balance) problems.push(`a reload mid-Delivery changed his Deliveries (${d.trains?.deliveries}) or Bolts (${d.balance})`);
+if (d.trains?.deliveries !== 2 || d.balance !== after.balance) problems.push(`a reload mid-Delivery changed his Deliveries (${d.trains?.deliveries}) or Tickets (${d.balance})`);
 if (!d.trains?.layout?.stations?.some((s: { id: string }) => s.id === 'town')) problems.push('Toy Town is missing from his Layout');
 
 // a drawn piece of scenery (a water tower) on the table shows straight after a reload, not only after the next change to the table
@@ -142,7 +142,7 @@ await page.waitForTimeout(600);
 await start();
 if (!(await page.locator('.layout-screen').count())) problems.push('a reload during Watch it go did not land on the Layout');
 const w = await saved();
-if (w.trains?.deliveries !== before.trains?.deliveries || w.balance !== before.balance) problems.push('a reload during Watch it go changed his Deliveries or Bolts');
+if (w.trains?.deliveries !== before.trains?.deliveries || w.balance !== before.balance) problems.push('a reload during Watch it go changed his Deliveries or Tickets');
 
 await browser.close();
 console.log(problems.length ? `PROBLEMS:\n${problems.join('\n')}` : 'reloads: a Round (mid-question and mid-lesson), a Delivery, Watch it go and drawn scenery all come back right; the sound starts on the first tap and wakes again');

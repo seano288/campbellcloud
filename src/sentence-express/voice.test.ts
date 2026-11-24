@@ -36,7 +36,7 @@ describe('the recorded voice', () => {
       ...LINE.flatMap(s => [goLine(s), openLine(s)]),
       ...ITEMS.map(i => i.name),
       ...Array.from({ length: MOST_EARNED }, (_, i) => earnedLine(EXPRESS_CURRENCY, i + 1)),
-      ...Array.from({ length: NUMBERS_TO + 5 }, (_, i) => `${Math.min(i, NUMBERS_TO)}`), // Shed's n(): prices, Bolts short and Deliveries
+      ...Array.from({ length: NUMBERS_TO + 5 }, (_, i) => `${Math.min(i, NUMBERS_TO)}`), // Shed's n(): prices, Tickets short and Deliveries
       ...MODE_IDS.flatMap(m => [MODE_NAMES[m], starLine(MODE_NAMES[m]), `You opened ${MODE_NAMES[m]}!`]),
       ...Object.values(LOCKED_HINTS), ...Object.values(TAB_NAMES), ...CHEERS,
     ];

@@ -4,7 +4,7 @@
 // only makes the train lean and squeal. Points set the wrong way only send it round again; after a while the ones it needs light
 // up, and later they set themselves.
 //
-// The Delivery is used, and the Bolts paid, only when the cargo reaches Toy Town. Leaving halfway (🏠 twice) costs nothing and pays
+// The Delivery is used, and the Tickets paid, only when the cargo reaches Toy Town. Leaving halfway (🏠 twice) costs nothing and pays
 // nothing. Controls stay clear of the bottom edge and the sides, which belong to iPadOS. On a computer: ↑ and ↓ for the throttle,
 // space for the whistle.
 import { useEffect, useMemo, useRef, useState } from 'preact/hooks';
@@ -168,7 +168,7 @@ export function DeliveryScreen() {
     sFanfare(); confetti(46, voice.signal);
     void (async () => {
       await voice.say('Delivered!');
-      if (paid && paid.bolts > 0) await voice.say(earnedLine(EXPRESS_CURRENCY, paid.bolts));
+      if (paid && paid.tickets > 0) await voice.say(earnedLine(EXPRESS_CURRENCY, paid.tickets));
       if (paid?.gift && voice.active) await voice.say('A gift for your table!', 'You got', giftName(paid.gift));
       if (paid?.opened && voice.active) await voice.say(openLine(LINE.find(s => s.id === paid.opened)!));
     })();
@@ -238,7 +238,7 @@ export function DeliveryScreen() {
         <div class="dl-result" role="dialog"><div class="result-card">
           <h2>Delivered!</h2>
           <div class="delivered" aria-hidden="true"><span class="pic emo">{cargo.icon}</span><span>→</span><span class="pic emo">{station('town').icon}</span></div>
-          {pay && <div class="result-bolts"><CurrencyIcon kind={EXPRESS_CURRENCY} size={40} />+{pay.bolts}</div>}
+          {pay && <div class="result-tickets"><CurrencyIcon kind={EXPRESS_CURRENCY} size={40} />+{pay.tickets}</div>}
           {pay?.gift && <div class="result-gift"><GiftPic id={pay.gift} /> {giftName(pay.gift)}</div>}
           {pay?.opened && <div class="result-open"><span class="pic emo">{station(pay.opened).icon}</span> {openLine(LINE.find(s => s.id === pay.opened)!)}</div>}
           <div class="btns">

@@ -33,7 +33,7 @@ function scribble(t: TrainSet, rng: Rng, strokes: number): TrainSet {
 }
 
 describe('the catalogue', () => {
-  it('every price is at most 100 Bolts, the most the voice says', () => {
+  it('every price is at most 100 Tickets, the most the voice says', () => {
     for (const i of ITEMS) expect(i.price, i.name).toBeLessThanOrEqual(100);
   });
   it('names are all different (each is a clip) and the ladder is long: more than twice what it was', () => {
@@ -244,7 +244,7 @@ describe('a Delivery', () => {
     expect(run.leg).toBe('done');
     expect(plan.fixed).toBe(false);
     const done = finishDelivery(t, plan);
-    expect(done.pay.bolts).toBe(payFor(1));
+    expect(done.pay.tickets).toBe(payFor(1));
     expect(done.pay.gift).toBe('barn');
     expect(done.pay.opened).toBe('quarry');
     expect(done.state.deliveries).toBe(0);

@@ -333,7 +333,11 @@ _Avoid_: voyage, launch, ticket
 
 ## Sentence Express
 
-Sentence Express reuses Math Bots', Rover Code's and Wild Rescue's terms where they mean the same thing (Mixed Round, Mastery, Stretch, Bolt, Goal, Paint). It has no Tune-Up and no Meetings. These are its own:
+Sentence Express reuses Math Bots', Rover Code's and Wild Rescue's terms where they mean the same thing (Mixed Round, Mastery, Stretch, Goal, Paint). It has no Tune-Up and no Meetings. These are its own:
+
+**Ticket**: Sentence Express's Bolt, drawn as a train ticket, earned and spent exactly as Bolts are, because a train set runs
+on tickets, not machine parts. Every game names its currency in `src/currency/kind.ts`.
+_Avoid_: Bolt (in Sentence Express it's always Tickets)
 
 **Game Modes (Sentence Express)**: the five kinds of question, about reading sentences: Build the Train (put a heard sentence's word cars in order), Engine and Caboose (the capital at the start, the mark at the end, the capital on "I" and names), What Happened (read a sentence alone and tap its picture), Who, What, Where (a question about a sentence) and Fix the Train (find the one mistake and fix it). Build the Train and Engine and Caboose are open from the start; What Happened opens at Build the Train Level 2, Who, What, Where at What Happened Level 2, Fix the Train at Engine and Caboose Level 2.
 
@@ -352,7 +356,7 @@ _Avoid_: garage, depot
 **Layout**: his table of squares, where he lays track with a finger, rubs it out and puts scenery; it's saved and is the thing he shows off. Straights, corners, points and crossings are worked out from what he draws; a loose end closes up by itself.
 _Avoid_: map, board
 
-**Track Box**: a box of 12 track squares for his Layout (2 to 5 Bolts). He starts with 40 squares; a bigger table is bought on the same Track tab.
+**Track Box**: a box of 12 track squares for his Layout (2 to 5 Tickets). He starts with 40 squares; a bigger table is bought on the same Track tab.
 
 **Track Color**: the colour all his track is drawn in (Wood Track is free; Rainbow Track changes colour every square; Glow Track and Lava Track glow at night). Bought on the Track tab; one is on at a time.
 

@@ -6,7 +6,7 @@
 //   npm run dev:sentence-express   (in another shell)
 //   npx tsx tools/sentence-express/tour.ts <url> <outDir>
 // TOUR_VIEW=portrait|landscape|phone|side picks the screen (iPad 9 sizes by default: 810×1080 upright). TOUR_SAVE=fresh|levels: a
-// brand-new player, or one with every kind open at Level 2 (TOUR_LEVEL=1|2|3 picks another), some Bolts, scenery and track: on a
+// brand-new player, or one with every kind open at Level 2 (TOUR_LEVEL=1|2|3 picks another), some Tickets, scenery and track: on a
 // levels save he also owns one of each new kind of thing (an engine with a trick, cars that do things and light up, a track colour,
 // times of day and weathers, and working scenery already on his table), so the Shed's groups and Sky tab, the trick button, the
 // working pieces, the night and the weather, and Watch it go are all played.
@@ -259,7 +259,7 @@ await shot('shed-trying');
 await page.getByRole('button', { name: 'Buy', exact: true }).tap();
 await page.waitForTimeout(3200);
 const boxKey = box === 'Red Track Box' ? 'track:box1' : 'track:box2';
-if (balance >= 2 && !(await saved()).trains?.owned?.includes(boxKey)) problems.push(`the ${box} was not bought with ${balance} Bolts`);
+if (balance >= 2 && !(await saved()).trains?.owned?.includes(boxKey)) problems.push(`the ${box} was not bought with ${balance} Tickets`);
 await page.getByRole('tab', { name: 'Cars' }).tap();
 await page.waitForTimeout(300);
 await shot('shed-bought');
@@ -377,7 +377,7 @@ const end = await dl();
 if (end?.phase !== 'done') problems.push(`the Delivery never finished (${JSON.stringify(end)})`);
 await page.waitForTimeout(2500);
 await shot('delivery-done');
-await page.waitForTimeout(7000); // the whole of what a finished Delivery says: the Bolts, a gift, a station opening
+await page.waitForTimeout(7000); // the whole of what a finished Delivery says: the Tickets, a gift, a station opening
 const s2 = await saved();
 if ((s2.trains?.trips ?? 0) !== tripsBefore + 1) problems.push('the Delivery was not counted');
 

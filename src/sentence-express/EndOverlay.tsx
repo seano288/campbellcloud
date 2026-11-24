@@ -1,4 +1,4 @@
-// End of a Round: the Bolts he earned drop onto his pile one by one, a Round where he had to try again says he kept trying, he's told
+// End of a Round: the Tickets he earned drop onto his pile one by one, a Round where he had to try again says he kept trying, he's told
 // he earned a Delivery, then each Level up, newly opened kind and star is announced. Only then do the buttons wake up: Deliver! is the
 // big one (a whistle), beside his train (the Shed) and ▶ for another Round.
 import { useEffect, useState } from 'preact/hooks';

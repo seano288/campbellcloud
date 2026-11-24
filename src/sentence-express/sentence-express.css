@@ -339,7 +339,7 @@ html,body{background:var(--sky-2)}
 .card-train .train-view{width:min(80vw,calc(420px*var(--u)))}
 .go-btn{font:400 calc(34px*var(--u)) Bungee,sans-serif;gap:12px}
 .delivered{font-size:calc(60px*var(--u));display:flex;gap:12px;align-items:center}
-.result-bolts,.result-gift,.result-open{display:flex;align-items:center;gap:8px;font:900 calc(28px*var(--u)) Nunito,sans-serif}
+.result-tickets,.result-gift,.result-open{display:flex;align-items:center;gap:8px;font:900 calc(28px*var(--u)) Nunito,sans-serif}
 .result-gift .pic,.result-open .pic{font-size:1.5em}
 .result-gift .item-svg,.result-gift .item-svg svg{display:block;width:48px;height:48px}
 .result-card .btns{display:flex;gap:12px;flex-wrap:wrap;justify-content:center}

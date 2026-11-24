@@ -29,7 +29,7 @@ describe('the save', () => {
     expect(d.currency.balance).toBe(0);
     expect(d.trains).toEqual(freshTrainSet());
   });
-  it('a save from before the rewards were doubled keeps everything: what he owns, his train, his Layout, his stations and his Bolts', () => {
+  it('a save from before the rewards were doubled keeps everything: what he owns, his train, his Layout, his stations and his Tickets', () => {
     // a version 1 save as the first build wrote it: no track colour, time of day or weather, eight stations on the line
     const t0 = freshTrainSet();
     const layout = { ...lay(t0.layout, [3, 15, 27, 39], capacityOf(t0) - trackSquares(t0.layout)).layout };
@@ -72,7 +72,7 @@ describe('the save', () => {
 });
 
 describe('a Round', () => {
-  it('pays a Bolt for each clean answer and one for finishing, and earns a Delivery', () => {
+  it('pays a Ticket for each clean answer and one for finishing, and earns a Delivery', () => {
     const s = store(), practice = createPractice(s);
     const started = practice.start();
     if (started.kind !== 'accepted') throw new Error('no Round');
@@ -92,7 +92,7 @@ describe('a Delivery', () => {
   it('starts with one free Delivery, pays when the cargo reaches Toy Town, and can\'t be paid twice', () => {
     const s = store(), plan = planDelivery(s.state.trains);
     const pay = settleDelivery(s, plan);
-    expect(pay?.bolts).toBe(3);
+    expect(pay?.tickets).toBe(3);
     expect(s.state.currency.balance).toBe(3);
     expect(s.state.trains.deliveries).toBe(0);
     expect(settleDelivery(s, plan)).toBeNull();

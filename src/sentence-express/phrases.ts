@@ -1,9 +1,9 @@
 // The single typed list of everything Sentence Express says. tools/make_voice.py records a clip for each entry, the build fails if
 // one is missing, and say() accepts only these. Every sentence is one whole clip (so it's said naturally, a question rising at the
 // end), and every word is a clip of its own, so tapping a car says its word. Prices and counts are chained from number clips ("It
-// costs", "45", "Bolts."), and a bought thing from "You got" and its name, as in Math Bots.
+// costs", "45", "Tickets."), and a bought thing from "You got" and its name, as in Math Bots.
 import { earnedLine, type EarnedLine } from '../currency/kind';
-import { BOLT } from '../currency/kind';
+import { EXPRESS_CURRENCY } from './branding';
 import { LOCKED_HINTS, MODE_IDS, MODE_NAMES, type ModeName } from './learning';
 import { EXTRA_WORDS } from './reading/problems';
 import { ALL_WORDS, SENTENCES, wordKey } from './sentences/index';
@@ -13,7 +13,7 @@ import { GROUPS, LINE, STATIONS, TAB_NAMES, TRICKS, type GroupName, type ItemNam
 import { ITEMS } from './shed/trainset';
 
 export const NUMBERS_TO = 100;
-/** The most Bolts said in one "You earned" line: a perfect Round or a Delivery with a long train pays 6. */
+/** The most Tickets said in one "You earned" line: a perfect Round or a Delivery with a long train pays 6. */
 export const MOST_EARNED = 6;
 
 const GAME = ["Let's go!", 'Round done!', 'Level up!', 'You kept trying!', 'Tap again to go home.'] as const;
@@ -37,7 +37,7 @@ export const TEACHING = [
 // ---------- the Shed, the Layout and the Delivery ----------
 
 const SHED = [
-  'The Shed!', 'It costs', 'Bolts.', 'You need', 'more Bolts.', 'Play a Round to earn Bolts!', 'You got', 'You built everything!',
+  'The Shed!', 'It costs', 'Tickets.', 'You need', 'more Tickets.', 'Play a Round to earn Tickets!', 'You got', 'You built everything!',
   'You have 1 Delivery!', 'Deliveries!', 'Tap Deliver!', 'Play a Round to earn a Delivery!', 'You earned a Delivery!',
   'Coupled!', 'Uncoupled!', 'Your engine can pull 6 cars.', 'More track to lay!', 'A bigger table!', 'Put it on your table!',
   'Look at your track!', 'See it when your train runs!', 'It lights up at night!', 'It moves when your train runs!', 'Clear sky!',
@@ -62,7 +62,7 @@ export const goLine = (s: (typeof LINE)[number]) => `Go to ${s.name} to pick up 
 const cap = (s: string) => s.charAt(0).toUpperCase() + s.slice(1);
 export const openLine = (s: (typeof LINE)[number]) => `${cap(s.name)} is open!` as OpenLine;
 
-type EarnedPhrase = EarnedLine<typeof BOLT>;
+type EarnedPhrase = EarnedLine<typeof EXPRESS_CURRENCY>;
 type StarLine = `You are a ${Exclude<ModeName, 'Engine and Caboose'>} star!` | 'You are an Engine and Caboose star!';
 type ModePhrase = ModeName | StarLine | `You opened ${ModeName}!`;
 export const starLine = (name: ModeName) => `You are ${/^[AEIOU]/.test(name) ? 'an' : 'a'} ${name} star!` as StarLine;
@@ -85,7 +85,7 @@ const uniq = <T,>(xs: readonly T[]) => [...new Set(xs)];
 export const WORDS_SAID = uniq([...ALL_WORDS, ...EXTRA_WORDS]) as WordPhrase[];
 
 export const PHRASES = uniq<Phrase>([
-  ...GAME, ...CHEERS, ...Array.from({ length: MOST_EARNED }, (_, i) => earnedLine(BOLT, i + 1)), ...modePhrases(), ...Object.values(LOCKED_HINTS), ...numberPhrases(),
+  ...GAME, ...CHEERS, ...Array.from({ length: MOST_EARNED }, (_, i) => earnedLine(EXPRESS_CURRENCY, i + 1)), ...modePhrases(), ...Object.values(LOCKED_HINTS), ...numberPhrases(),
   ...SENTENCES.map(s => s.text), ...SENTENCES.flatMap(s => s.ask.map(([q]) => q as AskQ)), ...WORDS_SAID,
   ...ASKING, ...TEACHING, ...SHED, ...LAYOUT, ...DELIVERY, ...Object.values(TAB_NAMES),
   ...LINE.map(goLine), ...LINE.map(openLine), ...ITEMS.map(i => i.name as ItemName), ...TRICK_WORDS, ...GROUP_NAMES,

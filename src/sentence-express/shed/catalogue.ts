@@ -1,4 +1,4 @@
-// Everything Bolts buy, in one place, so a later pass can add more by adding rows: engines, cars, paints, track (boxes of track
+// Everything Tickets buy, in one place, so a later pass can add more by adding rows: engines, cars, paints, track (boxes of track
 // squares, bigger tables and track colours), scenery and the sky. Every price is at most 100, the most the recorded numbers go.
 // Stations are not bought: a Delivery opens the next one, and the first Delivery from each brings a gift piece of scenery.
 //

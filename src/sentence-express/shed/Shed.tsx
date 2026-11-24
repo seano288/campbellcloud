@@ -143,7 +143,7 @@ export function Shed() {
     setTrial(k);
     sChime();
     const price = priceOf(k);
-    void voice.say(nameOf(k), ...doesLine(k), 'It costs', n(price), 'Bolts.', ...(balance < price ? ['You need' as const, n(price - balance), 'more Bolts.' as const] : []));
+    void voice.say(nameOf(k), ...doesLine(k), 'It costs', n(price), 'Tickets.', ...(balance < price ? ['You need' as const, n(price - balance), 'more Tickets.' as const] : []));
   }
   function buyTrial() {
     if (!trial || !voice.active || blocked) return;
@@ -151,7 +151,7 @@ export function Shed() {
     if (balance < price) {
       nope();
       updateTrains(x => selectGoal(x, k));
-      void voice.say('You need', n(price - balance), 'more Bolts.', 'Play a Round to earn Bolts!');
+      void voice.say('You need', n(price - balance), 'more Tickets.', 'Play a Round to earn Tickets!');
       return;
     }
     if (buy(k).kind === 'accepted') { setTrial(null); celebrate(k); }

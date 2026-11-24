@@ -1,6 +1,6 @@
 // The saved game and how practice changes it. Everything goes through player.commit(), which saves it under its own key, so Sentence
-// Express never touches another game's save on the same site. A Round pays Bolts through the shared currency and earns a Delivery;
-// the Shed spends Bolts through the shared reward purchases.
+// Express never touches another game's save on the same site. A Round pays Tickets through the shared currency and earns a Delivery;
+// the Shed spends Tickets through the shared reward purchases.
 import { createPracticeCoordinator } from '../app/coordination';
 import { createRewardPurchases } from '../app/purchaseCoordination';
 import { credit, readCurrency, type CurrencyState, type EarningsPolicy } from '../currency/currency';
@@ -60,14 +60,14 @@ export const updateTrains = (change: (t: TrainSet) => TrainSet | null) =>
   player.commit(state => { const trains = change(state.trains); return trains ? { ...state, trains } : null; });
 export const saveLayout = (layout: Layout) => updateTrains(t => (t.layout === layout ? null : withLayout(t, layout)));
 
-/** The cargo reached Toy Town: pay the Bolts, use the Delivery, give the gift and open the next station. */
+/** The cargo reached Toy Town: pay the Tickets, use the Delivery, give the gift and open the next station. */
 export function settleDelivery(store: Pick<typeof player, 'commit'>, plan: Pick<Plan, 'layout' | 'pickup'>): DeliveryPay | null {
   let pay: DeliveryPay | null = null;
   store.commit(s => {
     if (s.trains.deliveries <= 0) return null;
     const done = finishDelivery(s.trains, plan);
     pay = done.pay;
-    const paid = credit(s.currency, done.pay.bolts);
+    const paid = credit(s.currency, done.pay.tickets);
     return { ...s, trains: done.state, currency: paid.kind === 'accepted' ? paid.state : s.currency };
   });
   return pay;
