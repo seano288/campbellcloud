@@ -36,7 +36,8 @@ function useStory(current: { signal: AbortSignal }, sentences: readonly Sentence
     if (telling.current === id) { setLit(null); if (!current.signal.aborted) setReady(true); }
   }
   useEffect(() => { void tell(); }, []);
-  return { shown, lit, ready, again: () => { voice.cancel(); void tell(); } };
+  // hush, not cancel: cancel ends this question's voice for good, so a 🔊 tapped mid-story left it silent and never ready (pass 2)
+  return { shown, lit, ready, again: () => { voice.hush(); void tell(); } };
 }
 
 /** The big arrow the fuller lesson waits on: he taps it to go to the next step. */
@@ -72,7 +73,7 @@ const WHEEL_NAMES = ['tens', 'ones'] as const;
 function Wheels({ value, onTurn, onDone, ok, hint }: { value: number; onTurn(v: number): void; onDone(): void; ok: boolean; hint: boolean }) {
   const digits = [Math.floor(value / 10) % 10, value % 10], place = [10, 1];
   function turn(i: number, dir: 1 | -1) {
-    if (!ok) return;
+    if (!ok) { sNope(); return; } // held while the story is said (or a lesson runs): a soft no, so the tap isn't simply lost
     sClink();
     const now = digits[i]!, next = (now + dir + 10) % 10;
     onTurn(value + (next - now) * place[i]!);
@@ -98,7 +99,7 @@ function useWheels(current: Current, ready: boolean, waiting: boolean) {
   const [value, setValue] = useState(0), [turned, setTurned] = useState(false), [done, setDone] = useState(false);
   const ok = ready && !waiting && !done;
   function check(submit: (v: number) => string | undefined) {
-    if (!ok || current.actions.busy) return;
+    if (!ok || current.actions.busy) { if (!done) sNope(); return; }
     if (!turned) { sNope(); void voice.say('Turn the wheels to make the number. Then tap the check.'); return; }
     const verdict = submit(value);
     if (verdict === 'correct') setDone(true);
@@ -106,6 +107,9 @@ function useWheels(current: Current, ready: boolean, waiting: boolean) {
   return { value, setValue: (v: number) => { setValue(v); setTurned(true); }, reset: () => { setValue(0); setTurned(false); }, ok, done, check };
 }
 
+/** Something a lesson draws is on screen: a sideways phone then puts the story card beside it rather than above it (pass 2 found the
+ *  bar picture and the number sentence cut off under the card at 844×390). */
+const drawing = (l: Lesson) => !!(l.deck.value || l.bars.value || l.eq.value || l.sum.value || l.rows.value);
 /** What a lesson draws, over the story card: the deck, the bar picture, the rows, the number sentence. */
 function LessonPicture({ lesson }: { lesson: Lesson }) {
   const deck = lesson.deck.value, bars = lesson.bars.value, eq = lesson.eq.value, sum = lesson.sum.value;
@@ -126,10 +130,11 @@ function StoryWheels({ current, q, waiting }: { current: Current; q: OneProblem 
   const s = q.story, story = useStory(current, s.sentences), lesson = lessonFor(current.signal);
   const w = useWheels(current, story.ready, waiting);
   const rows = lesson.rows.value ?? (q.kind === 'compare' && q.bars ? { big: s.nums['#big']!, small: s.nums['#small']!, bigLabel: '', smallLabel: '', paired: false, glow: false } : null);
-  const showRows = q.kind === 'compare' && rows && (lesson.rows.value || (q.story.ask === '#d' && story.shown >= 2));
+  // the bar picture takes the rows' place in the fuller lesson, so the two never crowd the card together
+  const showRows = q.kind === 'compare' && rows && (lesson.rows.value || (q.story.ask === '#d' && story.shown >= 2 && !lesson.bars.value));
   return (
     <Shell current={current} lesson={lesson} ready={w.ok} kind={`${q.kind} wheels`} title={<Title mode={current.problem.mode} />} onSay={story.again}
-      stage={<div class="cd-picture">
+      stage={<div class={cls('cd-picture', drawing(lesson) && 'lesson-on')}>
         <div class="cd-noun" aria-hidden="true">{NOUN_ICON[s.noun]}</div>
         <StoryCard sentences={s.sentences} shown={story.shown} lit={lesson.lit.value ?? story.lit} />
         {showRows && <PairRows rows={rows!} noun={s.noun} />}
@@ -149,9 +154,12 @@ function TwoView({ current, q, waiting }: { current: Current; q: TwoProblem; wai
   const [middle, setMiddle] = useState<number | null>(null), [rest, setRest] = useState(false);
   const w = useWheels(current, story.ready && (!q.stepped || middle === null || rest), waiting);
   const sentences = q.stepped ? (middle === null ? [...firstPart, s.middleQuestion] : [...firstPart, s.middleQuestion, ...s.sentences.slice(2)]) : s.sentences;
-  async function tellRest() {
-    for (const sen of s.sentences.slice(2)) await voice.say(...speechOf(sen));
-    if (!current.signal.aborted) setRest(true);
+  // one telling at a time: a 🔊 during the rest of the story takes over from it, rather than the two cutting each other off sentence by sentence
+  const telling = useRef(0);
+  async function tellRest(from = 2) {
+    const id = ++telling.current;
+    for (const sen of s.sentences.slice(from)) { if (telling.current !== id) return; await voice.say(...speechOf(sen)); }
+    if (telling.current === id && !current.signal.aborted) setRest(true);
   }
   function submit(v: number) {
     if (!q.stepped) return current.actions.submit(String(v));
@@ -164,8 +172,8 @@ function TwoView({ current, q, waiting }: { current: Current; q: TwoProblem; wai
   const shownAll = q.stepped && middle !== null ? sentences.length : story.shown + (q.stepped && story.ready ? 1 : 0);
   return (
     <Shell current={current} lesson={lesson} ready={w.ok} kind={`two wheels ${q.stepped ? `step-${middle === null ? 1 : 2}` : ''}`} title={<Title mode="two" />}
-      onSay={() => { if (middle === null) story.again(); else void voice.say(...s.sentences.flatMap(speechOf)); }}
-      stage={<div class="cd-picture">
+      onSay={() => { if (middle === null) story.again(); else void tellRest(0); }}
+      stage={<div class={cls('cd-picture', drawing(lesson) && 'lesson-on')}>
         <div class="cd-noun" aria-hidden="true">{NOUN_ICON[s.noun]}</div>
         <StoryCard sentences={sentences} shown={shownAll} lit={lesson.lit.value ?? story.lit} />
         {middle !== null && <div class="cd-middle">✓ <b class="cd-num">{middle}</b></div>}
@@ -182,6 +190,7 @@ function PickView({ current, q, waiting }: { current: Current; q: PickProblem; w
   const [wrong, setWrong] = useState<string[]>([]), [done, setDone] = useState<string | null>(null);
   const can = story.ready && !waiting && !done;
   function tap(c: string) {
+    if (!can && !done) { sNope(); return; }
     if (!can || current.actions.busy || wrong.includes(c)) return;
     sClink();
     const verdict = current.actions.submit(c);
@@ -190,7 +199,7 @@ function PickView({ current, q, waiting }: { current: Current; q: PickProblem; w
   }
   return (
     <Shell current={current} lesson={lesson} ready={can} kind="pick" title={<Title mode="pick" />} onSay={story.again}
-      stage={<div class="cd-picture">
+      stage={<div class={cls('cd-picture', drawing(lesson) && 'lesson-on')}>
         <div class="cd-noun" aria-hidden="true">{NOUN_ICON[s.noun]}</div>
         <StoryCard sentences={s.sentences} shown={story.shown} lit={lesson.lit.value ?? story.lit} extraAt={null} />
         <LessonPicture lesson={lesson} />

@@ -5,7 +5,7 @@
 import { earnedLine, type EarnedLine } from '../currency/kind';
 import { AIRCRAFT_NAMES, ITEM_NAMES, REPEATS, type AircraftName, type ItemName, type RepeatName } from './ship/catalog';
 import { YARD_KINDS, type YardKind } from './ship/fleet';
-import { CALLS, FIXED, PLACES, PORT_FIRST, PORT_SECOND, type CallName, type MissionName, type PlaceName, type PortWord } from './ship/missions';
+import { CALLS, FIXED, PLACES, PORT_FIRST, PORT_SECOND, type Chart, type CallName, type MissionName, type PlaceName, type PortWord } from './ship/missions';
 import { RANKS, SHIP_NAMES, TROPHIES, type RankName, type ShipName, type TrophyName } from './ship/ship';
 import { COMPARE, EXTRA, ONE_STEP, piecesOf, SQUADS, TWO_STEP, type CompareId, type OneId, type Slot, type Squad, type TwoId } from './stories/problems';
 import { DECK_CURRENCY } from './branding';
@@ -112,6 +112,9 @@ export const MISSION_NAMES = FIXED.map(f => f.name) as MissionName[];
 export const CALL_NAMES = [...new Set(Object.values(CALLS))] as CallName[];
 export const PLACE_NAMES = PLACES.map(p => p.name) as PlaceName[];
 export const PORT_WORDS = [...new Set([...PORT_FIRST, ...PORT_SECOND])] as PortWord[];
+/** A port's name as the voice says it: the six hand-made places are a clip each, a generated port is its two words (pass 2: the Chart said
+ *  a generated port's whole name, which has no clip, so it was silent). */
+export const portLine = (c: Pick<Chart, 'n' | 'name' | 'first' | 'second'>): Phrase[] => (c.n <= PLACES.length ? [c.name as PlaceName] : [c.first as PortWord, c.second as PortWord]);
 
 export type Phrase = (typeof GAME)[number] | (typeof CHEERS)[number] | EarnedPhrase | ModePhrase | (typeof LOCKED_HINTS)[keyof typeof LOCKED_HINTS]
   | `${number}` | StoryPiece | SquadName | (typeof QUESTIONS)[number] | (typeof TEACHING)[number] | (typeof MEETING)[number] | (typeof CARRIER)[number]

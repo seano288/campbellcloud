@@ -196,7 +196,7 @@ async function teachOne(q: OneProblem, answer: string, v: VoiceScope, lesson: Le
 async function teachCompare(q: CompareProblem, answer: string, v: VoiceScope, lesson: Lesson, full: boolean) {
   const s = q.story, big = s.nums['#big']!, small = s.nums['#small']!;
   const [bigLabel, smallLabel] = s.id.startsWith('deck') ? ['Deck one', 'Deck two'] : s.id === 'heliMore' ? ['Carrier', 'Supply ship'] : ['Big ship', 'Small ship'];
-  const rows: Rows = { big, small, bigLabel, smallLabel, paired: false, glow: false };
+  const rows: Rows = { big, small, bigLabel, smallLabel, paired: false, glow: false, unknown: s.ask === '#big' ? 'big' : s.ask === '#small' ? 'small' : null };
   if (!full) {
     await firstLine(q, answer, v);
     lesson.rows.value = rows;

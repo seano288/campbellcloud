@@ -240,7 +240,10 @@ COLLECTION_SPEECH = {
     # came back "hole" or "whole" however it was said, so the hull items are named Ship Section and <colour> Ship instead, and Galley,
     # Bow Anchor, Signal Mast, Gull and Shore were renamed Kitchen, Front Anchor, Radio Mast, Seagull and Beach (each heard right).
     'carrier-deck': {
-        'said_as': {'Foghorn': 'Fog horn', 'Grape Purple': 'Grape, Purple', 'carry than': 'carry, than'},
+        # pass 2: small.en and base.en heard "Reef" alone as "wreath", "Fleet Admiral" as "Flee Admiral", "Angled Deck" as "Angle deck" and
+        # "Checkered Deck" as "Checker Deck" / "Check her deck"; each of these is heard right by both
+        'said_as': {'Foghorn': 'Fog horn', 'Grape Purple': 'Grape, Purple', 'carry than': 'carry, than',
+                    'Reef': 'Reef!', 'Fleet Admiral': 'Fleet Admiral!', 'Angled Deck': 'Angled, Deck', 'Checkered Deck': 'Checkered, Deck'},
     },
 }
 

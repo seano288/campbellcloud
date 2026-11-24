@@ -15,7 +15,7 @@ import { airLook, aircraftPic } from '../art/aircraft';
 import { DECK_CURRENCY } from '../branding';
 import { player, settleMission } from '../game';
 import { fly, screen } from '../nav';
-import { said, type Phrase } from '../phrases';
+import { portLine, said, type Phrase } from '../phrases';
 import { startRound } from '../round';
 import { useVoiceScope, type VoiceScope } from '../voice';
 import { AIRCRAFT, FLEET } from '../ship/catalog';
@@ -168,7 +168,7 @@ export function MissionScreen() {
       if (pay.best) { sChime(); await voice.say('New best!'); }
       if (pay.isNew && m.name) { sChime(); await voice.say('A new patch for your wall!'); }
       if (pay.prize) { sFanfare(); confetti(40, voice.signal); await voice.say('You won a prize!', pay.prize.kind === 'patch' ? 'A new patch for your wall!' : 'A new deck marking!'); }
-      if (pay.port) { sFanfare(); await voice.say('You reached a new port!', ...(pay.port <= 6 ? [chart(pay.port).name as Phrase] : [chart(pay.port).first, chart(pay.port).second] as Phrase[])); }
+      if (pay.port) { sFanfare(); await voice.say('You reached a new port!', ...portLine(chart(pay.port))); }
       if (pay.rank) { sFanfare(); confetti(40, voice.signal); await voice.say('You are now a', pay.rank.name); }
       for (const id of pay.trophies) { const tr = TROPHIES.find(x => x.id === id); if (tr) { sFanfare(); await voice.say('You won a medal!', tr.name); } }
       if (!pay.prize && !pay.rank && !pay.port) await voice.say('Great flying!');

@@ -46,7 +46,15 @@ const trimmedAudio: PlaybackControls<AudioBuffer> = {
   },
 };
 const playback = createPlayback<Phrase, AudioBuffer>({ ...deckVoice, ...trimmedAudio });
-export const createVoiceScope = (parent?: AbortSignal): VoiceScope => playback.scope(parent);
+/** In development, a line with no recorded clip is an error on the console (the browser tour fails on it), not a silence (pass 2). */
+const recorded = new Set<string>(deckVoice.phrases);
+function checked(scope: VoiceScope): VoiceScope {
+  if (!import.meta.env.DEV) return scope;
+  const check = (items: Item[]) => { for (const it of items) for (const p of typeof it === 'string' ? [it] : it.parts) if (!recorded.has(p)) console.error(`no clip for "${p}"`); };
+  return { get active() { return scope.active; }, signal: scope.signal, cancel: scope.cancel, hush: scope.hush, wait: scope.wait,
+    say: (...items) => { check(items); return scope.say(...items); }, sayMore: (...items) => { check(items); return scope.sayMore(...items); } };
+}
+export const createVoiceScope = (parent?: AbortSignal): VoiceScope => checked(playback.scope(parent));
 export const speaking = playback.speaking;
 
 export const VoiceContext = createContext<VoiceScope | null>(null);

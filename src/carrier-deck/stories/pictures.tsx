@@ -101,14 +101,18 @@ export function BarPicture({ bars }: { bars: Bars }) {
 
 // ---------- How Many More: two rows ----------
 
-export interface Rows { readonly big: number; readonly small: number; readonly bigLabel: string; readonly smallLabel: string; readonly paired: boolean; readonly glow: boolean }
+export interface Rows {
+  readonly big: number; readonly small: number; readonly bigLabel: string; readonly smallLabel: string; readonly paired: boolean; readonly glow: boolean;
+  /** The row whose number is asked: labelled "?", so the lesson shows the story without saying the answer (pass 2). */
+  readonly unknown?: 'big' | 'small' | null;
+}
 /** Two rows of counters. Paired, the small row's counters sit under the big row's and a line joins each pair; the ones with no partner
  *  glow. In rows of ten, so 47 and 30 line up ten under ten. */
 export function PairRows({ rows, noun }: { rows: Rows; noun: Noun }) {
   const icon = NOUN_ICON[noun];
   const row = (n: number, label: string, which: 'big' | 'small') => (
     <div class={cls('cd-pair-row', which)}>
-      <span class="cd-pair-label">{label} <b>{n}</b></span>
+      <span class="cd-pair-label">{label} <b>{rows.unknown === which ? '?' : n}</b></span>
       <div class="cd-pair-cells">
         {Array.from({ length: n }, (_, i) => <i key={i} class={cls(rows.paired && i < rows.small && 'paired', rows.glow && which === 'big' && i >= rows.small && 'glow', i % 10 === 9 && 'tenth')}>{n <= 30 ? icon : ''}</i>)}
       </div>

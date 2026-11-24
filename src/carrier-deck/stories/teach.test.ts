@@ -51,4 +51,18 @@ describe('the lessons', () => {
       }
     }
   });
+  it('the first-miss rows never label the asked ship with its number (pass 2: "Big ship 83" gave the answer before "Try again!")', async () => {
+    const rng = seeded(21);
+    for (let i = 0; i < 200; i++) {
+      const q = makeQuestion('compare', 3, i % 3 as Stretch, rng);
+      if (q.kind !== 'compare') continue;
+      const life = new AbortController(), lesson = lessonFor(life.signal), seen: (string | null | undefined)[] = [];
+      const stop = lesson.rows.subscribe(r => { if (r) seen.push(r.unknown); });
+      await lessonOf({ mode: 'compare', level: 3, push: true, stretch: 0, q } as Asking, '', false, quiet(), lesson);
+      stop();
+      const asked = q.story.ask === '#big' ? 'big' : q.story.ask === '#small' ? 'small' : null;
+      expect(seen.length).toBeGreaterThan(0);
+      for (const u of seen) expect(u ?? null, JSON.stringify(q.story.sentences.map(x => x.text))).toBe(asked);
+    }
+  });
 });

@@ -3,9 +3,10 @@ import { describe, expect, it } from 'vitest';
 import { seeded } from '../../game/rng';
 import type { Stretch } from '../../modes/progress';
 import {
-  COMPARE, eqText, isRightAnswer, KINDS, makeQuestion, MIN, NOUNS, ONE_STEP, oneStepGuesses, onLine, solve, TOP, TWO_STEP,
+  carries, COMPARE, eqText, isRightAnswer, KINDS, makeQuestion, MIN, NOUNS, ONE_STEP, oneStepGuesses, onLine, solve, TOP, TWO_STEP,
   type Kind, type Level, type Question, type Story,
 } from './problems';
+import { parseEq } from './teach';
 
 const LEVELS: Level[] = [1, 2, 3], STRETCHES: Stretch[] = [0, 1, 2];
 function* every(per = 200, kinds: readonly Kind[] = KINDS) {
@@ -101,6 +102,8 @@ describe('every number that is needed is said and shown', () => {
         const line = s.sentences[s.extra.at]!.text;
         expect(line).not.toMatch(new RegExp(`\\b${s.noun}\\b`)); // another kind of thing: sailors watched a story about jets
         expect(s.extra.at).toBeLessThan(s.sentences.length - 1);
+        // the sentence after it names the story's own thing, so nothing after it could be about the sailors (pass 2)
+        expect(s.sentences[s.extra.at + 1]!.text, JSON.stringify(s.sentences.map(x => x.text))).toMatch(new RegExp(`\\b${s.noun}\\b`));
       } else expect(q.kind === 'pick' && level === 3).toBe(false);
     }
   });
@@ -207,6 +210,36 @@ describe('Deck Log matches its Level', () => {
       }
       if (s.ask === '#s') expect(level).toBe(3);
       if (s.ask === '#c' || s.ask === '#q') expect(level).toBeGreaterThanOrEqual(2);
+    }
+  });
+});
+
+describe('no story needs a harder sum than its Level (pass 2)', () => {
+  /** The ones of a take-away need a ten broken: 52 − 18. */
+  const borrows = (a: number, b: number) => a % 10 < b % 10;
+  it('Deck Log Level 1 never carries or borrows, and Two Steps Level 2 Stretch 0 neither', () => {
+    for (const { q, level, stretch } of every(200, ['one', 'two'])) {
+      if (q.kind === 'one' && level === 1) {
+        const n = q.story.nums, [x, y] = q.story.shape === 'part' ? [n['#p']!, n['#q']!] : q.story.shape === 'join' ? [n['#s']!, n['#c']!] : [n['#e']!, n['#c']!]; // the two that add up to the whole
+        expect(carries(x, y), JSON.stringify(q.story.sentences.map(s => s.text))).toBe(false);
+      }
+      if (q.kind === 'two' && level === 2 && stretch === 0) {
+        for (const e of q.story.eqs) expect(e.op === '+' ? carries(e.l!, e.r!) : borrows(e.l!, e.r!), JSON.stringify(e)).toBe(false);
+      }
+    }
+  });
+  it('Two Steps Level 1 stays within 20 at every step', () => {
+    for (const { q, level } of every(200, ['two'])) if (q.kind === 'two' && level === 1) for (const n of [...q.story.sentences.flatMap(s => s.nums), q.story.middle, q.story.answer]) expect(n).toBeLessThanOrEqual(20);
+  });
+});
+
+describe('Which Sum Level 1 (pass 2)', () => {
+  it('the wrong choice is the other operation on the story\'s same two numbers', () => {
+    for (const { q, level } of every(200, ['pick'])) {
+      if (q.kind !== 'pick' || level !== 1) continue;
+      const right = parseEq(q.answer), wrong = parseEq(q.choices.find(c => c !== q.answer)!);
+      expect(wrong.op, JSON.stringify(q.choices)).not.toBe(right.op);
+      expect([wrong.l, wrong.r].sort(), JSON.stringify(q.choices)).toEqual([right.l, right.r].sort());
     }
   });
 });

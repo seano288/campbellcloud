@@ -219,7 +219,10 @@ function tell(id: OneId | CompareId, rule: Rule, rng: Rng, extra = false): Story
       let x = int(rng, MIN, 9);
       while (x === answer || said.includes(x)) x = int(rng, MIN, 12);
       nums['#x'] = x;
-      const at = int(rng, 1, lines.length - 2); // between two sentences, never after the question
+      // between two sentences, never after the question, and only before one that names the story's own thing: after "5 sailors
+      // watched.", "71 more left after lunch." or "Now there are 82." would be about the sailors (pass 2)
+      const before = lines.map((_, k) => k).filter(k => k >= 1 && lines[k]!.some(p => !p.startsWith('#') && new RegExp(`\\b${t.noun}\\b`).test(p)));
+      const at = pick(rng, before);
       lines.splice(at, 0, EXTRA[extraFor(t.noun)]);
       ex = { n: x, at };
     }

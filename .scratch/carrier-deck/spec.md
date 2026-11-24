@@ -62,7 +62,9 @@ from 2 to 99 (the sentences are plural), so two wheels always answer.
 - A story's words never give the sum away: of the stories that say "more", the share solved by adding is between 30% and 70%; the same for
   "left" or "fewer"; and every kind with such words has both ways.
 - Every number that is needed is said and shown, and only those; only Which Sum Level 3 says one more, and it is always another kind of
-  thing (a story about jets has "sailors watched"), never after the question.
+  thing (a story about jets has "sailors watched"), never after the question, and always just before a sentence that names the story's
+  own thing (pass 2: "5 sailors watched. 71 more left after lunch." and "3 sailors watched. Now there are 82." read as being about the
+  sailors).
 - The answer is never a number the story says, so echoing one is never right.
 - Two Steps are true two-step stories: the middle is never said, it is in the second number sentence, and no single step on two of the
   story's numbers gets the answer.
@@ -76,7 +78,9 @@ from 2 to 99 (the sentences are plural), so two wheels always answer.
 questions of a kind at his Level use the quick rule (8 of 10, or 6 in a row). Levels never go down. The first Rounds are a Tune-Up: three
 probes each of Deck Log and Which Sum at Level 2. Rounds are five answers, mixed, never the same kind twice running while there's
 another; about one in three (and always the one after a miss) is easier and doesn't count; a miss comes back later as a new question
-with no Mastery credit. A Round resumes after a reload. Taps wait until the story has been said once (the brief's risk).
+with no Mastery credit. A Round resumes after a reload. Taps wait until the story has been said once (the brief's risk): while they wait
+the answers are dimmed and a tap gives a soft "nope" sound (default, pass 2; "Listen to the whole story first." is recorded but not said,
+since it would cut the story off). 🔊 says the story again from the top at any time.
 
 ## Teaching a miss
 
@@ -200,6 +204,13 @@ wire he aimed for, the cheapest new thing always bought first):
 - **The longest gap between new things to buy: 2 Rounds in the first 100** (7 in the first 300, 30 in the first 1,000, while saving for
   the dearest aircraft; a new Mission, patch or port comes every Round all the same). His first purchase is in Round 1.
 - After 2,000 Rounds something new is on offer every Round (a new radio call every Mission, the Yard), and no state reads "all done".
+- **Pass 2 rechecked these.** The 13.0 is honest: a Round pays `boltsFor` (5 first-try answers + 1), and in the browser a first Mission
+  flown well paid 7, flown by doing nothing 4 to 5, mashed 6. A Mission pays only when one was earned by a Round (`settleMission`
+  refuses with none left), so Missions can't be farmed; flying a hand-made one again pays at most 6 (no new-Mission 2, a best only once
+  beaten). Counting a plain generated radio call as nothing, the scripted child still meets a patch, prize, port, rank, medal or purchase
+  at least every 3 Rounds through Round 300 (every 4 to Round 2,000); the longest run without a purchase is 6 Rounds in the first 300.
+  With everything fixed owned and 5,000 Bolts (tried in the browser): the Goal is the Yard's next ship (flat at 120), every Mission is a
+  new radio call with a prize every fifth, a new port every six, a rank every 40 hours.
 - The dearest thing, the Jump Jet (380), is 29 Rounds of saving; seven things take more than 15 (Jump Jet, Tiltrotor, Display Jet, Radar
   Plane, Water Bomber, Angled Deck, Cargo Plane). The fifteen dearest are all aircraft, ship parts and Fleet ships.
 
@@ -237,6 +248,20 @@ Light found), so the hull items are named **Ship Section 1–8** and **<colour> 
 "carry than" are said with a breath (`COLLECTION_SPEECH['carrier-deck']` in `tools/make_voice.py`). The 31 re-recorded clips were all heard
 as written. Still doubted, and for the parent to hear: "Ferry" (heard "Fairy": likely the merger, not the voice), "Medals" ("Metals"; the
 word is never said alone, only in names), "boats sail out." alone (heard right in its chain), "Reef" alone (heard right after "Coral").
+
+**Pass 2** transcribed every clip of one or two words back with small.en (518, which pass 1 skipped for the bare numbers): every number
+0 to 100 and every price ten to 400 was heard right. Four were re-recorded so that small.en and base.en both hear them as written:
+"Reef" (heard "wreath"; now said "Reef!"), "Fleet Admiral" ("Flee Admiral"; "Fleet Admiral!"), "Angled Deck" ("Angle deck"; with a
+breath) and "Checkered Deck" ("Check her deck"; with a breath). The rest it doubted are spellings of the same sound ("Grey/Gray",
+"Tail/Tale", "Plain/Plane", "Sea/See", "Tow/Toe", "Bay/Bae", "Pearl/purl", "First/1st", "Hundred/100"). Every clip's speech length fits
+its text (single words 0.5 to 0.65 s; the longest line 3.95 s; none silent). In the browser, 53 chained clips over a Round played in order
+with no overlap, no clip 404s, and in development a line with no clip is now an error on the console (`voice.tsx`), which found the
+Chart saying a generated port's whole name (no clip: silent); it now says its two words, as the Mission's results do.
+
+**Size.** 747 clips, 10.8 MB; the game's own precache is 10.4 MB in 761 entries (Rover Code 7.0, Jetway 9.6, Sight Squad 28.5). Each game
+has its own service worker, so this is the figure for the installed game; summed over every game the site's precaches are about 249 MB
+(238.6 before Carrier Deck). The clips carry about a second of recorded silence each (trimmed as they play), so re-encoding them trimmed
+would roughly halve the voice; not done (no ffmpeg here).
 
 ## Sounds
 
@@ -278,8 +303,7 @@ unused.
 - **The Air Show rival is not built** (optional in the brief): no rival, no tuning table, no three-children win-rate test. His best
   landing is shown and cheered instead.
 - **The voice has not been listened to by a person**; it was transcribed back by speech-to-text (Voice, above).
-- Drawn simply; pass 3 is the design pass. Known rough spots: on a sideways phone the lesson's deck picture is cut off under the story
-  card; the Carrier's top view draws aircraft as plain silhouettes; the cutaway's rooms are emoji in boxes; the Chart shows only the ports
+- Drawn simply; pass 3 is the design pass. Known rough spots: the Carrier's top view draws aircraft as plain silhouettes; the cutaway's rooms are emoji in boxes; the Chart shows only the ports
   reached and two ahead, not a drawn sea chart.
 - Another Ship Section and Another Hangar Bay stop at 8 each; past them only the Yard's ships are bought again and again.
 - No Tune-Up for How Many More, Two Steps or Mission Board (they start at Level 1 when they open).

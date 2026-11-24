@@ -8,7 +8,7 @@ import { CurrencyPile } from '../../ui/currency';
 import { DECK_CURRENCY } from '../branding';
 import { player, updateShip } from '../game';
 import { fly, screen } from '../nav';
-import type { Phrase } from '../phrases';
+import { portLine, type Phrase } from '../phrases';
 import { useVoice } from '../voice';
 import { CALLS, chart, FIXED, FIXED_COUNT, mission, PER_PLACE, prizeById, type Patch } from './missions';
 import { fixedOpen, has, pickMission, planMission, rankOf, TROPHIES, voyageChart } from './ship';
@@ -23,7 +23,7 @@ export function PatchBadge({ patch, size = 44, dim = false }: { patch: Patch; si
 export function ChartScreen() {
   const voice = useVoice(), state = player.state.value, a = state.ship;
   const here = voyageChart(a), plan = planMission(a), rank = rankOf(a.minutes);
-  useEffect(() => { void voice.say(chart(here).name as Phrase); }, []);
+  useEffect(() => { void voice.say(...portLine(chart(here))); }, []);
   const say = (...p: Phrase[]) => { if (voice.active) void voice.say(...p); };
   // the charts drawn so far: every one reached, and two ahead
   const charts = Array.from({ length: here + 2 }, (_, i) => chart(i + 1));
@@ -50,7 +50,7 @@ export function ChartScreen() {
       <div class="chart-body">
         <section class="voyage" aria-label="The Voyage">
           {charts.map(c => (
-            <button key={c.n} class={cls('port', c.n === here && 'here', c.n > here && 'ahead')} style={{ '--sea': c.sea, '--sky': c.sky } as Record<string, string>} aria-label={c.name} onClick={() => say(c.n <= 6 ? c.name as Phrase : c.first, ...(c.n > 6 ? [c.second] : []))}>
+            <button key={c.n} class={cls('port', c.n === here && 'here', c.n > here && 'ahead')} style={{ '--sea': c.sea, '--sky': c.sky } as Record<string, string>} aria-label={c.name} onClick={() => say(...portLine(c))}>
               <span class="port-icon">{c.n > here ? '❔' : c.icon}</span><span class="port-name">{c.n > here + 1 ? '…' : c.name}</span>
             </button>
           ))}
