@@ -33,6 +33,7 @@
     "dev:sky-writer": "vite --config vite.sky-writer.config.ts --port 5183 --strictPort",
     "dev:skyline": "vite --config vite.skyline.config.ts --port 5171 --strictPort",
     "dev:jetway": "vite --config vite.jetway.config.ts --port 5177 --strictPort",
+    "dev:carrier-deck": "vite --config vite.carrier-deck.config.ts --port 5189 --strictPort",
     "dev:hunch": "vite --config vite.hunch.config.ts",
     "dev:purrdoku": "vite --config vite.purrdoku.config.ts",
     "build:purrdoku-boards": "tsx tools/purrdoku-boards.ts"

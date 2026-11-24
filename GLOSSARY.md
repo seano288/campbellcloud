@@ -775,3 +775,41 @@ _Avoid_: random flight, endless mode (to him)
 **Passengers, rank**: every Flight adds its passengers to the big board; at each milestone the airport takes a new rank (Airstrip, Airfield, Airport, Big Airport, Hub, Big Hub, Mega Hub, then Super Hub 1, 2, 3 and on without end).
 
 **Watch it run**: his airport working by itself, for show: his own planes landing, taxiing to his gates and leaving again, his trucks about. Nothing is paid or used.
+
+## Carrier Deck
+
+Carrier Deck reuses the other games' terms where they mean the same thing (Mixed Round, Mastery, Stretch, Bolt, Tune-Up, Meeting, Goal, Paint, Slot, Rung). Fleet is Jetway's word for its planes; here it means the ships that sail with his carrier. These are its own:
+
+**Game Modes (Carrier Deck)**: the five kinds of question, about story problems within 100 and bar graphs: Deck Log (a one-step story: the end asked, then the change, then the start), Which Sum (hear a story and tap the number sentence that fits; nothing is worked out), How Many More (two ships or two decks: how many more, how many fewer, then "the big ship has 12 more than the small ship"), Two Steps (a story with two things happening, the first step's answer needed for the second) and Mission Board (a bar graph of four squadrons: read one bar, how many more, how many in all). Deck Log and Which Sum are open from the start; How Many More opens at Deck Log Level 2, Two Steps at Which Sum Level 2, Mission Board at How Many More Level 2.
+
+**Story card**: the story on screen, one sentence at a time as it is said, its numbers big; 🔊 says it all again.
+
+**Number sentence**: a sum written across with a box for the number he would find (`38 + ? = 60`). Which Sum's answers are number sentences; a lesson ends by writing one in the story's order.
+_Avoid_: equation (to him)
+
+**Bar picture**: the fuller lesson's picture: a long bar for the whole and two shorter bars for the parts, one of them empty (or, comparing, a long bar and a short one with the extra part marked).
+_Avoid_: tape diagram, strip diagram (to him)
+
+**Carrier**: the reward he builds: an aircraft carrier from the side, from above and cut away, that starts as a short hull with a bare deck. He buys it longer a Ship Section at a time and fits it out (the island, catapults, landing wires, lifts, the hangar deck and its bays, deck lights, the angled deck and the rest). Parts change the Mission.
+_Avoid_: warship, battleship
+
+**Air Wing**: the aircraft he owns, from the free Trainer Jet to the Jump Jet, each with its paint, tail art and number. The hangar's size sets how many he can own; a longer deck takes bigger ones.
+_Avoid_: squadron (a Mission Board word), fleet (for aircraft)
+
+**Mission**: the reward he flies, about a minute: the catapult (hold, then let go), a job flown with one finger (rings, following a whale or a ferry, finding lost boats, storm clouds, crate drops, a winch rescue), then the landing lights down to a wire. A finished Round earns one (he starts with one). It cannot be failed: missing the wires sends him round again, and the third pass lands itself. Peaceful: rescues, supplies, storm watches, air shows.
+_Avoid_: sortie, attack, strike
+
+**Wire**: one of the landing wires across the stern of the deck; the hook catches one. He aims for the first (the second of four); which one he caught is his landing.
+
+**Patch**: the badge each hand-made Mission puts on his wall, and the prize every fifth generated one may bring.
+
+**Voyage, chart, port**: the sea chart of his voyage: six hand-made places (Home Port, the Islands, the Ice, the Reef, the Storm Sea, the Far Harbor) of six Missions each, then new waters and ports generated ahead of him without end.
+_Avoid_: level, map (Treasure Fleet's)
+
+**Radio call**: a generated Mission, made on the spot from its number (the job, the wind, the sea, day or night, which aircraft suits it), the same every time for that number.
+
+**Fleet (Carrier Deck)**: the ships that sail with his carrier: eight to buy (the Tug, the Rescue Cutter, the Supply Ship and the rest), then the Yard's: always a new ship in the Yard, made from parts (hull, deckhouse, mast, funnel, colours), without end.
+
+**Logbook, rank**: every Mission adds its minutes to his logbook; at each milestone he takes a new rank and a new stripe on his jersey (Cadet, Deckhand, Flyer, Pilot, Ace, Flight Leader, Wing Leader, Captain, Commodore, Admiral, then Fleet Admiral 1, 2, 3 and on without end).
+
+**Watch the deck**: his carrier working by itself, for show: his aircraft up the lift, off the catapult, back onto a wire and down again, his Fleet sailing alongside. Nothing is paid or used.

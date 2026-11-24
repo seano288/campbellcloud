@@ -28,6 +28,7 @@ const collections = {
   'sky-writer': async () => (await import('../src/sky-writer/phrases')).PHRASES,
   skyline: async () => (await import('../src/skyline/phrases')).PHRASES,
   jetway: async () => (await import('../src/jetway/phrases')).PHRASES,
+  'carrier-deck': async () => (await import('../src/carrier-deck/phrases')).PHRASES,
 };
 if (!name || !Object.hasOwn(collections, name)) throw new Error(`Select --collection ${Object.keys(collections).join('|')}`);
 const phrases = await collections[name as keyof typeof collections]();

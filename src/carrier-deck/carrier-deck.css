@@ -1,0 +1,414 @@
+/* Carrier Deck: Time Flies' styles (imported before this file, as Jetway does) at sea: deep navy water, a grey ship, a dark flight
+   deck with white and yellow markings, and the bright jersey colours of a real deck crew (yellow, green, red, purple, blue) for buttons
+   and badges, with the family look kept: Bungee titles, Nunito reading, thick black outlines and chunky drop shadows that press in.
+   Colour signals stay the family's: green is Go and right, yellow is look here, orange is being read aloud. Every rule is scoped to this
+   game's own classes (cd-, ms-, ship-, chart-, watch-) or its screens, so nothing leaks between kinds. Started from Jetway's sheet. */
+:root{--tarmac:#12233f;--tarmac-2:#1f3a68;--deck:#3a4150;--sea:#1f4f8a;--sky:#3d93dc;--sky-2:#86c5f3;--hivis:#ff7a00;--sign:#14161b;--sign-ink:#ffd23f;--runway:#f4f6fa;
+  --crew-yellow:#ffd23f;--crew-green:#2fa84f;--crew-red:#e63946;--crew-purple:#7b4bd1;--crew-blue:#2f8fe8;
+  --floor:max(56px,calc(env(safe-area-inset-bottom) + 40px))}
+html,body{background:var(--tarmac)}
+.cd-start,.start.cd-start{background:linear-gradient(var(--sky) 0 55%,var(--sea) 55%,var(--tarmac))}
+/* the name on a yellow-on-black airport sign */
+.cd-start h1{color:var(--sign-ink);background:var(--sign);border:4px solid #000;border-radius:18px;padding:.12em .45em .16em;line-height:1.05;text-shadow:3px 3px 0 var(--hivis)}
+.cd-start .start-art{width:min(92vw,calc(520px*var(--u)),620px);aspect-ratio:1300/780;border:4px solid #000;border-radius:18px;overflow:hidden;box-shadow:0 7px 0 #000}
+.cd-start .start-art .carrier-canvas{width:100%;height:100%}
+@media (max-height:520px){.cd-start .start-art{width:auto;height:28vh}.start.cd-start{gap:12px}}
+.home-screen.cd-home-screen,.round-screen{background:linear-gradient(170deg,var(--sky) 0%,#2a6db3 45%,var(--sea) 46%,var(--tarmac) 100%)}
+.cd-home-screen .home-head h1{color:var(--sign-ink);text-shadow:2px 2px 0 var(--hivis),4px 4px 0 #000}
+.carrier-canvas{display:block;width:100%;height:100%}
+
+/* ---------- Home ---------- */
+/* the Levels board and Play stay above the bottom band (pass 2 measured them 16 to 33px up) */
+.home.cd-home{padding-bottom:var(--floor)}
+.cd-start{padding-bottom:calc(var(--floor) + 24px)}
+.home.cd-home{grid-template-areas:"p p" "a r" "k k";grid-template-rows:minmax(0,1fr) minmax(0,.8fr) auto;grid-template-columns:1.5fr 1fr}
+@media (orientation:landscape){.home.cd-home{grid-template-areas:"p a" "p r" "k k";grid-template-rows:minmax(0,1fr) minmax(0,.6fr) auto;grid-template-columns:1fr 1.2fr}}
+/* Play is the catapult's green light on the flight deck: the biggest, greenest thing on the screen, on a dark deck with a yellow catapult
+   track and a puff of steam */
+.cd-home .t-play{grid-area:p;position:relative;overflow:hidden;background:linear-gradient(#8fd0ff 0 46%,var(--sea) 46%);--door:max(112px,calc(172px*var(--u)))}
+.cd-home .t-play .flight-deck{position:absolute;left:-10px;right:-10px;top:38%;height:30%;background:var(--deck);border-top:6px solid #8e9aa6;border-bottom:4px solid #000}
+.cd-home .t-play .flight-deck .track{position:absolute;left:8%;right:4%;top:46%;height:8px;background:repeating-linear-gradient(90deg,var(--sign-ink) 0 34px,transparent 34px 52px)}
+.cd-home .t-play .flight-deck .steam{position:absolute;right:10%;top:-18px;width:56px;height:30px;border-radius:50%;background:radial-gradient(circle,#fff 0 40%,#fff0 70%);animation:steam 2s infinite}
+@keyframes steam{0%,100%{transform:translateX(0) scale(.9);opacity:.8}50%{transform:translateX(-14px) scale(1.15);opacity:1}}
+.cd-home .t-play .e{position:relative;display:grid;place-items:center;width:var(--door);height:var(--door);border-radius:50%;border:5px solid #000;background:var(--go);color:#fff;font-size:calc(72px*var(--u));padding-left:calc(8px*var(--u));box-shadow:0 0 0 8px var(--crew-green),0 0 0 12px #000,0 14px 0 12px #000}
+.cd-home .t-play:active{transform:translateY(4px)}
+.cd-home .t-ship{grid-area:a;position:relative;flex-direction:column;gap:2px;padding:4px;background:var(--sea);color:#fff;overflow:hidden}
+.cd-home .t-ship .carrier-canvas{flex:1;min-height:0;width:100%}
+/* Routes is a departures board: yellow on black, where his next Flight goes */
+.cd-home .t-chart{grid-area:r;position:relative;flex-direction:column;justify-content:center;gap:calc(8px*var(--u));padding:calc(10px*var(--u));background:var(--sign);color:var(--sign-ink)}
+.cd-home .t-chart .board-head{position:absolute;left:10px;top:8px;font:400 max(12px,calc(15px*var(--u))) Bungee,sans-serif;letter-spacing:.04em;color:#fff}
+.cd-home .t-chart .next-dest{display:flex;align-items:center;gap:calc(10px*var(--u));max-width:100%;padding:calc(6px*var(--u)) calc(14px*var(--u));background:#000;border:3px solid #2c333d;border-radius:12px}
+.cd-home .t-chart .nd-icon{font-size:max(30px,calc(52px*var(--u)));line-height:1}
+.cd-home .t-chart .nd-name{font:900 max(17px,calc(30px*var(--u)))/1.05 Nunito,sans-serif;color:var(--sign-ink);text-align:left;overflow:hidden;text-overflow:ellipsis}
+.cd-home .t-chart .nm,.cd-home .t-ship .nm{font-size:calc(24px*var(--u));color:var(--sign-ink);background:#000;border-radius:10px;padding:2px 10px}
+.cd-home .t-chart .nm{background:none;padding:0;color:#fff}
+.cup-count{position:absolute;right:8px;top:6px;background:#000;color:var(--sign-ink);border-radius:999px;padding:2px 10px;font:900 max(14px,calc(16px*var(--u))) Nunito,sans-serif}
+.race-badge{position:absolute;right:10px;top:8px;background:#000;color:var(--sign-ink);border-radius:999px;padding:3px 12px;font:900 max(16px,calc(22px*var(--u))) Nunito,sans-serif;border:2px solid var(--sign-ink)}
+.cd-home .t-kinds{grid-area:k;background:var(--runway);display:grid;grid-template-columns:repeat(3,1fr);grid-auto-rows:minmax(max(48px,calc(54px*var(--u))),auto);column-gap:calc(12px*var(--u));padding:0 calc(12px*var(--u)) calc(8px*var(--u));cursor:default}
+.cd-home .t-kinds:active{transform:none;box-shadow:0 7px 0 #000}
+.cd-home .kinds-head{grid-column:1/-1;margin:0 calc(-12px*var(--u)) calc(2px*var(--u));padding:calc(5px*var(--u)) 12px;font:400 max(14px,calc(16px*var(--u))) Bungee,sans-serif;text-align:center;letter-spacing:.04em;color:var(--sign-ink);background:var(--sign)}
+.cd-home .kind{position:relative;display:flex;align-items:center;gap:8px;background:none;border:0;padding:2px;min-height:44px;text-align:left;color:#14161b;cursor:default}
+.cd-home .kind .ki{font-size:max(20px,calc(26px*var(--u)));line-height:1}
+.cd-home .kind .kb{flex:1;min-width:0;display:flex;flex-direction:column;gap:4px}
+.cd-home .kind .kn{font:900 max(14px,calc(18px*var(--u))) Nunito,sans-serif;line-height:1.1}
+.cd-home .kind .lvl{gap:4px}
+.cd-home .kind .lvl i{width:max(12px,calc(15px*var(--u)));height:max(12px,calc(15px*var(--u)));border:2px solid #0004;background:#e3e6eb}
+.cd-home .kind .lvl i.on{border-color:#000;background:radial-gradient(circle at 35% 35%,#fff3b0,#ffc400 60%);box-shadow:0 0 0 2px #ffc40055}
+.cd-home .kind.locked{opacity:.55}
+.cd-home .kind.locked .ki{filter:grayscale(1)}
+.cd-home .kind.fresh{animation:pulse 1s infinite}
+.cd-home .kind .badge{position:absolute;right:-2px;top:2px;font-size:calc(18px*var(--u))}
+@media (max-width:560px){.cd-home .t-kinds{grid-template-columns:repeat(2,1fr)}}
+@media (orientation:landscape) and (max-height:520px){
+  .home.cd-home{grid-template-areas:"p a k" "p r k";grid-template-rows:minmax(0,1fr) minmax(0,1fr);grid-template-columns:1fr .9fr 1.2fr}
+  .cd-home .t-kinds{grid-template-columns:1fr;grid-auto-rows:minmax(44px,auto)}
+  .cd-home .kinds-head{position:absolute;width:1px;height:1px;overflow:hidden;clip-path:inset(50%)}
+}
+
+/* ---------- a question: the sum (or the question) in the bar, then the picture and the answers, side by side when there's width ---------- */
+.round-screen .card{position:relative;background:#fafafa}
+.game.cd{justify-content:flex-start;gap:calc(8px*var(--u));padding:calc(10px*var(--u));overflow:hidden}
+/* answers stay above the bottom band (pass 2: the wheels and the lesson's arrow sat 25px up on an iPad): the card's 16px margin and border
+   plus this keep them 56px up, as Deep Light's */
+@media (min-height:600px){.game.cd{padding-bottom:max(calc(10px*var(--u)),calc(var(--floor) - 14px))}}
+@media (orientation:landscape) and (max-height:520px){.game.cd{padding-bottom:calc(var(--floor) - 20px)}}
+.game.cd .ask{flex:none;width:100%;max-width:100%}
+.game.cd .ask h2{flex:1;min-width:0;font:900 max(20px,calc(30px*var(--u)))/1.15 Nunito,sans-serif;text-align:left;text-wrap:balance}
+.game.cd .ask h2 .num{font-weight:900;background:var(--sign);color:var(--sign-ink);border-radius:8px;padding:0 8px;white-space:nowrap}
+.game.cd .help-btn{flex:none;font-size:max(20px,calc(24px*var(--u)));padding:4px 12px}
+.cd-body{flex:1;min-height:0;width:100%;display:flex;flex-direction:column;gap:calc(10px*var(--u));align-items:stretch}
+.cd-stage{position:relative;flex:1 1 0;min-height:0;min-width:0;display:flex;align-items:center;justify-content:center}
+.cd-controls{flex:none;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:calc(12px*var(--u))}
+@media (orientation:landscape){.cd-body{flex-direction:row}.cd-controls{flex:0 0 auto;width:clamp(216px,38vw,480px)}}
+.cd-picture{width:100%;height:100%;min-height:0;display:flex;align-items:center;justify-content:center}
+.cd-picture svg{max-width:100%;max-height:100%;width:auto;height:100%}
+.choices.nums{display:grid;grid-template-columns:repeat(3,1fr);gap:calc(10px*var(--u));width:min(100%,480px)}
+.choices.nums .choice{min-height:max(64px,calc(88px*var(--u)));font-size:max(28px,calc(42px*var(--u)))}
+.choice.hint,.duel-plane.hint{animation:hint 1s infinite}
+/* the wheels: one for each digit, then the check */
+.cd-wheels{display:flex;align-items:center;gap:calc(12px*var(--u));flex-wrap:nowrap}
+.cd-wheels .numwheels{display:flex;gap:10px;height:max(170px,calc(230px*var(--u)))}
+.cd-wheels .numwheel{width:max(76px,calc(104px*var(--u)));display:flex;flex-direction:column;gap:6px}
+.cd-wheels .numwheel button{flex:1;min-height:max(44px,calc(52px*var(--u)));border-radius:16px;background:var(--sign);color:var(--sign-ink);border:4px solid #000;font-size:calc(30px*var(--u));box-shadow:0 5px 0 #000}
+.cd-wheels .numwheel button:active{transform:translateY(3px);box-shadow:0 2px 0 #000}
+.cd-wheels .digit{flex:1.6;min-height:0;display:flex;align-items:center;justify-content:center;border-radius:16px;background:#fff;border:4px solid #000;font:900 max(40px,calc(76px*var(--u)))/1 Nunito,sans-serif;color:#000;overflow:hidden}
+.cd-wheels .wheel-hundreds .digit{background:#ffe6cc}.cd-wheels .wheel-tens .digit{background:#dcecff}
+.cd-wheels .done-btn{min-width:max(76px,calc(96px*var(--u)));min-height:max(76px,calc(96px*var(--u)));font-size:max(36px,calc(48px*var(--u)));background:var(--go);color:#fff}
+@media (orientation:portrait){.cd-controls .cd-wheels{width:100%;justify-content:center}}
+/* an iPad on its side: the check goes under the wheels, so three wheels fit their column and never reach the mat (pass 2 found the
+   hundreds wheel touching it at 1080×810) */
+@media (orientation:landscape) and (min-height:521px){.cd-controls .cd-wheels{flex-direction:column;align-items:stretch}.cd-wheels .done-btn{min-height:max(64px,calc(84px*var(--u)))}}
+@media (orientation:landscape) and (max-height:520px){.cd-wheels.w3 .numwheel{width:64px}.cd-wheels.w3 .numwheels{gap:6px}}
+@media (max-width:430px){.cd-wheels .numwheel{width:68px}.cd-wheels .numwheels{gap:6px}.cd-wheels .done-btn{min-width:64px}}
+/* the arrow the fuller lesson waits on */
+.cd-next{position:absolute;right:8px;bottom:8px;z-index:3;width:max(72px,calc(96px*var(--u)));height:max(72px,calc(96px*var(--u)));border-radius:50%;border:5px solid #000;background:var(--sign-ink);font:900 max(36px,calc(48px*var(--u))) Nunito,sans-serif;box-shadow:0 6px 0 #000;padding:0}
+.cd-next:active{transform:translateY(4px);box-shadow:0 2px 0 #000}
+
+/* ---------- the end of a Round ---------- */
+/* dusk on the flight deck: night sky over the sea, the deck's yellow line across it */
+.cd-reward{background:linear-gradient(transparent calc(80% - 4px),#ffd23f99 calc(80% - 4px) calc(80% + 4px),transparent 0),linear-gradient(#0b1a2e,#1b3a5e 58%,var(--deck) 58%,var(--tarmac));padding-bottom:calc(var(--floor) + 16px)}
+.earned-race{font:900 calc(30px*var(--u)) Nunito,sans-serif;color:var(--sign-ink);background:#000;border-radius:999px;padding:6px 20px}
+.cd-reward .btns{align-items:center}
+.big-btn.my-plane{display:flex;flex-direction:column;align-items:stretch;padding:calc(4px*var(--u));width:max(104px,calc(150px*var(--u)));height:max(80px,calc(110px*var(--u)));flex:none;background:linear-gradient(var(--sky-2) 0 62%,var(--sea) 62%)}
+.big-btn.my-plane img{flex:1;min-height:0;width:100%;object-fit:contain;transform:scale(1.35)}
+.big-btn.my-plane .btn-word{font:400 max(12px,calc(16px*var(--u)))/1.2 Bungee,sans-serif;color:var(--sign-ink);text-align:center}
+.race-btn{gap:12px;min-height:max(80px,calc(110px*var(--u)));padding:calc(10px*var(--u)) calc(26px*var(--u));font-size:calc(30px*var(--u))}
+.race-flag{font-size:1.3em}
+.race-word{font:400 max(18px,calc(30px*var(--u))) Bungee,sans-serif;white-space:nowrap}
+.race-count{font-size:.7em;background:#0006;border-radius:12px;padding:2px 10px;white-space:nowrap}
+.cd-reward .btns .again.second{font-size:calc(28px*var(--u));padding:calc(18px*var(--u)) calc(24px*var(--u))}
+
+/* ---------- the Airport ---------- */
+.ship-screen,.chart-screen{gap:calc(8px*var(--u));padding:max(8px,env(safe-area-inset-top)) max(10px,env(safe-area-inset-right)) max(10px,env(safe-area-inset-bottom)) max(10px,env(safe-area-inset-left));background:radial-gradient(circle at 30% 0%,#2a4f86,var(--tarmac) 70%);color:#fff}
+.cd-head{display:flex;align-items:center;gap:10px;flex:none;min-width:0}
+.cd-head h1{margin:0 auto 0 0;font:400 calc(30px*var(--u)) Bungee,sans-serif;color:var(--sign-ink);min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+@media (max-width:430px){.cd-head h1{font-size:16px}}
+.rank-chip{display:flex;align-items:center;gap:6px;background:var(--sign);color:var(--sign-ink);border:3px solid #000;border-radius:10px;padding:2px 10px;font:900 max(15px,calc(20px*var(--u))) Nunito,sans-serif;white-space:nowrap}
+.rank-chip small{font-size:.75em;color:#fff}
+@media (max-width:430px){.rank-chip small{display:none}}
+.ship-main{flex:1.5 1 0;min-height:0;display:grid;grid-template-columns:minmax(0,1fr) auto;gap:calc(10px*var(--u))}
+.ship-view{position:relative;min-height:0;border:4px solid #000;border-radius:16px;overflow:hidden;background:var(--sea);box-shadow:0 6px 0 #000}
+.ship-side{display:flex;flex-direction:column;gap:calc(8px*var(--u));justify-content:center;width:clamp(150px,24vw,240px);min-height:0}
+@media (orientation:portrait){.ship-main{grid-template-columns:minmax(0,1fr);grid-template-rows:minmax(0,1fr) auto}.ship-side{flex-direction:row;width:auto;align-items:stretch}.ship-side .fly-btn{flex:1}}
+.fly-btn{display:grid;grid-template-columns:auto 1fr auto;grid-template-rows:auto auto;align-items:center;column-gap:8px;padding:calc(8px*var(--u)) calc(14px*var(--u));min-height:max(76px,calc(96px*var(--u)))}
+.fly-plane{font-size:calc(40px*var(--u));grid-row:1/3}
+.fly-word{font:400 max(20px,calc(30px*var(--u))) Bungee,sans-serif}
+.fly-to{grid-column:2/4;font:900 max(13px,calc(15px*var(--u))) Nunito,sans-serif;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;text-align:left}
+.fly-btn .race-count{font-size:max(18px,calc(22px*var(--u)))}
+.cd-goal{display:flex;align-items:center;gap:8px;min-height:max(52px,calc(60px*var(--u)));padding:4px 10px;border-radius:999px;border:3px solid var(--sign-ink);background:#000;color:#fff;min-width:0}
+.goal-icon{font-size:calc(28px*var(--u))}
+.goal-bar{flex:1;min-width:40px;height:14px;border-radius:7px;background:#fff3;overflow:hidden}
+.goal-bar i{display:block;height:100%;background:var(--sign-ink);border-radius:7px;transition:width .4s}
+.goal-num{font:900 max(14px,calc(16px*var(--u))) Nunito,sans-serif;white-space:nowrap}
+.side-row{display:flex;gap:8px}
+.side-btn{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;min-height:max(56px,calc(68px*var(--u)));font-size:calc(32px*var(--u));padding:4px;background:#fff;color:#14161b}
+.side-word{font:400 max(11px,calc(13px*var(--u))) Bungee,sans-serif;line-height:1}
+@media (orientation:portrait){.ship-side .cd-goal{flex:1}.side-row{flex:none}.side-btn{width:max(56px,calc(68px*var(--u)))}}
+@media (orientation:portrait) and (max-width:560px){.ship-side{flex-wrap:wrap}.ship-side .fly-btn{flex:1 1 100%}}
+.buy-bar{flex:none;display:flex;align-items:center;gap:10px;padding:6px 10px;background:#000;border:3px solid var(--sign-ink);border-radius:16px}
+.buy-icon{font-size:calc(30px*var(--u))}
+.buy-name{flex:1;min-width:0;font:900 max(16px,calc(22px*var(--u))) Nunito,sans-serif;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.buy-need{display:flex;align-items:center;gap:4px;font:900 max(16px,calc(20px*var(--u))) Nunito,sans-serif;color:var(--sign-ink);white-space:nowrap}
+.buy-btn{display:flex;align-items:center;gap:6px;font:900 max(20px,calc(26px*var(--u))) Nunito,sans-serif;padding:6px 18px;min-height:52px}
+.cd-tabs{flex:none;display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:4px}
+@media (max-width:700px),(orientation:landscape) and (max-height:520px){.cd-tabs{grid-template-columns:repeat(7,minmax(44px,1fr));overflow-x:auto}.tab-name{display:none}}
+.cd-tab{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;min-height:max(48px,calc(58px*var(--u)));min-width:44px;border-radius:12px;background:#1d2026;border:3px solid #fff3;color:#fff;padding:0 2px;font-size:calc(22px*var(--u))}
+.tab-name{font:900 max(11px,calc(13px*var(--u))) Nunito,sans-serif}
+.cd-tab.on{background:var(--sign-ink);border-color:#000;box-shadow:0 4px 0 #000;color:#000}
+.cd-tray{flex:1 1 0;min-height:max(130px,22vh);overflow-y:auto;overscroll-behavior:contain;touch-action:pan-y;display:flex;flex-direction:column;gap:8px;padding-bottom:calc(var(--floor) - 20px)}
+.tiles{display:grid;grid-template-columns:repeat(auto-fill,minmax(max(104px,calc(128px*var(--u))),1fr));grid-auto-rows:max-content;gap:calc(8px*var(--u))}
+.cd-tile{position:relative;display:flex;flex-direction:column;align-items:center;gap:2px;padding:6px 4px;min-height:96px;border-radius:14px;background:#1d2026;border:3px solid #fff3;color:#fff;font:800 max(13px,calc(15px*var(--u)))/1.1 Nunito,sans-serif}
+.cd-tile img{width:92%;height:calc(56px*var(--u));min-height:40px;object-fit:contain}
+.tile-icon{font-size:max(28px,calc(36px*var(--u)));line-height:1.2}
+.swatch-dot{width:max(36px,calc(44px*var(--u)));height:max(36px,calc(44px*var(--u)));border-radius:50%;border:3px solid #000;box-shadow:0 0 0 2px #fff5}
+.tile-name{min-height:2.2em;display:grid;place-items:center;text-align:center}
+.tile-cost,.tile-tag{display:inline-flex;align-items:center;gap:2px;font-size:max(14px,1.05em);color:#ffd97a}
+.tile-count{position:absolute;right:4px;top:4px;background:var(--sign-ink);color:#000;border-radius:999px;padding:0 6px;font-weight:900}
+.cd-tile.locked{background:#14161b;opacity:.75}
+.cd-tile.afford{border-color:var(--sign-ink)}
+.cd-tile.owned{border-color:#3ddc8466}
+.cd-tile.worn{border-color:var(--green);background:#143526;color:#c4f7dc}
+.cd-tile.picked{outline:3px solid #fff;outline-offset:1px}
+.cd-tile.grounded img{filter:grayscale(.5)}
+.cd-tile.charter{border-color:#b26bff}
+.fleet-bar{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+.fleet-bar img{width:max(120px,calc(160px*var(--u)));height:max(60px,calc(80px*var(--u)));object-fit:contain;background:linear-gradient(var(--sky-2) 0 72%,var(--deck) 72%);border:3px solid #000;border-radius:12px}
+.chip-btn{min-height:48px;min-width:48px;padding:4px 14px;border-radius:999px;border:3px solid #000;background:#fff;color:#000;font:900 max(16px,calc(20px*var(--u))) Nunito,sans-serif;box-shadow:0 3px 0 #000}
+.chip-btn.on{background:var(--sign-ink)}
+.chip-note{font:900 max(16px,calc(18px*var(--u))) Nunito,sans-serif;color:#fffc}
+.light-dot i{display:block;width:24px;height:24px;border-radius:50%;background:var(--dot);border:2px solid #000}
+
+/* ---------- the Flight and "Watch it run" ---------- */
+.mission-screen,.watch-screen{position:fixed;inset:0;overflow:hidden;touch-action:none;overscroll-behavior:none;-webkit-user-select:none;user-select:none;-webkit-touch-callout:none;background:var(--sky);color:#fff}
+.watch-screen{background:var(--sea)}
+.ms-canvas,.watch-canvas{position:absolute;inset:0;width:100%;height:100%;display:block}
+.ms-hud{position:absolute;left:0;right:0;top:0;display:flex;align-items:center;gap:10px;padding:max(12px,env(safe-area-inset-top)) max(24px,calc(env(safe-area-inset-right) + 24px)) 0 max(24px,calc(env(safe-area-inset-left) + 24px));pointer-events:none;flex-wrap:wrap}
+.ms-hud>*{pointer-events:auto}
+.hud-chip{display:flex;align-items:center;gap:6px;background:#000c;border:3px solid var(--sign-ink);border-radius:999px;padding:4px 14px;font:900 max(18px,calc(26px*var(--u))) Nunito,sans-serif;color:var(--sign-ink);white-space:nowrap}
+@media (max-width:430px){.ms-hud .hud-chip:last-child{display:none}}
+.ms-tip{position:absolute;left:50%;top:max(80px,calc(env(safe-area-inset-top) + 80px));transform:translateX(-50%);pointer-events:none;background:#000b;color:#fff;border-radius:999px;padding:4px 18px;font:900 max(16px,calc(22px*var(--u))) Nunito,sans-serif;white-space:nowrap}
+.ms-tip:empty{display:none}
+.ms-acts{position:absolute;right:max(24px,calc(env(safe-area-inset-right) + 24px));bottom:calc(var(--floor) + 10px);pointer-events:none}
+.ms-act{pointer-events:auto;touch-action:none;display:grid;place-items:center;width:max(110px,calc(150px*var(--u)));height:max(110px,calc(150px*var(--u)));border-radius:50%;border:5px solid #000;box-shadow:0 7px 0 #000;padding:0;font-size:calc(48px*var(--u));background:radial-gradient(circle at 40% 35%,#ffb36b,var(--hivis) 60%,#a34a00);color:#000}
+.ms-act b{font:400 max(16px,calc(22px*var(--u))) Bungee,sans-serif}
+.ms-act:active{transform:translateY(5px);box-shadow:0 2px 0 #000}
+.ms-act.drop{background:radial-gradient(circle at 40% 35%,#9fe0ff,#2f8fe8 60%,#123a7a);color:#fff}
+.ms-card{display:flex;flex-direction:column;gap:calc(12px*var(--u));padding:max(12px,env(safe-area-inset-top)) max(24px,calc(env(safe-area-inset-right) + 24px)) max(14px,env(safe-area-inset-bottom)) max(24px,calc(env(safe-area-inset-left) + 24px));background:linear-gradient(var(--sky,#8fd0ff) 0 62%,var(--sea) 62%);touch-action:auto}
+.ms-head{display:flex;align-items:center;gap:10px}
+.ms-head h1{margin:0;flex:1;min-width:0;font:400 calc(34px*var(--u)) Bungee,sans-serif;color:var(--sign-ink);text-shadow:3px 3px 0 #000;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.ms-chip{background:#000;border-radius:999px;padding:4px 12px;font-size:max(20px,calc(26px*var(--u)))}
+/* the Flight's card is a boarding pass: his plane and its name, then where it's going */
+.ms-route{flex:1;min-height:0;display:grid;grid-template-columns:1fr auto 1fr;align-items:center;gap:10px;width:min(100%,920px);align-self:center;padding:calc(12px*var(--u)) calc(20px*var(--u));background:linear-gradient(#e9f6fe,#c4e4f8);border:4px solid #000;border-radius:24px;box-shadow:0 8px 0 #000;color:#fff}
+.ms-arrow{color:var(--hivis)!important}
+.ms-from,.ms-to{display:flex;flex-direction:column;align-items:center;gap:6px;min-height:0}
+.ms-from img{width:100%;max-width:340px;height:auto;max-height:calc(200px*var(--u) + 40px);object-fit:contain}
+.ms-from strong,.ms-to strong{font:400 calc(24px*var(--u)) Bungee,sans-serif;text-align:center;background:#000;border-radius:10px;padding:2px 10px}
+.ms-icon{font-size:calc(110px*var(--u));filter:drop-shadow(3px 4px 0 #000)}
+.ms-arrow{font-size:calc(30px*var(--u));color:#fff;letter-spacing:.3em}
+@media (orientation:portrait){.ms-route{grid-template-columns:1fr;grid-template-rows:1fr auto 1fr}.ms-arrow{text-align:center;transform:rotate(90deg)}}
+.ms-foot{display:flex;align-items:center;justify-content:center;gap:16px;flex-wrap:wrap;padding-bottom:calc(var(--floor) - 14px)}
+.ms-best{background:#000;border:3px solid var(--sign-ink);border-radius:16px;padding:6px 14px;font:900 max(18px,calc(22px*var(--u))) Nunito,sans-serif}
+.ms-foot .big-btn.go{min-width:max(120px,calc(160px*var(--u)));min-height:max(80px,calc(96px*var(--u)));display:flex;align-items:center;gap:10px;font-size:calc(34px*var(--u))}
+.ms-result{position:fixed;inset:0;z-index:5;display:grid;place-items:center;background:#000a;padding:14px 14px calc(var(--floor) + 10px);text-align:center;overflow-y:auto;touch-action:auto}
+.ms-result .result-card{display:flex;flex-direction:column;align-items:center;gap:calc(8px*var(--u));width:min(560px,100%);padding:calc(16px*var(--u)) calc(24px*var(--u));border:4px solid #000;border-radius:24px;background:radial-gradient(circle at 50% 0%,#4a5262,#1d2026 70%);box-shadow:0 8px 0 #000,0 18px 40px #000a}
+.ms-result h2{margin:0;font:400 calc(40px*var(--u)) Bungee,sans-serif;color:var(--sign-ink);text-shadow:3px 3px 0 #000}
+.ms-grade{display:flex;align-items:center;gap:10px;font-size:calc(40px*var(--u))}
+.ms-grade span{font:400 calc(26px*var(--u)) Bungee,sans-serif;color:#fff}
+.ms-row{display:flex;align-items:center;gap:20px;font:900 calc(30px*var(--u)) Nunito,sans-serif}
+.ms-row.pax small{font-size:.65em;color:var(--sign-ink)}
+.result-bolts{display:flex;align-items:center;gap:6px}
+.won-line{font:900 max(18px,calc(24px*var(--u))) Nunito,sans-serif;color:var(--sign-ink)}
+.won-line.prize{color:#d9b8ff}
+.ms-result .btns{display:flex;gap:14px;align-items:center;justify-content:center;flex-wrap:wrap}
+.ms-result .big-btn{font-size:calc(34px*var(--u));padding:calc(12px*var(--u)) calc(28px*var(--u));min-height:64px}
+@media (orientation:landscape) and (max-height:520px){
+  .ms-result .result-card{gap:2px;padding:6px 14px}
+  .ms-result h2{font-size:24px}.ms-grade{font-size:26px}.ms-row{font-size:20px}
+  .ms-result .big-btn{min-height:52px;padding:4px 16px}
+  .ship-side{width:clamp(140px,26vw,220px)}
+  .cd-tray{min-height:110px}
+  .ms-card .ms-icon{font-size:56px}
+  .ms-route{padding:4px 14px}.ms-from img{max-height:28vh}.ms-from strong,.ms-to strong{font-size:15px}
+}
+@media (prefers-reduced-motion:reduce){
+  .choice.hint,.duel-plane.hint,.cd-next,.fly-btn.pulse,.ms-act.pulse{animation:none}
+  .choice.hint,.duel-plane.hint{outline:5px solid var(--sign-ink);outline-offset:3px}
+  .blk.arrive{animation:none}
+}
+/* a sideways phone: the airport and its buttons on the left, the tabs and the tray on the right */
+@media (orientation:landscape) and (max-height:520px){
+  .ship-screen{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);grid-template-rows:auto auto minmax(0,1fr) auto;grid-template-areas:"head head" "main tabs" "main tray" "buy tray";column-gap:10px}
+  .ship-screen .cd-head{grid-area:head}
+  .ship-screen .ship-main{grid-area:main;grid-template-columns:minmax(0,1fr);grid-template-rows:minmax(0,1fr) auto;min-height:0}
+  .ship-screen .ship-side{flex-direction:row;width:auto;align-items:stretch}
+  .ship-screen .ship-side .fly-btn{flex:1;min-height:52px;padding:2px 10px}
+  .ship-screen .fly-to,.ship-screen .goal-num{display:none}
+  .ship-screen .fly-plane{font-size:26px}
+  .ship-screen .cd-goal{flex:1;min-height:52px;min-width:0}
+  .ship-screen .side-btn{width:52px;min-height:52px;font-size:24px}
+  .ship-screen .side-word{display:none}
+  .ship-screen .cd-tabs{grid-area:tabs}
+  .ship-screen .cd-tray{grid-area:tray;min-height:0}
+  .ship-screen .buy-bar{grid-area:buy}
+  /* the Fly button row and Buy stay above the bottom band; the tray scrolls clear of it by itself */
+  .ship-screen{padding-bottom:var(--floor)}
+  .ship-screen .cd-tray{padding-bottom:0}
+  .ship-screen .rank-chip small{display:none}
+}
+@media (max-width:560px),(orientation:landscape) and (max-height:520px){.cd-home .t-chart .board-head{display:none}}
+/* the end of a Round on an iPad: the same show, larger, so it fills the screen it's on */
+@media (min-width:760px) and (min-height:760px){.cd-reward>h2,.cd-reward>.bigpile,.cd-reward>.earned-race,.cd-reward>.lines,.cd-reward>.btns,.cd-reward>.icon-btn{zoom:1.3}}
+
+/* ---------- Carrier Deck's own pictures ---------- */
+.ship-view .carrier-canvas{position:absolute;inset:0}
+.carrier-canvas{display:block;width:100%;height:100%}
+.view-btns{position:absolute;left:8px;top:8px;display:flex;gap:6px}
+.view-btns .chip-btn{min-width:48px;min-height:48px;padding:2px 8px;font-size:22px}
+.rank-chip{display:flex;align-items:center;gap:6px;background:var(--sign);color:var(--sign-ink);border:3px solid #000;border-radius:10px;padding:2px 10px;font:900 max(15px,calc(20px*var(--u))) Nunito,sans-serif;white-space:nowrap}
+@media (max-width:430px){.rank-chip small{display:none}}
+.cd-head{display:flex;align-items:center;gap:10px;flex:none;min-width:0}
+.cd-head h1{margin:0 auto 0 0;font:400 calc(30px*var(--u)) Bungee,sans-serif;color:var(--sign-ink);min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+@media (max-width:430px){.cd-head h1{font-size:16px}}
+.swatch-flag{width:max(40px,calc(52px*var(--u)));height:max(26px,calc(34px*var(--u)));border:3px solid #000;border-radius:4px}
+.swatch-mark{display:grid;place-items:center;width:max(40px,calc(52px*var(--u)));height:max(36px,calc(44px*var(--u)));background:var(--deck);border:3px solid #000;border-radius:8px;font:900 26px Nunito,sans-serif}
+.cd-tile.prize{border-color:#b26bff}
+.yard-pic{width:92%;height:calc(56px*var(--u));min-height:40px}
+.cd-tile canvas{width:92%;height:calc(56px*var(--u));min-height:40px}
+
+/* a story: the card, the noun's picture and what a lesson draws */
+.cd-picture{position:relative;width:100%;height:100%;min-height:0;display:flex;flex-direction:column;align-items:stretch;justify-content:center;gap:calc(8px*var(--u));overflow:hidden}
+.cd-noun{position:absolute;right:4px;top:0;font-size:max(30px,calc(48px*var(--u)));opacity:.9;pointer-events:none}
+.cd-story{margin:0;padding:calc(10px*var(--u)) calc(14px*var(--u));list-style:none;display:flex;flex-direction:column;gap:calc(6px*var(--u));background:#fff;border:4px solid #000;border-radius:18px;box-shadow:0 5px 0 #000;font:800 max(18px,calc(27px*var(--u)))/1.25 Nunito,sans-serif;color:#14161b}
+.cd-story li{border-radius:10px;padding:2px 8px;transition:background .2s}
+.cd-story li.lit{background:#ffe9b8;box-shadow:inset 0 0 0 3px var(--hivis)}
+.cd-story li.q{font-weight:900;color:#1f3a68}
+.cd-num{display:inline-block;min-width:1.6em;text-align:center;background:var(--sign);color:var(--sign-ink);border-radius:8px;padding:0 6px;margin:0 2px;font-weight:900}
+.cd-middle{align-self:flex-start;font:900 max(20px,calc(26px*var(--u))) Nunito,sans-serif;color:var(--green);background:#fff;border:3px solid #000;border-radius:999px;padding:2px 14px}
+.cd-lesson{display:flex;flex-wrap:wrap;align-items:center;justify-content:center;gap:calc(8px*var(--u));padding:6px;background:#eef5ff;border:3px solid #000;border-radius:16px;min-height:0;overflow:hidden}
+/* the deck: counters in rows of ten */
+.cd-deck{display:flex;flex-wrap:wrap;align-items:flex-end;gap:12px;padding:8px 12px;background:var(--deck);border:3px solid #000;border-radius:12px;max-width:100%}
+.cd-deck.backwards{outline:4px dashed var(--sign-ink);outline-offset:2px}
+.cd-group{display:flex;flex-direction:column;align-items:flex-start;gap:2px}
+.cd-glabel{font:900 16px Nunito,sans-serif;color:var(--sign-ink)}
+.cd-rows{display:flex;flex-direction:column;gap:2px}
+.cd-row{display:flex;gap:1px}
+.cd-row.ten{outline:2px solid #fff6;border-radius:4px}
+.cd-row i{display:grid;place-items:center;width:max(13px,calc(18px*var(--u)));height:max(13px,calc(18px*var(--u)));font-size:max(10px,calc(13px*var(--u)));font-style:normal;border-radius:3px;background:var(--crew-blue)}
+.cd-group.g-come .cd-row i{background:var(--hivis);animation:arrive .5s}
+.cd-group.g-go .cd-row i{background:#ffffff40;opacity:.45;animation:leave .6s forwards}
+.cd-group.g-ghost{min-width:44px;min-height:30px;border:3px dashed var(--sign-ink);border-radius:8px;padding:2px 8px}
+.cd-group.g-ghost .cd-glabel{font-size:24px}
+@keyframes arrive{0%{transform:translateY(-14px);opacity:0}100%{transform:none;opacity:1}}
+@keyframes leave{0%{transform:none}100%{transform:translateX(10px)}}
+/* the bar picture: the whole on top, the parts under it */
+.cd-bars{display:flex;flex-direction:column;gap:4px;width:min(100%,460px)}
+.cd-bar-row{display:flex;gap:4px}
+.cd-bar{display:grid;place-items:center;min-height:max(34px,calc(42px*var(--u)));border:3px solid #000;border-radius:8px;font:900 max(20px,calc(26px*var(--u))) Nunito,sans-serif;color:#000}
+.cd-bar.whole,.cd-bar.big{background:#9fd0ff;width:100%}
+.cd-bar.part-a,.cd-bar.small{background:#ffd8a8}.cd-bar.part-b{background:#c9f0c0}
+.cd-bar.extra{background:#fff;border-style:dashed}
+.cd-bar.unknown{background:#fff;border-style:dashed}
+.cd-bar.lit{box-shadow:0 0 0 4px var(--sign-ink)}
+/* How Many More: two rows */
+.cd-pairs{display:flex;flex-direction:column;gap:6px;padding:8px;background:#fff;border:3px solid #000;border-radius:14px;max-width:100%;overflow:hidden}
+.cd-pair-row{display:flex;flex-direction:column;gap:2px}
+.cd-pair-label{font:900 15px Nunito,sans-serif;color:#1f3a68}
+.cd-pair-label b{background:var(--sign);color:var(--sign-ink);border-radius:6px;padding:0 5px}
+.cd-pair-cells{display:flex;flex-wrap:wrap;gap:1px;max-width:100%}
+.cd-pair-cells i{display:grid;place-items:center;width:max(12px,calc(16px*var(--u)));height:max(14px,calc(18px*var(--u)));font-size:11px;font-style:normal;border-radius:3px;background:var(--crew-blue)}
+.cd-pair-row.small .cd-pair-cells i{background:var(--crew-purple)}
+.cd-pair-cells i.tenth{margin-right:4px}
+.cd-pairs.many .cd-pair-cells i{width:max(6px,calc(7px*var(--u)))}
+.cd-pair-cells i.paired{background:#9fb3c8}
+.cd-pair-cells i.glow{background:var(--sign-ink);box-shadow:0 0 0 2px var(--hivis);animation:hint 1s infinite}
+/* the Mission Board */
+.cd-picture.board{align-items:center}
+.cd-board-q{margin:0;font:900 max(17px,calc(24px*var(--u)))/1.2 Nunito,sans-serif;color:#1f3a68;text-align:center}
+.cd-graph-wrap{flex:1;min-height:0;width:100%;display:flex;justify-content:center}
+.cd-graph{height:100%;max-width:100%;background:#fff;border:3px solid #000;border-radius:12px}
+.cd-graph .gl{stroke:#c9d1da;stroke-width:1.5}.cd-graph .gl.base{stroke:#14161b;stroke-width:3}
+.cd-graph .gn{font:900 17px Nunito,sans-serif;fill:#4a5563}.cd-graph .gn.on{fill:#e06a14;font-size:19px}
+.cd-graph .gb{stroke:#14161b;stroke-width:2.5}.cd-graph .gb.asked{stroke-width:4.5}
+.cd-graph .gs{font:900 17px Nunito,sans-serif;fill:#14161b}
+.cd-graph .gacross{stroke:#e06a14;stroke-width:3.5;stroke-dasharray:8 6}
+.cd-scales{display:flex;gap:calc(16px*var(--u));justify-content:center}
+.cd-scale{display:flex;flex-direction:column;gap:4px;padding:8px 14px;background:#fff;border:3px solid #000;border-radius:12px;font:900 max(18px,calc(24px*var(--u))) Nunito,sans-serif;opacity:.45}
+.cd-scale.lit{opacity:1;box-shadow:0 0 0 4px var(--sign-ink)}
+/* a number sentence */
+.cd-eq{display:inline-flex;align-items:center;gap:.25em;background:var(--sign);color:var(--sign-ink);border:4px solid #000;border-radius:14px;padding:2px 14px;font:900 max(24px,calc(36px*var(--u)))/1.15 Nunito,sans-serif;white-space:nowrap;box-shadow:0 4px 0 #000}
+.cd-eqp{display:inline-grid;place-items:center;min-width:1.2em;border-radius:8px;padding:0 .1em}
+.cd-eqp.box{min-width:1.6em;border:3px dashed var(--sign-ink)}
+.cd-eqp.box.filled{border-style:solid;background:var(--go);color:#fff}
+.cd-eqp.lit,.cd-eqop.lit{background:var(--hivis);color:#000}
+.cd-sentences{display:grid;grid-template-columns:1fr;gap:calc(10px*var(--u));width:min(100%,480px)}
+.cd-sentence{min-height:max(64px,calc(84px*var(--u)));display:grid;place-items:center;padding:4px}
+.cd-sentence .cd-eq{box-shadow:none;border-width:3px}
+.cd-sentence.wrong{opacity:.4}
+.cd-kind-icon{margin-right:8px}
+/* the wheels: two digits */
+.cd-wheels{display:flex;align-items:center;gap:calc(12px*var(--u));flex-wrap:nowrap}
+.cd-wheels .numwheels{display:flex;gap:10px;height:max(170px,calc(230px*var(--u)))}
+.cd-wheels .numwheel{width:max(76px,calc(104px*var(--u)));display:flex;flex-direction:column;gap:6px}
+.cd-wheels .numwheel button{flex:1;min-height:max(44px,calc(52px*var(--u)));border-radius:16px;background:var(--sign);color:var(--sign-ink);border:4px solid #000;font-size:calc(30px*var(--u));box-shadow:0 5px 0 #000}
+.cd-wheels .numwheel button:active{transform:translateY(3px);box-shadow:0 2px 0 #000}
+.cd-wheels .digit{flex:1.6;min-height:0;display:flex;align-items:center;justify-content:center;border-radius:16px;background:#fff;border:4px solid #000;font:900 max(40px,calc(76px*var(--u)))/1 Nunito,sans-serif;color:#000;overflow:hidden}
+.cd-wheels .wheel-tens .digit{background:#dcecff}
+.cd-wheels .done-btn{min-width:max(76px,calc(96px*var(--u)));min-height:max(76px,calc(96px*var(--u)));font-size:max(36px,calc(48px*var(--u)));background:var(--go);color:#fff}
+@media (orientation:portrait){.cd-controls .cd-wheels{width:100%;justify-content:center}}
+@media (orientation:landscape) and (min-height:521px){.cd-controls .cd-wheels{flex-direction:column;align-items:stretch}.cd-wheels .done-btn{min-height:max(64px,calc(84px*var(--u)))}}
+@media (max-width:430px){.cd-wheels .numwheel{width:68px}.cd-wheels .numwheels{gap:6px}.cd-wheels .done-btn{min-width:64px}}
+@media (orientation:landscape) and (max-height:520px){.cd-wheels .numwheels{height:150px}.cd-wheels .numwheel{width:64px}.cd-story{font-size:16px;padding:6px 10px;gap:2px}.cd-noun{display:none}}
+@media (orientation:portrait) and (max-width:430px){.cd-story{font-size:17px;padding:8px}.cd-wheels .numwheels{height:150px}}
+
+/* ---------- the Chart ---------- */
+.chart-body{flex:1;min-height:0;overflow-y:auto;overscroll-behavior:contain;display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,340px),1fr));align-content:start;gap:12px;padding-bottom:calc(var(--floor) - 20px)}
+.chart-body section{background:#0e1a30;border:3px solid #fff3;border-radius:16px;padding:10px;display:flex;flex-direction:column;gap:8px}
+.chart-body h2{margin:0;font:400 max(16px,calc(20px*var(--u))) Bungee,sans-serif;color:var(--sign-ink)}
+.voyage{flex-direction:row!important;flex-wrap:wrap;grid-column:1/-1}
+.port{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;min-width:72px;min-height:72px;padding:4px 8px;border-radius:14px;border:3px solid #000;background:linear-gradient(var(--sky) 0 50%,var(--sea) 50%);color:#fff;font:900 13px Nunito,sans-serif;box-shadow:0 4px 0 #000}
+.port.here{outline:4px solid var(--sign-ink)}.port.ahead{filter:grayscale(.6) brightness(.8)}
+.port-icon{font-size:28px}.port-name{text-shadow:1px 1px 0 #000;max-width:110px;text-align:center}
+.mission-row{display:grid;grid-template-columns:auto 1fr auto;align-items:center;gap:10px;min-height:56px;padding:4px 10px;border-radius:12px;border:2px solid #fff2;background:#16243f;color:#fff;font:900 max(15px,calc(18px*var(--u))) Nunito,sans-serif;text-align:left}
+.mission-row.flown{color:#c4f7dc}.mission-row.next{border-color:var(--sign-ink);background:#2a2610}.mission-row.picked{outline:3px solid var(--crew-green)}.mission-row.waiting{opacity:.6}
+.place-missions .fly-btn{grid-template-columns:1fr auto;min-height:64px}
+.cd-patch{display:inline-grid;place-items:center;border-radius:50%;border:4px solid;box-shadow:0 3px 0 #000;flex:none;line-height:1}
+.cd-patch.dim{filter:grayscale(1) brightness(.5)}
+.patch-wall{display:flex;flex-wrap:wrap;gap:6px}
+.medal-wall{display:grid;grid-template-columns:repeat(auto-fill,minmax(88px,1fr));gap:6px}
+.medal{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;min-height:64px;padding:4px;border-radius:12px;border:2px solid #fff2;background:#16243f;color:#fff9;font-size:26px}
+.medal small{font:800 11px/1.1 Nunito,sans-serif;text-align:center}
+.medal.won{color:#fff;border-color:var(--sign-ink)}
+.jersey{font-size:22px;letter-spacing:2px;color:var(--crew-yellow);background:var(--crew-green);border:3px solid #000;border-radius:12px;padding:2px 10px;align-self:flex-start;min-height:30px}
+.log-line{font:900 max(16px,calc(20px*var(--u))) Nunito,sans-serif}
+
+/* ---------- the Mission's card and results ---------- */
+.ms-route{flex:1;min-height:0;display:grid;grid-template-columns:auto auto 1fr;align-items:center;gap:calc(16px*var(--u));width:min(100%,920px);align-self:center;padding:calc(12px*var(--u)) calc(20px*var(--u));background:linear-gradient(#e9f6fe,#c4e4f8);border:4px solid #000;border-radius:24px;box-shadow:0 8px 0 #000;color:#14161b}
+.ms-job-icon{font-size:calc(80px*var(--u));filter:drop-shadow(3px 4px 0 #0004)}
+.ms-plane{display:flex;flex-direction:column;align-items:center;gap:6px;min-height:0}
+.ms-plane img{width:100%;max-width:340px;height:auto;max-height:calc(200px*var(--u) + 40px);object-fit:contain}
+.ms-plane strong{font:400 calc(22px*var(--u)) Bungee,sans-serif;text-align:center;background:#000;color:#fff;border-radius:10px;padding:2px 10px}
+.ms-suits{font-size:32px}
+@media (orientation:portrait){.ms-route{grid-template-columns:1fr;justify-items:center}}
+.ms-head{display:flex;align-items:center;gap:10px}
+.ms-head h1{margin:0;flex:1;min-width:0;font:400 calc(32px*var(--u)) Bungee,sans-serif;color:var(--sign-ink);text-shadow:3px 3px 0 #000;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.ms-chip{background:#000;border-radius:999px;padding:4px 12px;font:900 max(15px,calc(20px*var(--u))) Nunito,sans-serif;white-space:nowrap}
+.ms-foot{display:flex;align-items:center;justify-content:center;gap:16px;flex-wrap:wrap;padding-bottom:calc(var(--floor) - 14px)}
+.ms-best{background:#000;border:3px solid var(--sign-ink);border-radius:16px;padding:6px 14px;font:900 max(18px,calc(22px*var(--u))) Nunito,sans-serif}
+.ms-foot .big-btn.go{min-width:max(120px,calc(160px*var(--u)));min-height:max(80px,calc(96px*var(--u)));display:flex;align-items:center;gap:10px;font-size:calc(34px*var(--u))}
+.ms-act.launch{background:radial-gradient(circle at 40% 35%,#9ff0b0,var(--crew-green) 60%,#0d4a2a);color:#fff;display:flex;flex-direction:column;gap:6px}
+.ms-act .gauge{display:block;width:70%;height:14px;border-radius:7px;background:#0006;border:2px solid #000;overflow:hidden}
+.ms-act .gauge i{display:block;height:100%;width:0;background:var(--sign-ink)}
+.ms-grade{display:flex;align-items:center;gap:10px;font-size:calc(40px*var(--u))}
+.ms-grade span{font:400 calc(26px*var(--u)) Bungee,sans-serif;color:#fff}
+.ms-row{display:flex;align-items:center;gap:20px;font:900 calc(30px*var(--u)) Nunito,sans-serif}
+.ms-row.log small{font-size:.65em;color:var(--sign-ink)}
+.ms-row.best{font-size:calc(22px*var(--u))}
+.ms-result .won-line{display:flex;align-items:center;gap:8px}
+.watch-hud{position:absolute;left:max(24px,calc(env(safe-area-inset-left) + 24px));top:max(12px,env(safe-area-inset-top))}
+@media (orientation:landscape) and (max-height:520px){.ms-result .result-card{gap:2px;padding:6px 14px}.ms-result h2{font-size:24px}.ms-grade{font-size:26px}.ms-row{font-size:20px}.ms-result .big-btn{min-height:52px;padding:4px 16px}.ms-card .ms-job-icon{font-size:48px}.ms-plane img{max-height:26vh}}
+@media (prefers-reduced-motion:reduce){.cd-home .t-play .flight-deck .steam,.cd-pair-cells i.glow,.cd-group.g-come .cd-row i,.cd-group.g-go .cd-row i{animation:none}}
+/* a sideways phone: the results card keeps its buttons above the bottom band */
+@media (orientation:landscape) and (max-height:520px){.ms-result .ms-row.log,.ms-result .ms-row.best{display:none}.ms-result .won-line{font-size:15px}.ms-result{padding-top:6px}}
+/* the bar graph Meeting fills its stage, never more (a sideways phone scrolled 14px) */
+.game.cd.meet .cd-stage>.cd-graph-wrap{height:100%;min-height:0}
+.game.cd.meet .cd-stage>.cd-graph-wrap .cd-graph{height:100%}

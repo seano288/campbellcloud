@@ -20,6 +20,7 @@
   .venv/bin/python tools/make_voice.py --collection sky-writer --out public/sky-writer-voice --index src/sky-writer/voice.gen.ts
   .venv/bin/python tools/make_voice.py --collection skyline --out public/skyline-voice --index src/skyline/voice.gen.ts
   .venv/bin/python tools/make_voice.py --collection jetway --out public/jetway-voice --index src/jetway/voice.gen.ts
+  .venv/bin/python tools/make_voice.py --collection carrier-deck --out public/carrier-deck-voice --index src/carrier-deck/voice.gen.ts
 
 Select phrases through tools/phrases.ts and write recordings and a typed index to explicit locations.
 Only missing clips are recorded. Cleanup touches only the selected directory, whose .voice-collection
@@ -64,7 +65,10 @@ VOICES = {'purrdoku': ('en-GB-RyanNeural', '-5%'),
           'skyline': ('en-US-AriaNeural', '-8%'),
           # Jetway chains numbers into sums and stories like Math Bots ("38", "people are on the plane."), numbers past 100 as
           # "three hundred" and the rest, and says airport, plane and place names alone
-          'jetway': ('en-US-AriaNeural', '-8%')}
+          'jetway': ('en-US-AriaNeural', '-8%'),
+          # Carrier Deck chains numbers into story sentences one piece at a time, as Bot Stories does ("40", "jets are on the deck."), and
+          # says ship parts, aircraft, Mission and port names alone
+          'carrier-deck': ('en-US-AriaNeural', '-8%')}
 ROOT = Path(__file__).resolve().parent.parent
 
 
@@ -230,6 +234,13 @@ COLLECTION_SPEECH = {
             'You are a Ten Hops star!': 'You are a. Ten Hops, star!', 'You are a Missing Bags star!': 'You are a. Missing Bags, star!',
             'The cart holds': 'The cart, holds', 'Arrow Mark': 'Arrow, Mark', 'Grass Green': 'Grass, Green', 'Shop Row': 'Shop, Row',
         },
+    },
+    # Carrier Deck, pass 1: faster-whisper small.en heard Aria's "Foghorn" as "Falkhorn" (Deep Light's fix), "Grape" as "crepe" (Turbo
+    # Tally's fix, a breath before Purple), and "carry than" alone as "Carrie Van" (with a breath it is heard right in its chain). "Hull"
+    # came back "hole" or "whole" however it was said, so the hull items are named Ship Section and <colour> Ship instead, and Galley,
+    # Bow Anchor, Signal Mast, Gull and Shore were renamed Kitchen, Front Anchor, Radio Mast, Seagull and Beach (each heard right).
+    'carrier-deck': {
+        'said_as': {'Foghorn': 'Fog horn', 'Grape Purple': 'Grape, Purple', 'carry than': 'carry, than'},
     },
 }
 
