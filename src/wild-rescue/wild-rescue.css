@@ -337,7 +337,7 @@ svg.call-animal,svg.runs-off{width:min(22vmin,calc(120px*var(--u)));height:min(2
 .runs-off{animation:runoff 2.2s ease-in forwards}
 @keyframes runoff{60%{transform:translateX(-50%)}100%{transform:translateX(160%)}}
 .go-btn{font-size:calc(40px*var(--u));padding:calc(12px*var(--u)) calc(44px*var(--u));min-height:64px}
-.result-bolts{display:flex;align-items:center;gap:8px;font:900 calc(34px*var(--u)) Nunito,sans-serif}
+.result-prints{display:flex;align-items:center;gap:8px;font:900 calc(34px*var(--u)) Nunito,sans-serif}
 .result-card .btns{display:flex;gap:16px;align-items:center;flex-wrap:wrap;justify-content:center}
 .result-card .big-btn{min-height:64px;min-width:64px}
 /* the job, close up */

@@ -1,12 +1,12 @@
 // The single typed list of everything Wild Rescue says. tools/make_voice.py records a clip for each entry, the build fails if one is
 // missing, and say() accepts only these. Questions and lessons are whole sentences (they come from the facts tables, so a fact is
 // worded once), which is why this game has more clips than the others. Prices and counts are chained from number clips ("It costs",
-// "45", "Bolts."), and a bought thing from "You got" and its name, as in Math Bots.
+// "45", "Paw Prints."), and a bought thing from "You got" and its name, as in Math Bots.
 //
 // This is the one game where answer choices are read out: a first grader can't read "To keep warm." or "Grassland", so every choice
 // that is a word or a sentence is said as it lights. Pictures (animals, the weather, things) are not.
 import { earnedLine, type EarnedLine } from '../currency/kind';
-import { BOLT } from '../currency/kind';
+import { RESCUE_CURRENCY } from './branding';
 import { HOMED, RESCUABLE, type RescueCall } from './facts/animals';
 import { BABIES, DIFFERENT_NEVER, DIFFERENT_TRUE, SAME_ALWAYS, SAME_DIFFERENT, SAME_NEVER } from './facts/babies';
 import { HABITATS, type HabitatAbout, type HabitatLives, type HabitatName } from './facts/habitats';
@@ -17,7 +17,7 @@ import { LOCKED_HINTS, MODE_IDS, MODE_NAMES, type ModeName } from './learning';
 import { ALL_NAMES, PARTS, SLOT_NAMES, type ItemName, type OpensLine } from './park/shop';
 
 export const NUMBERS_TO = 100;
-/** The most Bolts said in one "You earned" line: a perfect Round pays 6, a Rescue up to 4. */
+/** The most Paw Prints said in one "You earned" line: a perfect Round pays 6, a Rescue up to 4. */
 export const MOST_EARNED = 10;
 
 const GAME = ["Let's go!", 'Round done!', 'Level up!', 'You kept trying!', 'Tap again to go home.'] as const;
@@ -68,21 +68,21 @@ const TEACHING = ["Let's look together.", 'Not quite!', 'Try again!', 'Watch it 
 // ---------- the Garage, the Rescue and the Park ----------
 
 const GARAGE = [
-  'Garage!', 'It costs', 'Bolts.', 'You need', 'more Bolts.', 'Play a Round to earn Bolts!', 'You got', 'You built everything!',
+  'Garage!', 'It costs', 'Paw Prints.', 'You need', 'more Paw Prints.', 'Play a Round to earn Paw Prints!', 'You got', 'You built everything!',
   'You have 1 rescue call!', 'rescue calls!', 'Tap Rescue!', 'Play a Round to earn a rescue call!', 'You earned a rescue call!',
   'Your truck needs', 'Habitats', 'Extras', 'Decorations',
 ] as const;
 const RESCUE = [
-  'Calling all rangers!', 'Hold to drive!', 'Tap the button to jump!', 'Grab the Bolts!', 'A Bolt!', 'You found it!', 'Splash!', 'Bump!',
+  'Calling all rangers!', 'Hold to drive!', 'Tap the button to jump!', 'Grab the Paw Prints!', 'A Paw Print!', 'You found it!', 'Splash!', 'Bump!',
   'Pull the net off!', 'Keep pulling!', 'Tap the winch to lift it out!', 'Keep winching!', 'Tap the treats to lead it to the crate!', 'Yum!',
   'Into the crate!', 'Time to go home!', 'You did it!', 'Tap again to leave.', 'This one is going back to the wild.', 'Back to the wild!',
 ] as const;
 const PARK = [
   'The Park!', 'Carry it to its home!', 'Not here!', 'Welcome home!', 'Tap an animal to feed it!', 'Rescue animals to fill it!',
-  'Buy this habitat with Bolts!', 'All the animals are home!',
+  'Buy this habitat with Paw Prints!', 'All the animals are home!',
 ] as const;
 
-type EarnedPhrase = EarnedLine<typeof BOLT>;
+type EarnedPhrase = EarnedLine<typeof RESCUE_CURRENCY>;
 type StarLine = `You are a ${ModeName} star!`;
 type ModePhrase = ModeName | StarLine | `You opened ${ModeName}!`;
 export const starLine = (name: ModeName) => `You are a ${name} star!` as StarLine;
@@ -100,7 +100,7 @@ export type Phrase = (typeof GAME)[number] | (typeof CHEERS)[number] | EarnedPhr
 const uniq = <T,>(xs: readonly T[]) => [...new Set(xs)];
 
 export const PHRASES = uniq<Phrase>([
-  ...GAME, ...CHEERS, ...Array.from({ length: MOST_EARNED }, (_, i) => earnedLine(BOLT, i + 1)), ...modePhrases(), ...Object.values(LOCKED_HINTS), ...numberPhrases(),
+  ...GAME, ...CHEERS, ...Array.from({ length: MOST_EARNED }, (_, i) => earnedLine(RESCUE_CURRENCY, i + 1)), ...modePhrases(), ...Object.values(LOCKED_HINTS), ...numberPhrases(),
   // Where It Lives
   ...homeLines(), ...HABITATS.flatMap(h => [alsoQ(h.lives), habitatSaid(h.name), h.about] as const),
   // Animal Parts

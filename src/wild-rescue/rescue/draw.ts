@@ -1,5 +1,5 @@
 // Draws the drive on a 2D canvas: the place's sky and far hills, the road with its mud, sand, snow, streams, logs and rocks, the four
-// Bolts, his truck (the same drawing as the Garage's, as an image) and the animal waiting at the end. The camera keeps the truck a
+// Paw Prints, his truck (the same drawing as the Garage's, as an image) and the animal waiting at the end. The camera keeps the truck a
 // third of the way across, so he sees what's coming. Pieces are few and simple, for an iPad 9 at 60 fps.
 import { animal, type RescueId } from '../facts/animals';
 import { habitat, type HabitatId } from '../facts/habitats';
@@ -56,14 +56,17 @@ export function drawTruck(c: CanvasRenderingContext2D, truck: Truck, x: number, 
   c.restore();
 }
 
-function drawBolt(c: CanvasRenderingContext2D, x: number, y: number, t: number) {
+function drawPawPrint(c: CanvasRenderingContext2D, x: number, y: number, t: number) {
+  // the same paw as the currency icon (src/ui/currency.tsx): a big pad and four toes
   c.save();
   c.translate(x, y + Math.sin(t * 3 + x) * 6);
-  c.fillStyle = '#ffd23f'; c.strokeStyle = '#1d1d1f'; c.lineWidth = 4;
-  c.beginPath();
-  for (let i = 0; i < 6; i++) { const a = (i / 6) * Math.PI * 2; c.lineTo(Math.cos(a) * 22, Math.sin(a) * 22); }
-  c.closePath(); c.fill(); c.stroke();
-  c.fillStyle = '#fff3b0'; c.beginPath(); c.arc(0, 0, 8, 0, Math.PI * 2); c.fill(); c.stroke();
+  c.scale(1.25, 1.25); c.translate(-20, -21);
+  c.fillStyle = '#f08a3c'; c.strokeStyle = '#6b2f0a'; c.lineWidth = 2.5; c.lineJoin = 'round';
+  const pad = new Path2D('M20 19 C26 19 32 26 31 31 C30 37 24 35 20 35 C16 35 10 37 9 31 C8 26 14 19 20 19 Z');
+  c.fill(pad); c.stroke(pad);
+  for (const [tx, ty, rx, ry, deg] of [[7.5, 17, 3.6, 4.8, -20], [15, 8.5, 3.8, 5.2, -6], [25, 8.5, 3.8, 5.2, 6], [32.5, 17, 3.6, 4.8, 20]] as const) {
+    c.beginPath(); c.ellipse(tx, ty, rx, ry, (deg * Math.PI) / 180, 0, Math.PI * 2); c.fill(); c.stroke();
+  }
   c.restore();
 }
 
@@ -115,7 +118,7 @@ export function drawDrive(c: CanvasRenderingContext2D, d: Drive, w: number, h: n
       if (o.kind === 'mud') { c.fillStyle = '#4a3018'; for (let x = o.x + 30; x < o.x + o.w; x += 50) { c.beginPath(); c.arc(x, gy(x) - 6, 5, 0, Math.PI * 2); c.fill(); } }
     }
   }
-  for (const b of d.bolts) if (!b.got && opts.homeX === undefined) drawBolt(c, b.x, GROUND_Y - groundAt(d, b.x) - b.y, opts.reduced ? 0 : d.t);
+  for (const b of d.prints) if (!b.got && opts.homeX === undefined) drawPawPrint(c, b.x, GROUND_Y - groundAt(d, b.x) - b.y, opts.reduced ? 0 : d.t);
   // the animal waiting at the end, and a little flag
   const endY = GROUND_Y - groundAt(d, END_X + 120);
   if (opts.animalAtEnd) drawAnimal(c, who, END_X + 150, endY, 120);

@@ -6,7 +6,7 @@
 //   npm run dev:wild-rescue   (in another shell)
 //   npx tsx tools/wild-rescue/tour.ts <url> <outDir>
 // TOUR_VIEW=portrait|landscape|phone|side picks the screen (iPad 9 sizes by default: 810×1080 upright). TOUR_SAVE=fresh|levels: a
-// brand-new player, or one with every kind open at Level 2 (TOUR_LEVEL=1|2|3 picks another), some Bolts and a few habitats.
+// brand-new player, or one with every kind open at Level 2 (TOUR_LEVEL=1|2|3 picks another), some Paw Prints and a few habitats.
 import { mkdirSync } from 'node:fs';
 import { chromium, webkit } from 'playwright';
 
@@ -164,7 +164,7 @@ else {
   await tap('Ranger Green');
   await tap('Buy');
   await page.waitForTimeout(3200);
-  if (!(await saved()).rescue?.owned?.includes('paint:green')) problems.push(`nothing was bought with ${balance} Bolts`);
+  if (!(await saved()).rescue?.owned?.includes('paint:green')) problems.push(`nothing was bought with ${balance} Paw Prints`);
 }
 await shot('garage-bought');
 

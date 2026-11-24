@@ -1,6 +1,6 @@
-// The truck, the Rescues and the Park on the saved game. A finished Round earns Bolts and one Rescue call. A call is for an animal
+// The truck, the Rescues and the Park on the saved game. A finished Round earns Paw Prints and one Rescue call. A call is for an animal
 // whose habitat he owns and whose terrain and size his truck can manage, so no animal is ever left without a home. He drives out,
-// does the job, and the animal rides home in the crate; he then carries it to its habitat in the Park. Bolts build habitats and
+// does the job, and the animal rides home in the crate; he then carries it to its habitat in the Park. Paw Prints build habitats and
 // upgrade the truck, which opens more rescues. Once every animal he can reach is home, a call is a release: he takes one of his
 // animals back to the wild for a run out, and it pays the same.
 //
@@ -158,11 +158,11 @@ export { idOf };
 
 // ---------- a Rescue ----------
 
-/** Bolts he can pick up on the drive: at most 4 a Rescue. */
-export const DRIVE_BOLTS = 4;
+/** Paw Prints he can pick up on the drive: at most 4 a Rescue. */
+export const DRIVE_PRINTS = 4;
 
-export interface RescuePay { bolts: number; animal: RescueId; release: boolean }
-export const payFor = (call: Call, bolts: number): RescuePay => ({ bolts: Math.min(DRIVE_BOLTS, Math.max(0, Math.floor(bolts))), animal: call.animal, release: call.kind === 'release' });
+export interface RescuePay { prints: number; animal: RescueId; release: boolean }
+export const payFor = (call: Call, prints: number): RescuePay => ({ prints: Math.min(DRIVE_PRINTS, Math.max(0, Math.floor(prints))), animal: call.animal, release: call.kind === 'release' });
 
 /** It's in the crate: the call is used and the animal rides home in his hands (or, for a release, goes back to the wild). */
 export function finishRescue(s: RescueState, pay: RescuePay): RescueState {

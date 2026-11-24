@@ -5,5 +5,5 @@ export const rescueBranding = {
   theme: '#2f5a22',
 } as const;
 
-/** What his Rounds earn: Bolts, like the vehicle games. They build habitats and upgrade his rescue truck. */
-export { BOLT as RESCUE_CURRENCY } from '../currency/kind';
+/** What his Rounds earn: Paw Prints, an animal's thank-you. They build habitats and upgrade his rescue truck. */
+export { PAW_PRINT as RESCUE_CURRENCY } from '../currency/kind';

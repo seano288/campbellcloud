@@ -1,10 +1,10 @@
 // A Rescue, the reward. The radio crackles with the call ("A sea turtle is caught in a fishing net!") over a picture of the animal
 // and where it is. He taps Go, then drives the truck himself (hold to drive, ⤴ to jump) over mud, streams, logs and rocks that slow
-// or bounce it but never stop it, picking up Bolts. At the animal he does one hands-on job: pulls the net off, winches it out of the
+// or bounce it but never stop it, picking up Paw Prints. At the animal he does one hands-on job: pulls the net off, winches it out of the
 // hole, or leads it to the crate with treats. Into the crate it goes and the truck drives home on its own; the Park opens with the
 // animal in his hands. A release (once every animal he can reach is home) ends with the animal going back to the wild instead.
 //
-// The call is used, and the Bolts paid, only when the job is done. Leaving halfway (🏠 twice) costs nothing and pays nothing.
+// The call is used, and the Paw Prints paid, only when the job is done. Leaving halfway (🏠 twice) costs nothing and pays nothing.
 // Controls stay clear of the bottom edge and the sides, which belong to iPadOS. Keys work on a computer: → to drive, space to jump.
 import { useEffect, useRef, useState } from 'preact/hooks';
 import { sBoing, sChime, sClink, sCrunch, sFanfare, sHonk, sPop, sSiren, sThud, sWhoosh } from '../../audio/sfx';
@@ -66,7 +66,7 @@ export function RescueScreen() {
   const voice = useVoiceScope(), state = player.state.value, call = rescueCall.value, a = rescuable(call.animal), home = a.home;
   const truck = truckFor(state.rescue, call.animal), first = state.rescue.trips === 0, release = call.kind === 'release';
   const [phase, setPhase] = useState<Phase>('call'), [armed, setArmed] = useState(false), [pay, setPay] = useState<RescuePay | null>(null);
-  const [bolts, setBolts] = useState(0), [job, setJob] = useState<JobState>(() => createJob(a.rescue.job, rungOf(truck, 'winch')));
+  const [prints, setPrints] = useState(0), [job, setJob] = useState<JobState>(() => createJob(a.rescue.job, rungOf(truck, 'winch')));
   const canvas = useRef<HTMLCanvasElement>(null), bar = useRef<HTMLElement>(null);
   const drive = useRef<Drive>(createDrive(home, rungOf(truck, 'tires')));
   const holding = useRef(false), keys = useRef(new Set<string>()), jump = useRef(false), homeT = useRef(0), frames = useRef(0);
@@ -108,7 +108,7 @@ export function RescueScreen() {
       if (e === 'jump') sBoing();
       if (e === 'bump') { sThud(); say('Bump!'); }
       if (e === 'splash') { sWhoosh(.5); say('Splash!'); }
-      if (e === 'bolt') { sChime(); setBolts(d.got); say(d.got === 1 ? 'A Bolt!' : 'Grab the Bolts!'); }
+      if (e === 'print') { sChime(); setPrints(d.got); say(d.got === 1 ? 'A Paw Print!' : 'Grab the Paw Prints!'); }
       if (e === 'arrive') {
         holding.current = false;
         sFanfare();
@@ -127,7 +127,7 @@ export function RescueScreen() {
     animalAtEnd: false, homeX: END_X - (END_X - START_X) * Math.min(1, homeT.current / HOME_S) ** 1.4, rider: !release, reduced: reduced(),
   }));
 
-  /** The job is done: into the crate (or back to the wild), the call is used and the Bolts paid. */
+  /** The job is done: into the crate (or back to the wild), the call is used and the Paw Prints paid. */
   function finish() {
     setPhase('loaded');
     const paid = settleRescue(player, call, drive.current.got);
@@ -135,7 +135,7 @@ export function RescueScreen() {
     void (async () => {
       sPop(); confetti(40, voice.signal);
       await voice.say(...(release ? ['This one is going back to the wild.', 'Back to the wild!'] as const : ['Into the crate!', 'You did it!'] as const));
-      if (paid && paid.bolts > 0) await voice.say(earnedLine(RESCUE_CURRENCY, paid.bolts));
+      if (paid && paid.prints > 0) await voice.say(earnedLine(RESCUE_CURRENCY, paid.prints));
       if (!voice.active) return;
       if (release) { setPhase('end'); return; }
       sHonk();
@@ -167,7 +167,7 @@ export function RescueScreen() {
       <header class="rs-hud">
         <IconButton label={armed ? 'Tap again to leave' : 'Leave'} class={armed ? 'armed' : ''} onClick={leave}>🏠</IconButton>
         <span class="rs-to"><AnimalPic id={call.animal} />{a.name}</span>
-        {phase === 'drive' && <span class="rs-count" aria-label={`${bolts} Bolts`}><CurrencyIcon kind={RESCUE_CURRENCY} size={26} />{bolts}/4</span>}
+        {phase === 'drive' && <span class="rs-count" aria-label={`${prints} Paw Prints`}><CurrencyIcon kind={RESCUE_CURRENCY} size={26} />{prints}/4</span>}
       </header>
       {phase === 'drive' && <div class="rs-progress" aria-hidden="true"><i ref={bar} /><span>🚩</span></div>}
       {phase === 'drive' && <div class="drive-hint" aria-hidden="true">👆 hold to drive</div>}
@@ -192,7 +192,7 @@ export function RescueScreen() {
         <div class="rs-result" role="dialog"><div class="result-card">
           <h2>Back to the wild!</h2>
           <div class="wild-off"><HabitatArt id={home} /><AnimalPic id={call.animal} class="runs-off" /></div>
-          {pay && <div class="result-bolts"><CurrencyIcon kind={RESCUE_CURRENCY} size={40} />+{pay.bolts}</div>}
+          {pay && <div class="result-prints"><CurrencyIcon kind={RESCUE_CURRENCY} size={40} />+{pay.prints}</div>}
           <div class="btns">
             <button class="big-btn garage" aria-label="Park" onClick={() => { if (voice.active) screen.value = 'park'; }}><span class="e">🌳</span></button>
             <button class="big-btn garage my-truck" aria-label="Garage" onClick={() => { if (voice.active) screen.value = 'garage'; }}><TruckView truck={after.truck} label={null} /></button>

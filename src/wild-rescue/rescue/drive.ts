@@ -1,6 +1,6 @@
 // The drive out to the animal, seen from the side, as a little simulation (drawn by draw.ts). He holds anywhere on the picture to
 // drive and taps ⤴ to jump. Mud and soft sand slow the truck, a stream splashes it down to a crawl, and a log or a rock bounces it,
-// but nothing stops it: while he holds, the truck always moves. Four Bolts hang over the road, two low and two that need a jump.
+// but nothing stops it: while he holds, the truck always moves. Four Paw Prints hang over the road, two low and two that need a jump.
 //
 // Heights are measured up from the road's baseline; the world is VIEW_H tall.
 import type { HabitatId } from '../facts/habitats';
@@ -12,8 +12,8 @@ export const CRAWL = 95;
 
 export type ObstacleKind = 'mud' | 'sand' | 'snow' | 'stream' | 'log' | 'rock';
 export interface Obstacle { kind: ObstacleKind; x: number; w: number }
-export interface Bolt { x: number; y: number; got: boolean }
-export type DriveEvent = 'jump' | 'land' | 'bump' | 'splash' | 'bolt' | 'arrive';
+export interface PawPrint { x: number; y: number; got: boolean }
+export type DriveEvent = 'jump' | 'land' | 'bump' | 'splash' | 'print' | 'arrive';
 
 export interface Drive {
   t: number;
@@ -25,7 +25,7 @@ export interface Drive {
   top: number;
   hills: number;
   obstacles: Obstacle[];
-  bolts: Bolt[];
+  prints: PawPrint[];
   got: number;
   bumped: Set<number>;
   splashing: boolean;
@@ -49,10 +49,10 @@ const WIDTH: Record<ObstacleKind, number> = { mud: 220, sand: 260, snow: 240, st
 
 export function createDrive(home: HabitatId, tiresRung: number): Drive {
   const obstacles = COURSES[home].map((kind, i) => ({ kind, x: 760 + i * 600, w: WIDTH[kind] }));
-  const bolts = [{ x: 560, y: 70 }, { x: 1130, y: 220 }, { x: 1720, y: 70 }, { x: 2280, y: 220 }].map(b => ({ ...b, got: false }));
+  const prints = [{ x: 560, y: 70 }, { x: 1130, y: 220 }, { x: 1720, y: 70 }, { x: 2280, y: 220 }].map(b => ({ ...b, got: false }));
   return {
     t: 0, x: START_X, y: 0, vx: 0, vy: 0, grounded: true, top: TOP + tiresRung * PER_RUNG, hills: HILLS[home],
-    obstacles, bolts, got: 0, bumped: new Set(), splashing: false, arrived: false, events: [],
+    obstacles, prints, got: 0, bumped: new Set(), splashing: false, arrived: false, events: [],
   };
 }
 
@@ -95,9 +95,9 @@ export function stepDrive(d: Drive, dt: number, holding: boolean, jump: boolean)
       if (d.y - groundAt(d, d.x) < 30) { d.vy = 420; d.grounded = false; d.vx *= .55; d.events.push('bump'); }
     }
   }
-  for (const b of d.bolts) {
+  for (const b of d.prints) {
     if (b.got || Math.abs(b.x - d.x) > 70) continue;
-    if (Math.abs(b.y - (d.y - groundAt(d, d.x) + 60)) < 90) { b.got = true; d.got++; d.events.push('bolt'); }
+    if (Math.abs(b.y - (d.y - groundAt(d, d.x) + 60)) < 90) { b.got = true; d.got++; d.events.push('print'); }
   }
   if (d.x >= END_X - 2 && d.grounded) { d.x = END_X; d.vx = 0; d.arrived = true; d.events.push('arrive'); }
 }

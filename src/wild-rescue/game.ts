@@ -1,6 +1,6 @@
 // The saved game and how practice changes it. Everything goes through player.commit(), which saves it under its own key, so Wild
-// Rescue never touches another game's save on the same site. A Round pays Bolts through the shared currency and earns a Rescue call;
-// the Garage and the Park spend Bolts through the shared reward purchases.
+// Rescue never touches another game's save on the same site. A Round pays Paw Prints through the shared currency and earns a Rescue call;
+// the Garage and the Park spend Paw Prints through the shared reward purchases.
 import { createPracticeCoordinator } from '../app/coordination';
 import { createRewardPurchases } from '../app/purchaseCoordination';
 import { credit, readCurrency, type CurrencyState, type EarningsPolicy } from '../currency/currency';
@@ -59,13 +59,13 @@ export const buy = createRewardPurchases(player, { proposePurchase }, {
 export const updateRescue = (change: (r: RescueState) => RescueState | null) =>
   player.commit(state => { const rescue = change(state.rescue); return rescue ? { ...state, rescue } : null; });
 
-/** The animal is in the crate: pay the Bolts picked up on the drive, use the call, and it rides home in his hands. */
-export function settleRescue(store: Pick<typeof player, 'commit'>, call: Call, bolts: number): RescuePay | null {
+/** The animal is in the crate: pay the Paw Prints picked up on the drive, use the call, and it rides home in his hands. */
+export function settleRescue(store: Pick<typeof player, 'commit'>, call: Call, prints: number): RescuePay | null {
   let pay: RescuePay | null = null;
   store.commit(s => {
     if (s.rescue.calls <= 0) return null;
-    pay = payFor(call, bolts);
-    const paid = credit(s.currency, pay.bolts);
+    pay = payFor(call, prints);
+    const paid = credit(s.currency, pay.prints);
     return { ...s, rescue: finishRescue(s.rescue, pay), currency: paid.kind === 'accepted' ? paid.state : s.currency };
   });
   return pay;

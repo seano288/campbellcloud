@@ -290,7 +290,10 @@ _Avoid_: Trophy (Trophies are earned by playing well; Treasures by sailing)
 
 ## Wild Rescue
 
-Wild Rescue reuses Math Bots', Rover Code's and Treasure Fleet's terms where they mean the same thing (Mixed Round, Mastery, Stretch, Bolt, Goal, Part, Rung, Paint). It has no Tune-Up and no Meetings. These are its own:
+Wild Rescue reuses Math Bots', Rover Code's and Treasure Fleet's terms where they mean the same thing (Mixed Round, Mastery, Stretch, Goal, Part, Rung, Paint). It has no Tune-Up and no Meetings. These are its own:
+
+**Paw Print**: Wild Rescue's Bolt, drawn as an orange paw, earned and spent exactly as Bolts are, because it's an animal's thank-you, not a machine part. The drive to a Rescue has four to pick up. Every game names its currency in `src/currency/kind.ts`.
+_Avoid_: Bolt (in Wild Rescue it's always Paw Prints)
 
 **Game Modes (Wild Rescue)**: the five kinds of question, about first-grade science: Where It Lives (an animal's habitat), Animal Parts (what a body part is for), Alive or Not (living things and what they need), Babies (young animals and their parents) and Sky and Seasons (day and night, the weather, the seasons, the sun across the day). Where It Lives and Animal Parts are open from the start; Alive or Not and Sky and Seasons open at Where It Lives Level 2, Babies at Animal Parts Level 2.
 
@@ -315,7 +318,7 @@ _Avoid_: voyage, launch, ticket
 
 **Garage**: where he builds the truck (Wild Rescue reuses the word for its own truck).
 
-**Park**: the map of habitat plots he buys with Bolts, where his rescued animals live, with Extras inside the habitats and Decorations on the path. He carries each new animal to its habitat there.
+**Park**: the map of habitat plots he buys with Paw Prints, where his rescued animals live, with Extras inside the habitats and Decorations on the path. He carries each new animal to its habitat there.
 
 **Extra**: one of five things for looks inside each habitat (Hay Bales, Lily Pads, Northern Lights, Banana Tree...).
 

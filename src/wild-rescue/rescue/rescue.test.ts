@@ -40,11 +40,11 @@ describe('the drive', () => {
     expect(d.grounded).toBe(true);
     expect(d.y).toBeCloseTo(groundAt(d, END_X));
   });
-  it('lets a child who jumps for the high Bolts and drives under the low ones collect all four', () => {
+  it('lets a child who jumps for the high Paw Prints and drives under the low ones collect all four', () => {
     for (const home of HABITAT_IDS) {
       const d = createDrive(home, 2);
       while (!d.arrived) {
-        const high = d.bolts.find(b => !b.got && b.y > 100 && b.x - d.x > 60 && b.x - d.x < 150);
+        const high = d.prints.find(b => !b.got && b.y > 100 && b.x - d.x > 60 && b.x - d.x < 150);
         stepDrive(d, DT, true, !!high);
       }
       expect(d.got, home).toBe(4);

@@ -1,4 +1,4 @@
-// The Park, his to show off: a map of habitat plots he builds with Bolts, each with the animals he has rescued wandering in it, an
+// The Park, his to show off: a map of habitat plots he builds with Paw Prints, each with the animals he has rescued wandering in it, an
 // extra or two inside, and decorations along the path. Nothing here can be lost.
 //
 // When he brings an animal home it waits in his hands (even after a reload) and he carries it to a habitat by tapping one. The right
@@ -112,15 +112,15 @@ export function Park() {
     if (!voice.active || blocked) return;
     if (isOwned(rescue, k)) { sClink(); setTrial(null); void voice.say(item(k).name); return; }
     const x = EXTRAS.find(e => keyOf('extra', e.id) === k);
-    if (x && !ownsHabitat(rescue, x.home)) { sNope(); void voice.say(item(k).name, 'Buy this habitat with Bolts!'); return; }
+    if (x && !ownsHabitat(rescue, x.home)) { sNope(); void voice.say(item(k).name, 'Buy this habitat with Paw Prints!'); return; }
     setTrial(k); sChime();
     const price = priceOf(k);
-    void voice.say(item(k).name, 'It costs', n(price), 'Bolts.', ...(balance < price ? ['You need' as const, n(price - balance), 'more Bolts.' as const] : []));
+    void voice.say(item(k).name, 'It costs', n(price), 'Paw Prints.', ...(balance < price ? ['You need' as const, n(price - balance), 'more Paw Prints.' as const] : []));
   }
   function buyTrial() {
     if (!trial || !voice.active || blocked) return;
     const k = trial, price = priceOf(k);
-    if (balance < price) { sNope(); updateRescue(r => selectGoal(r, k)); void voice.say('You need', n(price - balance), 'more Bolts.', 'Play a Round to earn Bolts!'); return; }
+    if (balance < price) { sNope(); updateRescue(r => selectGoal(r, k)); void voice.say('You need', n(price - balance), 'more Paw Prints.', 'Play a Round to earn Paw Prints!'); return; }
     if (buy(k).kind !== 'accepted') return;
     setTrial(null); setBlocked(true); sFanfare(); confetti(36, voice.signal);
     void voice.say('You got', item(k).name).then(() => { if (voice.active) setBlocked(false); });

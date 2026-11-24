@@ -5,7 +5,7 @@ import { HABITAT_IDS } from './facts/habitats';
 import { createPractice, rescueSave, SAVE_KEY, SAVE_VERSION, settleRescue, setDown, type RescueGame } from './game';
 import { freshLearning } from './learning';
 import {
-  blockers, canRescue, DRIVE_BOLTS, freshRescue, goalOf, nextCall, placeAnimal, proposePurchase, readRescue, truckFor, type RescueState,
+  blockers, canRescue, DRIVE_PRINTS, freshRescue, goalOf, nextCall, placeAnimal, proposePurchase, readRescue, truckFor, type RescueState,
 } from './park/rescue';
 import { ALL_KEYS, DECOS, EXTRAS, item, PAINTS, PARK_HABITATS, PARTS, SLOTS, STARTERS, type ItemKey } from './park/shop';
 import { NUMBERS_TO, PHRASES } from './phrases';
@@ -37,7 +37,7 @@ describe('the save', () => {
 });
 
 describe('a Round', () => {
-  it('pays a Bolt for each clean answer and one for finishing, and earns a Rescue call', () => {
+  it('pays a Paw Print for each clean answer and one for finishing, and earns a Rescue call', () => {
     const s = store(), practice = createPractice(s);
     const started = practice.start();
     if (started.kind !== 'accepted') throw new Error('no Round');
@@ -53,7 +53,7 @@ describe('a Round', () => {
   });
 });
 
-describe('what Bolts buy', () => {
+describe('what Paw Prints buy', () => {
   it('has four truck slots, each a free starter and six upgrades getting dearer, and twelve buddies, all at or under 100', () => {
     for (const slot of SLOTS) {
       const prices = PARTS.filter(p => p.slot === slot).map(p => p.price);
@@ -65,7 +65,7 @@ describe('what Bolts buy', () => {
     expect(STARTERS).toHaveLength(SLOTS.length + 2); // and Rescue Orange and the Barn
   });
   it('has more than twice what it first had: 24 upgrades, 12 buddies, 27 paints, 7 habitats, 40 extras, 30 decorations, 67 animals', () => {
-    // first built with 24 upgrades, 12 paints, 6 habitats, 14 extras, 11 decorations and 45 animals, costing 2,145 Bolts; he
+    // first built with 24 upgrades, 12 paints, 6 habitats, 14 extras, 11 decorations and 45 animals, costing 2,145 Paw Prints; he
     // maxes reward ladders fast, so on the day it was built it got more things to earn (not bigger payouts)
     expect(PARTS.filter(p => p.price > 0 && p.slot !== 'buddy')).toHaveLength(24);
     expect(PARTS.filter(p => p.price > 0 && p.slot === 'buddy')).toHaveLength(12);
@@ -79,7 +79,7 @@ describe('what Bolts buy', () => {
     expect(total).toBeGreaterThan(3800);
     expect(total).toBeLessThan(4600);
   });
-  it('buys a part and fits it, and says no without enough Bolts or twice', () => {
+  it('buys a part and fits it, and says no without enough Paw Prints or twice', () => {
     const buy = proposePurchase(freshRescue(), 'tires:mud', 20);
     if (buy.kind !== 'ready') throw new Error(buy.reason);
     expect(buy.cost).toBe(8);
@@ -151,17 +151,17 @@ describe('Rescue calls', () => {
     expect(call.kind).toBe('release');
     expect(s.park).toContain(call.animal);
     const st = store({ ...rescueSave.fresh(), rescue: s });
-    expect(settleRescue(st, call, 3)).toEqual({ bolts: 3, animal: call.animal, release: true });
+    expect(settleRescue(st, call, 3)).toEqual({ prints: 3, animal: call.animal, release: true });
     expect(st.state.rescue.holding).toBeNull();
     expect(st.state.rescue.released).toBe(1);
   });
 });
 
 describe('a Rescue and the Park', () => {
-  it('pays at most 4 Bolts, uses the call, and the animal comes home in his hands', () => {
+  it('pays at most 4 Paw Prints, uses the call, and the animal comes home in his hands', () => {
     const s = store();
-    expect(DRIVE_BOLTS).toBe(4);
-    expect(settleRescue(s, { kind: 'rescue', animal: 'sheep' }, 99)).toEqual({ bolts: 4, animal: 'sheep', release: false });
+    expect(DRIVE_PRINTS).toBe(4);
+    expect(settleRescue(s, { kind: 'rescue', animal: 'sheep' }, 99)).toEqual({ prints: 4, animal: 'sheep', release: false });
     expect(s.state.currency.balance).toBe(4);
     expect(s.state.rescue.calls).toBe(0);
     expect(s.state.rescue.holding).toBe('sheep');

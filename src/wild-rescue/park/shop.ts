@@ -1,4 +1,4 @@
-// Everything Bolts buy: the truck's four slots (each a free starter and six upgrades), a buddy to ride along, its paints, the Park's habitats, an extra or
+// Everything Paw Prints buy: the truck's four slots (each a free starter and six upgrades), a buddy to ride along, its paints, the Park's habitats, an extra or
 // two for each habitat, and decorations for the paths. Every price is at most 100, the most the recorded numbers go.
 //
 // Some upgrades open new rescues (the "openers"): Mud Tires reach the forest and the rainforest, Sand Tires the desert and Snow Tracks the polar lands;

@@ -71,7 +71,7 @@ export function Garage() {
     setTrial(k);
     sChime();
     const price = priceOf(k);
-    void voice.say(item(k).name, ...opens, 'It costs', n(price), 'Bolts.', ...(balance < price ? ['You need' as const, n(price - balance), 'more Bolts.' as const] : []));
+    void voice.say(item(k).name, ...opens, 'It costs', n(price), 'Paw Prints.', ...(balance < price ? ['You need' as const, n(price - balance), 'more Paw Prints.' as const] : []));
   }
   function buyTrial() {
     if (!trial || !voice.active || blocked) return;
@@ -79,7 +79,7 @@ export function Garage() {
     if (balance < price) {
       nope();
       updateRescue(r => selectGoal(r, k));
-      void voice.say('You need', n(price - balance), 'more Bolts.', 'Play a Round to earn Bolts!');
+      void voice.say('You need', n(price - balance), 'more Paw Prints.', 'Play a Round to earn Paw Prints!');
       return;
     }
     if (buy(k).kind === 'accepted') { setTrial(null); celebrate(k); }
