@@ -27,7 +27,8 @@ Truck Money alone into `dist/` for the existing browser checks.
   Carrier Deck `carrier-deck-save` (and `carrier-deck-place`),
   Cargo Words `cargo-words-save` (and `cargo-words-place`),
   Moon Base Mail `moon-base-mail-save` (and `moon-base-mail-place`),
-  Globe Hopper `globe-hopper-save` (and `globe-hopper-place`).
+  Globe Hopper `globe-hopper-save` (and `globe-hopper-place`),
+  Coaster Crew `coaster-crew-save` (and `coaster-crew-place`).
 - **Home Screen**: the app already installed from the site root now opens the landing page, which works offline. Each game
   becomes available offline after its first online visit at its new folder.
 - **Word Wreckers** (`/word-wreckers/`) has a tile in **Learning Games** and saves under its own key, `word-wreckers-save` (with
@@ -48,6 +49,8 @@ Truck Money alone into `dist/` for the existing browser checks.
 - **Globe Hopper** (`/globe-hopper/`) has a tile in **Learning Games**, after Moon Base Mail, and saves under its own key, `globe-hopper-save`
   (with `globe-hopper-place` for the screen and the Round in progress). Its voice clips are in `public/globe-hopper-voice/`, and its
   map outlines are a small table made once from Natural Earth's public-domain data (`tools/globe-hopper/outlines.ts`).
+- **Coaster Crew** (`/coaster-crew/`) has a tile in **Learning Games**, after Globe Hopper, and saves under its own key, `coaster-crew-save`
+  (with `coaster-crew-place` for the screen and the Round in progress). Its voice clips are in `public/coaster-crew-voice/`.
 
 ## Learning games and games just for fun
 

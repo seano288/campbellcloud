@@ -24,6 +24,7 @@
   .venv/bin/python tools/make_voice.py --collection cargo-words --out public/cargo-words-voice --index src/cargo-words/voice.gen.ts
   .venv/bin/python tools/make_voice.py --collection moon-base-mail --out public/moon-base-mail-voice --index src/moon-base-mail/voice.gen.ts
   .venv/bin/python tools/make_voice.py --collection globe-hopper --out public/globe-hopper-voice --index src/globe-hopper/voice.gen.ts
+  .venv/bin/python tools/make_voice.py --collection coaster-crew --out public/coaster-crew-voice --index src/coaster-crew/voice.gen.ts
 
 Select phrases through tools/phrases.ts and write recordings and a typed index to explicit locations.
 Only missing clips are recorded. Cleanup touches only the selected directory, whose .voice-collection
@@ -79,7 +80,10 @@ VOICES = {'purrdoku': ('en-GB-RyanNeural', '-5%'),
           'moon-base-mail': ('en-US-AriaNeural', '-8%'),
           # Globe Hopper says every continent, ocean, landform and place name alone, and chains them into lines ("Fly over", "Cairo",
           # "and take a picture!"), as Carrier Deck does
-          'globe-hopper': ('en-US-AriaNeural', '-8%')}
+          'globe-hopper': ('en-US-AriaNeural', '-8%'),
+          # Coaster Crew says whole science sentences in its lessons, and every track piece, car, ride and thing alone, and chains numbers
+          # and names into lines ("It costs", "12", "Tokens."), as Globe Hopper does
+          'coaster-crew': ('en-US-AriaNeural', '-8%')}
 ROOT = Path(__file__).resolve().parent.parent
 
 
@@ -281,6 +285,15 @@ COLLECTION_SPEECH = {
     # "Flagpoles" alone was heard as "flight poles"; "Flag poles" as "Flagpoles".
     'globe-hopper': {
         'said_as': {'Lagos': 'Lay-goss', 'Flagpoles': 'Flag poles', 'Bogotá': 'Bo go tah', 'Manaus': 'Mah-nowss', 'the Paraná River': 'the Pah rah nah River', 'Cuba': 'Cuba!'},
+    },
+    # Coaster Crew, pass 1: faster-whisper small.en heard Aria's "You have 1 Ride!" as "You have one right", "Bat Car" as "That car",
+    # "Plain Front" as "Play in front", "Mine Train Track" as "mind train track", "First Aid Hut" as "First
+    # aid hat", "Drinks Stand" as "Drink Stand", "A new Guest Paint!" as "and new guest paint" and the squeals "Eek!" and "Wheee!" as "ik"
+    # and "We"; a breath or a respelling for each
+    'coaster-crew': {
+        'said_as': {'You have 1 Ride!': 'You have one ride.', 'Bat Car': 'Bat, Car', 'Plain Front': 'Plain, Front', 'Mine Train Track': 'Mine-train, Track',
+                    'First Aid Hut': 'First Aid, Hut', 'Drinks Stand': 'Drinks, Stand', 'A new Guest Paint!': 'A new, Guest Paint!',
+                    'Eek!': 'Eeeek!', 'Wheee!': 'Wheeeee!'},
     },
 }
 

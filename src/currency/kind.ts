@@ -27,8 +27,10 @@ export const GEM = kind({ id: 'gem', one: 'Gem', many: 'Gems' });
 export const PEARL = kind({ id: 'pearl', one: 'Pearl', many: 'Pearls' });
 /** Skyline's currency: a Brick, what a city is built from. */
 export const BRICK = kind({ id: 'brick', one: 'Brick', many: 'Bricks' });
+/** Coaster Crew's currency: a ride Token, the round red and white token a fairground runs on. */
+export const TOKEN = kind({ id: 'token', one: 'Token', many: 'Tokens' });
 
-export const CURRENCIES = [BOLT, AMMO, DOUBLOON, PAW_PRINT, TICKET, GEM, PEARL, BRICK] as const;
+export const CURRENCIES = [BOLT, AMMO, DOUBLOON, PAW_PRINT, TICKET, GEM, PEARL, BRICK, TOKEN] as const;
 export type Currency = (typeof CURRENCIES)[number];
 export type CurrencyId = Currency['id'];
 

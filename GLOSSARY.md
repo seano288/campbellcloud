@@ -949,3 +949,34 @@ _Avoid_: space base (that is Rover Code's)
 
 **Logbook rank**: by Launches flown: Cadet, Rocket Rookie, Launch Crew, Pilot, Commander, Captain, Flight Director, Space Ace, Star Captain, Orbit Legend, then Orbit Legend 2, 3 and on without end.
 
+## Coaster Crew
+
+Coaster Crew reuses the other games' terms where they mean the same thing (Mixed Round, Mastery, Tune-Up, Goal, Slot, Mod, Paint). These are its own:
+
+**Game Modes (Coaster Crew)**: the six kinds of question, about how things move: Push or Pull (is an everyday action a push or a pull; which way a pushed or pulled box goes; which of a big and a small push sends a cart farther), Hills (which of two carts is faster at the bottom; will it get over the next hill; which start height gets it over), Heavy and Light (the same push on an empty and a full cart, all on flat ground: which goes farther, which needs the bigger push to get going, which is harder to stop), Rough and Smooth (on which ground the same push goes farthest, which stops it first, which ground for a job), Bump (seen from above on a table: a rolling ball meets a still one, a wall, a push from the side) and Magnets (what a magnet pulls, two magnets' ends, near and far, through paper). Push or Pull and Hills are open from the start; Heavy and Light opens at Push or Pull Level 2, Rough and Smooth at Hills Level 2, Bump at Rough and Smooth Level 2, Magnets at Heavy and Light Level 2.
+
+**Motion model**: the one set of rules (`src/coaster-crew/physics/motion.ts`) that moves every question's scene and the coaster, so a question can never say one thing and the Ride another. Weight is not in it for anything rolling downhill.
+
+**Token**: Coaster Crew's currency: a round red and white fairground ride token with a star stamped in it. One per first-try answer and one for finishing a Round, and a few from each Ride. It is never money and never shows a price in dollars.
+_Avoid_: Bolt, Ticket (that is Sentence Express's), coin
+
+**Coaster Yard**: where he builds and buys: the builder, the shop tabs (Track, Train, Park, Looks) and his Records.
+
+**Piece**: one part of a coaster's track (a lift, a drop, a hump, a loop, a corkscrew, a tunnel, a splash pool, a banked turn, a booster, brakes and more). Pieces snap on the end of the track from a tray that shows only pieces that fit there; one tap takes the last piece off. Owning a piece lets him use it as often as he likes; his **track slots** cap how long a coaster can be ("More Track").
+_Avoid_: segment, block
+
+**Rolls back**: what a coaster does when a hill is taller than the car can climb: it slows, stops and rolls back. The builder shows it and offers the two fixes: a taller first lift, or a booster in front of the hill. A coaster that rolls back can't be ridden.
+
+**Ride**: the action reward, about half a minute to a minute, from the side: the chain takes the car up the lift, it waits at the top for him to pull the lever, he holds a finger down to put the riders' hands up and catch the stars, and taps the camera at the big drop. A Round earns one Ride. It cannot be failed.
+
+**Guest Coaster**: a coaster the game makes from its number, the same every time, a little longer and wilder each time, always one on offer to ride. Every fifth gives a prize that is never sold (a prize piece or car, then a numbered Guest Paint).
+
+**Park**: his fairground from above, plots of land with spots for the rides and stands he buys, with visitors walking about in the hats and with the balloons he has bought. "More Land" adds another plot, without end.
+
+**Train**: his coaster's cars, each made from parts: a body (which sets how many riders it seats), a front, a paint, a stripe and a set of riders. "Another Car" makes it longer, up to six.
+
+**Thrill**: a number for each coaster: its top speed in km/h, plus half its tallest drop in metres, plus eight for each time it turns upside down. His best ever is kept and cheered.
+
+**Riders**: everyone his train has carried round, counted on the gate's board. Every Ride adds its riders; a new park rank comes at each milestone (Helper, Ticket Taker, Ride Operator, Track Fixer, Coaster Crew, Crew Chief, Park Manager, Thrill Master, Coaster Captain, Coaster Legend, then Coaster Legend 2, 3 and on without end).
+
+**Watch it run**: his whole coaster on screen with the train going round by itself; nothing is paid.

@@ -73,6 +73,16 @@ const ICONS = {
       <ellipse cx="25" cy="12.6" rx="3.4" ry="1.6" fill="#b83d23" transform="rotate(-13 25 12.6)" />
     </>
   ),
+  // Token: a round red and white fairground ride token with a ridged edge and a star stamped in the middle (no number, no head: not a coin)
+  token: () => (
+    <>
+      <circle cx="20" cy="20" r="17.5" fill="#ffffff" stroke="#6e1212" stroke-width="2.5" />
+      <circle cx="20" cy="20" r="17.5" fill="none" stroke="#e63946" stroke-width="3.2" stroke-dasharray="2.2 2.4" />
+      <circle cx="20" cy="20" r="13" fill="#e63946" stroke="#6e1212" stroke-width="2" />
+      <circle cx="20" cy="20" r="10" fill="none" stroke="#ffffff" stroke-width="1.6" stroke-dasharray="3 2.2" />
+      <polygon points="20,12.5 22.2,17.4 27.4,17.8 23.4,21.2 24.7,26.3 20,23.5 15.3,26.3 16.6,21.2 12.6,17.8 17.8,17.4" fill="#ffffff" stroke="#6e1212" stroke-width="1.2" stroke-linejoin="round" />
+    </>
+  ),
 } satisfies Record<CurrencyId, () => JSX.Element>;
 
 export function CurrencyIcon({ kind, size }: { kind: CurrencyKind & { id: CurrencyId }; size: number }) {
