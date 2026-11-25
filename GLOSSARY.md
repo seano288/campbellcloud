@@ -1037,7 +1037,7 @@ _Avoid_: garage (that is Monster Truck Money's)
 
 **Show**: a Row generated from its number, without end, once the first three Rows are cleared; Rows and Shows take turns. Each has its things, its length, its wind and maybe night. Every fifth gives a **Show Cup**, never sold.
 
-**Mercy wind**: when he falls short of a Row or Show, the same one waits for the next Jump with a tail wind that grows each try, and a head wind drops.
+**Mercy wind**: when he falls short of a Row or Show, the same one waits for the next Jump with a tail wind that grows each try (only ever enough to carry him just past the Row, and sure to after a few tries), and a head wind drops.
 
 **Record Board**: his ten longest jumps in feet. "Watch it" replays the longest from its recorded inputs, to the foot.
 

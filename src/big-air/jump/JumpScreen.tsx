@@ -28,6 +28,8 @@ import { createSim, fromTape, recorder, STEP, stepSim, takeEvents, type Input, t
 import { boostSound, engineSound, tapeTick, type Engine } from './sounds';
 
 type Phase = 'card' | 'jump' | 'end';
+/** How many Jumps the card tells him how to tilt before. */
+const TILT_TOLD = 5;
 const reduced = () => typeof matchMedia === 'function' && matchMedia('(prefers-reduced-motion:reduce)').matches;
 const say = (x: string) => x as Phrase;
 
@@ -67,7 +69,9 @@ export function JumpScreen({ replay = false }: { replay?: boolean }) {
     if (phase !== 'card') return;
     void voice.say(...courseLine(course), ...(plan.night ? ['Night show!' as const] : []),
       ...(course.wind < 0 && !plan.setup.help ? ['A head wind!' as const] : course.wind > 0 ? ['A tail wind!' as const] : []),
-      ...(plan.setup.help > 0 ? ['The wind is with you!' as const] : []), 'Tap Jump!');
+      ...(plan.setup.help > 0 ? ['The wind is with you!' as const] : []),
+      // how to tilt is said before his first few Jumps: in the air there's no time to say it
+      ...(a.jumped < TILT_TOLD ? ['Hold left or right of the truck to tilt it!' as const] : []), 'Tap Jump!');
   }, [phase]);
 
   // the jump
@@ -186,9 +190,9 @@ export function JumpScreen({ replay = false }: { replay?: boolean }) {
       if (pay.cleared) { sChime(); if (doesArena(after, 'confetti')) confetti(60, voice.signal); await voice.say('You cleared it!'); }
       else if (pay.help > 0) await voice.say('So close! The wind will help next time.');
       await voice.say(earnedLine(CUR, pay.bolts));
-      for (const t of pay.trophies) { sFanfare(); await voice.say('You won the', ...unitSaid(t, 'ft'), 'trophy!'); }
+      for (const t of pay.trophies) { sFanfare(); await voice.say('You won a trophy for', ...unitSaid(t, 'ft')); }
       if (pay.cup) { sFanfare(); confetti(40, voice.signal); await voice.say('You won a Show Cup!'); }
-      if (pay.rank) { sFanfare(); await voice.say(pay.rank.name === 'Legend' ? 'You are now' : 'You are now a', say(pay.rank.name), ...(pay.rank.number ? [say(String(pay.rank.number))] : [])); }
+      if (pay.rank) { sFanfare(); await voice.say(pay.rank.name === 'Legend' ? 'You are now' : 'You are now a', say(pay.rank.name), ...(pay.rank.number && pay.rank.number <= 100 ? [say(String(pay.rank.number))] : [])); }
       if (!pay.cup && !pay.rank && !pay.trophies.length) await voice.say('Great jumping!');
     })();
   }, [phase, result]);
@@ -202,7 +206,8 @@ export function JumpScreen({ replay = false }: { replay?: boolean }) {
   };
   const down = (e: PointerEvent) => {
     if (finger.current) return;
-    finger.current = { id: e.pointerId, x: e.clientX - canvas.current!.getBoundingClientRect().left }; canvas.current!.setPointerCapture(e.pointerId);
+    finger.current = { id: e.pointerId, x: e.clientX - canvas.current!.getBoundingClientRect().left };
+    try { canvas.current!.setPointerCapture(e.pointerId); } catch { /* the pointer has already gone: nothing to hold */ }
   };
   const move = (e: PointerEvent) => { if (finger.current?.id === e.pointerId) finger.current = { id: e.pointerId, x: e.clientX - canvas.current!.getBoundingClientRect().left }; };
   const up = (e: PointerEvent) => { if (finger.current?.id === e.pointerId) finger.current = null; };
@@ -242,7 +247,7 @@ export function JumpScreen({ replay = false }: { replay?: boolean }) {
       </div>
       {phase === 'jump' && !replay && ground && (
         <div class="js-acts">
-          <button class={`js-act pedal ${pedalHint ? 'pulse' : ''}`} aria-label="Pedal" onPointerDown={e => { e.preventDefault(); pedal.current = true; (e.currentTarget as HTMLElement).setPointerCapture(e.pointerId); }}
+          <button class={`js-act pedal ${pedalHint ? 'pulse' : ''}`} aria-label="Pedal" onPointerDown={e => { e.preventDefault(); pedal.current = true; try { (e.currentTarget as HTMLElement).setPointerCapture(e.pointerId); } catch { /* already gone */ } }}
             onPointerUp={() => { pedal.current = false; }} onPointerCancel={() => { pedal.current = false; }} onLostPointerCapture={() => { pedal.current = false; }}>
             <span aria-hidden="true">🦶</span><b>Go!</b>
           </button>

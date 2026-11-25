@@ -6,11 +6,11 @@ import {
   type ArenaState, type JumpResult,
 } from './arena/arena';
 import { FOR_SALE, ITEMS, REPEATS, repeatPrice, ROWS } from './arena/catalog';
-import { needLine, PHRASES, PRICE_TOP, sayable, unitSaid } from './phrases';
+import { LENGTHS, needLine, PHRASES, PRICE_TOP, sayable, SMALL_UNITS_TO, unitSaid } from './phrases';
 import { CLIPS } from './voice.gen';
 import { PLACE_KEY } from './nav';
 import { jumpWith } from './jump/sim';
-import { KINDS, makeQuestion, storySaid } from './questions/problems';
+import { KINDS, makeQuestion, storySaid, thingOf } from './questions/problems';
 import { seeded } from '../game/rng';
 
 function store(initial: AirState = airSave.fresh()) {
@@ -153,7 +153,24 @@ describe('the voice', () => {
     expect(said.has('1 foot') && said.has('2 feet') && said.has('1 inch') && said.has('1 centimetre')).toBe(true);
     expect(said.has('1 feet')).toBe(false);
     for (let n = 0; n <= 999; n++) for (const p of unitSaid(n, 'ft')) expect(said.has(p), `${n}: ${p}`).toBe(true);
-    for (const u of ['in', 'cm'] as const) for (let n = 0; n <= 100; n++) for (const p of unitSaid(n, u)) expect(said.has(p), `${n} ${u}: ${p}`).toBe(true);
+    for (const u of ['in', 'cm'] as const) for (let n = 0; n <= SMALL_UNITS_TO; n++) for (const p of unitSaid(n, u)) expect(said.has(p), `${n} ${u}: ${p}`).toBe(true);
+  });
+  it('has a clip for every inch and centimetre a question or its lesson can say', () => {
+    const said = new Set<string>(PHRASES), rng = seeded(11), needed = new Set<string>();
+    const need = (n: number, u: 'in' | 'ft' | 'cm') => { for (const p of unitSaid(n, u)) needed.add(p); };
+    for (const k of KINDS) for (const l of [1, 2, 3] as const) for (let i = 0; i < 3000; i++) {
+      const q = makeQuestion(k, l, (i % 3) as 0 | 1 | 2, rng);
+      if (q.kind === 'ruler') need(Number(q.answer), q.ruler.unit);
+      if (q.kind === 'longer') need(Number(q.answer), q.form === 'jumps' ? 'ft' : q.ruler.unit);
+      if (q.kind === 'guess') {
+        if (q.form === 'about') { for (const c of q.choices) need(Number(c), q.unit); need(thingOf(q.thing).about.n, thingOf(q.thing).about.unit); }
+        else for (const id of q.form === 'longer' ? [q.a, q.b] : [q.thing]) need(thingOf(id).about.n, thingOf(id).about.unit);
+      }
+      if (q.kind === 'units' && q.form === 'more') need(q.n, q.unit);
+    }
+    for (const p of needed) expect(said.has(p), p).toBe(true);
+    // past 40, only whole fives are recorded in inches and centimetres
+    expect(LENGTHS.filter(p => /inch|centimetre/.test(p) && Number(p.split(' ')[0]) > SMALL_UNITS_TO).length).toBe(2 * 12);
   });
   it('can say every question of every kind', () => {
     const said = new Set<string>(PHRASES), rng = seeded(4);

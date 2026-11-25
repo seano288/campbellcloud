@@ -7,7 +7,8 @@
 // hundred", "34 feet"), so every distance to 999 has a voice.
 import { earnedLine, type EarnedLine } from '../currency/kind';
 import { ITEM_NAMES, REPEATS, type ItemName, type RepeatName } from './arena/catalog';
-import { RANKS } from './arena/arena';
+import { MOST_JUMP_BOLTS, RANKS } from './arena/arena';
+import { MAX_BOLTS } from '../round/rules';
 import { CUR } from './branding';
 import { LOCKED_HINTS, MODE_IDS, MODE_NAMES, type ModeName } from './learning';
 import type { Unit } from './questions/problems';
@@ -50,12 +51,18 @@ export function unitSaid(n: number, unit: Unit): Phrase[] {
 }
 /** Words for a unit, written: "inches", "feet", "centimetres". */
 export const unitWord = (unit: Unit, n = 2) => (n === 1 ? UNIT_WORDS[unit][0] : UNIT_WORDS[unit][1]);
-export const LENGTHS: LengthPhrase[] = (['ft', 'in', 'cm'] as const).flatMap(u => Array.from({ length: NUMBERS_TO }, (_, i) => lengthLine(i + 1, u)));
+/** Which lengths have a clip. Feet: every one from 1 to 100 (any jump, and past 100 the part after "one hundred"). Inches and centimetres:
+ *  every one to 40 (rulers, bars, "It is 30 inches long."), and past that only the whole fives up to 100, since the only longer ones a
+ *  question can say are Best Guess's wrong estimates, five or ten times a small thing ("a book: 10 inches or 100 inches?"). game.test.ts
+ *  generates every kind of question and checks each length it says is here. */
+export const SMALL_UNITS_TO = 40;
+export const saysLength = (n: number, unit: Unit) => Number.isInteger(n) && n >= 1 && n <= NUMBERS_TO && (unit === 'ft' || n <= SMALL_UNITS_TO || n % 5 === 0);
+export const LENGTHS: LengthPhrase[] = (['ft', 'in', 'cm'] as const).flatMap(u => Array.from({ length: NUMBERS_TO }, (_, i) => i + 1).filter(n => saysLength(n, u)).map(n => lengthLine(n, u)));
 
-/** The most Bolts said in one "You earned" line: a perfect Round pays 6, a Jump up to 5 (arena.ts, MOST_JUMP_BOLTS). */
-export const MOST_EARNED = 12;
+/** The most Bolts said in one "You earned" line: a perfect Round pays 6, a Jump up to 5 (arena.ts, MOST_JUMP_BOLTS); each is its own line. */
+export const MOST_EARNED = Math.max(MAX_BOLTS, MOST_JUMP_BOLTS);
 
-const GAME = ["Let's go!", 'Level up!', 'You kept trying!', 'Tap again to go home.', 'Arena', 'Tap Jump!', 'You earned a Jump!', 'Next', 'Tap Go!'] as const;
+const GAME = ["Let's go!", 'Level up!', 'You kept trying!', 'Tap again to go home.', 'Arena', 'Tap Jump!', 'You earned a Jump!', 'Tap Go!'] as const;
 export const CHEERS = ['Great job!', 'You got it!', 'Super!', 'Awesome!', 'Way to go!', 'Big air!'] as const;
 
 // ---------- the questions ----------
@@ -98,9 +105,9 @@ const MEETING = [
 // ---------- the Arena ----------
 const ARENA = [
   'It costs', 'Bolts.', 'You need', 'You need about', 'more Bolts.', 'You got', 'Clear this first:', 'Buy this first:',
-  'Truck', 'Paint', 'Ramp', 'Rows', 'Tune', 'Records', 'Parts',
+  'Truck', 'Paint', 'Ramp', 'Rows', 'Tune', 'Records',
   'You have 1 Jump!', 'Jumps!', 'Play a Round to earn a Jump!', 'You can buy more of these!', 'Watch it!', 'It is set up for your next Jump!',
-  'Night jumps!', 'Day jumps!', 'Your record is', 'Jump to set a record!', 'Next up:', 'A Show!', 'The crowd grows!', 'It goes faster!', 'Softer landings!', 'A bigger push!',
+  'Night jumps!', 'Day jumps!', 'Next up:', 'A Show!', 'The crowd grows!', 'It goes faster!', 'Softer landings!', 'A bigger push!',
 ] as const;
 
 // ---------- the Jump ----------
@@ -108,7 +115,7 @@ const JUMP = [
   'Three!', 'Two!', 'One!', 'Go!', 'Hold the pedal!', 'Hold the pedal to go fast!', 'Off the ramp!', 'Tap Boost!', 'Boost!',
   'Hold left or right of the truck to tilt it!', 'Clean landing!', 'Bounce!', 'Crunch!', "Let's see how far!", 'New record!',
   'You cleared it!', 'So close! The wind will help next time.', 'The wind is with you!', 'A head wind!', 'A tail wind!', 'Night show!',
-  'You won a Show Cup!', 'You won the', 'trophy!', 'You are now a', 'You are now', 'Great jumping!', 'Jump!',
+  'You won a Show Cup!', 'You won a trophy for', 'You are now a', 'You are now', 'Great jumping!',
 ] as const;
 
 type EarnedPhrase = EarnedLine<typeof CUR>;

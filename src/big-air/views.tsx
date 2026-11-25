@@ -84,7 +84,7 @@ function Pad({ value, unit, onType, onDone, ok, hint }: { value: string; unit: U
   const key = (d: string) => { if (!ok) return; sClink(); onType(value.length >= 2 ? value : value === '0' ? d : value + d); };
   return (
     <div class="ba-pad">
-      <div class={cls('pad-show', hint && 'hint')} aria-live="polite"><b>{value || '?'}</b><small>{unitWord(unit)}</small></div>
+      <div class={cls('pad-show', hint && 'hint')} aria-live="polite"><b>{value || '?'}</b><small>{unitWord(unit, value ? Number(value) : 2)}</small></div>
       <div class="pad-keys">
         {['1', '2', '3', '4', '5', '6', '7', '8', '9', '0'].map(d => <button key={d} class="pad-key" aria-label={d} onClick={() => key(d)}>{d}</button>)}
         <button class="pad-key erase" aria-label="Erase" onClick={() => { if (ok) { sClink(); onType(value.slice(0, -1)); } }}>⌫</button>

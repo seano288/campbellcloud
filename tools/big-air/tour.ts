@@ -164,9 +164,12 @@ const missedKinds = new Set<string>();
 let asked = 0;
 for (let guard = 0; guard < 30; guard++) {
   if (await page.locator('.reward h2').isVisible()) break;
+  // read the question once it takes taps: the star fills as he answers, before the next question is on screen
+  if (!(await page.locator('.game.ba').count())) { await page.waitForTimeout(300); continue; }
+  await ready();
+  if (await page.locator('.reward h2').isVisible()) break;
   const p = await question();
   if (!p) { await page.waitForTimeout(300); continue; }
-  await ready();
   const id = p.mode === 'meet' ? `meet-${p.meeting}` : `${p.mode}-L${p.level}-${p.q?.form ?? ''}`;
   await shot(`q${++asked}-${id}`);
   if (p.mode === 'meet') await tap('Go');

@@ -132,9 +132,14 @@ The tilt only decides whether the landing is clean, never the distance, so the r
 it" replays his best jump from its recorded inputs (stored as runs of pedal/tilt/boost changes) and goes the same distance to the foot
 (tested in `jump/sim.test.ts` with random hands, and checked in the browser tour).
 
-**It cannot be failed.** Falling short of a Row is not losing: the same Row (or Show) waits for the next Jump with a **mercy wind**, a tail
-wind of 45% of his speed through the air for each try he has fallen short, and a head wind drops once he has fallen short. Every Jump
-pays.
+**It cannot be failed.** Falling short of a Row is not losing: the same Row (or Show) waits for the next Jump with a **mercy wind**
+(`mercyWind` in `jump/sim.ts`, worked out once as the truck leaves the lip), and a head wind drops once he has fallen short. Every Jump
+pays. The wind is up to 45% of his speed through the air (booster included) for each try he has fallen short, but **only as much as
+carries him 2 feet past the end of the Row, never farther**, so a helped jump never sets a record the truck didn't earn. After two
+tries short it always carries a child who touched the pedal at all; after five, anyone. Nobody is stuck on a Row or Show for ever: the
+child who does nothing clears it at the sixth try at the latest, the clumsy child by the third (pass 2; before, the wind stopped
+growing after 8 tries and multiplied the whole jump, so doing nothing never cleared 15 of the 40 Rows or most Shows, and a helped jump
+could land far past the Row and take the record).
 
 **The Arena** (`arena/`), tabs by price, a dear thing always beside cheap ones, the Goal bar filling toward what he's saving for, his
 crowd count and record on the view:
@@ -177,12 +182,12 @@ child, the cheapest new thing bought as soon as he can, his strongest parts fitt
 
 | | |
 |---|---|
-| Bolts a Round (Round and Jump, first 300 Rounds) | **9.77** (the Jump 3.77) |
-| Rounds to buy the whole fixed catalogue | **1,149** (about 57 hours at 20 Rounds an hour); the 40 Rows cleared by about Round 730 |
-| Longest gap between purchases, first 100 Rounds | **3** (first 300: 5; first 1,000: 21) |
+| Bolts a Round (Round and Jump, first 300 Rounds) | **9.81** (the Jump 3.81; checked in the browser: a Round pays 1 for each answer right at the first try and 1 for finishing, a Jump 2 +1 clean +1 record +1 cleared) |
+| Rounds to buy the whole fixed catalogue | **1,137** (about 57 hours at 20 Rounds an hour); the 40 Rows cleared by about Round 730 |
+| Longest gap between purchases, first 100 Rounds | **3** (first 300: 6; first 1,000: 22). Counting a Show cleared, a Show Cup or a record as something new, never more than 2 Rounds without one at any point |
 | First purchase | Round 1 |
-| Dearest things, in Rounds of saving | Titan Truck 36.9, Mega Engine 30.7, Golden Truck 28.7, Moon Kicker 26.6, Mega Booster 24.6, Sky Run-Up 22.5, Jet Engine 20.5, Dragon Truck 18.4; everything else 15 or less |
-| After 2,000 Rounds | something new every Round: every Jump is a Show he hasn't cleared, and seats and tunes to buy; 1,629 Shows cleared, record 424 ft |
+| Dearest things, in Rounds of saving | Titan Truck 36.7, Mega Engine 30.6, Golden Truck 28.5, Moon Kicker 26.5, Mega Booster 24.5, Sky Run-Up 22.4, Jet Engine 20.4, Dragon Truck 18.3; everything else 15 or less |
+| After 2,000 Rounds | something new every Round: every Jump is a Show he hasn't cleared, and seats and tunes to buy; 1,642 Shows cleared, record 394 ft |
 
 **Economy defaults, for the parent to confirm.**
 - One Jump per Round; the first Jump free; Jumps don't expire.
@@ -196,13 +201,20 @@ child, the cheapest new thing bought as soon as he can, his strongest parts fitt
 
 **No Long Jump contest was built.** His own record is the competition: it never needs balancing, has no ceiling and is cheered every time.
 The Shows give him something to beat that is not himself, and they are tuned by the guide's "Competition" rules anyway, measured in
-`arena/gen.test.ts` against each Show with the truck the cheapest-first child owns when he reaches it (1,629 Shows reached in 2,100 Rounds; the rates below are from every Show up to 60, then every third, 583 in all; a separate check runs the skilled and clumsy children on every Show up to 200 and every seventh up to 3,000):
+`arena/gen.test.ts` against each Show with the truck the cheapest-first child owns when he reaches it (1,642 Shows reached in 2,100 Rounds; the rates below are from every Show up to 60, then every third, 587 in all; a separate check runs the skilled and clumsy children on every Show up to 200 and every seventh up to 3,000, and the child who does nothing on every Show up to 100 and every 13th to 3,000). Measured again in pass 2 after the mercy wind changed:
 
-| Child | Clears at the first try | Clears within |
-|---|---|---|
-| Skilled (holds the pedal all the way, boosts at once, lands level) | **71%** (Shows past 400: 81%) | 2 tries, every Show |
-| Clumsy (lets go of the pedal for a stretch, boosts late, dips the nose early) | 0% | 3 tries, every Show (about 2 in 3 at the second) |
-| Does nothing | 0% | not within 3 tries; the mercy wind tops out after 8 tries, so most Shows stay out of reach without the pedal |
+| Child | Shows: first try | Shows: clears within | Rows (the truck he has then): first try | Rows: clears within |
+|---|---|---|---|---|
+| Skilled (holds the pedal all the way, boosts at once, lands level) | **72%** (Shows past 400: 83%) | 2 tries, every Show | 95% | 2 tries |
+| Clumsy (lets go of the pedal for a stretch, boosts late, dips the nose early) | 0% | 3 tries, every Show (85% at the second) | 0% | 3 tries (95% at the second) |
+| Holds the pedal only at the start, or taps it on and off | 0% | 3 tries | 0% | 3 tries |
+| Does nothing | 0% | 6 tries (4 to 6; never within 3) | 0% | 6 tries (Row 1 at the fourth) |
+
+With the **dearest build** (everything bought, no tunes) against the same Shows: skilled 54% at the first try, clumsy 45%, doing nothing
+22% (mostly early Shows he'd never meet with that truck); everything within 3 tries, doing nothing within 6. With the **starter truck**
+(nothing bought): Shows 1 to 60, skilled 13% at the first try, every one within 3; every Row within 3 for anyone who touches the pedal.
+The hand-made Rows are easier than the Shows (95% at the first try for the skilled child, because the cheapest-first child has outgrown
+each one by the time he buys it); the Shows are the contest.
 
 The mercy wind is the guide's mercy step. A rival contest could be added later on the same sim (a rival is a scripted child with a
 truck); open question.
@@ -217,11 +229,17 @@ do not share a save. The family look: Bungee titles, Nunito reading, 4px black o
 
 ## Voice
 
-Aria at -8% (`tools/make_voice.py --collection big-air`), **938 clips, 14 MB on disk** (`public/big-air-voice/`). Every length is said with
-its unit as **one clip** ("1 foot", "2 feet", "1 inch", "7 inches", "15 centimetres", each from 1 to 100), so "foot" and "feet" are never
-chained wrong; distances past 100 are "one hundred" + "34 feet". Numbers on the pad and buttons are not read out. Thing names are said with
-their article ("a school bus"). Prices past 100 are whole tens. The voice was **not listened to** in this pass (no speech-to-text tool was
-available on this machine); see Not done.
+Aria at -8% (`tools/make_voice.py --collection big-air`), **830 clips, 12 MB on disk** (`public/big-air-voice/`; 938 and 14 MB in pass
+1, before pass 2 removed 109 clips the game could never say: inches and centimetres past 40 that aren't a whole five, "You earned 7 to 12
+Bolts", and six unused lines). Every length is said with its unit as **one clip** ("1 foot", "2 feet", "1 inch", "7 inches", "15
+centimetres"): feet from 1 to 100, inches and centimetres from 1 to 40 and the whole fives to 100 (`saysLength`; `game.test.ts` checks
+every length a question or lesson can say has one), so "foot" and "feet" are never chained wrong; distances past 100 are "one hundred" +
+"34 feet". Numbers on the pad and buttons are not read out. Thing names are said with their article ("a school bus"). Prices past 100 are
+whole tens. How to tilt ("Hold left or right of the truck to tilt it!") is said on the card before his first five Jumps. A trophy is "You
+won a trophy for" + "50 feet" (pass 1 said "You won the 50 feet trophy!").
+
+Pass 2 listened by machine: every clip's spoken length fits its text (0.5 to 3.7 seconds of speech, 0.18 to 0.86 seconds a syllable),
+and every clip was transcribed back with a speech recogniser (faster-whisper small.en); the ones it heard differently are in Not done.
 
 ## Save
 
@@ -236,7 +254,8 @@ progress. An unknown version reads as a blank save; anything it can't read comes
 - A number pad for Ruler and How Much Longer (not four choices).
 - Centimetres spelled the British way on screen and said by the voice ("centimetres"), as the brief writes them.
 - The economy above (one Jump per Round, payouts, prices), Rows bought and then cleared one Jump at a time, Shows taking turns with Rows.
-- The mercy wind (45% more tail wind each try short, head wind dropped) and no rival contest.
+- The mercy wind (up to 45% more tail wind each try short, only enough to carry him 2 feet past the Row; sure after two tries for a child
+  who touched the pedal, after five for anyone; head wind dropped) and no rival contest.
 - The tilt only decides a clean landing (+1 Bolt), never the distance.
 
 ## Open questions
@@ -247,7 +266,9 @@ progress. An unknown version reads as a blank save; anything it can't read comes
 - Feet in the reward and inches on the ruler are different units. That is true to life and is what Two Units teaches; watch for confusion.
 - Should a Meeting take one of the Round's five places (as Globe Hopper's do), or come on top?
 - A Long Jump contest against rival trucks, now that the sim and the scripted children exist?
-- Is the do-nothing child's wall (Shows out of reach without the pedal) right, or should the mercy wind keep growing until anyone clears?
+- The child who does nothing clears a Row or Show at the sixth try at the latest (pass 2 made the wind sure; before, he never could). Is
+  six right, or should it be sooner?
+- The hand-made Rows are cleared at the first try 95% of the time by a skilled child; should they be a little longer?
 
 ## Verified
 
@@ -269,13 +290,56 @@ progress. An unknown version reads as a blank save; anything it can't read comes
   hidden after the lip, the Arena truck clipped sideways, the Best Guess lesson's labels). A Round took about 65 to 100 seconds in the
   tour (it waits for every line to be said) and a Jump about 11 seconds plus its results, so 20 Rounds an hour is about right.
 
+### Pass 2 (bug and sound review)
+
+Fixed:
+- **A child could be stuck on a Row or Show for ever.** The mercy wind stopped growing after 8 tries, so a child who did nothing (or let
+  go of the pedal early) never cleared 15 of the 40 Rows or most Shows with the truck he'd own; the clumsy child needed 4 tries on some
+  Rows. Now it is sure after two tries for anyone who touched the pedal and after five for anyone (`mercyWind`), tested for every truck,
+  child and row length to 420 ft (`jump/sim.test.ts`) and for every Row and sampled Shows (`arena/gen.test.ts`).
+- **The mercy wind inflated records.** It multiplied the whole flight, so a helped jump could land far past the Row and take the record
+  (the economy child's record after 2,100 Rounds fell from 424 ft to 394 ft once fixed). It now only carries him 2 feet past the Row.
+- The number pad wrote "1 inches" (and "1 centimetres") when he typed 1, a real answer in Ruler Level 1 and How Much Longer.
+- "You won the 20 feet trophy!" is now "You won a trophy for" + "20 feet".
+- How to tilt was never said aloud (the clip was recorded and unused); the card says it before his first five Jumps.
+- A Show could list the same thing twice ("4× 🦖 3× 🦖"); now one run of it.
+- A numbered Legend past 100 had no clip (only after 4,000 Jumps); the number is left off there.
+- 109 clips the game could never say were removed (938 → 830, 14 MB → 12 MB; the built game 13 MB → 11 MB).
+- Pointer capture on the pedal and the canvas can throw on iPad Safari if the pointer has already gone; now caught.
+
+Checked:
+- `tools/big-air/kinds.ts` (new): every kind at every Level, one kind practised at a time, at all four sizes (72 Rounds): answered right,
+  missed once then right, missed twice with the step-by-step lesson tapped through, then right; every question takes taps again after
+  each miss; every Round paid exactly 1 a first-try answer + 1; the pad ignores ✓ with nothing typed, drops a leading zero, stops at two
+  digits, erases; every voice pack fetched once, none failed, no console errors, no two clips at once. Also: a reload in a Round comes
+  back to it with its answers; a reload in a Jump lands at the Arena with nothing used or paid; a Jump with no input ends in 11 seconds,
+  is measured (7 ft), pays 2 and returns; two Jumps mashed (every control, random taps, the leave button) end and pay normally; and the
+  same jump goes the same distance at 20, 60 and 144 frames a second (8 ft with no input, 19 ft with the pedal held).
+- `tools/big-air/tour.ts`, all 12 runs (4 sizes × new, Level 2, Level 3): pass. The tour read each question before it was on screen (the
+  star fills as he answers, before the next question comes), so it sometimes answered the next question with the last one's answer and
+  then crashed; it now reads the question once it takes taps.
+- `npm run typecheck`, `typecheck:pairings`, `build:site` (828 files, no `.mp3`, Big Air 11 MB in 16 packs), `tools/big-air/offline.ts`
+  (16 packs, 830 clips precached; a Round speaks offline and comes back after a reload) and `check:offline` (7 of 7): pass. `npm test`:
+  2,616 of 2,620 with four browsers running; the four were Hook and Ladder's Call tests and one Globe Hopper test over their 5-second
+  limit under that load, and both files pass when run alone; Big Air's 79 tests pass.
+- A paused audio context (the Math Bots bug) wakes on the next tap, on the second question and after a miss, and the voice goes on.
+- A save with every fixed thing owned and 5,000 Bolts: More Seats and three tunes on sale at 60, Show 701 (204 ft) waiting, the Goal bar,
+  rank progress to Legend 28; a tune bought and the Jump played to its results.
+- Every clip decoded and its speech measured (0.5 to 3.7 seconds, 0.18 to 0.86 seconds a syllable: none empty, clipped or padded), and
+  transcribed back with faster-whisper (small.en, then large-v3-turbo for the 40 it heard differently).
+
 ## Not done (pass 1)
 
 - **No real iPad or Safari testing.** Most needs checking there: holding the pedal with one thumb (pointer capture), tilting with a
   finger left or right of the truck while the other hand is free for Boost, the Jump's frame rate with a big crowd and a long Row, the
   ruler's readability on an upright phone (the cm ruler's numbers are small there), and the voice's timing on iPad Safari.
-- **The voice was not listened to.** Least likely to sound right: "1 centimetre" / "centimetres", "a paper clip", "Tune the Springs",
-  row names ("Two Fire Rings", "The Whale Balloon"), "Sky Run-Up", the hundreds chained with a length ("one hundred", "34 feet").
+- **The voice was not listened to by a person.** Pass 2's speech recogniser heard almost every clip as written. Both models heard these
+  differently, so they most need an ear: "Hill Run-Up" (heard "He'll run up"), "Big Eyes Decal" (garbled), "Hay Bales" ("He bails"),
+  "Put them end to end." ("Put the men to end"), and "You opened Jump Line!" / "You opened Two Units!" (both heard "You open", the
+  "-ed" lost before the name). Also worth a listen: "1 centimetre", the chained "one hundred" + "34 feet", "Rows" (a tab name, heard
+  "Rose").
+- The tape ends where the truck touched down (a red marker); the truck rolls on a little past it, so the tape stops short of the truck.
+- On a sideways phone the pedal is 24 px from the right edge (60 px above the bottom): inside the floor, close to the side.
 - The four-choice fallback for the number pad is not built.
 - The truck is drawn simply (shapes, not art); bodies differ mostly by outline and extras; the obstacles are simple shapes.
 - Arena pieces are drawn as emoji along the stands; most are looks only.

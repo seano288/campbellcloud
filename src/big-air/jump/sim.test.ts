@@ -58,7 +58,32 @@ describe('the Jump', () => {
   });
   it('the mercy wind grows each try he falls short, and a head wind drops once he has', () => {
     let last = 0;
-    for (let help = 0; help <= TUNING.helpMost; help++) { const d = jumpWith({ ...base, help, wind: -3 }, 'clumsy').feet; expect(d).toBeGreaterThan(last); last = d; }
+    for (let help = 0; help < TUNING.helpSure; help++) { const d = jumpWith({ ...base, help, wind: -3, row: 300 }, 'nothing').feet; expect(d).toBeGreaterThan(last); last = d; }
+  });
+  it('nobody is stuck on a row for ever: a child who touched the pedal clears it after two tries short, anyone after five', () => {
+    for (const s of setups) for (const row of [14, 30, 60, 107, 200, 302, 420]) {
+      for (const child of CHILDREN) {
+        const sure = child === 'nothing' ? TUNING.helpSure : TUNING.helpSureTrying;
+        for (let help = sure; help <= sure + 3; help++) {
+          const j = jumpWith({ ...s, row, help }, child);
+          expect(j.feet, `${child} try ${help + 1} at ${row} ft`).toBeGreaterThanOrEqual(row);
+          expect(j.phase).toBe('done');
+        }
+      }
+      // a pedal held badly (only the first fifth of the run-up) still counts as trying
+      const early = createSim({ ...s, row, help: TUNING.helpSureTrying });
+      while (early.phase !== 'done') stepSim(early, { pedal: early.phase === 'run' && early.t < TUNING.lights + .5, tilt: 0, boost: false });
+      expect(early.feet).toBeGreaterThanOrEqual(row);
+    }
+  });
+  it('the mercy wind carries him just past the row, never farther, so a helped jump never sets a record the truck did not earn', () => {
+    for (const s of setups) for (const row of [30, 60, 107, 200]) for (const child of CHILDREN) for (let help = 1; help <= 8; help++) {
+      const own = jumpWith({ ...s, row, help: 0 }, child).feet, helped = jumpWith({ ...s, row, help }, child).feet;
+      // the booster fires after the lip, on top of the wind, so it can still add his own few feet
+      const boosted = s.boost * 2.5;
+      expect(helped, `${child} try ${help + 1}`).toBeLessThanOrEqual(Math.max(own, row + TUNING.helpPast + 1 + boosted));
+      expect(helped).toBeGreaterThanOrEqual(own);
+    }
   });
   it('a clean landing needs the nose level: the skilled child lands clean, the child who does nothing often lands on its tail or nose and bounces', () => {
     for (const s of setups) {

@@ -12,6 +12,9 @@
 // 5. The distance: from the ramp's lip to where the back wheels touched, in whole feet.
 //
 // Wind (a Show's) and help (the wind that grows each time he falls short of the same row, the mercy step) push the truck in the air.
+// The mercy wind is worked out once, at the lip: it blows only as hard as it takes to carry him just past the end of the row, never
+// farther, so a helped jump can't set a record the truck didn't earn. It grows each try, and after a few tries it always carries him over
+// (sooner if he touched the pedal at all), so nobody can be stuck on a row for ever.
 
 export const STEP = 1 / 60;
 export const G = 32;
@@ -50,10 +53,15 @@ export const TUNING = {
   coast: 6,
   /** How fast the nose drops by itself in the air, degrees a second, and how it eases toward level near the ground. */
   droop: 6,
-  /** Tail wind for each try he has fallen short of the same row, as a share of his speed through the air. */
+  /** Tail wind for each try he has fallen short of the same row, as a share of his speed through the air (at most: it only blows as hard
+   *  as it takes to carry him `helpPast` feet past the row). */
   helpPer: .45,
-  /** The most help: past this the wind stops growing. */
-  helpMost: 8,
+  /** From this many tries short, the wind always carries him over if he touched the pedal on the run-up... */
+  helpSureTrying: 2,
+  /** ...and from this many, whatever he did, so nobody is stuck on a row for ever. */
+  helpSure: 5,
+  /** The mercy wind carries him this far past the end of the row. */
+  helpPast: 2,
   /** Seconds the truck takes to settle and roll to a stop after landing. */
   settle: 1.6,
   /** Longest a jump can take, so nothing ever hangs (seconds after GO). */
@@ -99,6 +107,8 @@ export interface Sim {
   settleT: number;
   events: SimEvent[];
   lastPedal: boolean;
+  /** The mercy wind, ft/s, set at the lip. */
+  push: number;
 }
 
 /** How far before the lip the kicker begins: its slope, drawn to its height and angle. */
@@ -116,7 +126,7 @@ export function groundAt(s: Setup, x: number): number {
 export function createSim(setup: Setup): Sim {
   return {
     setup, phase: 'lights', t: 0, steps: 0, x: startX(setup), y: 0, v: 0, vx: 0, vy: 0, pitch: 0, boosted: false, boostAt: -1, airT: 0, feet: 0, landed: null,
-    held: 0, runSteps: 0, lipSpeed: 0, settleT: 0, events: [], lastPedal: false,
+    held: 0, runSteps: 0, lipSpeed: 0, settleT: 0, events: [], lastPedal: false, push: 0,
   };
 }
 export function takeEvents(s: Sim): SimEvent[] { const e = s.events; s.events = []; return e; }
@@ -153,6 +163,7 @@ export function stepSim(s: Sim, input: Input): void {
       s.lipSpeed = s.v;
       s.vx = s.v * Math.cos(rad(S.angle)); s.vy = s.v * Math.sin(rad(S.angle));
       s.x = 0; s.y = S.lip; s.pitch = S.angle; s.phase = 'air'; s.airT = 0;
+      s.push = mercyWind(S, s.vx, s.vy, s.held > 0);
       s.events.push({ t: 'lip', speed: s.v });
     }
     if (s.t > TUNING.maxS) { s.x = 0; s.v = Math.max(s.v, 1); }
@@ -161,7 +172,7 @@ export function stepSim(s: Sim, input: Input): void {
   if (s.phase === 'air') {
     s.airT += dt;
     if (input.boost && S.boost > 0 && !s.boosted) { s.boosted = true; s.boostAt = s.airT; s.vx += S.boost; s.events.push({ t: 'boost' }); }
-    const push = windOf(S) + helpWind(S, s.vx);
+    const push = windOf(S) + s.push;
     const x0 = s.x, y0 = s.y;
     s.x += (s.vx + push) * dt;
     s.vy -= G * dt;
@@ -196,8 +207,27 @@ export function stepSim(s: Sim, input: Input): void {
     }
   }
 }
-/** The mercy wind: a share of his speed through the air for each try he has fallen short of the same row. */
-export const helpWind = (S: Pick<Setup, 'help'>, vx: number) => Math.min(TUNING.helpMost, S.help) * TUNING.helpPer * vx;
+/** How long a truck leaving the lip at this upward speed stays in the air, stepped exactly as stepSim steps it (touchdown between steps). */
+export function airTime(vy: number, lip: number): number {
+  let y = lip, t = 0;
+  for (let i = 0; i < 100_000; i++) {
+    const y0 = y;
+    vy -= G * STEP; y += vy * STEP;
+    if (y <= 0) return t + STEP * (y0 / Math.max(1e-9, y0 - y));
+    t += STEP;
+  }
+  return t;
+}
+/** The mercy wind, ft/s, for a truck leaving the lip at (vx, vy): none on the first try; then up to HELP_PER of his speed for each try
+ *  he has fallen short (his speed counts his booster), but only as much as carries him `helpPast` feet past the row (so it never adds to a jump that would have cleared
+ *  anyway, and never makes a record); and once he has fallen short often enough (sooner if he touched the pedal), whatever it takes. */
+export function mercyWind(S: Pick<Setup, 'help' | 'wind' | 'row' | 'lip' | 'boost'>, vx: number, vy: number, touched: boolean): number {
+  if (S.help <= 0 || S.row <= 0) return 0;
+  const need = (S.row + TUNING.helpPast) / airTime(vy, S.lip) - vx - windOf(S);
+  if (need <= 0) return 0;
+  const sure = S.help >= TUNING.helpSure || (touched && S.help >= TUNING.helpSureTrying);
+  return sure ? need : Math.min(need, S.help * TUNING.helpPer * (vx + S.boost));
+}
 /** The wind he feels: the Show's, except that once he has fallen short the head wind drops (the wind turns his way). */
 export const windOf = (S: Pick<Setup, 'help' | 'wind'>) => (S.help > 0 ? Math.max(0, S.wind) : S.wind);
 /** Did it clear the row? */

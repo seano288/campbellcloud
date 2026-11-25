@@ -59,7 +59,9 @@ export function show(n: number): Show {
     const each = OBSTACLES[k].len + ROW_GAP, most = Math.floor(left / each);
     if (most < 1) continue;
     const count = k === kinds[0] ? Math.max(1, Math.min(most, int(rng, 1, Math.max(1, Math.ceil(most * .7))))) : most;
-    parts.push([k, count]);
+    // the same kind picked twice is one longer run of it ("7 dinosaurs", not "4 dinosaurs, 3 dinosaurs")
+    const same = parts.find(p => p[0] === k);
+    if (same) same[1] += count; else parts.push([k, count]);
     left -= count * each;
   }
   const cones = Math.floor(left / (OBSTACLES.cone.len + ROW_GAP));
