@@ -52,7 +52,7 @@ Truck Money alone into `dist/` for the existing browser checks.
   map outlines are a small table made once from Natural Earth's public-domain data (`tools/globe-hopper/outlines.ts`).
 - **Coaster Crew** (`/coaster-crew/`) has a tile in **Learning Games**, after Globe Hopper, and saves under its own key, `coaster-crew-save`
   (with `coaster-crew-place` for the screen and the Round in progress). Its voice clips are in `public/coaster-crew-voice/`.
-- **Dragon Roost** (`/dragon-roost/`) has a tile in **Learning Games**, after Globe Hopper, and saves under its own key, `dragon-roost-save`
+- **Dragon Roost** (`/dragon-roost/`) has a tile in **Learning Games**, after Coaster Crew, and saves under its own key, `dragon-roost-save`
   (with `dragon-roost-place` for the screen and the Round in progress). Its voice clips are in `public/dragon-roost-voice/`.
 
 ## Learning games and games just for fun
