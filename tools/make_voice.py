@@ -26,6 +26,7 @@
   .venv/bin/python tools/make_voice.py --collection globe-hopper --out public/globe-hopper-voice --index src/globe-hopper/voice.gen.ts
   .venv/bin/python tools/make_voice.py --collection coaster-crew --out public/coaster-crew-voice --index src/coaster-crew/voice.gen.ts
   .venv/bin/python tools/make_voice.py --collection dragon-roost --out public/dragon-roost-voice --index src/dragon-roost/voice.gen.ts
+  .venv/bin/python tools/make_voice.py --collection big-air --out public/big-air-voice --index src/big-air/voice.gen.ts
 
 Select phrases through tools/phrases.ts and write recordings and a typed index to explicit locations.
 Only missing clips are recorded. Cleanup touches only the selected directory, whose .voice-collection
@@ -87,7 +88,10 @@ VOICES = {'purrdoku': ('en-GB-RyanNeural', '-5%'),
           'coaster-crew': ('en-US-AriaNeural', '-8%'),
           # Dragon Roost says every word of its grammar tables alone and every sentence whole, so short vowels must be crisp, as in the
           # reading games; its squeezed words (we're, he's) must not come out as were or his
-          'dragon-roost': ('en-US-AriaNeural', '-8%')}
+          'dragon-roost': ('en-US-AriaNeural', '-8%'),
+          # Big Air says every length with its unit as one clip ("1 foot", "2 feet", "7 inches", "15 centimetres"), so foot and feet are
+          # each said whole, and chains them into questions and stories as Carrier Deck does
+          'big-air': ('en-US-AriaNeural', '-8%')}
 ROOT = Path(__file__).resolve().parent.parent
 
 

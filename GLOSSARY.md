@@ -1013,3 +1013,36 @@ _Avoid_: launch, race
 **Rider rank**: by Flights flown: Egg Sitter, Hatchling Helper, Wing Rider, Sky Rider, Cloud Rider, Beacon Keeper, Flame Rider, Storm Rider, Roost Keeper, Dragon Master, then Dragon Legend 1, 2, 3 and on without end.
 
 **Visit the roost**: every dragon he has, wandering a meadow; tap one and its name is said and it does a trick.
+
+## Big Air
+
+Big Air reuses the other games' terms where they mean the same thing (Mixed Round, Mastery, Bolt, Tune-Up, Meeting, Goal, Body, Slot, Mod, Paint). These are its own:
+
+**Game Modes (Big Air)**: the six kinds of question, about measuring length: Ruler (read a length off a ruler: from zero in whole inches to 6, then inches to 12 and centimetres to 20, then a thing that does not start at zero), Best Guess (which is longer in real life; about how long is it, 2 feet or 20 feet; inches or feet for this), How Much Longer (two bars on one ruler from zero; two jumps as numbers; two bars that don't line up), Jump Line (tap a ten on the tape; tap a one on a stretch of ten; a hop and then another), Length Stories (putting lengths together; taking away and comparing; the start unknown) and Two Units (inches and centimetres: which number is bigger; more or fewer of another unit; which number goes with which unit). Ruler and Best Guess are open from the start; How Much Longer and Jump Line open at Ruler Level 2, Two Units at Best Guess Level 2, Length Stories at How Much Longer Level 2.
+
+**Ruler**: a wooden ruler drawn on the screen with big ticks: zero is the first tick, a little in from the end of the wood, and the ticks are evenly spaced. A two-sided ruler has inches along one edge and centimetres along the other. On-screen inches are not real inches.
+
+**Number pad**: how Ruler and How Much Longer are answered: ten digit keys, erase and ✓, so he reads the ruler instead of picking from three numbers.
+
+**Meeting (Big Air)**: the first ruler (start at zero, count the spaces), the first centimetre, and the first foot (twelve inches make a foot), each shown and said before the first question that needs it.
+
+**Arena**: the reward he builds: his truck, his ramp, the Rows he jumps over, the stands and their crowd, and arena pieces (some change the Jump: Floodlights, Fireworks, the Speed Board, the Windsock, Confetti Cannons).
+_Avoid_: garage (that is Monster Truck Money's)
+
+**Jump**: the action reward, about twenty seconds, from the side: three lights, the run-up (he holds the pedal), the air (a finger left of the truck lifts the nose, right of it dips it; Boost pushes once), the landing, and the Tape. A Round earns one Jump. It cannot be failed: falling short only crunches the Row.
+
+**Tape**: the yellow measuring tape with black numbers that rolls out along the ground from the ramp's lip (zero) to where the truck's back wheels landed, the feet ticking up; the distance is said.
+
+**Row**: what a Jump goes over, with its length in feet: forty hand-made Rows (cones and hay bales up to planes and the Grand Finale), each bought and then cleared one Jump at a time, opening the next.
+
+**Show**: a Row generated from its number, without end, once the first three Rows are cleared; Rows and Shows take turns. Each has its things, its length, its wind and maybe night. Every fifth gives a **Show Cup**, never sold.
+
+**Mercy wind**: when he falls short of a Row or Show, the same one waits for the next Jump with a tail wind that grows each try, and a head wind drops.
+
+**Record Board**: his ten longest jumps in feet. "Watch it" replays the longest from its recorded inputs, to the foot.
+
+**Tune**: the engine, the springs and the booster, each tuned again and again; each tune adds a little less than the last.
+
+**Truck parts**: Body, Engine (top speed), Tires (how soon speed builds), Springs (how level a clean landing must be), Booster (one push in the air), Exhaust, Roof Lights, Flag, Driver and Horn; paint made from a Colour, a Pattern, a Decal and a Trim. **Ramp pieces**: the Run-Up, the Kicker (angle and lip height) and the Landing Ramp, each with its length in feet.
+
+**Jump rank**: by Jumps taken: Rookie, Hopper, Flyer, Jumper, Stunt Driver, Daredevil, Air Ace, Big Air Star, Sky King, Legend, then Legend 2, 3 and on without end. Distance **trophies** at 20 to 200 feet.

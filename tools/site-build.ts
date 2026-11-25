@@ -53,6 +53,8 @@ import { coasterBuild } from './coaster-crew-build';
 import { iconSvg as coasterIcon } from '../src/coaster-crew/icon';
 import { roostBuild } from './dragon-roost-build';
 import { iconSvg as roostIcon } from '../src/dragon-roost/icon';
+import { airBuild } from './big-air-build';
+import { iconSvg as airIcon } from '../src/big-air/icon';
 import { iconSvg as purrdokuIcon } from '../src/purrdoku/art';
 import { purrdokuBuild } from './purrdoku-build';
 import { favicon, homeScreenIcons } from './icons';
@@ -124,6 +126,7 @@ export const SECTIONS: readonly { title: string; games: readonly Tile[] }[] = [
     { path: 'globe-hopper', name: 'Globe Hopper', blurb: 'Continents, oceans and landforms, launch rockets to orbit', icon: globeIcon },
     { path: 'coaster-crew', name: 'Coaster Crew', blurb: 'Pushes, pulls and motion, build a roller coaster and ride it', icon: coasterIcon },
     { path: 'dragon-roost', name: 'Dragon Roost', blurb: 'Nouns, verbs and big letters, hatch and fly dragons', icon: roostIcon },
+    { path: 'big-air', name: 'Big Air', blurb: 'Measuring with rulers, feet and inches, jump a monster truck and tape the distance', icon: airIcon },
   ] },
   { title: 'Just for Fun', games: [
     { path: 'hunch', name: 'Hunch', blurb: 'Guess the five-letter word', icon: hunchIcon },
@@ -210,6 +213,7 @@ await build({ ...staticBuild(moonBuild), logLevel: 'warn' });
 await build({ ...staticBuild(globeBuild), logLevel: 'warn' });
 await build({ ...staticBuild(coasterBuild), logLevel: 'warn' });
 await build({ ...staticBuild(roostBuild), logLevel: 'warn' });
+await build({ ...staticBuild(airBuild), logLevel: 'warn' });
 await build({ ...hunchBuild(), logLevel: 'warn' });
 await build({ ...staticBuild(purrdokuBuild), logLevel: 'warn' });
 console.log(`Built ${SITE}/: landing page, ${GAMES.map(g => g.path).join(', ')}`);
