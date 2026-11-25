@@ -248,7 +248,7 @@ export function rankOf(flown: number): { index: number; name: RankName; number: 
 export interface Trophy { readonly id: string; readonly name: string; readonly icon: string; readonly done: (a: RoostState) => boolean }
 const t = (id: string, name: string, icon: string, done: (a: RoostState) => boolean): Trophy => ({ id, name, icon, done });
 export const TROPHIES: readonly Trophy[] = [
-  t('first-flight', 'First Flight', '🛫', a => a.flown >= 1), t('first-egg', 'First Egg', '🥚', a => a.totals.hatched >= 1),
+  t('first-flight', 'First Flight', '🪽', a => a.flown >= 1), t('first-egg', 'First Egg', '🥚', a => a.totals.hatched >= 1),
   t('beacons-10', 'Ten Beacons', '🔥', a => a.totals.lit >= 10), t('beacons-100', 'Hundred Beacons', '🔥', a => a.totals.lit >= 100),
   t('beacons-500', 'Beacon Star', '🌟', a => a.totals.lit >= 500), t('beacons-1000', 'Beacon King', '👑', a => a.totals.lit >= 1000),
   t('clouds-25', 'Cloud Popper', '☁️', a => a.totals.popped >= 25), t('clouds-250', 'Cloud Buster', '🌥️', a => a.totals.popped >= 250),
