@@ -33,6 +33,7 @@ const collections = {
   'moon-base-mail': async () => (await import('../src/moon-base-mail/phrases')).PHRASES,
   'globe-hopper': async () => (await import('../src/globe-hopper/phrases')).PHRASES,
   'coaster-crew': async () => (await import('../src/coaster-crew/phrases')).PHRASES,
+  'dragon-roost': async () => (await import('../src/dragon-roost/phrases')).PHRASES,
 };
 if (!name || !Object.hasOwn(collections, name)) throw new Error(`Select --collection ${Object.keys(collections).join('|')}`);
 const phrases = await collections[name as keyof typeof collections]();

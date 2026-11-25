@@ -38,6 +38,7 @@
     "dev:moon-base-mail": "vite --config vite.moon-base-mail.config.ts --port 5159 --strictPort",
     "dev:globe-hopper": "vite --config vite.globe-hopper.config.ts --port 5163 --strictPort",
     "dev:coaster-crew": "vite --config vite.coaster-crew.config.ts --port 5157 --strictPort",
+    "dev:dragon-roost": "vite --config vite.dragon-roost.config.ts --port 5164 --strictPort",
     "dev:hunch": "vite --config vite.hunch.config.ts",
     "dev:purrdoku": "vite --config vite.purrdoku.config.ts",
     "build:purrdoku-boards": "tsx tools/purrdoku-boards.ts"

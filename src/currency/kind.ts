@@ -30,7 +30,10 @@ export const BRICK = kind({ id: 'brick', one: 'Brick', many: 'Bricks' });
 /** Coaster Crew's currency: a ride Token, the round red and white token a fairground runs on. */
 export const TOKEN = kind({ id: 'token', one: 'Token', many: 'Tokens' });
 
-export const CURRENCIES = [BOLT, AMMO, DOUBLOON, PAW_PRINT, TICKET, GEM, PEARL, BRICK, TOKEN] as const;
+/** Dragon Roost's currency: a Flame, what keeps a dragon's egg warm in the hearth. */
+export const FLAME = kind({ id: 'flame', one: 'Flame', many: 'Flames' });
+
+export const CURRENCIES = [BOLT, AMMO, DOUBLOON, PAW_PRINT, TICKET, GEM, PEARL, BRICK, TOKEN, FLAME] as const;
 export type Currency = (typeof CURRENCIES)[number];
 export type CurrencyId = Currency['id'];
 

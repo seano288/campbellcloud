@@ -82,6 +82,14 @@ const ICONS = {
       <polygon points="20,11 22.5,17.1 29.1,17.6 24.1,21.9 25.6,28.4 20,24.9 14.4,28.4 15.9,21.9 10.9,17.6 17.5,17.1" fill="#ffffff" stroke="#6e1212" stroke-width="1.3" stroke-linejoin="round" />
     </>
   ),
+  // Flame: a small friendly flame, orange outside and yellow inside, with a dark red outline
+  flame: () => (
+    <>
+      <path d="M20 3 C23 10 31 13 31 24 C31 32 26 37 20 37 C14 37 9 32 9 24 C9 18 12 15 14 11 C15 15 16 17 18 18 C18 12 18 8 20 3 Z" fill="#ff7a1a" stroke="#7a1406" stroke-width="2.5" stroke-linejoin="round" />
+      <path d="M20 17 C22 21 26 24 26 29 C26 33 23 35 20 35 C17 35 14 33 14 29 C14 26 16 24 17 22 C18 24 19 24 20 24 C20 22 19 20 20 17 Z" fill="#ffd23f" />
+      <path d="M14 22 Q13 26 15 30" stroke="#ffe9a8" stroke-width="2" fill="none" stroke-linecap="round" />
+    </>
+  ),
 } satisfies Record<CurrencyId, () => JSX.Element>;
 
 export function CurrencyIcon({ kind, size }: { kind: CurrencyKind & { id: CurrencyId }; size: number }) {

@@ -25,6 +25,7 @@
   .venv/bin/python tools/make_voice.py --collection moon-base-mail --out public/moon-base-mail-voice --index src/moon-base-mail/voice.gen.ts
   .venv/bin/python tools/make_voice.py --collection globe-hopper --out public/globe-hopper-voice --index src/globe-hopper/voice.gen.ts
   .venv/bin/python tools/make_voice.py --collection coaster-crew --out public/coaster-crew-voice --index src/coaster-crew/voice.gen.ts
+  .venv/bin/python tools/make_voice.py --collection dragon-roost --out public/dragon-roost-voice --index src/dragon-roost/voice.gen.ts
 
 Select phrases through tools/phrases.ts and write recordings and a typed index to explicit locations.
 Only missing clips are recorded. Cleanup touches only the selected directory, whose .voice-collection
@@ -83,7 +84,10 @@ VOICES = {'purrdoku': ('en-GB-RyanNeural', '-5%'),
           'globe-hopper': ('en-US-AriaNeural', '-8%'),
           # Coaster Crew says whole science sentences in its lessons, and every track piece, car, ride and thing alone, and chains numbers
           # and names into lines ("It costs", "12", "Tokens."), as Globe Hopper does
-          'coaster-crew': ('en-US-AriaNeural', '-8%')}
+          'coaster-crew': ('en-US-AriaNeural', '-8%'),
+          # Dragon Roost says every word of its grammar tables alone and every sentence whole, so short vowels must be crisp, as in the
+          # reading games; its squeezed words (we're, he's) must not come out as were or his
+          'dragon-roost': ('en-US-AriaNeural', '-8%')}
 ROOT = Path(__file__).resolve().parent.parent
 
 
@@ -294,6 +298,20 @@ COLLECTION_SPEECH = {
         'said_as': {'You have 1 Ride!': 'You have one ride.', 'Bat Car': 'Bat, Car', 'Plain Front': 'Plain, Front', 'Mine Train Track': 'Mine-train, Track',
                     'First Aid Hut': 'First Aid, Hut', 'Drinks Stand': 'Drinks, Stand', 'A new Guest Paint!': 'A new, Guest Paint!',
                     'Eek!': 'Eeeek!'},
+    },
+    # Dragon Roost: a question's frame is said with its gap read "blank" (printed by tools/dragon-roost/said.ts), and the voice's slips
+    # found by listening are fixed here.
+    'dragon-roost': {
+        'said_from': 'tools/dragon-roost/said.ts',
+        # pass 1: faster-whisper small.en heard these alone as "deuce", "Take it", "Mark it", "Slapped", "want", "." (nothing), "until",
+        # "year", "Boy", "Purge", "Bao", "VIG magnet", "thin cake", "SMARTAT" and "Flamewriter". The homophones it wrote another way
+        # (ate/eight, blew/blue, rode/road, flew/flue, they're/there, to/two, by/bye, for/four) are said right. "bow" is the ribbon, as
+        # in Hook and Ladder. "duck" is Jenny's, as in the other games (Aria's comes out "dack").
+        'said_as': {'ticket': 'ticket!', 'Gear': 'Gear!', 'Boing!': 'Boing, boing!', 'Bow': 'beau', 'Big Magnet': 'Big, Magnet',
+                    'Big Cake': 'Big, Cake', 'Smart Hat': 'Smart, Hat', 'Flame Rider': 'Flame, Rider'},
+        # Aria's goose, market, slept, won't, Dot, into and Perch still came back wrong however they were written ("goose!", "Market!",
+        # "slept.", "Won't!", "Dot!", "into.", "Perch!"); these are Jenny's
+        'voice_for': {w: 'en-US-JennyNeural' for w in ['duck', 'goose', 'market', 'slept', "won't", 'Dot', 'into', 'Perch']},
     },
 }
 

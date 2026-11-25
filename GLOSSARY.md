@@ -980,3 +980,36 @@ _Avoid_: segment, block
 **Riders**: everyone his train has carried round, counted on the gate's board. Every Ride adds its riders; a new park rank comes at each milestone (Helper, Ticket Taker, Ride Operator, Track Fixer, Coaster Crew, Crew Chief, Park Manager, Thrill Master, Coaster Captain, Coaster Legend, then Coaster Legend 2, 3 and on without end).
 
 **Watch it run**: his whole coaster on screen with the train going round by itself; nothing is paid.
+## Dragon Roost
+
+Dragon Roost reuses the other games' terms where they mean the same thing (Mixed Round, Mastery, Meeting, Goal, Slot). These are its own:
+
+**Game Modes (Dragon Roost)**: the seven kinds of question, about how words work: Nouns (which word names something; tap the noun in a sentence; is it a person, an animal, a place or a thing), Verbs (which word is something you do; tap the verb; the doing word that fits who does it, *flies* or *fly*), Adjectives (which word tells what something is like; tap the adjective; which sentence tells about this dragon), More Than One (*mouse, mice*; one or more than one in a sentence; *sheep, deer* mixed in), Yesterday (*jumped*; the ones that change, *ran, flew, ate*; yesterday or tomorrow), Squeeze (which two words made *don't*; the short way to say *is not*, and where the apostrophe goes; *won't, I'll, we're* in a sentence) and Big Letters (a name; a day or a month; two to fix, one a place). Nouns and Verbs are open from the start; Adjectives and More Than One open at Nouns Level 2, Yesterday and Squeeze at Verbs Level 2, Big Letters at Adjectives Level 2.
+
+**Noun, verb, adjective**: what the three kinds of word are called on screen and aloud, each met first with its meaning in a Meeting ("A noun names a person, an animal, a place or a thing."). A default for the parent to confirm: all the lines that say them are in `src/dragon-roost/words/terms.ts`.
+
+**One-job rule**: a word that can do two jobs (*fly, play, run, park, orange*) is never a choice on its own; it may stand in a sentence, where its job is plain.
+
+**Meeting (Dragon Roost)**: before a kind's first question, a short spoken introduction: its meaning and examples with their pictures, the dragon doing the dragon words or turning big, green or muddy.
+
+**Flame**: Dragon Roost's currency, drawn as a small friendly flame (orange outside, yellow inside), earned and spent exactly as Bolts are elsewhere. Flames burn in the Roost's hearth, which burns brighter the more he has and never goes out.
+_Avoid_: Bolt (in Dragon Roost it's always Flames), coins, gold
+
+**Roost**: the reward he builds: a mountain at dawn with ledges up its side, nests with his eggs warming, his dragons, and the pieces he buys (perches, a hot spring, a waterfall, a lookout). It has no top: a **New Ledge** can always be bought.
+
+**Egg**: bought with Flames and put in a nest; every finished Round warms each egg by one step, and it hatches after a set number of Rounds (three for the first, up to eight for the rarest). He taps a warm egg to hatch it. After the forty named eggs come **Wild Eggs**, each a dragon made from its number, without end.
+
+**Dragon**: hatched from an egg and named by him with one describing word and one noun (Tiny Comet). It grows as he flies it: hatchling, young (3 Flights), great (8 Flights), then a new **mark** every 4 Flights (a stripe, a horn ring, a star on its wing), without end.
+
+**Hearth**: the fire at the foot of the Roost that shows his Flames.
+
+**Flight**: the action reward, about a minute, from the side: a held finger sets the dragon's height, holding **Breathe** lights the beacons and pops clouds, and a trick button does its trick. Land, castles and peaks only bounce the dragon up and over. A Round earns one Flight. First the 24 named places, then Flights made from their number, without end.
+_Avoid_: launch, race
+
+**Beacon**: a stone bowl on the land, a castle or a post that blazes when the dragon breathes on it. His best on each Flight is the beacons, clouds and birds he got there.
+
+**Trick**: a doing word (Flap, Spin, Loop, Zoom, Roar, Glide) bought with Flames that becomes a button in the Flight; each one does something (a burst of speed, a ring that pops clouds, a roar that lights beacons far ahead). A **Trick Belt** gives another button.
+
+**Rider rank**: by Flights flown: Egg Sitter, Hatchling Helper, Wing Rider, Sky Rider, Cloud Rider, Beacon Keeper, Flame Rider, Storm Rider, Roost Keeper, Dragon Master, then Dragon Legend 1, 2, 3 and on without end.
+
+**Visit the roost**: every dragon he has, wandering a meadow; tap one and its name is said and it does a trick.
