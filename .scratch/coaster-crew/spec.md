@@ -132,7 +132,7 @@ Each is a piece he has if one works, else the cheapest he could buy (shown with 
 - One Ride a Round; the first Ride free; Rides don't expire.
 - A Ride pays 2 Tokens, +1 for tapping the photo, +1 for something new (a Guest Coaster ridden for the first time, or a new Thrill best on his own coaster): at most 4, so a Round and its Ride pay at most 10, under Turbo Tally's 15. No other way to earn Tokens.
 - Prices up to 100 in ones, then whole tens to 400 (the dearest is 290), said with the whole-ten clips (`PRICE_TENS`) and "You need about 150 more Tokens." for a gap that isn't a whole ten.
-- The dearest things are lifts, drops, launches, loops and six-seat cars; a paint is never dear (26 at most). Every tab has things under 15 beside the dear ones, and the Goal bar fills toward what he's saving for.
+- The dearest things are lifts, drops, launches, loops and six-seat cars; a paint is never dear (26 at most). Every tab has things under 15 beside the dear ones, and the Goal bar fills toward what he's saving for: what he tapped, else the cheapest new thing at least a Round's Tokens (10) more than he has, so it is never a full bar for something he could already buy.
 
 ## Currency: Tokens
 
@@ -140,7 +140,7 @@ Each is a piece he has if one works, else the cheapest he could buy (shown with 
 
 ## Look
 
-A fairground on a summer evening: a teal sky going pink and peach, candy red and white stripes, bulb yellow. Track is two rails (black under the style's colour) on chunky supports, with the family's black outlines; a station at each end in his theme. Questions sit on a cream card; scenes on a light sky, a wooden table (from above) or a felt table (Bump). Icon: a red coaster car with two riders, hands up, at the top of a lift hill, with a big red and white Token for a sun, on the evening sky. Kept apart from Sentence Express: here the track is tall, seen from the side, and the car is fast.
+A fairground on a summer evening: a teal sky going through a dusky blue and violet to pink and peach (straight teal to pink mixes to grey; `--cc-sky` in `coaster-crew.css`, `SKIES.sunset` on the canvas), candy red and white stripes (the Yard tile is a booth with a striped awning, the next Guest Coaster a ride ticket), bulb yellow. Behind every coaster, a far fairground along the horizon (a big wheel, striped tents, a helter-skelter, strings of lit bulbs) slides slowly as the view moves; it and the sky are drawn once per size and copied each frame, so the Ride never builds a gradient over the whole canvas. Track is two rails seen side on (the running rail and a second one under it, joined by ties, black under the style's colour) on chunky supports, with the family's black outlines; a station at each end in his theme. Questions sit on a cream card; scenes on a light sky, a wooden table (from above) or a felt table (Bump). Icon: a red coaster car with two riders, hands up, at the top of a lift hill, with a big red and white Token for a sun, on the evening sky. Kept apart from Sentence Express: here the track is tall, seen from the side, and the car is fast.
 
 ## Voice
 

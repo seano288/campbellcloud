@@ -73,14 +73,13 @@ const ICONS = {
       <ellipse cx="25" cy="12.6" rx="3.4" ry="1.6" fill="#b83d23" transform="rotate(-13 25 12.6)" />
     </>
   ),
-  // Token: a round red and white fairground ride token with a ridged edge and a star stamped in the middle (no number, no head: not a coin)
+  // Token: a round red and white fairground ride token with a ridged edge and a star stamped in the middle (no number, no head: not a coin).
+  // Drawn bold so it still reads at 16px: a notched white rim, a red face, a big white star.
   token: () => (
     <>
-      <circle cx="20" cy="20" r="17.5" fill="#ffffff" stroke="#6e1212" stroke-width="2.5" />
-      <circle cx="20" cy="20" r="17.5" fill="none" stroke="#e63946" stroke-width="3.2" stroke-dasharray="2.2 2.4" />
-      <circle cx="20" cy="20" r="13" fill="#e63946" stroke="#6e1212" stroke-width="2" />
-      <circle cx="20" cy="20" r="10" fill="none" stroke="#ffffff" stroke-width="1.6" stroke-dasharray="3 2.2" />
-      <polygon points="20,12.5 22.2,17.4 27.4,17.8 23.4,21.2 24.7,26.3 20,23.5 15.3,26.3 16.6,21.2 12.6,17.8 17.8,17.4" fill="#ffffff" stroke="#6e1212" stroke-width="1.2" stroke-linejoin="round" />
+      <polygon points="38.6,20 36.3,22.1 38,24.8 35.2,26.3 36.1,29.3 33,30 33.2,33.2 30,33 29.3,36.1 26.3,35.2 24.8,38 22.1,36.3 20,38.6 17.9,36.3 15.2,38 13.7,35.2 10.7,36.1 10,33 6.8,33.2 7,30 3.9,29.3 4.8,26.3 2,24.8 3.7,22.1 1.4,20 3.7,17.9 2,15.2 4.8,13.7 3.9,10.7 7,10 6.8,6.8 10,7 10.7,3.9 13.7,4.8 15.2,2 17.9,3.7 20,1.4 22.1,3.7 24.8,2 26.3,4.8 29.3,3.9 30,7 33.2,6.8 33,10 36.1,10.7 35.2,13.7 38,15.2 36.3,17.9" fill="#ffffff" stroke="#6e1212" stroke-width="2.2" stroke-linejoin="round" />
+      <circle cx="20" cy="20" r="12.8" fill="#e63946" stroke="#6e1212" stroke-width="2.2" />
+      <polygon points="20,11 22.5,17.1 29.1,17.6 24.1,21.9 25.6,28.4 20,24.9 14.4,28.4 15.9,21.9 10.9,17.6 17.5,17.1" fill="#ffffff" stroke="#6e1212" stroke-width="1.3" stroke-linejoin="round" />
     </>
   ),
 } satisfies Record<CurrencyId, () => JSX.Element>;

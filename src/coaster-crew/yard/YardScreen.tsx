@@ -40,7 +40,7 @@ const said = (x: string | number) => `${x}` as Phrase;
 
 /** The bar toward his Goal: filling as Tokens come in, so saving up looks like progress. */
 function GoalBar({ y, balance, onTap }: { y: YardState; balance: number; onTap(w: Want): void }) {
-  const g = goalOf(y);
+  const g = goalOf(y, balance);
   if (!g) return null;
   const price = priceOf(y, g), fill = Math.min(1, balance / Math.max(1, price));
   return (
@@ -151,12 +151,12 @@ export function YardScreen() {
     const loose = unplaced(y);
     body = <>
       <div class="cc-park-top">
-        <ParkMap y={y} picked={spot} onSpot={tapSpot} />
+        <ParkMap y={y} picked={spot} onSpot={tapSpot} onMore={() => { setSpot(null); tapWant({ kind: 'more', id: 'plot' }); }} />
         {spot !== null && (
           <div class="cc-tray cc-place" role="group" aria-label="Put here">
             {y.spots[spot] && <button class="cc-tile" aria-label="Take it off" onClick={() => place('')}><span class="tile-icon">🧺</span><span class="tile-name">Take off</span></button>}
             {loose.map(id => <button key={id} class="cc-tile owned" aria-label={itemOf(id).name} onClick={() => place(id)}><span class="tile-icon">{itemOf(id).icon}</span><span class="tile-name">{itemOf(id).name}</span></button>)}
-            {!loose.length && !y.spots[spot] && <span class="cc-tray-empty">🛒</span>}
+            {!loose.length && !y.spots[spot] && <span class="cc-tray-empty cc-place-empty" aria-hidden="true">🛒 👇</span>}
           </div>
         )}
         {does(y, 'night') && <button class={cls('cc-night', y.night && 'on')} aria-label={y.night ? 'Day rides' : 'Night rides'} onClick={() => { if (!voice.active) return; updateYard(toggleNight); say(y.night ? 'Day rides!' : 'Night rides!'); }}>{y.night ? '🌙' : '☀️'}</button>}

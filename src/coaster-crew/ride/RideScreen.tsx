@@ -140,7 +140,7 @@ function Run({ which, replay = false }: { which: Which; replay?: boolean }) {
       ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
       const w = r.width, h = r.height, q = st.built.profile, car = posOf(st);
       let v: View;
-      if (replay) { const maxX = q.pts.at(-1)![0], k = Math.min(w / (maxX + 16), h / (maxY + 14)); v = { x0: -8, y0: -4, k, w, h }; }
+      if (replay) { const maxX = q.pts.at(-1)![0], k = Math.min(w / (maxX + 16), h / (maxY + 20)); v = { x0: -8 - Math.max(0, w / k - maxX - 16) / 2, y0: -4, k, w, h }; }
       else { const k = Math.max(h / Math.max(46, maxY + 14), Math.min(w, h) / 70); v = { x0: car.x - (w * .38) / k, y0: Math.max(-4, car.y - (h * .55) / k), k, w, h }; }
       drawSky(ctx, w, h, weather, st.t); drawGround(ctx, v, weather === 'night');
       drawTrack(ctx, st.built, v, style, { theme: y0.theme });
@@ -172,10 +172,12 @@ function Run({ which, replay = false }: { which: Which; replay?: boolean }) {
     setArmed(true); void voice.say('Tap again to leave.');
     setTimeout(() => setArmed(false), 4000);
   }
+  // "Watch it run" draws the whole coaster, so its box is the coaster's own shape (with a little sky over the top): no tall empty sky
+  const runAspect = useMemo(() => { if (!plan) return 3; const pts = startRide(plan.pieces).built.profile.pts; return (pts.at(-1)![0] + 16) / (Math.max(...pts.map(p => p[1])) + 20); }, []);
   if (!plan) return null;
   if (done) return <Results done={done} which={which} />;
   return (
-    <div class={cls('screen', 'cc-ride', replay && 'replay')}>
+    <div class={cls('screen', 'cc-ride', replay && 'replay')} style={replay ? { '--cc-run-aspect': runAspect.toFixed(3) } : undefined}>
       <canvas ref={ref} class="cc-ride-canvas" role="img" aria-label={replay ? 'Your coaster running' : 'The Ride'}
         onPointerDown={e => { (e.target as Element).setPointerCapture?.(e.pointerId); input.current.hold = true; }}
         onPointerUp={() => { input.current.hold = false; }} onPointerCancel={() => { input.current.hold = false; }} />

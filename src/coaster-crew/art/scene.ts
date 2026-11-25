@@ -75,12 +75,16 @@ export function drawScene(ctx: Ctx, sc: Scene, w: number, h: number, look: Look)
     });
     case 'bump': return drawBump(ctx, sc, w, h, t(0), look);
     case 'magnet': return lanes(ctx, sc, w, h, look, (i, x, y, lw, lh) => {
-      const id = sc.things[i]!, m = magnetTry(thingOf(id).magnetic, t(i)), k = (lw * .55) / (MAGNET_REACH * 2.5), cy = y + lh * .55;
-      ctx.fillStyle = '#e9dcc0'; ctx.fillRect(x, y + lh * .78, lw, lh * .22);
-      const x0 = x + lw * .18;
-      drawMagnet(ctx, x0 + m.magnet * k, cy, lh * .5);
-      drawThing(ctx, id, x0 + m.thing * k + lh * .3, cy, lh * .55);
-      if (m.jumped) emoji(ctx, '✨', x0 + m.thing * k + lh * .3, cy - lh * .4, lh * .3);
+      // sized by the lane's height and its width, so one tall lane (Level 3 on an upright screen) never pushes the magnet or the thing
+      // off its edges
+      const id = sc.things[i]!, m = magnetTry(thingOf(id).magnetic, t(i)), k = (lw * .55) / (MAGNET_REACH * 2.5), ms = Math.min(lh * .5, lw * .2), ts = Math.min(lh * .55, lw * .2);
+      const top = y + lh * .78, cy = top - Math.max(ms, ts) * .6;
+      ctx.fillStyle = '#e9dcc0'; ctx.fillRect(x, top, lw, y + lh - top);
+      ctx.beginPath(); ctx.moveTo(x, top); ctx.lineTo(x + lw, top); outline(ctx, 2);
+      const x0 = x + Math.max(lw * .18, ms * 1.05);
+      drawMagnet(ctx, x0 + m.magnet * k, cy, ms);
+      drawThing(ctx, id, x0 + m.thing * k + ts * .55, cy, ts);
+      if (m.jumped) emoji(ctx, '✨', x0 + m.thing * k + ts * .55, cy - ts * .75, ts * .55);
     });
     case 'poles': {
       table(ctx, w, h, '#e9dcc0');
@@ -218,10 +222,11 @@ function drawWay(ctx: Ctx, sc: Extract<Scene, { type: 'way' }>, w: number, h: nu
 function drawHills(ctx: Ctx, sc: Extract<Scene, { type: 'hills' }>, w: number, h: number, look: Look) {
   const tracks = sc.lanes.map(l => hillTrack(l)), maxW = Math.max(...tracks.map(t => t.profile.pts.at(-1)![0])), maxH = Math.max(...sc.lanes.map(l => Math.max(l.start, l.hill ?? 0)));
   lanes(ctx, sc, w, h, look, (i, x, y, lw, lh) => {
-    const lane = sc.lanes[i]!, tr = tracks[i]!, pad = lh * .1;
+    // margins from the smaller of the lane's sides, so one tall lane on an upright screen still draws its hills big
+    const lane = sc.lanes[i]!, tr = tracks[i]!, m = Math.min(lh, lw * .4), pad = m * .1;
     // drawn a little taller than it is (at most twice), so a low hill still reads as a hill; the cart moves through the same picture
-    const kx = (lw - pad * 2 - lh * .3) / maxW, ky = Math.min((lh * .72) / maxH, kx * 2);
-    const ox = x + pad + lh * .2, oy = y + lh - pad;
+    const kx = (lw - pad * 2 - m * .3) / maxW, ky = Math.min((lh * .72) / maxH, kx * 2);
+    const ox = x + pad + m * .2, oy = y + lh - pad;
     const P = (px: number, py: number) => [ox + px * kx, oy - py * ky] as const;
     ctx.beginPath(); ctx.moveTo(ox, oy);
     for (const [px, py] of tr.profile.pts) ctx.lineTo(...P(px, py));
@@ -231,9 +236,11 @@ function drawHills(ctx: Ctx, sc: Extract<Scene, { type: 'hills' }>, w: number, h
     ctx.strokeStyle = INK; ctx.lineWidth = Math.max(3, lh * .025); ctx.stroke();
     ctx.beginPath(); ctx.moveTo(x, oy); ctx.lineTo(x + lw, oy); outline(ctx, 3);
     if (look.marks.bars) {
-      const bx = ox - lh * .1, bh = lane.start * ky;
+      // the height bar stands clear of the hill's foot, and its dashed line runs over the hill to the next one (or, with no next hill,
+      // only as far as the top of the start: the speed sign up there stays clear)
+      const bx = ox - Math.max(10, m * .1), bh = lane.start * ky, end = lane.hill === undefined ? P(pointAt(tr.profile, Math.max(0, tr.bottom * .25)).x, 0)[0] : x + lw;
       ctx.beginPath(); ctx.rect(bx - 6, oy - bh, 12, bh); ctx.fillStyle = cartColour(lane.cart); ctx.fill(); outline(ctx, 2);
-      ctx.setLineDash([6, 6]); ctx.beginPath(); ctx.moveTo(ox, oy - bh); ctx.lineTo(x + lw, oy - bh); ctx.strokeStyle = cartColour(lane.cart); ctx.lineWidth = 3; ctx.stroke(); ctx.setLineDash([]);
+      ctx.setLineDash([6, 6]); ctx.beginPath(); ctx.moveTo(bx + 8, oy - bh); ctx.lineTo(end, oy - bh); ctx.strokeStyle = cartColour(lane.cart); ctx.lineWidth = 3; ctx.stroke(); ctx.setLineDash([]);
     }
     // two carts let go from two heights: a speed sign at the bottom of each lane fills to how fast its cart goes past (the same scale in
     // every lane), and stays, so the one started higher is plainly the faster there, though the lower one gets there first

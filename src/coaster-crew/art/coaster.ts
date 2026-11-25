@@ -13,26 +13,115 @@ import type { Train } from '../park/yard';
 export interface View { readonly x0: number; readonly y0: number; readonly k: number; readonly w: number; readonly h: number }
 export const toScreen = (v: View, x: number, y: number) => [(x - v.x0) * v.k, v.h - (y - v.y0) * v.k] as const;
 
-const SKIES: Record<Weather, [string, string, string]> = {
-  sunny: ['#5fc8e8', '#a9e5f0', '#ffe9b0'], sunset: ['#1d6f7a', '#e07a9a', '#ffc46b'], night: ['#0b1636', '#1d2d5e', '#3a3f7a'],
+// Each sky top to bottom. The summer evening goes from teal through a dusky blue and violet to pink and peach, so the middle never turns
+// to the grey that teal and pink mix to.
+const SKIES: Record<Weather, string[]> = {
+  sunny: ['#5fc8e8', '#a9e5f0', '#ffe9b0'], sunset: ['#1d6f7a', '#2f7d96', '#7a72b4', '#e07a9a', '#ffc46b'], night: ['#0b1636', '#1d2d5e', '#3a3f7a'],
   rain: ['#5a6f80', '#8a9bab', '#b8c4cc'], snow: ['#9fb8d0', '#d6e4f0', '#f6f8fb'], stars: ['#050a20', '#14204a', '#2a2a6a'],
 };
+const SKY_STOPS: Record<number, number[]> = { 3: [0, .6, 1], 5: [0, .3, .52, .74, 1] };
+
+// The sky and the far fairground are drawn once into canvases of their own and copied each frame, so a Ride never builds a gradient or
+// draws a silhouette over the whole screen sixty times a second (an iPad 9 holds 60 fps).
+const skyCache = new Map<string, HTMLCanvasElement>();
+function cached(key: string, w: number, h: number, paint: (c: CanvasRenderingContext2D) => void): HTMLCanvasElement | null {
+  let c = skyCache.get(key);
+  if (c) return c;
+  if (typeof document === 'undefined') return null;
+  if (skyCache.size > 24) skyCache.clear();
+  c = document.createElement('canvas');
+  const dpr = Math.min(2, devicePixelRatio || 1);
+  c.width = Math.max(1, Math.round(w * dpr)); c.height = Math.max(1, Math.round(h * dpr));
+  const x = c.getContext('2d')!; x.scale(dpr, dpr); paint(x);
+  skyCache.set(key, c);
+  return c;
+}
+
 /** The sky behind the coaster: the summer evening by default (teal going pink), or a Guest Coaster's weather, or night. */
 export function drawSky(ctx: Ctx, w: number, h: number, weather: Weather, t: number) {
-  const [a, b, c] = SKIES[weather], g = ctx.createLinearGradient(0, 0, 0, h);
-  g.addColorStop(0, a); g.addColorStop(.6, b); g.addColorStop(1, c);
-  ctx.fillStyle = g; ctx.fillRect(0, 0, w, h);
-  if (weather === 'night' || weather === 'stars') { ctx.fillStyle = '#ffffff'; for (let i = 0; i < 60; i++) ctx.fillRect((i * 137.1) % w, (i * 71.3) % (h * .6), 1.6, 1.6); }
-  if (weather === 'sunset' || weather === 'sunny') { ctx.beginPath(); ctx.arc(w * .82, h * .22, Math.min(w, h) * .07, 0, Math.PI * 2); ctx.fillStyle = weather === 'sunset' ? '#ffd23f' : '#fff6c0'; ctx.fill(); }
+  const img = cached(`sky:${weather}:${Math.round(w)}x${Math.round(h)}`, w, h, c => {
+    const cols = SKIES[weather], stops = SKY_STOPS[cols.length]!, g = c.createLinearGradient(0, 0, 0, h);
+    cols.forEach((col, i) => g.addColorStop(stops[i]!, col));
+    c.fillStyle = g; c.fillRect(0, 0, w, h);
+    if (weather === 'night' || weather === 'stars') { c.fillStyle = '#ffffff'; for (let i = 0; i < 60; i++) c.fillRect((i * 137.1) % w, (i * 71.3) % (h * .6), 1.6, 1.6); }
+    if (weather === 'sunset' || weather === 'sunny') {
+      // a low sun, bulb yellow, with a soft glow round it
+      const sx = w * .8, sy = h * .24, r = Math.min(w, h) * .07;
+      for (const [k, a] of [[2.6, .12], [1.8, .2]] as const) { c.beginPath(); c.arc(sx, sy, r * k, 0, Math.PI * 2); c.fillStyle = `rgba(255,236,170,${a})`; c.fill(); }
+      c.beginPath(); c.arc(sx, sy, r, 0, Math.PI * 2); c.fillStyle = weather === 'sunset' ? '#ffd23f' : '#fff6c0'; c.fill();
+      c.lineWidth = Math.max(2, r * .12); c.strokeStyle = weather === 'sunset' ? '#f29a1d' : '#ffe08a'; c.stroke();
+    }
+  });
+  if (img) ctx.drawImage(img, 0, 0, w, h);
+  else { ctx.fillStyle = SKIES[weather][0]!; ctx.fillRect(0, 0, w, h); }
   if (weather === 'rain') { ctx.strokeStyle = '#ffffff70'; ctx.lineWidth = 2; for (let i = 0; i < 70; i++) { const x = (i * 97 + t * 300) % w, y = (i * 53 + t * 700) % h; ctx.beginPath(); ctx.moveTo(x, y); ctx.lineTo(x - 4, y + 14); ctx.stroke(); } }
   if (weather === 'snow') { ctx.fillStyle = '#ffffff'; for (let i = 0; i < 60; i++) { const x = (i * 97 + Math.sin(t + i) * 20) % w, y = (i * 53 + t * 40) % h; ctx.beginPath(); ctx.arc(x, y, 2.5, 0, Math.PI * 2); ctx.fill(); } }
 }
 
-/** The ground under it all, with far-off fairground bulbs. */
+/** The far fairground along the horizon, one tile wide and seamless: a big wheel, striped tents, a helter-skelter and strings of bulbs,
+ *  in evening shadow with their lights on. Drawn once per size. */
+/** The tile is four times as wide as it is tall, everything placed in heights (g) so it keeps its shape at any size. */
+const FAR = 4;
+function farFair(hh: number, night: boolean): HTMLCanvasElement | null {
+  const W = hh * FAR;
+  return cached(`fair:${night}:${Math.round(hh)}`, W, hh, c => {
+    const body = night ? '#22284f' : '#7d5f96', edge = night ? '#151935' : '#5e4677', bulb = night ? '#ffe680' : '#ffe9a6', g = hh;
+    const each = (fn: (dx: number) => void) => { for (const dx of [-W, 0, W]) fn(dx); };
+    c.lineJoin = 'round'; c.lineCap = 'round';
+    // the big wheel
+    each(dx => {
+      const cx = dx + g * .55, r = g * .44, cy = g - r - g * .1;
+      c.strokeStyle = body; c.lineWidth = Math.max(2, g * .03);
+      c.beginPath(); c.moveTo(cx - r * .6, g); c.lineTo(cx, cy); c.lineTo(cx + r * .6, g); c.stroke();
+      c.beginPath(); c.arc(cx, cy, r, 0, Math.PI * 2); c.lineWidth = Math.max(2, g * .035); c.stroke();
+      c.lineWidth = Math.max(1, g * .012);
+      for (let i = 0; i < 8; i++) { const a = (i / 8) * Math.PI * 2; c.beginPath(); c.moveTo(cx, cy); c.lineTo(cx + Math.cos(a) * r, cy + Math.sin(a) * r); c.stroke(); }
+      c.fillStyle = bulb;
+      for (let i = 0; i < 16; i++) { const a = (i / 16) * Math.PI * 2; c.beginPath(); c.arc(cx + Math.cos(a) * r, cy + Math.sin(a) * r, Math.max(1.5, g * .022), 0, Math.PI * 2); c.fill(); }
+    });
+    // striped tents
+    const tent = (cx: number, tw: number, th: number) => {
+      c.beginPath(); c.moveTo(cx - tw / 2, g); c.lineTo(cx - tw / 2, g - th * .45); c.lineTo(cx, g - th); c.lineTo(cx + tw / 2, g - th * .45); c.lineTo(cx + tw / 2, g); c.closePath();
+      c.fillStyle = body; c.fill();
+      c.save(); c.clip(); c.fillStyle = edge; for (let i = -4; i <= 4; i += 2) { c.beginPath(); c.moveTo(cx, g - th); c.lineTo(cx + (i * tw) / 8, g); c.lineTo(cx + ((i + 1) * tw) / 8, g); c.closePath(); c.fill(); } c.restore();
+      c.beginPath(); c.moveTo(cx, g - th); c.lineTo(cx, g - th - g * .1); c.strokeStyle = body; c.lineWidth = Math.max(1.5, g * .015); c.stroke();
+      c.beginPath(); c.arc(cx, g - th - g * .1, Math.max(1.5, g * .025), 0, Math.PI * 2); c.fillStyle = bulb; c.fill();
+    };
+    each(dx => { tent(dx + g * 1.55, g * .9, g * .5); tent(dx + g * 2.15, g * .55, g * .34); tent(dx + g * 3.5, g * .7, g * .42); });
+    // a helter-skelter
+    each(dx => {
+      const cx = dx + g * 2.8, tw = g * .2, th = g * .78;
+      c.fillStyle = body; c.fillRect(cx - tw / 2, g - th * .8, tw, th * .8);
+      c.beginPath(); c.moveTo(cx - tw * .8, g - th * .8); c.lineTo(cx, g - th); c.lineTo(cx + tw * .8, g - th * .8); c.closePath(); c.fill();
+      c.strokeStyle = edge; c.lineWidth = Math.max(1.5, g * .03);
+      for (let i = 0; i < 4; i++) { const y = g - th * .75 + i * th * .19; c.beginPath(); c.moveTo(cx - tw * .75, y + th * .08); c.lineTo(cx + tw * .75, y); c.stroke(); }
+    });
+    // strings of bulbs swinging between the tops
+    c.lineWidth = Math.max(1, g * .01); c.strokeStyle = edge;
+    each(dx => {
+      for (const [x0, x1, y] of [[1, 1.55, .5], [1.55, 2.15, .66], [2.15, 2.8, .66], [2.8, 3.5, .58], [3.5, 4.55, .58]] as const) {
+        const ya = g * (1 - y), sag = g * .12;
+        const a = dx + x0 * g, b = dx + x1 * g;
+        c.beginPath(); c.moveTo(a, ya); c.quadraticCurveTo((a + b) / 2, ya + sag * 2, b, ya); c.stroke();
+        c.fillStyle = bulb;
+        for (let i = 1; i < 8; i++) { const u = i / 8, x = a + (b - a) * u, yy = ya + sag * 2 * 2 * u * (1 - u); c.beginPath(); c.arc(x, yy + g * .02, Math.max(1.2, g * .018), 0, Math.PI * 2); c.fill(); }
+      }
+    });
+  });
+}
+
+/** The ground under it all, with the far-off fairground on the horizon behind it (sliding slowly as the view moves, so it feels far). */
 export function drawGround(ctx: Ctx, v: View, night: boolean) {
   const [, gy] = toScreen(v, 0, 0);
+  if (gy > v.h + 200) return;
+  const hh = Math.round(Math.min(v.h * .3, Math.max(60, 12 * v.k))), far = farFair(hh, night);
+  if (far && gy > 20) {
+    const tw = hh * FAR, off = -((((v.x0 * v.k * .18) % tw) + tw) % tw);
+    for (let x = off; x < v.w; x += tw) ctx.drawImage(far, x, gy - hh, tw, hh);
+  }
   if (gy > v.h) return;
   ctx.fillStyle = night ? '#1f3a2a' : '#5fb84a'; ctx.fillRect(0, gy, v.w, v.h - gy);
+  ctx.fillStyle = night ? '#18301f' : '#4ea53c'; ctx.fillRect(0, gy + Math.min(10, (v.h - gy) * .3), v.w, Math.max(0, v.h - gy));
   ctx.beginPath(); ctx.moveTo(0, gy); ctx.lineTo(v.w, gy); outline(ctx, 3);
 }
 
@@ -45,8 +134,8 @@ export function drawTrack(ctx: Ctx, b: Built, v: View, styleId: string, opts: { 
   const look = lookOf(styleId), p = b.profile, lw = Math.max(2, v.k * .5);
   const xmin = v.x0 - 20, xmax = v.x0 + v.w / v.k + 20;
   const vis = b.spans.filter(sp => Math.max(sp.x0, sp.x1) >= xmin && Math.min(sp.x0, sp.x1) <= xmax);
-  // supports every 5 m, under the track (not under loops' tops)
-  ctx.lineWidth = Math.max(2, v.k * .45); ctx.strokeStyle = look.support;
+  // chunky supports every 5 m, under the track (not under loops' tops): all the outlines in one stroke, then all the colour in another
+  const posts = new Path2D(), braces = new Path2D();
   for (const sp of vis) {
     if (sp.geo.g === 'splash') continue;
     for (let s = Math.ceil(sp.from / 5) * 5; s < sp.to; s += 5) {
@@ -54,11 +143,14 @@ export function drawTrack(ctx: Ctx, b: Built, v: View, styleId: string, opts: { 
       if (q.y < 1.5) continue;
       if (sp.geo.g === 'loop' && Math.abs(q.angle) > 1.2) continue;
       const [x, y] = toScreen(v, q.x, q.y), [, gy] = toScreen(v, q.x, 0);
-      ctx.beginPath(); ctx.moveTo(x, y); ctx.lineTo(x, gy); ctx.strokeStyle = INK; ctx.lineWidth = Math.max(4, v.k * .75); ctx.stroke();
-      ctx.strokeStyle = look.support; ctx.lineWidth = Math.max(2, v.k * .45); ctx.stroke();
-      if (look.wood && gy - y > 30) { ctx.beginPath(); ctx.moveTo(x - 5 * v.k * .4, gy); ctx.lineTo(x, y); ctx.moveTo(x + 5 * v.k * .4, gy); ctx.lineTo(x, y); ctx.strokeStyle = look.support; ctx.lineWidth = Math.max(1.5, v.k * .25); ctx.stroke(); }
+      posts.moveTo(x, y); posts.lineTo(x, gy);
+      if (look.wood && gy - y > 30) { braces.moveTo(x - 5 * v.k * .4, gy); braces.lineTo(x, y); braces.moveTo(x + 5 * v.k * .4, gy); braces.lineTo(x, y); }
     }
   }
+  ctx.lineCap = 'butt';
+  ctx.strokeStyle = INK; ctx.lineWidth = Math.max(5, v.k * .95); ctx.stroke(posts);
+  ctx.strokeStyle = look.support; ctx.lineWidth = Math.max(2.5, v.k * .55); ctx.stroke(posts);
+  if (look.wood) { ctx.lineWidth = Math.max(1.5, v.k * .25); ctx.stroke(braces); }
   // water under splash pools
   for (const sp of vis) if (sp.geo.g === 'splash') {
     const [x0, y0] = toScreen(v, sp.x0, 0), [x1] = toScreen(v, sp.x1, 0), [, yb] = toScreen(v, 0, -3.6);
@@ -67,13 +159,22 @@ export function drawTrack(ctx: Ctx, b: Built, v: View, styleId: string, opts: { 
   // the rails: a black underlay, then the colour; gold for prize pieces, red where it rolls back
   for (const sp of vis) {
     const gold = sp.id.startsWith('pc:') && isPrize(sp.id);
-    const pts = spanPoints(p, sp);
-    ctx.beginPath(); pts.forEach(([x, y], i) => { const [sx, sy] = toScreen(v, x, y); if (i) ctx.lineTo(sx, sy); else ctx.moveTo(sx, sy); });
-    ctx.strokeStyle = INK; ctx.lineWidth = lw * 3.2; ctx.lineJoin = 'round'; ctx.lineCap = 'round'; ctx.stroke();
+    // two rails seen side on: the running rail on top and a second one under it (outside a loop), joined by ties
+    const top = spanPoints(p, sp).map(([x, y]) => toScreen(v, x, y)), gap = lw * 2.3, low: (readonly [number, number])[] = [];
+    for (let i = 0; i < top.length; i++) {
+      const a = top[Math.max(0, i - 1)]!, b = top[Math.min(top.length - 1, i + 1)]!, tx = b[0] - a[0], ty = b[1] - a[1], n = Math.hypot(tx, ty) || 1;
+      low.push([top[i]![0] - (ty / n) * gap, top[i]![1] + (tx / n) * gap]);
+    }
+    const path = (pts: readonly (readonly [number, number])[]) => { ctx.beginPath(); pts.forEach(([x, y], i) => (i ? ctx.lineTo(x, y) : ctx.moveTo(x, y))); };
+    ctx.lineJoin = 'round'; ctx.lineCap = 'round'; ctx.strokeStyle = INK;
+    if (opts.highlight === sp.index) { path(top); ctx.strokeStyle = '#ffd23f'; ctx.lineWidth = lw * 7; ctx.globalAlpha = .35; ctx.stroke(); ctx.globalAlpha = 1; ctx.strokeStyle = INK; }
+    ctx.beginPath(); for (let i = 0; i < top.length; i += 2) { ctx.moveTo(top[i]![0], top[i]![1]); ctx.lineTo(low[i]![0], low[i]![1]); } ctx.lineWidth = lw * 1.1; ctx.stroke();
+    path(low); ctx.lineWidth = lw * 2.1; ctx.stroke();
+    path(top); ctx.lineWidth = lw * 2.8; ctx.stroke();
     const rail = opts.back !== null && opts.back !== undefined && sp.index === opts.back ? '#ff3b3b' : gold ? '#ffd23f' : look.rail === 'rainbow' ? RAINBOW[Math.abs(sp.index) % RAINBOW.length]! : look.rail;
-    ctx.strokeStyle = rail; ctx.lineWidth = lw * 1.8; ctx.stroke();
-    ctx.strokeStyle = '#ffffff60'; ctx.lineWidth = lw * .5; ctx.stroke();
-    if (opts.highlight === sp.index) { ctx.strokeStyle = '#ffd23f'; ctx.lineWidth = lw * 5; ctx.globalAlpha = .35; ctx.stroke(); ctx.globalAlpha = 1; }
+    ctx.strokeStyle = rail; ctx.lineWidth = lw * 1.5; ctx.stroke();
+    ctx.strokeStyle = '#ffffff70'; ctx.lineWidth = lw * .45; ctx.stroke();
+    path(low); ctx.strokeStyle = rail; ctx.lineWidth = lw * .9; ctx.stroke();
     decorate(ctx, p, sp, v, lw);
   }
   // the station at the start, in his theme

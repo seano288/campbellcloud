@@ -221,10 +221,14 @@ export const repeatsNow = (y: YardState): Want[] =>
   REPEAT_IDS.map(id => ({ kind: 'more', id }) as Want).filter(w => buyable(y, w)).sort((a, b) => priceOf(y, a) - priceOf(y, b));
 export const catalogueDone = (y: Pick<YardState, 'owned'>) => FOR_SALE.every(i => has(y, i.id));
 
-/** His Goal: what he tapped and couldn't afford, else the cheapest new thing, else the cheapest again-and-again thing. */
-export function goalOf(y: YardState): Want | null {
+/** His Goal: what he tapped, else the cheapest new thing at least a Round's Tokens more than he has (so the bar fills toward something
+ *  worth saving for, not something he could buy now or after one more Token), else the cheapest again-and-again thing like that, else the
+ *  cheapest of all. */
+export const SAVE_FOR = 10;
+export function goalOf(y: YardState, balance = 0): Want | null {
   if (y.goal) { const w = wantOf(y.goal); if (buyable(y, w)) return w; }
-  return shopNow(y)[0] ?? repeatsNow(y)[0] ?? null;
+  const shop = shopNow(y), more = repeatsNow(y), dear = (w: Want) => priceOf(y, w) >= balance + SAVE_FOR;
+  return shop.find(dear) ?? more.find(dear) ?? shop[0] ?? more[0] ?? null;
 }
 export const selectGoal = (y: YardState, w: Want): YardState => ({ ...y, goal: wantKey(w) });
 

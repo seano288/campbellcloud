@@ -38,11 +38,12 @@ export function Home({ status }: { status: ComponentChildren }) {
           <span class="e">▶</span>
         </button>
         <button class="tile t-base" aria-label="Coaster Yard" onClick={() => { if (voice.active) screen.value = 'yard'; }}>
-          <span class="cc-yard-art" aria-hidden="true">🎡🎠🎢</span>
+          <span class="cc-awning" aria-hidden="true" /><span class="cc-yard-art" aria-hidden="true">🎡🎠🎢</span>
           <span class="nm">Coaster Yard</span>
           {y.rides > 0 && <span class="race-badge" aria-hidden="true">🎢 {y.rides}</span>}
         </button>
         <div class="tile t-next" aria-label="Next Guest Coaster">
+          <span class="cc-next-pic" aria-hidden="true"><CoasterThumb pieces={g.pieces} style={g.style} weather={g.weather} /></span>
           <span class="next-words">
             <span class="board-head" aria-hidden="true">🎟️ Next</span>
             <span class="nd-name" aria-hidden="true">{guestLabel(g.n)}</span>

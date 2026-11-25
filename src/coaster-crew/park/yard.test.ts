@@ -3,7 +3,7 @@ import { fitsAfter, pieceOf } from '../coaster/pieces';
 import { check } from '../coaster/track';
 import { MAX_CARS, MAX_SLOTS, SPOTS_PER_PLOT, START_SLOTS } from './catalog';
 import {
-  addPiece, applyFix, bought, canRideMine, coasterOf, finishRide, fixesFor, freshYard, LEGEND_EVERY, MOST_RIDE_TOKENS, payFor, planRide, proposePurchase, putOnSpot,
+  addPiece, applyFix, bought, canRideMine, goalOf, priceOf, SAVE_FOR, selectGoal, coasterOf, finishRide, fixesFor, freshYard, LEGEND_EVERY, MOST_RIDE_TOKENS, payFor, planRide, proposePurchase, putOnSpot,
   rankOf, RANKS, readYard, ridersPerRide, slotsOf, STARTER_COASTER, takeLast, trayFor, unplaced, wear, type YardState,
 } from './yard';
 
@@ -144,5 +144,16 @@ describe('reading a save', () => {
     expect(y.guest).toBe(12);
     expect(y.prizes).toEqual(['pc:triple']);
     expect(y.trophies).toEqual(['first']);
+  });
+});
+
+describe('the Goal', () => {
+  it('fills toward something worth saving for: never a thing he can already buy, unless he picked it', () => {
+    for (const balance of [0, 3, 25, 80, 200]) {
+      const g = goalOf(freshYard(), balance)!;
+      expect(priceOf(freshYard(), g)).toBeGreaterThanOrEqual(balance + SAVE_FOR);
+    }
+    const picked = selectGoal(freshYard(), { kind: 'item', id: 'pc:brakes' });
+    expect(goalOf(picked, 80)).toEqual({ kind: 'item', id: 'pc:brakes' });
   });
 });

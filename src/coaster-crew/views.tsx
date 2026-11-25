@@ -125,8 +125,8 @@ export function QuestionView({ current, waiting }: { current: Current; waiting: 
         <h2>{q.text}</h2>
         <button class="help-btn" aria-label="Help" onClick={() => current.actions.help(() => help(current.problem, current.signal))}>🔎</button>
       </div>
-      <div class="cc-body">
-        <div class="cc-stage"><SceneCanvas q={q} player={player} label={q.text} /></div>
+      <div class={cls('cc-body', `sb-${q.scene.type}`)}>
+        <div class={cls('cc-stage', `st-${q.scene.type}`)}><SceneCanvas q={q} player={player} label={q.text} /></div>
         <div class={cls('cc-choices', `n${q.choices.length}`)}>
           {q.choices.map((id, i) => (
             <button key={id} class={cls('choice', 'cc-choice', `ck-${q.choiceKind}`, wrong.includes(id) && 'wrong', (done === id || hint === id) && 'right', lit === id && 'lit')}
