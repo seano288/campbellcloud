@@ -5,23 +5,35 @@
 //   npx tsx tools/sentence-express/clips.ts [url] [out.json]
 import { writeFileSync } from 'node:fs';
 import { chromium } from 'playwright';
+import type { VoicePackIndex } from '../../src/audio/packs';
 import { CLIPS } from '../../src/sentence-express/voice.gen';
+import { expressBuild } from '../sentence-express-build';
+import { packVoice, selectedVoice } from '../static-build';
 
 const [url = 'http://localhost:5194/', out = 'clips.json'] = process.argv.slice(2);
 const browser = await chromium.launch();
 const page = await browser.newPage();
 await page.goto(url);
 await page.evaluate('window.__name = f => f'); // tsx names the helpers inside evaluate()
-const rows = await page.evaluate(async (clips: [string, string][]) => {
+const { index } = packVoice(selectedVoice(expressBuild));
+const rows = await page.evaluate(async ({ clips, index }: { clips: [string, string][]; index: VoicePackIndex }) => {
   const ctx = new OfflineAudioContext(1, 1, 44100);
   // the game's trim (src/sentence-express/voice.tsx): the speech, 20 ms before it, and a gap after it
   const QUIET = 0.002, LEAD_S = 0.02, GAP = { piece: 0.03, sentence: 0.24 };
   const out = [];
+  // the clips come in packs (tools/voice-packs.ts), as the game fetches them: each pack once, each clip a slice of it
+  const packs = new Map<string, Blob>();
   for (const [text, file] of clips) {
-    const res = await fetch(`./voice/${file}`);
-    if (!res.ok) { out.push({ text, file, error: `HTTP ${res.status}` }); continue; }
+    const at = index.clips[file];
+    if (!at) { out.push({ text, file, error: 'not in a voice pack' }); continue; }
+    const pack = index.packs[at[0]]!.file;
+    if (!packs.has(pack)) {
+      const res = await fetch(`./voice/${pack}`);
+      if (!res.ok) { out.push({ text, file, error: `HTTP ${res.status} for ${pack}` }); continue; }
+      packs.set(pack, await res.blob());
+    }
     let buf: AudioBuffer;
-    try { buf = await ctx.decodeAudioData(await res.arrayBuffer()); } catch (e) { out.push({ text, file, error: String(e) }); continue; }
+    try { buf = await ctx.decodeAudioData(await packs.get(pack)!.slice(at[1], at[1] + at[2]).arrayBuffer()); } catch (e) { out.push({ text, file, error: String(e) }); continue; }
     const s = buf.getChannelData(0), n = s.length, rate = buf.sampleRate;
     let first = 0, last = n - 1, peak = 0, clipped = 0, sum = 0;
     for (let i = 0; i < n; i++) { const a = Math.abs(s[i]!); if (a > peak) peak = a; if (a >= 0.99) clipped++; sum += a * a; }
@@ -41,7 +53,7 @@ const rows = await page.evaluate(async (clips: [string, string][]) => {
     });
   }
   return out;
-}, Object.entries(CLIPS) as [string, string][]);
+}, { clips: Object.entries(CLIPS) as [string, string][], index });
 await browser.close();
 writeFileSync(out, JSON.stringify(rows, null, 1));
 

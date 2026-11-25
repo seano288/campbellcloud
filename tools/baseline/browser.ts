@@ -5,7 +5,7 @@ import { preview } from 'vite';
 import type { Save } from '../../src/save/migrate';
 import { CLIPS } from '../../src/voice/voice.gen';
 import { FRESH_EXPECTED, JOURNEY_SAVES, NOW, PROGRESSED_EXPECTED, STORAGE_KEY, TODAY } from './saves';
-import { observeRecordedVoice } from './voice';
+import { holdClip, observeRecordedVoice } from './voice';
 import { button, correctChoice, fillPayment, finishShow, missChoice, modeName, openSheet, purchaseSnapshots, recordPurchaseSnapshots, saved, solve, waitForAssertion, watchBlocker, watchToast } from './play';
 import { fixtureScript } from './fixture';
 import { presentationJourneys } from './presentationJourneys';
@@ -193,7 +193,7 @@ journey('Learn cancels a held explanation and detached answer before the replace
   let release!: () => void;
   const held = new Promise<void>(resolve => { release = resolve; });
   let requested = false;
-  await page.route(`**/voice/${CLIPS['Try again!']}`, async route => { requested = true; await held; await route.continue(); });
+  await holdClip(page, CLIPS['Try again!']!, held, () => { requested = true; });
   try {
     await button(page, 'Start').click();
     await page.evaluate(() => { Math.random = () => 0.5; });
@@ -226,7 +226,6 @@ journey('Learn cancels a held explanation and detached answer before the replace
     assert.equal((await saved(page)).bolts, 0);
   } finally {
     release();
-    await page.unrouteAll({ behavior: 'wait' });
   }
 });
 
@@ -338,7 +337,7 @@ for (const mode of ['count', 'pay'] as const) {
     const held = new Promise<void>(resolve => { release = resolve; });
     let requested = false;
     const clip = mode === 'count' ? 'Not quite!' : 'Almost!';
-    await page.route(`**/voice/${CLIPS[clip]}`, async route => { requested = true; await held; await route.continue(); });
+    await holdClip(page, CLIPS[clip]!, held, () => { requested = true; });
     try {
       await button(page, 'Start').click();
       await button(page, modeName[mode]).click();
@@ -376,7 +375,6 @@ for (const mode of ['count', 'pay'] as const) {
       assert.deepEqual((await saved(page)).modes[mode].window, ['clean']);
     } finally {
       release();
-      await page.unrouteAll({ behavior: 'wait' });
     }
   });
 }
@@ -717,7 +715,7 @@ journey('Scoped recorded voice cancels pending checkout teaching before a replac
   let release!: () => void;
   const held = new Promise<void>(resolve => { release = resolve; });
   let requested = false;
-  await page.route(`**/voice/${CLIPS['Almost!']}`, async route => { requested = true; await held; await route.continue(); });
+  await holdClip(page, CLIPS['Almost!']!, held, () => { requested = true; });
   try {
     await button(page, 'Start').click();
     await button(page, 'Garage').click();
@@ -746,7 +744,6 @@ journey('Scoped recorded voice cancels pending checkout teaching before a replac
     assert.equal(await page.locator('.blocker').count(), 0);
   } finally {
     release();
-    await page.unrouteAll({ behavior: 'wait' });
   }
 });
 

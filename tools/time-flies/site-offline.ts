@@ -7,7 +7,7 @@ import { extname, join, normalize } from 'node:path';
 import { chromium } from 'playwright';
 
 const root = join(import.meta.dirname, '../../dist-site'), types: Record<string, string> = {
-  '.html': 'text/html', '.js': 'text/javascript', '.css': 'text/css', '.png': 'image/png', '.jpg': 'image/jpeg', '.mp3': 'audio/mpeg',
+  '.html': 'text/html', '.js': 'text/javascript', '.css': 'text/css', '.png': 'image/png', '.jpg': 'image/jpeg', '.mp3': 'audio/mpeg', '.bin': 'application/octet-stream',
   '.webmanifest': 'application/manifest+json', '.woff2': 'font/woff2', '.woff': 'font/woff', '.hdr': 'application/octet-stream', '.svg': 'image/svg+xml',
 };
 const server = createServer(async (req, res) => {
@@ -30,7 +30,7 @@ await page.evaluate(async () => { await navigator.serviceWorker.ready; });
 await page.getByLabel('Time Flies').click();
 await page.waitForURL('**/time-flies/');
 await page.evaluate(async () => { await navigator.serviceWorker.ready; });
-await page.waitForTimeout(8000); // precache 670 files
+await page.waitForTimeout(8000); // precache the game and its voice packs
 const cached = await page.evaluate(async () => (await Promise.all((await caches.keys()).map(async k => (await (await caches.open(k)).keys()).length))).reduce((a, b) => a + b, 0));
 console.log('cached entries:', cached);
 await context.setOffline(true);
@@ -38,8 +38,15 @@ await page.reload();
 await page.getByLabel('Start').click({ timeout: 20000 });
 await page.waitForTimeout(1500);
 const onScreen = await page.locator('.picker-screen, .home-screen').count();
-const voiceOk = await page.evaluate(async () => (await fetch('./voice/' + 'x').catch(() => null)) !== undefined);
-console.log('offline Time Flies start ->', onScreen ? 'picker/home shown' : 'NOT SHOWN', voiceOk);
+// a voice pack still comes, from the precache, with the network gone
+const voiceOk = await page.evaluate(async () => {
+  for (const name of await caches.keys()) for (const req of await (await caches.open(name)).keys()) {
+    const path = new URL(req.url).pathname;
+    if (/\/voice\/[^/]+\.bin$/.test(path)) return (await fetch(path)).ok;
+  }
+  return false;
+});
+console.log('offline Time Flies start ->', onScreen ? 'picker/home shown' : 'NOT SHOWN', voiceOk ? 'voice pack served' : 'NO VOICE PACK');
 await page.goto('http://localhost:5310/campbellcloud/');
 console.log('offline landing tiles:', await page.locator('a.game').count());
 await page.goto('http://localhost:5310/campbellcloud/monster-truck-money/').catch(e => console.log('money offline (not yet visited):', e.message.split('\n')[0]));

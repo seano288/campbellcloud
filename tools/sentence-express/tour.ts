@@ -16,6 +16,8 @@ import { starterLayout } from '../../src/sentence-express/layout/track';
 import { piecesOf } from '../../src/sentence-express/reading/problems';
 import { sentence } from '../../src/sentence-express/sentences/index';
 import { CLIPS } from '../../src/sentence-express/voice.gen';
+import { expressBuild } from '../sentence-express-build';
+import { packVoice, selectedVoice } from '../static-build';
 
 const [url = 'http://localhost:5194/', out = 'tour-shots'] = process.argv.slice(2);
 mkdirSync(out, { recursive: true });
@@ -54,13 +56,18 @@ const page = await context.newPage();
 const cdp: CDPSession | null = process.env.TOUR_BROWSER === 'webkit' ? null : await context.newCDPSession(page);
 // Listens in on the sound: every recorded clip that plays, by its file (followed from the fetch, through decoding and the game's
 // trim, to the buffer that starts), when it starts and stops and whether it was cut off, and every sound effect's first note.
-await page.addInitScript(() => {
+const { index: packs } = packVoice(selectedVoice(expressBuild));
+const clipAt = Object.fromEntries(Object.entries(packs.clips).map(([file, [pack, offset]]) => [`${packs.packs[pack]!.file}@${offset}`, file]));
+await page.addInitScript((clipAt: Record<string, string>) => {
   type V = { f: string; t0: number; t1: number | null; dur: number; cut: boolean };
   const w = window as unknown as { __clips: number; __voice: V[]; __fx: { t: number; type: string; f: number }[]; __ctx: AudioContext[] };
   w.__clips = 0; w.__voice = []; w.__fx = []; w.__ctx = [];
   const tag = new WeakMap<object, string>();
-  const arrayBuffer = Response.prototype.arrayBuffer;
-  Response.prototype.arrayBuffer = async function (this: Response) { const b = await arrayBuffer.call(this); if (/\/voice\//.test(this.url)) tag.set(b, this.url.split('/').pop()!); return b; };
+  // the voice comes in packs (tools/voice-packs.ts): a clip is a slice of its pack's Blob, known by the pack's file and where the slice starts
+  const blob = Response.prototype.blob, slice = Blob.prototype.slice, bytes = Blob.prototype.arrayBuffer;
+  Response.prototype.blob = async function (this: Response) { const b = await blob.call(this); if (/\/voice\//.test(this.url)) tag.set(b, this.url.split('/').pop()!); return b; };
+  Blob.prototype.slice = function (this: Blob, ...a: Parameters<typeof slice>) { const s = slice.apply(this, a), p = tag.get(this), f = p && clipAt[`${p}@${a[0] ?? 0}`]; if (f) tag.set(s, f); return s; };
+  Blob.prototype.arrayBuffer = async function (this: Blob) { const b = await bytes.call(this); const f = tag.get(this); if (f) tag.set(b, f); return b; };
   const decode = BaseAudioContext.prototype.decodeAudioData;
   BaseAudioContext.prototype.decodeAudioData = function (this: BaseAudioContext, b: ArrayBuffer, ...rest: unknown[]) {
     const f = tag.get(b), p = (decode as (...a: unknown[]) => Promise<AudioBuffer>).call(this, b, ...rest);
@@ -92,7 +99,7 @@ await page.addInitScript(() => {
   };
   const Ctx = window.AudioContext;
   window.AudioContext = class extends Ctx { constructor(...a: ConstructorParameters<typeof Ctx>) { super(...a); w.__ctx.push(this); } };
-});
+}, clipAt);
 /** The voice so far: each clip as its phrase, with when it started (ms since the tour began) and whether it was cut off. */
 const CLIP_PHRASE = Object.fromEntries(Object.entries(CLIPS).map(([p, f]) => [f, p]));
 type Heard = { f: string; t0: number; t1: number | null; dur: number; cut: boolean };

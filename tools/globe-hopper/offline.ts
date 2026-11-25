@@ -6,6 +6,8 @@ import assert from 'node:assert/strict';
 import { resolve } from 'node:path';
 import { chromium, type Page } from 'playwright';
 import { preview } from 'vite';
+import { globeBuild } from '../globe-hopper-build';
+import { precachedVoice } from '../static-build';
 
 const server = await preview({ configFile: false, logLevel: 'silent', build: { outDir: resolve(import.meta.dirname, '../../dist-site') }, preview: { host: '127.0.0.1', port: 0 } });
 const url = `${server.resolvedUrls!.local[0]!}globe-hopper/`;
@@ -45,9 +47,10 @@ try {
     for (const name of await caches.keys()) for (const req of await (await caches.open(name)).keys()) paths.push(new URL(req.url).pathname);
     return paths;
   });
-  const clips = cached.filter(p => p.endsWith('.mp3')).length;
-  assert.ok(clips > 600, `only ${clips} voice clips precached`);
-  console.log(`precached ${cached.length} files, ${clips} of them voice clips`);
+  const voice = precachedVoice(globeBuild, cached);
+  assert.deepEqual(voice.missing, [], `${voice.missing.length} of ${voice.packs} voice packs not precached`);
+  assert.ok(voice.clips.size > 600, `only ${voice.clips.size} voice clips in the packs`);
+  console.log(`precached ${cached.length} files, ${voice.packs} of them voice packs with ${voice.clips.size} clips`);
 
   // offline: reload, Start, Play
   await context.setOffline(true);

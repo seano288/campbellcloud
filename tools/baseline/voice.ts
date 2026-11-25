@@ -1,4 +1,7 @@
+import { readFileSync } from 'node:fs';
+import { resolve } from 'node:path';
 import type { Page } from 'playwright';
+import { moneyBuild } from '../money-build';
 
 export interface VoiceEvent {
   kind: 'start' | 'stop' | 'end';
@@ -59,3 +62,29 @@ export async function observeRecordedVoice(page: Page) {
 export const playedToEnd = (events: readonly VoiceEvent[], start: VoiceEvent) =>
   start.kind === 'start' && start.running && start.audible && start.duration > 0 &&
   events.some(end => end.kind === 'end' && end.id === start.id);
+
+/** A money clip's bytes, as the page decodes them, for picking that clip out in decodeAudioData. */
+export const clipBytes = (file: string) => readFileSync(resolve(moneyBuild.voice.root, file)).toString('base64');
+
+let holds = 0;
+
+// Holds one recorded clip from loading until `held` settles, telling `requested` when the game asks for it. The voice
+// comes packed, a few files a game (tools/voice-packs.ts), so a clip can't be held by its URL: it is held at its
+// decode instead, which happens once each time the game loads the clip, as its fetch used to.
+export async function holdClip(page: Page, file: string, held: Promise<unknown>, requested: () => void = () => {}) {
+  const name = `heldClip${++holds}`;
+  await page.exposeFunction(name, async () => { requested(); await held; });
+  const hold = ({ name, bytes }: { name: string; bytes: string }) => {
+    const clip = Uint8Array.from(atob(bytes), c => c.charCodeAt(0));
+    const decode = AudioContext.prototype.decodeAudioData;
+    AudioContext.prototype.decodeAudioData = function (data, ...rest) {
+      const view = new Uint8Array(data);
+      if (view.length !== clip.length || view.some((b, i) => b !== clip[i])) return decode.call(this, data, ...rest);
+      const wait: () => Promise<void> = Reflect.get(window, name);
+      return wait().then(() => decode.call(this, data, ...rest));
+    };
+  };
+  const bytes = clipBytes(file);
+  await page.addInitScript(hold, { name, bytes });
+  await page.evaluate(hold, { name, bytes });
+}

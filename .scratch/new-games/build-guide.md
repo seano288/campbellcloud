@@ -38,7 +38,7 @@ Rover Code touched exactly these places. Do the same for the new slug:
 - `tools/site-build.ts`: import the build, add the tile to the **Learning Games** section, add the build step
 - `tools/phrases.ts`: register the phrase collection
 - `tools/make_voice.py`: add the usage line and the voice choice
-- `public/<slug>-voice/`: the recorded clips
+- `public/<slug>-voice/`: the recorded clips, one mp3 a phrase (the build packs them; see Voice recording)
 - `GLOSSARY.md`: a section for the game's own terms
 - `docs/adr/0002-family-site-one-folder-per-game.md`: add the save key and the tile to the lists there
 - `.scratch/<slug>/spec.md`: write it in the style of the Rover Code spec once the design settles. Mark every decision you made as a default for the parent to confirm, and end with open questions and a "Not done" list.
@@ -120,6 +120,7 @@ Competition is optional. A reward he builds and plays with does not need a rival
 - Use `en-US-AriaNeural` at `-8%`. The default voice (Ava) blurs short vowels ("did" sounds like "dead"), which matters for anything about reading.
 - The voice mangles some text. `SAID_AS` and `speakable()` in `make_voice.py` hold the fixes found so far (a lone "cat" comes out as "Kate"; letter names are recorded as "R." not "ar"). Listen to a sample of new clips, especially single words, and add fixes there.
 - Report any clip you could not record or that still sounds wrong.
+- The recordings stay one mp3 a phrase in `public/<slug>-voice/`, but the build doesn't ship them that way: it packs the clips the game selects into at most 16 files, `voice/<0-f>-<hash>.bin`, grouped by the first character of the clip's name, with where each clip sits built into the game's script (`voicePacks` in `tools/static-build.ts`, `src/audio/packs.ts`). Cloudflare's free plan takes at most 20,000 files for the whole site, and a file a clip came to more than that. There is nothing to wire for a new game: pass the voice root and collection in `tools/<slug>-build.ts` as the others do, and the dev server serves the same packs. In the browser's network tab you see a few pack requests, each pack once, not a request a clip; no `.mp3` is in `dist-site/`. The build fails if a pack would be over 25 MiB, Cloudflare's limit for one file (the biggest today is about 2 MB).
 
 ## Bugs the last build hit, so check for them
 
@@ -132,7 +133,8 @@ Competition is optional. A reward he builds and plays with does not need a rival
 - `npm run typecheck`, `npm run typecheck:pairings`, `npm test` and `npm run build:site` all pass.
 - Vitest tests in the style of `src/rover-code/*.test.ts`: every generated question has exactly one right answer and matches its Level; content tables are checked for the ambiguities the brief names; saving, prices and payouts are covered; a scripted child can always finish the action reward; the economy test and the generated-content test from "Rewards that never run out" pass; where there is a rival, the three scripted children from "Competition" get the results it asks for.
 - A browser tour script like `tools/rover-code/tour.ts` that plays as a child would: a whole Round with one deliberate miss, a purchase, and the action reward to its end. Run it at 810×1080, 1080×810, 390×844 and 844×390, on a new save and on saves with every kind open at Level 2 and Level 3. It should fail on buttons off screen or under 44px.
-- On the production build, a Round still starts after going offline (`npm run check:offline` shows how the others check it).
+- On the production build, a Round still starts after going offline, and its voice is said (`npm run check:offline` shows how the others check it; the games' own `tools/<slug>/offline.ts` check every voice pack is precached with `precachedVoice` from `tools/static-build.ts`).
+- `find dist-site -type f | wc -l` stays well under 20,000 (about 800 with 24 games).
 
 ## Final report
 

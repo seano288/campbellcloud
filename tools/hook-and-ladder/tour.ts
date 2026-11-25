@@ -12,6 +12,8 @@
 import { mkdirSync, writeFileSync } from 'node:fs';
 import { chromium, type CDPSession } from 'playwright';
 import { CLIPS } from '../../src/hook-and-ladder/voice.gen';
+import { ladderBuild } from '../hook-and-ladder-build';
+import { packVoice, selectedVoice } from '../static-build';
 
 const [url = 'http://localhost:5187/', out = 'tour-shots'] = process.argv.slice(2);
 mkdirSync(out, { recursive: true });
@@ -45,13 +47,18 @@ const context = await browser.newContext({ viewport: VIEW, deviceScaleFactor: 1,
 const page = await context.newPage();
 const cdp: CDPSession = await context.newCDPSession(page);
 // Listens in on the voice: every recorded clip that plays, by its file, when it starts and stops.
-await page.addInitScript(() => {
+const { index: packs } = packVoice(selectedVoice(ladderBuild));
+const clipAt = Object.fromEntries(Object.entries(packs.clips).map(([file, [pack, offset]]) => [`${packs.packs[pack]!.file}@${offset}`, file]));
+await page.addInitScript((clipAt: Record<string, string>) => {
   type V = { f: string; t0: number; t1: number | null; dur: number };
   const w = window as unknown as { __clips: number; __voice: V[] };
   w.__clips = 0; w.__voice = [];
   const tag = new WeakMap<object, string>();
-  const arrayBuffer = Response.prototype.arrayBuffer;
-  Response.prototype.arrayBuffer = async function (this: Response) { const b = await arrayBuffer.call(this); if (/\/voice\//.test(this.url)) tag.set(b, this.url.split('/').pop()!); return b; };
+  // the voice comes in packs (tools/voice-packs.ts): a clip is a slice of its pack's Blob, known by the pack's file and where the slice starts
+  const blob = Response.prototype.blob, slice = Blob.prototype.slice, bytes = Blob.prototype.arrayBuffer;
+  Response.prototype.blob = async function (this: Response) { const b = await blob.call(this); if (/\/voice\//.test(this.url)) tag.set(b, this.url.split('/').pop()!); return b; };
+  Blob.prototype.slice = function (this: Blob, ...a: Parameters<typeof slice>) { const s = slice.apply(this, a), p = tag.get(this), f = p && clipAt[`${p}@${a[0] ?? 0}`]; if (f) tag.set(s, f); return s; };
+  Blob.prototype.arrayBuffer = async function (this: Blob) { const b = await bytes.call(this); const f = tag.get(this); if (f) tag.set(b, f); return b; };
   const decode = BaseAudioContext.prototype.decodeAudioData;
   BaseAudioContext.prototype.decodeAudioData = function (this: BaseAudioContext, b: ArrayBuffer, ...rest: unknown[]) {
     const f = tag.get(b), p = (decode as (...a: unknown[]) => Promise<AudioBuffer>).call(this, b, ...rest);
@@ -72,7 +79,7 @@ await page.addInitScript(() => {
     }
     return start.apply(this, a);
   };
-});
+}, clipAt);
 const CLIP_PHRASE = Object.fromEntries(Object.entries(CLIPS).map(([p, f]) => [f, p]));
 page.on('pageerror', e => problems.push(`pageerror: ${e.message} ${(e.stack ?? '').split('\n').slice(1, 4).join(' | ')}`));
 page.on('console', m => { if (m.type() === 'error' && !/favicon|manifest|MIME/.test(m.text())) problems.push(`console: ${m.text()}`); });

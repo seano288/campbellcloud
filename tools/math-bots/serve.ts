@@ -7,7 +7,7 @@ import { extname, join, normalize, resolve } from 'node:path';
 const root = resolve(import.meta.dirname, '../../dist-site'), port = Number(process.argv[2] ?? 5211);
 const TYPES: Record<string, string> = {
   '.html': 'text/html', '.js': 'text/javascript', '.css': 'text/css', '.json': 'application/json', '.webmanifest': 'application/manifest+json', '.svg': 'image/svg+xml',
-  '.png': 'image/png', '.jpg': 'image/jpeg', '.mp3': 'audio/mpeg', '.wasm': 'application/wasm', '.woff': 'font/woff', '.woff2': 'font/woff2',
+  '.png': 'image/png', '.jpg': 'image/jpeg', '.mp3': 'audio/mpeg', '.bin': 'application/octet-stream', '.wasm': 'application/wasm', '.woff': 'font/woff', '.woff2': 'font/woff2',
 };
 createServer((req, res) => {
   const path = decodeURIComponent((req.url ?? '/').split('?')[0]!);

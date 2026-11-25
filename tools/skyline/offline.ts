@@ -7,6 +7,8 @@ import { resolve } from 'node:path';
 import { chromium } from 'playwright';
 import { preview } from 'vite';
 import { CLIPS } from '../../src/skyline/voice.gen';
+import { skylineBuild } from '../skyline-build';
+import { precachedVoice } from '../static-build';
 
 const server = await preview({ configFile: false, logLevel: 'silent', build: { outDir: resolve(import.meta.dirname, '../../dist-site') }, preview: { host: '127.0.0.1', port: 0 } });
 const url = `${server.resolvedUrls!.local[0]!}skyline/`;
@@ -32,12 +34,12 @@ try {
     for (const name of await caches.keys()) for (const req of await (await caches.open(name)).keys()) paths.push(new URL(req.url).pathname);
     return paths;
   });
-  const clips = cached.filter(p => p.includes('/skyline-voice/') || p.endsWith('.mp3')).length;
-  // every clip the game can say, not just most of them
-  const files = new Set(cached.map(p => p.split('/').pop()));
-  const missing = [...new Set(Object.values(CLIPS))].filter(f => !files.has(f));
-  assert.deepEqual(missing, [], `${missing.length} voice clips not precached`);
-  console.log(`precached ${cached.length} files, ${clips} of them voice clips`);
+  const voice = precachedVoice(skylineBuild, cached);
+  assert.deepEqual(voice.missing, [], `${voice.missing.length} of ${voice.packs} voice packs not precached`);
+  // every clip the game can say is in a pack, not just most of them
+  const unpacked = [...new Set(Object.values(CLIPS))].filter(f => !voice.clips.has(f));
+  assert.deepEqual(unpacked, [], `${unpacked.length} voice clips not in a pack`);
+  console.log(`precached ${cached.length} files, ${voice.packs} of them voice packs with ${voice.clips.size} clips`);
 
   // offline: reload, Start, Play
   await context.setOffline(true);

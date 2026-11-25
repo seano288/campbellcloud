@@ -2,6 +2,9 @@ import assert from 'node:assert/strict';
 import type { Page } from 'playwright';
 import { fixtureScript } from './fixture';
 import { JOURNEY_SAVES, STORAGE_KEY } from './saves';
+import { holdClip } from './voice';
+import { moneyBuild } from '../money-build';
+import { packVoice, selectedVoice } from '../static-build';
 import { CLIPS } from '../../src/voice/voice.gen';
 
 export const celebrationJourneys: { name: string; seed: unknown; run(page: Page): Promise<void> }[] = [];
@@ -25,16 +28,23 @@ async function controlAnimations(page: Page) {
 }
 
 async function controlVoice(page: Page, holdAnnouncement = false) {
-  const announcement = CLIPS['You can build something new!'];
-  assert.ok(announcement);
-  await page.evaluate(({ holdAnnouncement, announcement }) => {
+  const file = CLIPS['You can build something new!'];
+  assert.ok(file);
+  // Every pack arrives at once, its bytes blank but for a mark where the announcement is, so the show never waits on the network.
+  const { index } = packVoice(selectedVoice(moneyBuild));
+  const [pack, offset] = index.clips[file]!;
+  const announced = { file: index.packs[pack]!.file, offset };
+  await page.evaluate(({ holdAnnouncement, packs, announced }) => {
     const fetch = window.fetch;
     window.fetch = function (input, init) {
-      return typeof input === 'string' && input.startsWith('./voice/') ? Promise.resolve(new Response(input)) : fetch.call(this, input, init);
+      if (typeof input !== 'string' || !input.startsWith('./voice/')) return fetch.call(this, input, init);
+      const pack = packs.find(p => input === `./voice/${p.file}`), body = new Uint8Array(pack?.bytes ?? 0);
+      if (pack?.file === announced.file) body.set(new TextEncoder().encode('announcement'), announced.offset);
+      return Promise.resolve(new Response(body));
     };
     AudioContext.prototype.decodeAudioData = function (data) {
       const buffer = this.createBuffer(1, this.sampleRate / 10, this.sampleRate);
-      if (holdAnnouncement && new TextDecoder().decode(data).endsWith(announcement)) {
+      if (holdAnnouncement && new TextDecoder().decode(data).startsWith('announcement')) {
         const marker = document.createElement('output');
         marker.id = 'announcement-pending';
         document.body.appendChild(marker);
@@ -45,7 +55,7 @@ async function controlVoice(page: Page, holdAnnouncement = false) {
     AudioBufferSourceNode.prototype.start = function () {
       setTimeout(() => this.dispatchEvent(new Event('ended')), (this.buffer?.duration ?? 0) * 1000);
     };
-  }, { holdAnnouncement, announcement });
+  }, { holdAnnouncement, packs: index.packs, announced });
 }
 
 async function present(page: Page, fixture = 'completionPresentation') {
@@ -225,7 +235,7 @@ for (const outcome of ['resolve', 'reject'] as const) {
     assert.ok(oldHome);
     let release!: () => void;
     const pending = new Promise<void>(resolve => { release = resolve; });
-    await page.route(`**/voice/${CLIPS['You can build something new!']}`, async route => { await pending; await route.continue(); });
+    await holdClip(page, CLIPS['You can build something new!']!, pending);
     try {
       await page.getByRole('button', { name: 'Replace show', exact: true }).click();
       await page.getByRole('button', { name: 'Speak replacement', exact: true }).click();
@@ -241,7 +251,6 @@ for (const outcome of ['resolve', 'reject'] as const) {
       assert.equal(await page.locator('#saved-state').textContent(), await page.locator('#before-state').textContent());
     } finally {
       release();
-      await page.unrouteAll({ behavior: 'wait' });
     }
   });
 }

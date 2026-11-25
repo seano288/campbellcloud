@@ -54,7 +54,7 @@ await page.addInitScript(() => {
 });
 page.on('pageerror', e => problems.push(`pageerror: ${e.message}`));
 page.on('response', r => { if (r.status() >= 400) problems.push(`HTTP ${r.status()}: ${r.url()}`); });
-page.on('requestfailed', r => { if (!/\.mp3/.test(r.url()) || !/ERR_ABORTED/.test(r.failure()?.errorText ?? '')) problems.push(`request failed: ${r.url()} ${r.failure()?.errorText ?? ''}`); });
+page.on('requestfailed', r => { if (!/\/voice\//.test(r.url()) || !/ERR_ABORTED/.test(r.failure()?.errorText ?? '')) problems.push(`request failed: ${r.url()} ${r.failure()?.errorText ?? ''}`); });
 page.on('console', m => { if (m.type() === 'error' && !/favicon|manifest|MIME/.test(m.text())) problems.push(`console: ${m.text()}`); });
 await page.addInitScript(s => {
   if (sessionStorage.getItem('seeded')) return;

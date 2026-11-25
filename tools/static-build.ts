@@ -3,11 +3,12 @@ import { readFileSync } from 'node:fs';
 import { isAbsolute, relative, resolve } from 'node:path';
 import preact from '@preact/preset-vite';
 import { VitePWA } from 'vite-plugin-pwa';
-import type { InlineConfig, Plugin } from 'vite';
+import type { InlineConfig, Plugin, ViteDevServer } from 'vite';
 import type { VoiceCollection } from '../src/voice/collection';
 import type { AppEntry } from '../src/entry';
 import { favicon, homeScreenIcons, type IconArtwork } from './icons';
 import { voiceCheck } from './voice-check';
+import { PACK_LIMIT, packClips } from './voice-packs';
 
 export interface StaticSelection<P extends string = string> {
   entry: AppEntry<P>;
@@ -27,20 +28,31 @@ export interface StaticSelection<P extends string = string> {
 
 const htmlValue = (value: string) => value.replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[c]!);
 
-function selectedAssets(selection: Pick<StaticSelection, 'assets' | 'voice'>): Plugin {
+function within(root: string, file: string) {
+  const path = resolve(root, file), inside = relative(resolve(root), path);
+  if (inside.startsWith('..') || isAbsolute(inside)) throw new Error(`Selected asset escapes its root: ${file}`);
+  return path;
+}
+
+function serve(server: ViteDevServer, files: ReadonlyMap<string, Buffer>, types: Readonly<Record<string, string>>) {
+  server.middlewares.use((req, res, next) => {
+    const name = req.url?.split('?')[0]?.replace(/^\//, '');
+    const file = name && files.get(name);
+    if (!file) return next();
+    const type = Object.entries(types).find(([ending]) => name.endsWith(ending))?.[1];
+    if (type) res.setHeader('Content-Type', type);
+    res.end(file);
+  });
+}
+
+function selectedAssets(selection: Pick<StaticSelection, 'assets'>): Plugin {
   function files() {
     const files = new Map<string, Buffer>();
-    const sources = [
-      ...selection.assets.map(asset => ({ ...asset, directory: '' })),
-      { root: selection.voice.root, directory: 'voice/', files: selection.voice.collection.phrases.map(phrase => selection.voice.collection.clips[phrase]!) },
-    ];
-    for (const source of sources) for (const file of source.files) {
-      const path = resolve(source.root, file), within = relative(resolve(source.root), path);
-      if (within.startsWith('..') || isAbsolute(within)) throw new Error(`Selected asset escapes its root: ${file}`);
-      const name = source.directory + file, bytes = readFileSync(path);
-      const previous = files.get(name);
-      if (previous && !previous.equals(bytes)) throw new Error(`Conflicting selected asset: ${name}`);
-      files.set(name, bytes);
+    for (const source of selection.assets) for (const file of source.files) {
+      const bytes = readFileSync(within(source.root, file));
+      const previous = files.get(file);
+      if (previous && !previous.equals(bytes)) throw new Error(`Conflicting selected asset: ${file}`);
+      files.set(file, bytes);
     }
     return files;
   }
@@ -49,18 +61,49 @@ function selectedAssets(selection: Pick<StaticSelection, 'assets' | 'voice'>): P
     generateBundle() {
       for (const [fileName, source] of files()) this.emitFile({ type: 'asset', fileName, source });
     },
-    configureServer(server) {
-      const selected = files();
-      server.middlewares.use((req, res, next) => {
-        const name = req.url?.split('?')[0]?.replace(/^\//, '');
-        const file = name && selected.get(name);
-        if (!file) return next();
-        if (name.endsWith('.mp3')) res.setHeader('Content-Type', 'audio/mpeg');
-        if (name.endsWith('.svg')) res.setHeader('Content-Type', 'image/svg+xml');
-        if (name.endsWith('.wasm')) res.setHeader('Content-Type', 'application/wasm');
-        res.end(file);
-      });
+    configureServer: server => serve(server, files(), { '.mp3': 'audio/mpeg', '.svg': 'image/svg+xml', '.wasm': 'application/wasm' }),
+  };
+}
+
+type SelectedVoice = { root: string; collection: Pick<VoiceCollection<string>, 'id' | 'phrases' | 'clips'> };
+
+/** The voice a build selects: just the recordings of the phrases its entry says. */
+export function selectedVoice(selection: Pick<StaticSelection, 'entry' | 'voice'>): SelectedVoice {
+  return { root: selection.voice.root, collection: { ...selection.voice.collection, phrases: selection.entry.voice.phrases } };
+}
+
+/** The selected clips in their packs, as a build has them. */
+export function packVoice(voice: SelectedVoice) {
+  return packClips(new Map(
+    voice.collection.phrases.flatMap(phrase => voice.collection.clips[phrase] ?? []).map(file => [file, readFileSync(within(voice.root, file))]),
+  ));
+}
+
+/** For the offline checks: which of a build's voice packs aren't among the precached paths (none, when all is well). */
+export function precachedVoice(selection: Pick<StaticSelection, 'entry' | 'voice'>, cached: readonly string[]) {
+  const names = new Set(cached.map(path => path.split('/').pop()));
+  const { index } = packVoice(selectedVoice(selection));
+  return {
+    packs: index.packs.length,
+    clips: new Set(Object.keys(index.clips)),
+    missing: index.packs.map(pack => pack.file).filter(file => !names.has(file)),
+  };
+}
+
+/** Builds the selected clips into packs (tools/voice-packs.ts) in voice/, and hands the game where each clip is as
+ * `virtual:voice-packs` (src/audio/recorded.ts). The dev server serves the same packs. No clip is a file of its own. */
+export function voicePacks(voice: SelectedVoice): Plugin {
+  const id = 'virtual:voice-packs';
+  let packed: ReturnType<typeof packClips> | undefined;
+  const packs = () => packed ??= packVoice(voice);
+  return {
+    name: 'voice-packs',
+    resolveId: source => source === id ? `\0${id}` : undefined,
+    load: loaded => loaded === `\0${id}` ? `export default ${JSON.stringify(packs().index)};` : undefined,
+    generateBundle() {
+      for (const pack of packs().packs) this.emitFile({ type: 'asset', fileName: `voice/${pack.file}`, source: pack.bytes });
     },
+    configureServer: server => serve(server, new Map(packs().packs.map(pack => [`voice/${pack.file}`, pack.bytes])), { '.bin': 'application/octet-stream' }),
   };
 }
 
@@ -73,7 +116,7 @@ function buildLabel() {
 
 export function staticBuild<const P extends string>(selection: StaticSelection<P>): InlineConfig {
   const { branding } = selection;
-  const voice = { root: selection.voice.root, collection: { ...selection.voice.collection, phrases: selection.entry.voice.phrases } };
+  const voice = selectedVoice(selection);
   const values: Record<string, string> = {
     APP_TITLE: branding.title, APP_SHORT_NAME: branding.shortName, APP_BACKGROUND: branding.background,
     APP_THEME: branding.theme, APP_ENTRY: selection.entry.file,
@@ -103,7 +146,8 @@ export function staticBuild<const P extends string>(selection: StaticSelection<P
         },
       },
       voiceCheck([voice]),
-      selectedAssets({ assets: selection.assets, voice }),
+      selectedAssets(selection),
+      voicePacks(voice),
       favicon(),
       homeScreenIcons(branding.icon),
       VitePWA({
@@ -125,8 +169,9 @@ export function staticBuild<const P extends string>(selection: StaticSelection<P
           ],
         },
         workbox: {
-          globPatterns: ['**/*.{js,css,html,png,jpg,svg,webp,mp3,woff,woff2,hdr}', ...(selection.offline?.patterns ?? [])],
-          ...(selection.offline && { maximumFileSizeToCacheInBytes: selection.offline.maxFileBytes }),
+          // bin is the voice packs, which can be bigger than the 2 MiB workbox takes by default (but never over PACK_LIMIT)
+          globPatterns: ['**/*.{js,css,html,png,jpg,svg,webp,mp3,bin,woff,woff2,hdr}', ...(selection.offline?.patterns ?? [])],
+          maximumFileSizeToCacheInBytes: Math.max(PACK_LIMIT, selection.offline?.maxFileBytes ?? 0),
           cleanupOutdatedCaches: true,
           // the new version takes over in the background; src/pwa.ts reloads into it only when that can't interrupt him
           skipWaiting: true,

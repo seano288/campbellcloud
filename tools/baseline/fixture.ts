@@ -1,10 +1,13 @@
 import { fileURLToPath } from 'node:url';
 import preact from '@preact/preset-vite';
 import { build } from 'vite';
+import { moneyBuild } from '../money-build';
+import { selectedVoice, voicePacks } from '../static-build';
 
 export async function fixtureScript(entry: URL) {
   const built = await build({
-    configFile: false, plugins: [preact()], logLevel: 'silent',
+    // the money app's voice packs, as dist/ has them, so a fixture's clips play from the preview of dist/
+    configFile: false, plugins: [preact(), voicePacks(selectedVoice(moneyBuild))], logLevel: 'silent',
     build: {
       write: false, assetsInlineLimit: Infinity,
       lib: { entry: fileURLToPath(entry), name: 'BaselineFixture', formats: ['iife'] },
