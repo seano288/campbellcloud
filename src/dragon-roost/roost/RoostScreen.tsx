@@ -9,6 +9,7 @@ import { confetti } from '../../celebrate/effects';
 import { IconButton } from '../../ui/bits';
 import { CurrencyIcon, CurrencyPile } from '../../ui/currency';
 import { dragonPic, eggPic } from '../art/dragon';
+import { MyDragon } from '../art/MyDragon';
 import { drawRoost } from '../art/roostArt';
 import { CUR } from '../branding';
 import { course, FIXED_FLIGHTS, PLACES } from '../flight/course';
@@ -166,7 +167,7 @@ export function RoostScreen() {
         <div class="dr-roost-side">
           <button class={cls('big-btn', 'go', 'fly-btn', a.flights > 0 && 'pulse')} aria-label="Fly"
             onClick={() => { if (!voice.active) return; if (a.flights > 0) fly(); else { sNope(); say('Play a Round to earn a Flight!'); } }}>
-            <span class="fly-plane" aria-hidden="true">🐉</span><span class="fly-word">Fly</span><span class="race-count">{a.flights}</span>
+            <span class="fly-plane" aria-hidden="true"><MyDragon /></span><span class="fly-word">Fly</span><span class="race-count">{a.flights}</span>
           </button>
           {goal && (
             <button class="goal-chip dr-goal" aria-label={`Goal: ${nameOf(goal)}`} onClick={() => tapWant(goal)}>

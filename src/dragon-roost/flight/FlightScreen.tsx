@@ -10,6 +10,7 @@ import { sBoing, sChime, sClink, sFanfare, sPop, sWhoosh, tone } from '../../aud
 import { confetti } from '../../celebrate/effects';
 import { IconButton } from '../../ui/bits';
 import { CurrencyIcon } from '../../ui/currency';
+import { MyDragon } from '../art/MyDragon';
 import { CUR } from '../branding';
 import { player, settleFlight } from '../game';
 import { flightNumber, fly, screen } from '../nav';
@@ -22,6 +23,14 @@ import { useVoice } from '../voice';
 import { CEILING } from './course';
 import { renderFlight, unitFor, viewFor, type Burst } from './render';
 import { NO_INPUT, resultOf, startSim, step, type Input, type Sim } from './sim';
+
+/** A beacon, as the HUD and the results count it: a stone bowl with its fire lit (Flames, the currency, are a flame on its own). */
+const Beacon = ({ size }: { size: number }) => (
+  <svg width={size} height={size} viewBox="0 0 40 40" aria-hidden="true">
+    <path d="M20 4 C24 11 29 13 29 20 C29 25 25 27 20 27 C15 27 11 25 11 20 C11 16 14 14 16 11 C17 14 18 15 19 16 C19 12 19 8 20 4 Z" fill="#ffb02e" stroke="#7a1406" stroke-width="2.5" stroke-linejoin="round" />
+    <path d="M5 23 H35 L30 34 H10 Z" fill="#8e94a0" stroke="#2a1a12" stroke-width="3" stroke-linejoin="round" />
+  </svg>
+);
 
 const still = () => typeof matchMedia === 'function' && matchMedia('(prefers-reduced-motion:reduce)').matches;
 const cls = (...xs: (string | false | null | undefined)[]) => xs.filter(Boolean).join(' ');
@@ -155,7 +164,7 @@ function Flying() {
       <canvas ref={canvas} class="dr-flight" role="img" aria-label="Your dragon flying" onPointerDown={down} onPointerMove={move} onPointerUp={up} onPointerCancel={up} />
       <div class="dr-hud">
         <IconButton label={armed ? 'Tap again to leave' : 'Home'} class={armed ? 'armed' : ''} onClick={home}>🏠</IconButton>
-        <span class="dr-hud-chip" aria-label={`${hud.lit} of ${plan.c.beacons.length} beacons`}>🔥 {hud.lit}/{plan.c.beacons.length}</span>
+        <span class="dr-hud-chip" aria-label={`${hud.lit} of ${plan.c.beacons.length} beacons`}><Beacon size={24} /> {hud.lit}/{plan.c.beacons.length}</span>
         <span class="dr-hud-chip" aria-label={`${hud.flames} Flames caught`}><CurrencyIcon kind={CUR} size={22} /> {hud.flames}</span>
         {plan.best !== null && <span class={cls('dr-hud-chip', 'best', hud.lights > plan.best && 'beat')} aria-label={`${hud.lights}, your best ${plan.best}`}>🏅 {hud.lights}/{plan.best}</span>}
       </div>
@@ -183,7 +192,7 @@ function Flying() {
         <div class="dr-flight-card done">
           <h2>{plan.c.name ?? `Flight ${plan.c.n}`}</h2>
           <div class="dr-results">
-            <span>🔥 {pay.result.lit}/{pay.result.beacons}</span><span>☁️ {pay.result.popped}</span>{pay.result.birds > 0 && <span>🐦 {pay.result.birds}</span>}
+            <span><Beacon size={30} /> {pay.result.lit}/{pay.result.beacons}</span><span>☁️ {pay.result.popped}</span>{pay.result.birds > 0 && <span>🐦 {pay.result.birds}</span>}
             <span><CurrencyIcon kind={CUR} size={22} /> +{pay.flames}</span>
           </div>
           {pay.newBest && <p class="dr-best">🏅 New best!</p>}
@@ -193,7 +202,7 @@ function Flying() {
           {pay.trophies.map(t => <p key={t.id} class="dr-best">{t.icon} {t.name}</p>)}
           <div class="btns">
             <button class="big-btn garage" aria-label="Roost" onClick={() => { screen.value = 'roost'; }}><span class="e">🏔️</span><span class="btn-word">Roost</span></button>
-            {roost.flights > 0 && <button class="big-btn go pulse" aria-label="Fly again" onClick={() => fly()}><span class="e">🐉</span><span class="btn-word">{roost.flights}</span></button>}
+            {roost.flights > 0 && <button class="big-btn go pulse" aria-label="Fly again" onClick={() => fly()}><span class="e"><MyDragon /></span><span class="btn-word">{roost.flights}</span></button>}
             <button class="big-btn go again second" aria-label="Play" onClick={() => { screen.value = 'home'; }}><span class="e">▶</span></button>
           </div>
         </div>

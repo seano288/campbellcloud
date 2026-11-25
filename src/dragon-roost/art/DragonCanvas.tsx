@@ -50,8 +50,9 @@ export function DragonCanvas({ look, opts = {}, class: cls = '', label }: { look
       const cur = o.current;
       if (cur.act !== lastAct) { lastAct = cur.act; t0 = ms; }
       const t = still() ? 0 : (ms - t0) / 1000, { o: drawn, scale } = lookFor(cur.look, cur);
-      const size = Math.min(r.width * .56, r.height * .72) * scale;
-      let x = r.width * .48, y = r.height * .55, rot = 0, flap = cur.flap ?? 1.2, open = drawn.open ?? false;
+      // its wings reach up about three quarters of its length, so it sits a little low and is sized by the height too
+      const size = Math.min(r.width * .54, r.height * .6) * scale;
+      let x = r.width * .48, y = r.height * .6, rot = 0, flap = cur.flap ?? 1.2, open = drawn.open ?? false;
       const k = Math.min(1, t / 1.6);
       switch (cur.act) {
         case 'fly': y -= Math.sin(t * 3) * r.height * .08; x += Math.sin(t * 1.5) * r.width * .08; flap = 3; break;

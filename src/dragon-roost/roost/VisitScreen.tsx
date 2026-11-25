@@ -5,6 +5,7 @@ import { useEffect, useRef, useState } from 'preact/hooks';
 import { sChime, sPop } from '../../audio/sfx';
 import { IconButton } from '../../ui/bits';
 import { drawDragon } from '../art/dragon';
+import { drawMeadow } from '../art/roostArt';
 import { player } from '../game';
 import { screen } from '../nav';
 import { wordPhrase } from '../phrases';
@@ -38,9 +39,7 @@ export function VisitScreen() {
       if (!w) return;
       if (c.width !== Math.round(w * dpr)) { c.width = Math.round(w * dpr); c.height = Math.round(h * dpr); }
       ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
-      const g = ctx.createLinearGradient(0, 0, 0, h); g.addColorStop(0, '#ffb3c6'); g.addColorStop(.45, '#ffe0a8'); g.addColorStop(.46, '#7fcf6a'); g.addColorStop(1, '#3f9b4f');
-      ctx.fillStyle = g; ctx.fillRect(0, 0, w, h);
-      ctx.fillStyle = '#b9735a'; ctx.beginPath(); ctx.moveTo(w * .55, h * .46); ctx.lineTo(w * .78, h * .08); ctx.lineTo(w * 1.02, h * .46); ctx.fill();
+      drawMeadow(ctx, w, h);
       ctx.font = `${Math.min(w, h) * .06}px system-ui`; ctx.textAlign = 'center'; ctx.textBaseline = 'bottom';
       toys.slice(0, 15).forEach((t, i) => ctx.fillText(t.icon, w * (.06 + (i * .061) % .9), h * (.62 + (i % 3) * .13)));
       for (const k of [...walkers.current].sort((p, q) => p.y - q.y)) {

@@ -7,6 +7,7 @@ import { sBad } from '../audio/sfx';
 import { LevelDots } from '../ui/bits';
 import { DragonCanvas } from './art/DragonCanvas';
 import { eggPic } from './art/dragon';
+import { MyDragon } from './art/MyDragon';
 import { course } from './flight/course';
 import { player } from './game';
 import { LOCKED_HINTS, MODE_IDS, MODE_NAMES, type ModeId } from './learning';
@@ -40,12 +41,11 @@ export function Home({ status }: { status: ComponentChildren }) {
           <span class="e">▶</span>
         </button>
         <button class="tile t-roost" aria-label="Roost" onClick={() => { if (voice.active) screen.value = 'roost'; }}>
-          <span class="dr-tile-eggs" aria-hidden="true">
+          <span class={`dr-tile-eggs ${a.eggs.length ? 'nest' : ''}`} aria-hidden="true">
             {a.eggs.slice(0, 4).map((e, i) => <img key={i} src={eggPic(lookOfEgg(e.egg), 64, Math.min(1, e.warmth / hatchNeed(a, e.egg)))} alt="" />)}
-            {!a.eggs.length && <span class="dr-tile-mtn">🏔️</span>}
           </span>
           <span class="nm">Roost</span>
-          {a.flights > 0 && <span class="race-badge" aria-hidden="true">🐉 {a.flights}</span>}
+          {a.flights > 0 && <span class="race-badge" aria-hidden="true"><MyDragon /> {a.flights}</span>}
         </button>
         <div class="tile t-next" aria-label="Next Flight">
           <span class="board-head" aria-hidden="true">🗺️ Next</span>

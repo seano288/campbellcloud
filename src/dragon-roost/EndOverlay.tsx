@@ -9,6 +9,7 @@ import { earnedLine } from '../currency/kind';
 import { IconButton } from '../ui/bits';
 import { CurrencyIcon } from '../ui/currency';
 import { DragonCanvas } from './art/DragonCanvas';
+import { MyDragon } from './art/MyDragon';
 import { CUR } from './branding';
 import { player } from './game';
 import { MODE_NAMES } from './learning';
@@ -54,18 +55,20 @@ export function EndOverlay({ result: r, onFly, onRoost, onAgain, onHome }: { res
   const go = (fn: () => void) => () => { if (awake && voice.active) fn(); };
   return (
     <div class="reward dr-reward">
-      <div class="dr-end-dragon" aria-hidden="true"><DragonCanvas look={lookOf(d)} opts={{ act: 'fly', open: puff > 0 && pile < r.afterBalance, flap: 2.5 }} /></div>
       <h2>Round done!</h2>
-      <div class="bigpile">
-        <CurrencyIcon kind={CUR} size={80} /><span class={bump ? 'bump' : ''}>{pile}</span>
-        {puff > 0 && pile < r.afterBalance && <span key={puff} class="dr-puff" aria-hidden="true"><CurrencyIcon kind={CUR} size={40} /></span>}
+      <div class="dr-end-row">
+        <div class="dr-end-dragon" aria-hidden="true"><DragonCanvas look={lookOf(d)} opts={{ act: 'flap', open: puff > 0 && pile < r.afterBalance, flap: 2.5 }} /></div>
+        <div class="bigpile">
+          {puff > 0 && pile < r.afterBalance && <span key={puff} class="dr-puff" aria-hidden="true"><CurrencyIcon kind={CUR} size={40} /></span>}
+          <CurrencyIcon kind={CUR} size={80} /><span class={bump ? 'bump' : ''}>{pile}</span>
+        </div>
       </div>
-      {earned && <div class="earned-race">🐉 +1 Flight</div>}
+      {earned && <div class="earned-race"><MyDragon /> +1 Flight</div>}
       <div class="lines">{lines.map((l, i) => <div key={i}>{l}</div>)}</div>
       <div class={`btns ${awake ? '' : 'asleep'}`}>
         <button class="big-btn garage dr-roost-btn" aria-label="Roost" onClick={go(onRoost)}><span class="e">🏔️</span><span class="btn-word">Roost</span></button>
         <button class={`big-btn go race-btn dr-fly-btn ${awake ? 'pulse' : ''}`} aria-label="Fly" onClick={go(onFly)}>
-          <span class="race-flag" aria-hidden="true">🐉</span>
+          <span class="race-flag" aria-hidden="true"><MyDragon /></span>
           <span class="race-word">Fly</span>
           <span class="race-count">{roost.flights}</span>
         </button>

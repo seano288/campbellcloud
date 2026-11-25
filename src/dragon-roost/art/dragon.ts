@@ -60,46 +60,68 @@ const OUT = '#2a1a12';
 /** Where the mouth is, from the dragon's middle, in `size` units: breath comes from here. */
 export const MOUTH = { x: .62, y: -.2 } as const;
 
+/** The outline: the family's thick dark line, never heavier than 7px however big the dragon is drawn. */
+const lineFor = (s: number) => Math.min(7, Math.max(1.5, s * .032));
+
 export function drawDragon(ctx: CanvasRenderingContext2D, look: DragonLook, size: number, o: DrawOpts = {}) {
-  const stage = o.stage ?? 2, t = o.t ?? 0, s = size;
+  const stage = o.stage ?? 2, t = o.t ?? 0, s = size, lw = lineFor(s);
   const col = o.paint ?? DRAGON_COLOURS[look.colour % DRAGON_COLOURS.length]!, acc = DRAGON_COLOURS[look.accent % DRAGON_COLOURS.length]!;
-  const dark = shade(col, -.32), belly = shade(col, .62);
+  const belly = shade(col, .62);
   // a hatchling is all head; a great dragon is long and strong
-  const headK = [1.25, 1.08, 1][stage]!, bodyK = [.78, .92, 1][stage]!, wingK = ([.55, .8, 1][stage]!) * (o.wingSize ?? 1);
+  const headK = [1.25, 1.08, 1][stage]!, bodyK = [.78, .92, 1][stage]!, wingK = ([.62, .84, 1][stage]!) * (o.wingSize ?? 1);
   const bodyW = [.5, .62, .56, .46, .52, .58][look.body % 6]! * bodyK, bodyH = [.36, .3, .4, .27, .38, .42][look.body % 6]! * bodyK;
   const beat = Math.sin(t * (o.flap ?? 0) * Math.PI * 2);
+  const pear = look.body % 6 === 4;
+  const bodyPath = () => { ctx.beginPath(); if (pear) ctx.ellipse(-bodyW * s * .15, bodyH * s * .1, bodyW * s * 1.05, bodyH * s, 0, 0, Math.PI * 2); else ctx.ellipse(0, 0, bodyW * s, bodyH * s, -.08, 0, Math.PI * 2); };
   ctx.save();
   ctx.lineJoin = 'round'; ctx.lineCap = 'round';
-  ctx.lineWidth = Math.max(1.5, s * .035);
+  ctx.lineWidth = lw;
   ctx.strokeStyle = OUT;
 
   // ---------- the far wing, behind ----------
-  drawWing(ctx, look.wings, s, wingK, beat, shade(col, -.15), acc, true);
+  drawWing(ctx, look.wings, s, wingK, beat, col, acc, true, lw);
 
-  // ---------- tail ----------
-  const tx = -bodyW * s * .95, ty = bodyH * s * .15;
+  // ---------- tail: thick at the body, curling up to its tip ----------
+  const tx = -bodyW * s * .95, ty = bodyH * s * .15, sway = Math.sin(t * 2) * s * .03;
   ctx.fillStyle = col;
   ctx.beginPath();
-  ctx.moveTo(-bodyW * s * .55, -bodyH * s * .1);
-  ctx.quadraticCurveTo(tx - s * .1, ty - s * .05, tx - s * .28, ty - s * .22 + Math.sin(t * 2) * s * .03);
-  ctx.quadraticCurveTo(tx - s * .02, ty + s * .1, -bodyW * s * .5, bodyH * s * .35);
+  ctx.moveTo(-bodyW * s * .45, -bodyH * s * .4);
+  ctx.quadraticCurveTo(tx - s * .06, ty - s * .08, tx - s * .28, ty - s * .22 + sway);
+  ctx.quadraticCurveTo(tx + s * .02, ty + s * .14, -bodyW * s * .4, bodyH * s * .55);
   ctx.closePath(); ctx.fill(); ctx.stroke();
-  drawTailTip(ctx, look.tail, tx - s * .28, ty - s * .22 + Math.sin(t * 2) * s * .03, s, acc, col);
+  drawTailTip(ctx, look.tail, tx - s * .28, ty - s * .22 + sway, s, acc, col);
 
-  // ---------- legs ----------
-  ctx.fillStyle = dark;
-  for (const lx of [-.28, .22]) { ctx.beginPath(); ctx.ellipse(lx * bodyW * s * 1.6, bodyH * s * .82, s * .07, s * .1, 0, 0, Math.PI * 2); ctx.fill(); ctx.stroke(); }
+  // ---------- spines down its back, in its accent colour ----------
+  ctx.fillStyle = shade(acc, .1);
+  for (const a of [-2.75, -2.45, -2.15]) {
+    const ex = Math.cos(a) * bodyW * s * (pear ? 1.05 : 1) - (pear ? bodyW * s * .15 : 0), ey = Math.sin(a) * bodyH * s + (pear ? bodyH * s * .1 : 0), r = s * .055 * bodyK;
+    const nx = Math.cos(a), ny = Math.sin(a);
+    ctx.beginPath(); ctx.moveTo(ex - ny * r - nx * r * .4, ey + nx * r - ny * r * .4); ctx.quadraticCurveTo(ex + nx * r * 1.2 - ny * r * .5, ey + ny * r * 1.2 + nx * r * .5, ex + nx * r * 1.5, ey + ny * r * 1.5);
+    ctx.quadraticCurveTo(ex + nx * r * .9 + ny * r * .6, ey + ny * r * .9 - nx * r * .6, ex + ny * r - nx * r * .4, ey - nx * r - ny * r * .4); ctx.closePath(); ctx.fill(); ctx.stroke();
+  }
+
+  // ---------- legs: short and stout, with pale toes ----------
+  for (const [i, lx] of [[0, -.28], [1, .22]] as const) {
+    const x = lx * bodyW * s * 1.6, top = bodyH * s * .3, bottom = bodyH * s * .95 + s * .05, w = s * .12;
+    ctx.fillStyle = i ? col : shade(col, -.15);
+    ctx.beginPath(); ctx.roundRect(x - w / 2, top, w, bottom - top, w * .45); ctx.fill(); ctx.stroke();
+    ctx.beginPath(); ctx.ellipse(x + w * .15, bottom - s * .01, w * .62, s * .038, 0, 0, Math.PI * 2); ctx.fill(); ctx.stroke(); // a foot
+    ctx.fillStyle = belly; for (const c of [-.1, .2, .5]) { ctx.beginPath(); ctx.arc(x + w * (c + .15), bottom - s * .01, s * .012, 0, Math.PI * 2); ctx.fill(); } // claws
+  }
+
+  // ---------- neck, behind the body and the head, so it joins them ----------
+  const hx = bodyW * s * .95, hy = -bodyH * s * .9, hr = s * .2 * headK;
+  ctx.fillStyle = col;
+  ctx.beginPath(); ctx.ellipse(hx - hr * .55, hy + hr * .6, hr * .6, hr * .85, .55, 0, Math.PI * 2); ctx.fill(); ctx.stroke();
 
   // ---------- body and belly ----------
   ctx.fillStyle = col;
-  ctx.beginPath();
-  if (look.body % 6 === 4) { // pear: wide at the back
-    ctx.ellipse(-bodyW * s * .15, bodyH * s * .1, bodyW * s * 1.05, bodyH * s, 0, 0, Math.PI * 2);
-  } else ctx.ellipse(0, 0, bodyW * s, bodyH * s, -.08, 0, Math.PI * 2);
-  ctx.fill(); ctx.stroke();
+  bodyPath(); ctx.fill(); ctx.stroke();
   ctx.save(); ctx.clip();
   ctx.fillStyle = belly;
   ctx.beginPath(); ctx.ellipse(bodyW * s * .08, bodyH * s * .62, bodyW * s * .78, bodyH * s * .55, -.05, 0, Math.PI * 2); ctx.fill();
+  ctx.strokeStyle = shade(col, .38); ctx.lineWidth = Math.max(1, lw * .6); // the belly's soft plates
+  for (const k of [-.4, -.1, .2, .5]) { const x = bodyW * s * (.08 + k); ctx.beginPath(); ctx.moveTo(x, bodyH * s * .22); ctx.quadraticCurveTo(x - bodyW * s * .06, bodyH * s * .6, x, bodyH * s); ctx.stroke(); }
   drawPattern(ctx, look.pattern, bodyW * s, bodyH * s, acc, s);
   for (let k = 0; k < Math.min(o.marks ?? 0, 6); k++) { // stripes he has earned, across the back
     ctx.strokeStyle = shade(acc, -.1); ctx.lineWidth = s * .03;
@@ -107,14 +129,12 @@ export function drawDragon(ctx: CanvasRenderingContext2D, look: DragonLook, size
   }
   if (o.muddy) { ctx.fillStyle = '#6b4423cc'; for (const [mx, my, mr] of [[-.3, .2, .12], [.15, -.15, .09], [.3, .3, .1], [-.05, .45, .08]] as const) { ctx.beginPath(); ctx.arc(mx * bodyW * s * 1.6, my * bodyH * s * 1.6, mr * s, 0, Math.PI * 2); ctx.fill(); } }
   ctx.restore();
-  ctx.strokeStyle = OUT; ctx.lineWidth = Math.max(1.5, s * .035);
+  ctx.strokeStyle = OUT; ctx.lineWidth = lw;
+  bodyPath(); ctx.stroke(); // the outline again, crisp over the neck's join
 
   if (o.saddle) { ctx.fillStyle = o.saddle; ctx.beginPath(); ctx.ellipse(-bodyW * s * .1, -bodyH * s * .85, s * .16, s * .07, -.1, 0, Math.PI * 2); ctx.fill(); ctx.stroke(); }
 
   // ---------- head ----------
-  const hx = bodyW * s * .95, hy = -bodyH * s * .9, hr = s * .2 * headK;
-  ctx.fillStyle = col;
-  ctx.beginPath(); ctx.ellipse(hx - hr * .5, hy + hr * .5, hr * .55, hr * .7, .5, 0, Math.PI * 2); ctx.fill(); ctx.stroke(); // neck
   drawHorns(ctx, look.horns, hx, hy, hr, acc, (o.marks ?? 0) >= 2);
   ctx.fillStyle = col;
   ctx.beginPath();
@@ -123,18 +143,21 @@ export function drawDragon(ctx: CanvasRenderingContext2D, look: DragonLook, size
   else if (headShape === 2) ctx.roundRect(hx - hr, hy - hr * .9, hr * 2, hr * 1.8, hr * .7);
   else ctx.arc(hx, hy, hr, 0, Math.PI * 2);
   ctx.fill(); ctx.stroke();
-  // snout
+  // snout, a shade paler than the head
   const snoutL = [1, .8, 1.15, .9, 1.3][headShape]!;
+  ctx.fillStyle = shade(col, .14);
   ctx.beginPath(); ctx.ellipse(hx + hr * .85, hy + hr * .25, hr * .62 * snoutL, hr * .46, .05, 0, Math.PI * 2); ctx.fill(); ctx.stroke();
   ctx.fillStyle = OUT;
-  ctx.beginPath(); ctx.arc(hx + hr * (1.05 + .3 * (snoutL - 1)), hy + hr * .12, hr * .07, 0, Math.PI * 2); ctx.fill(); // nostril
+  ctx.beginPath(); ctx.arc(hx + hr * (1.05 + .3 * (snoutL - 1)), hy + hr * .08, hr * .07, 0, Math.PI * 2); ctx.fill(); // nostril
   // mouth
+  ctx.lineWidth = lw * .85;
   ctx.beginPath();
-  if (o.open) { ctx.fillStyle = '#7a1f1f'; ctx.ellipse(hx + hr * 1.05, hy + hr * .5, hr * .3, hr * .18, 0, 0, Math.PI * 2); ctx.fill(); }
-  else if (o.mood === 'unhappy') { ctx.arc(hx + hr * .85, hy + hr * .72, hr * .25, Math.PI * 1.15, Math.PI * 1.85); ctx.stroke(); }
-  else { ctx.arc(hx + hr * .8, hy + hr * .3, hr * .32, .25, Math.PI * .75); ctx.stroke(); }
+  if (o.open) { ctx.fillStyle = '#7a1f1f'; ctx.ellipse(hx + hr * 1.05, hy + hr * .48, hr * .3, hr * .18, 0, 0, Math.PI * 2); ctx.fill(); ctx.stroke(); }
+  else if (o.mood === 'unhappy') { ctx.arc(hx + hr * .95, hy + hr * .72, hr * .22, Math.PI * 1.15, Math.PI * 1.85); ctx.stroke(); }
+  else { ctx.arc(hx + hr * .95, hy + hr * .3, hr * .28, .45, Math.PI * .85); ctx.stroke(); }
+  ctx.lineWidth = lw;
   // cheek
-  ctx.fillStyle = '#ff7a9a66'; ctx.beginPath(); ctx.arc(hx + hr * .2, hy + hr * .45, hr * .2, 0, Math.PI * 2); ctx.fill();
+  ctx.globalAlpha = .7; ctx.fillStyle = '#ff8fb0'; ctx.beginPath(); ctx.ellipse(hx + hr * .08, hy + hr * .42, hr * .2, hr * .14, 0, 0, Math.PI * 2); ctx.fill(); ctx.globalAlpha = 1;
   // eye: big and shiny; blinks now and then; closed when sleepy
   const blink = o.mood === 'sleepy' || (t % 4.2) < .12;
   const ex = hx + hr * .15, ey = hy - hr * .2, er = hr * (stage === 0 ? .36 : .3);
@@ -148,9 +171,9 @@ export function drawDragon(ctx: CanvasRenderingContext2D, look: DragonLook, size
   if (o.hat) { ctx.font = `${hr * 1.3}px system-ui`; ctx.textAlign = 'center'; ctx.textBaseline = 'middle'; ctx.fillText(o.hat, hx - hr * .1, hy - hr * 1.2); }
 
   // ---------- the near wing, in front ----------
-  drawWing(ctx, look.wings, s, wingK, beat, col, acc, false);
+  drawWing(ctx, look.wings, s, wingK, beat, col, acc, false, lw);
   if ((o.marks ?? 0) >= 3) { // a star on the wing
-    ctx.fillStyle = '#ffe14d'; star(ctx, -s * .05, -s * .42 - beat * s * .1, s * .06); ctx.fill(); ctx.stroke();
+    ctx.fillStyle = '#ffe14d'; star(ctx, -s * .2, -s * .5 - beat * s * .12, s * .06); ctx.fill(); ctx.stroke();
   }
   ctx.restore();
 }
@@ -161,56 +184,83 @@ function star(ctx: CanvasRenderingContext2D, x: number, y: number, r: number) {
   ctx.closePath();
 }
 
-function drawWing(ctx: CanvasRenderingContext2D, kind: number, s: number, k: number, beat: number, col: string, acc: string, far: boolean) {
-  const lift = beat * s * .22 * k, bx = far ? s * .05 : -s * .02, by = -s * .18;
+type P = readonly [number, number];
+/** A scallop from a to b, its curve pulled toward `to` (in for a bat's membrane, out for a feather). */
+const scallop = (ctx: CanvasRenderingContext2D, a: P, b: P, to: P, k: number) => {
+  const mx = (a[0] + b[0]) / 2, my = (a[1] + b[1]) / 2;
+  ctx.quadraticCurveTo(mx + (to[0] - mx) * k, my + (to[1] - my) * k, b[0], b[1]);
+};
+
+/** A wing, rising from the shoulder and swept back: a bright arm in the body's colour holding a pale membrane, so it reads as a wing
+ *  (not a dark shape) even when the dragon is small. The far wing is the same, a shade darker, behind the body. */
+function drawWing(ctx: CanvasRenderingContext2D, kind: number, s: number, k: number, beat: number, col: string, acc: string, far: boolean, lw: number) {
+  const kd = kind % 8, sizeK = kd === 4 ? 1.22 : kd === 3 ? .5 : 1;
+  const lift = beat * s * .22 * k * sizeK;
   ctx.save();
-  ctx.translate(bx, by);
-  if (far) ctx.globalAlpha = .9;
-  const span = s * .55 * k, tipY = -span * .9 - lift;
-  ctx.fillStyle = col;
-  ctx.beginPath();
-  ctx.moveTo(-s * .12, 0);
-  switch (kind % 8) {
-    case 1: // feathered: three rounded feathers
-      for (let i = 0; i < 3; i++) ctx.quadraticCurveTo(-s * .2 + i * s * .08, tipY + i * s * .12, -s * .02 + i * s * .1, tipY * (.55 - i * .12));
+  ctx.translate(far ? s * .16 : -s * .04, far ? -s * .24 : -s * .2);
+  if (far) ctx.rotate(.22); // the far wing, a little forward and more upright, so the two read as a pair
+  const span = s * .6 * k * sizeK, tipY = -span * .85 - lift, back = -span * .78;
+  const skin = shade(col, far ? .3 : .55), bone = far ? shade(col, -.14) : col;
+  const R1: P = [s * .09, s * .02], R2: P = [-s * .2, s * .05], W: P = [-span * .08, tipY * .78], T: P = [back, tipY];
+  const arm = () => { // the leading edge: shoulder, wrist, tip
+    ctx.beginPath(); ctx.moveTo(R1[0], R1[1]); ctx.quadraticCurveTo(s * .06, tipY * .45, W[0], W[1]); ctx.lineTo(T[0], T[1]);
+    ctx.strokeStyle = OUT; ctx.lineWidth = lw * 2.4; ctx.stroke();
+    ctx.strokeStyle = bone; ctx.lineWidth = lw * 1.1; ctx.stroke();
+    ctx.fillStyle = bone; ctx.beginPath(); ctx.arc(W[0], W[1], lw * 1.1, 0, Math.PI * 2); ctx.fill(); // the wrist
+  };
+  ctx.fillStyle = skin; ctx.strokeStyle = OUT; ctx.lineWidth = lw;
+  switch (kd) {
+    case 1: { // feathered: round feathers fanning back
+      const F: P[] = [[back * 1.02, tipY * .62], [back * .9, tipY * .3], [back * .62, tipY * .06]];
+      ctx.beginPath(); ctx.moveTo(R1[0], R1[1]); ctx.quadraticCurveTo(s * .06, tipY * .45, W[0], W[1]); ctx.lineTo(T[0], T[1]);
+      let a: P = T; for (const f of [...F, R2]) { scallop(ctx, a, f, W, -.4); a = f; }
+      ctx.closePath(); ctx.fill(); ctx.stroke();
+      ctx.strokeStyle = shade(col, .2); ctx.lineWidth = Math.max(1, lw * .7);
+      for (const f of F) { ctx.beginPath(); ctx.moveTo(W[0], W[1]); ctx.lineTo(W[0] + (f[0] - W[0]) * .8, W[1] + (f[1] - W[1]) * .8); ctx.stroke(); }
+      arm(); break;
+    }
+    case 2: { // butterfly: two round lobes, each with a spot
+      for (const [cx, cy, rx, ry, rot] of [[back * .5, tipY * .62, span * .42, span * .52, -.55], [back * .55, tipY * .08, span * .3, span * .22, .3]] as const) {
+        ctx.fillStyle = skin; ctx.beginPath(); ctx.ellipse(cx, cy, rx, ry, rot, 0, Math.PI * 2); ctx.fill(); ctx.stroke();
+        ctx.fillStyle = shade(acc, .15); ctx.beginPath(); ctx.arc(cx + rx * .1, cy - ry * .1, Math.min(rx, ry) * .35, 0, Math.PI * 2); ctx.fill();
+      }
       break;
-    case 2: // butterfly: two round lobes
-      ctx.bezierCurveTo(-s * .5 * k, tipY * .9, -s * .05, tipY * 1.25, s * .08, tipY * .25);
-      ctx.bezierCurveTo(s * .25 * k, tipY * .55, s * .2, -s * .05, s * .1, 0);
+    }
+    case 5: { // leaf: one broad leaf with its veins
+      ctx.beginPath(); ctx.moveTo(R1[0], R1[1]); ctx.quadraticCurveTo(span * .25, tipY * .75, T[0], T[1]); ctx.quadraticCurveTo(back * 1.05, tipY * .1, R2[0], R2[1]); ctx.closePath(); ctx.fill(); ctx.stroke();
+      ctx.strokeStyle = bone; ctx.lineWidth = lw * 1.1;
+      ctx.beginPath(); ctx.moveTo(0, 0); ctx.quadraticCurveTo(back * .3, tipY * .5, T[0] * .85, T[1] * .85); ctx.stroke();
+      ctx.lineWidth = Math.max(1, lw * .7);
+      for (const q of [.35, .6]) { const x = back * q * .9, y = tipY * q * .85; ctx.beginPath(); ctx.moveTo(x, y); ctx.lineTo(x - span * .22, y + span * .12); ctx.stroke(); }
       break;
-    case 3: // tiny: a little stub
-      ctx.quadraticCurveTo(-s * .08, tipY * .45, s * .08, tipY * .2);
+    }
+    case 6: { // fin: a fan of rays, like a fish's
+      const F: P[] = [T, [back * 1.05, tipY * .66], [back * 1.02, tipY * .34], [back * .8, tipY * .06]];
+      ctx.beginPath(); ctx.moveTo(R1[0], R1[1]); ctx.lineTo(W[0] * .4, W[1] * .5); ctx.lineTo(T[0], T[1]);
+      let a: P = T; for (const f of [...F.slice(1), R2]) { scallop(ctx, a, f, [0, 0], -.25); a = f; }
+      ctx.closePath(); ctx.fill(); ctx.stroke();
+      ctx.strokeStyle = bone; ctx.lineWidth = lw * 1.1;
+      for (const f of F) { ctx.beginPath(); ctx.moveTo(0, 0); ctx.lineTo(f[0] * .92, f[1] * .92); ctx.stroke(); }
       break;
-    case 4: // big sails
-      ctx.lineTo(-s * .35 * k, tipY * 1.1); ctx.quadraticCurveTo(-s * .05, tipY * .7, s * .3 * k, tipY * .35); ctx.quadraticCurveTo(s * .1, tipY * .2, s * .12, 0);
-      break;
-    case 5: // leaf
-      ctx.quadraticCurveTo(-s * .4 * k, tipY * .5, -s * .05, tipY); ctx.quadraticCurveTo(s * .2 * k, tipY * .5, s * .1, 0);
-      break;
-    case 6: // fin
-      ctx.lineTo(-s * .2, tipY * .9); ctx.lineTo(s * .18 * k, tipY * .1);
-      break;
-    case 7: // the wild one: a rainbow wing of three scallops
-      ctx.bezierCurveTo(-s * .45 * k, tipY * 1.1, s * .1, tipY * 1.2, s * .25 * k, tipY * .3);
-      break;
-    default: // bat: points and scallops
-      ctx.lineTo(-s * .22 * k, tipY);
-      ctx.quadraticCurveTo(-s * .12, tipY * .55, -s * .05, tipY * .6);
-      ctx.quadraticCurveTo(s * .02, tipY * .35, s * .1 * k, tipY * .35);
-      ctx.quadraticCurveTo(s * .1, tipY * .12, s * .12, 0);
+    }
+    default: { // bat (and tiny, big sails and the wild rainbow wing): fingers from the wrist, the membrane scalloped between them
+      const F: P[] = [[back * 1.08, tipY * .45], [back * .82, tipY * .12]];
+      ctx.beginPath(); ctx.moveTo(R1[0], R1[1]); ctx.quadraticCurveTo(s * .06, tipY * .45, W[0], W[1]); ctx.lineTo(T[0], T[1]);
+      let a: P = T; for (const f of [...F, R2]) { scallop(ctx, a, f, W, .32); a = f; }
+      ctx.closePath();
+      if (kd === 7) {
+        const g = ctx.createLinearGradient(0, tipY, 0, 0);
+        ['#e8483b', '#ff8a1f', '#f5c518', '#2fae5a', '#3b82e8', '#8a4fd6'].forEach((c, i) => g.addColorStop(i / 5, c));
+        ctx.fillStyle = g;
+      }
+      ctx.fill(); ctx.stroke();
+      ctx.strokeStyle = bone; ctx.lineWidth = Math.max(1, lw * .9);
+      for (const f of F) { ctx.beginPath(); ctx.moveTo(W[0], W[1]); ctx.lineTo(f[0], f[1]); ctx.stroke(); }
+      arm();
+    }
   }
-  ctx.closePath();
-  if (kind % 8 === 7) {
-    const g = ctx.createLinearGradient(0, tipY, 0, 0);
-    ['#e8483b', '#ff8a1f', '#f5c518', '#2fae5a', '#3b82e8', '#8a4fd6'].forEach((c, i) => g.addColorStop(i / 5, c));
-    ctx.fillStyle = g;
-  }
-  ctx.fill(); ctx.stroke();
-  // the wing's ribs, in its accent colour
-  ctx.strokeStyle = acc; ctx.lineWidth = Math.max(1, s * .02);
-  ctx.beginPath(); ctx.moveTo(-s * .1, 0); ctx.lineTo(-s * .12 * k, tipY * .7); ctx.stroke();
   ctx.restore();
-  ctx.strokeStyle = OUT; ctx.lineWidth = Math.max(1.5, s * .035);
+  ctx.strokeStyle = OUT; ctx.lineWidth = lw;
 }
 
 function drawTailTip(ctx: CanvasRenderingContext2D, kind: number, x: number, y: number, s: number, acc: string, col: string) {
@@ -220,8 +270,8 @@ function drawTailTip(ctx: CanvasRenderingContext2D, kind: number, x: number, y: 
     case 1: // spade
       ctx.moveTo(x, y); ctx.lineTo(x - s * .1, y - s * .02); ctx.lineTo(x - s * .03, y - s * .12); ctx.closePath(); break;
     case 2: // fluffy tuft
-      for (let i = 0; i < 3; i++) ctx.arc(x - s * .04 - i * s * .03, y - s * .03 + (i % 2) * s * .04, s * .05, 0, Math.PI * 2);
-      break;
+      for (let i = 2; i >= 0; i--) { ctx.beginPath(); ctx.arc(x - s * .04 - i * s * .03, y - s * .03 + (i % 2) * s * .04, s * .05, 0, Math.PI * 2); ctx.fill(); ctx.stroke(); }
+      return;
     case 3: // club
       ctx.arc(x - s * .03, y - s * .02, s * .07, 0, Math.PI * 2); break;
     case 4: // curl

@@ -42,7 +42,10 @@ export function renderFlight(ctx: CanvasRenderingContext2D, s: Sim, plan: Flight
   // far peaks, slower
   ctx.fillStyle = night ? NIGHT.far : th.far;
   ctx.beginPath(); ctx.moveTo(0, v.h);
-  for (let px = 0; px <= v.w + 20; px += 20) { const wx = v.camX * .3 + px / v.u; ctx.lineTo(px, v.h - (38 + 14 * Math.sin(wx / 37) + 8 * Math.sin(wx / 13)) * v.u); }
+  for (let px = 0; px <= v.w + 16; px += 16) { // far mountains: sharp peaks, not hills
+    const wx = v.camX * .3 + px / v.u, p = (wx / 52) % 1, q = (wx / 31 + .4) % 1;
+    ctx.lineTo(px, v.h - (30 + 20 * (1 - Math.abs(p - .5) * 2) + 7 * (1 - Math.abs(q - .5) * 2)) * v.u);
+  }
   ctx.lineTo(v.w, v.h); ctx.closePath(); ctx.fill();
   // weather far off
   if (c.weather === 'rain' || c.weather === 'snow') {
@@ -102,14 +105,22 @@ export function renderFlight(ctx: CanvasRenderingContext2D, s: Sim, plan: Flight
     if (x < -40 || x > v.w + 40) return;
     const ground = sy(v, groundAt(c, b.x));
     if (ground - y > v.u * 3) { ctx.fillStyle = '#7a5a3a'; ctx.fillRect(x - v.u * .6, y, v.u * 1.2, ground - y); }
-    ctx.fillStyle = '#6b6f7a'; ctx.strokeStyle = '#2a1a12'; ctx.lineWidth = 2;
-    ctx.beginPath(); ctx.moveTo(x - v.u * 2.2, y - v.u * 1.6); ctx.lineTo(x + v.u * 2.2, y - v.u * 1.6); ctx.lineTo(x + v.u * 1.2, y + v.u * .4); ctx.lineTo(x - v.u * 1.2, y + v.u * .4); ctx.closePath(); ctx.fill(); ctx.stroke();
-    if (s.lit[i]) {
+    ctx.strokeStyle = '#2a1a12'; ctx.lineWidth = Math.max(2, v.u * .4);
+    if (s.lit[i]) { // a blaze, with a warm glow round it
       const f = still ? 1 : 1 + Math.sin(t * 12 + i) * .15;
-      ctx.fillStyle = '#ffb02e'; ctx.beginPath(); ctx.ellipse(x, y - v.u * 4 * f, v.u * 2, v.u * 3.4 * f, 0, 0, Math.PI * 2); ctx.fill();
-      ctx.fillStyle = '#fff3a8'; ctx.beginPath(); ctx.ellipse(x, y - v.u * 3.2, v.u * 1, v.u * 1.8 * f, 0, 0, Math.PI * 2); ctx.fill();
-    } else if (plan.lookout) { // the Lookout's little arrow over a beacon still to light
-      ctx.fillStyle = '#ffffffcc'; ctx.beginPath(); ctx.moveTo(x, y - v.u * 4); ctx.lineTo(x - v.u * 1.5, y - v.u * 7); ctx.lineTo(x + v.u * 1.5, y - v.u * 7); ctx.fill();
+      ctx.fillStyle = '#ffd23f55'; ctx.beginPath(); ctx.arc(x, y - v.u * 3, v.u * 6, 0, Math.PI * 2); ctx.fill();
+      ctx.fillStyle = '#ff8a1f'; ctx.beginPath(); ctx.moveTo(x, y - v.u * 8 * f); ctx.quadraticCurveTo(x + v.u * 3.4, y - v.u * 2.5, x + v.u * 2, y - v.u * 1.4); ctx.lineTo(x - v.u * 2, y - v.u * 1.4); ctx.quadraticCurveTo(x - v.u * 3.4, y - v.u * 2.5, x, y - v.u * 8 * f); ctx.fill(); ctx.stroke();
+      ctx.fillStyle = '#fff3a8'; ctx.beginPath(); ctx.ellipse(x, y - v.u * 3, v.u * 1.1, v.u * 2 * f, 0, 0, Math.PI * 2); ctx.fill();
+    } else { // logs waiting for his breath
+      ctx.fillStyle = '#8a5a2b';
+      ctx.beginPath(); ctx.roundRect(x - v.u * 2.2, y - v.u * 2.6, v.u * 4.4, v.u * 1.1, v.u * .5); ctx.fill(); ctx.stroke();
+      ctx.beginPath(); ctx.roundRect(x - v.u * 1.6, y - v.u * 3.5, v.u * 3.2, v.u * 1.1, v.u * .5); ctx.fill(); ctx.stroke();
+    }
+    ctx.fillStyle = '#8e94a0'; // the stone bowl, in front
+    ctx.beginPath(); ctx.moveTo(x - v.u * 3, y - v.u * 1.8); ctx.lineTo(x + v.u * 3, y - v.u * 1.8); ctx.lineTo(x + v.u * 1.6, y + v.u * .6); ctx.lineTo(x - v.u * 1.6, y + v.u * .6); ctx.closePath(); ctx.fill(); ctx.stroke();
+    ctx.fillStyle = '#b4bac4'; ctx.fillRect(x - v.u * 2.6, y - v.u * 1.6, v.u * 5.2, v.u * .5);
+    if (!s.lit[i] && plan.lookout) { // the Lookout's little arrow over a beacon still to light
+      ctx.fillStyle = '#ffffffcc'; ctx.beginPath(); ctx.moveTo(x, y - v.u * 5); ctx.lineTo(x - v.u * 1.5, y - v.u * 8); ctx.lineTo(x + v.u * 1.5, y - v.u * 8); ctx.fill();
     }
   });
   // Flames to catch

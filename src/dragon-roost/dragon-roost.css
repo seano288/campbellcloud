@@ -7,14 +7,20 @@
   --dawn:#ff9fb8;--dawn-2:#ffd28f;--dawn-3:#fff1cf;--plum:#5b2a4e;--plum-2:#3b1a33;--rock:#b9735a;--rock-2:#8a5a44;--valley:#3f9b4f;--valley-2:#2f7a3e;
   --sun:#ffd23f;--flame:#ff7a1a;--stone:#efe6d6;--stone-edge:#8f8170;--ink:#2a1a12;
   --floor:max(56px,calc(env(safe-area-inset-bottom) + 40px));
+  /* the mountain at dawn, drawn once: warm rock with snow on its peaks over a deep green valley (Home's Play tile) */
+  --mountains:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 400 200' preserveAspectRatio='xMidYMax slice'%3E%3Cpath d='M0 150 L40 118 L80 134 L128 92 L170 126 L212 108 L262 140 L302 102 L352 128 L400 112 L400 200 L0 200Z' fill='%23eaa6b8'/%3E%3Cpath d='M-10 200 L56 150 L118 66 L148 92 L176 78 L250 158 L296 126 L338 94 L410 168 L410 200Z' fill='%23c97a5a' stroke='%232a1a12' stroke-width='3' stroke-linejoin='round'/%3E%3Cpath d='M118 66 L176 78 L250 158 L196 158 Z M338 94 L410 168 L372 168Z' fill='%23dd9673'/%3E%3Cpath d='M118 66 L134 86 L126 84 L120 96 L110 84 L100 92 Z M338 94 L352 110 L344 108 L338 118 L330 106 L322 112 Z' fill='%23fff6ea' stroke='%232a1a12' stroke-width='2.5' stroke-linejoin='round'/%3E%3Cpath d='M-10 210 L-10 174 Q100 158 200 170 T410 164 L410 210Z' fill='%233f9b4f' stroke='%232a1a12' stroke-width='3'/%3E%3Cpath d='M-10 210 L-10 188 Q120 178 230 190 T410 184 L410 210Z' fill='%232f7a3e'/%3E%3C/svg%3E");
+  /* the same mountains, pale, behind the words of a question so they never fight the text */
+  --hills:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 400 100' preserveAspectRatio='xMidYMax slice'%3E%3Cpath d='M0 70 L46 44 L84 58 L136 22 L180 54 L226 36 L276 62 L318 30 L366 52 L400 40 L400 100 L0 100Z' fill='%23f8cfd2'/%3E%3Cpath d='M-10 100 L60 66 L120 40 L170 70 L236 50 L300 76 L350 56 L410 80 L410 100Z' fill='%23f4bfa3'/%3E%3Cpath d='M-10 100 L-10 88 Q100 78 200 86 T410 82 L410 100Z' fill='%23b9dfa0'/%3E%3C/svg%3E");
+  /* one peak with a ledge, for the Roost tile on Home */
+  --peak:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 200 140' preserveAspectRatio='xMidYMax meet'%3E%3Cpath d='M10 140 L84 22 L100 12 L118 24 L190 140Z' fill='%23c97a5a' stroke='%232a1a12' stroke-width='3' stroke-linejoin='round'/%3E%3Cpath d='M100 12 L118 24 L190 140 L132 140Z' fill='%23dd9673'/%3E%3Cpath d='M84 22 L100 12 L118 24 L110 34 L100 28 L92 36Z' fill='%23fff6ea' stroke='%232a1a12' stroke-width='2.5' stroke-linejoin='round'/%3E%3Cpath d='M0 140 L0 128 Q100 118 200 128 L200 140Z' fill='%233f9b4f'/%3E%3C/svg%3E");
 }
 html,body{background:var(--plum)}
-.tablet{font-family:Andika,Nunito,sans-serif;font-weight:700;background:var(--stone);color:var(--ink);border:3px solid var(--ink);border-radius:12px;box-shadow:0 4px 0 var(--stone-edge),0 6px 0 var(--ink);padding:.15em .5em;line-height:1.2}
+.tablet{font-family:Andika,Nunito,sans-serif;font-weight:700;background:linear-gradient(#f7f0e3,#e8dcc7);color:var(--ink);border:3px solid var(--ink);border-radius:12px;box-shadow:inset 0 2px 0 #fffc,inset 0 -3px 0 #d5c5a9,0 4px 0 var(--stone-edge),0 6px 0 var(--ink);padding:.15em .5em;line-height:1.2}
 .tablet.big{font-size:max(34px,calc(58px*var(--u)));padding:.1em .6em}
 .tablet.plain{box-shadow:none;border-color:transparent;background:none;padding:.15em .1em}
 
 /* ---------- the Start screen ---------- */
-.start.dr-start{background:linear-gradient(var(--dawn),var(--dawn-2) 60%,var(--dawn-3));padding-bottom:calc(var(--floor) + 24px)}
+.start.dr-start{background:var(--mountains) center bottom/100% 34% no-repeat,linear-gradient(var(--dawn),var(--dawn-2) 60%,var(--dawn-3));padding-bottom:calc(var(--floor) + 24px)}
 .dr-start h1{color:#fff;text-shadow:3px 3px 0 var(--flame),6px 6px 0 #000;line-height:1.02}
 .dr-start-art{width:min(86vw,58vh,520px);aspect-ratio:1.3}
 .dr-start-art .dr-dragon{display:block;width:100%;height:100%}
@@ -26,16 +32,16 @@ html,body{background:var(--plum)}
 .home.dr-home{padding-bottom:var(--floor);grid-template-areas:"p p" "a r" "k k";grid-template-rows:minmax(0,1fr) minmax(0,.7fr) auto;grid-template-columns:1.2fr 1fr}
 @media (orientation:landscape){.home.dr-home{grid-template-areas:"p a" "p r" "k k";grid-template-rows:minmax(0,1fr) minmax(0,.6fr) auto;grid-template-columns:1fr 1.1fr}}
 .dr-home .t-play{grid-area:p;position:relative;overflow:hidden;display:flex;align-items:flex-end;justify-content:center;padding-bottom:max(26px,calc(30px*var(--u)));
-  background:linear-gradient(#ffb3c6,#ffe0a8 70%,#7fcf6a 70%);--door:max(92px,calc(140px*var(--u)))}
+  background:var(--mountains) center bottom/100% 72% no-repeat,radial-gradient(circle at 80% 22%,#fff3b0 0 7%,#fff3b000 7.5%),linear-gradient(#ffb3c6,#ffd9a0 70%);--door:max(92px,calc(140px*var(--u)))}
 .dr-home .t-play .dr-play-dragon{position:absolute;left:0;right:0;top:0;bottom:calc(var(--door) * .5);width:100%;height:calc(100% - var(--door) * .5);display:block}
 .dr-home .t-play .e{position:relative;z-index:1;display:grid;place-items:center;width:var(--door);height:var(--door);border-radius:50%;border:5px solid #000;background:var(--go);color:#fff;font-size:calc(60px*var(--u));padding-left:calc(8px*var(--u));box-shadow:0 0 0 7px #2fa84f,0 0 0 11px #000,0 11px 0 11px #000;animation:dr-breathe 2.4s ease-in-out infinite}
 @keyframes dr-breathe{50%{box-shadow:0 0 0 7px #2fa84f,0 0 0 11px #000,0 11px 0 11px #000,0 0 0 22px #3ddc8440}}
 .dr-home .t-play:active .e{transform:translateY(5px)}
 .dr-home .t-play:active{transform:none}
-.dr-home .t-roost{grid-area:a;position:relative;overflow:hidden;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;background:linear-gradient(#ffd28f,#b9735a)}
-.dr-tile-eggs{display:flex;gap:4px;align-items:flex-end;justify-content:center}
-.dr-tile-eggs img{width:max(40px,calc(64px*var(--u)));height:auto}
-.dr-tile-mtn{font-size:calc(70px*var(--u))}
+.dr-home .t-roost{grid-area:a;position:relative;overflow:hidden;display:flex;flex-direction:column;align-items:center;justify-content:flex-end;gap:6px;padding-bottom:max(10px,calc(14px*var(--u)));background:var(--peak) center bottom/auto 92% no-repeat,linear-gradient(#ffb3c6,#ffe0a8)}
+.dr-tile-eggs{display:flex;gap:2px;align-items:flex-end;justify-content:center;padding:0 10px 4px}
+.dr-tile-eggs.nest{background:radial-gradient(ellipse 50% 26% at 50% 88%,#a8763e 0 96%,#7a4f2400 100%)}
+.dr-tile-eggs img{width:max(36px,calc(58px*var(--u)));height:auto}
 .dr-home .t-roost .nm{white-space:nowrap;font-size:max(15px,calc(22px*var(--u)));color:var(--sun);background:#000;border-radius:10px;padding:3px 12px}
 .dr-home .race-badge{position:absolute;right:8px;top:8px;background:#000;color:var(--sun);border-radius:999px;padding:3px 12px;font:900 max(16px,calc(22px*var(--u))) Nunito,sans-serif;border:3px solid var(--sun)}
 .dr-home .t-next{grid-area:r;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:calc(6px*var(--u));padding:calc(10px*var(--u));color:#fff;cursor:default;background:linear-gradient(var(--plum),var(--plum-2));overflow:hidden}
@@ -58,7 +64,8 @@ html,body{background:var(--plum)}
 @media (orientation:landscape) and (max-height:520px){
   .home.dr-home{grid-template-areas:"p a" "p k";grid-template-columns:1fr 1.3fr;grid-template-rows:minmax(0,1fr) auto}
   .dr-home .t-next{display:none}
-  .dr-home .t-kinds{grid-template-columns:repeat(2,minmax(0,1fr));grid-auto-rows:44px;row-gap:2px;padding:4px 10px 6px}
+  .dr-home .t-kinds{grid-template-columns:repeat(3,minmax(0,1fr));grid-auto-rows:44px;row-gap:2px;padding:4px 10px 6px}
+  .dr-home .t-roost{min-height:96px}
   .dr-home .kind .kn{font-size:13px}
   .dr-home .kinds-head{display:none}
   .dr-home .t-play{--door:72px;padding-bottom:18px}.dr-home .t-play .e{font-size:36px;border-width:4px}
@@ -73,7 +80,8 @@ html,body{background:var(--plum)}
 .game.dr .ask h2{flex:1;min-width:0;font:900 max(19px,calc(30px*var(--u)))/1.15 Nunito,sans-serif;text-align:left;text-wrap:balance}
 .game.dr .help-btn{flex:none;font-size:max(20px,calc(24px*var(--u)));padding:4px 12px}
 .dr-body{flex:1;min-height:0;width:100%;display:flex;flex-direction:column;gap:calc(10px*var(--u));align-items:stretch}
-.dr-stage{position:relative;flex:1 1 0;min-height:0;min-width:0;display:flex;align-items:center;justify-content:center;container-type:size;overflow:hidden}
+.dr-stage{position:relative;flex:1 1 0;min-height:0;min-width:0;display:flex;align-items:center;justify-content:center;container-type:size;overflow:hidden;border-radius:18px;
+  background:var(--hills) center bottom/100% auto no-repeat,radial-gradient(circle at 84% 18%,#fff6cc 0 min(7cqw,7cqh),#fff6cc00 calc(min(7cqw,7cqh) + 1px)),linear-gradient(#ffd6e0,#ffe9c4 72%,#fff3dc)}
 .dr-controls{flex:none;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:calc(12px*var(--u))}
 @media (orientation:landscape){.dr-body{flex-direction:row}.dr-controls{flex:0 0 auto;width:clamp(220px,32vw,420px)}}
 .game.dr .dr-controls,.game.dr .dr-sentence,.game.dr .dr-apostrophe{transition:opacity .25s,filter .25s}
@@ -108,10 +116,10 @@ html,body{background:var(--plum)}
 .dr-slot.right{background:var(--green);border-style:solid;color:#fff}
 /* two dragons */
 .dr-looks{display:grid;grid-template-columns:1fr 1fr;gap:10px;width:100%;height:100%}
-.dr-look{position:relative;border:4px solid #0000;border-radius:18px;background:#fff6e6;display:flex;align-items:center;justify-content:center;min-height:0}
+.dr-look{position:relative;border:4px solid #0000;border-radius:18px;background:#fff8ee8c;display:flex;align-items:center;justify-content:center;min-height:0}
 .dr-look .dr-dragon{width:100%;height:100%}
 .dr-look.little .dr-dragon{transform:scale(.7)}
-.dr-look.this{border-color:var(--sun);background:#fff0c2}
+.dr-look.this{border-color:var(--sun);background:#fff0c2d9}
 .dr-look.right{border-color:var(--green)}
 .dr-arrow{position:absolute;top:4px;left:50%;transform:translateX(-50%);font-size:max(26px,calc(36px*var(--u)));animation:dr-bob 1s ease-in-out infinite}
 @keyframes dr-bob{50%{transform:translate(-50%,6px)}}
@@ -135,22 +143,33 @@ html,body{background:var(--plum)}
 @keyframes dr-pop{from{transform:translate(-50%,-50%) scale(.6);opacity:0}}
 .dr-card .pop-in{display:inline-block}
 .dr-meet{flex-direction:column}
-.dr-meet .dr-card{position:relative;left:auto;top:auto;transform:none;animation:none}
+.game.dr.meet .ask h2{font:400 max(20px,calc(30px*var(--u))) Bungee,sans-serif;color:var(--plum);text-align:center}
+.dr-meet .dr-card{position:relative;left:auto;top:auto;transform:none;animation:none;padding:calc(18px*var(--u)) calc(34px*var(--u));gap:calc(14px*var(--u))}
+.dr-meet .dr-card .tablet{font-size:max(36px,calc(68px*var(--u)))}
+.dr-meet .dr-card-pic{font-size:max(72px,min(150px*var(--u),28cqh))}
 
 /* ---------- the end of a Round ---------- */
 .dr-reward{background:linear-gradient(var(--dawn),var(--dawn-2) 60%,#d98a73);padding-bottom:calc(var(--floor) + 16px);overflow:hidden}
 .dr-reward>*{position:relative}
-.dr-end-dragon{position:absolute!important;left:2vw;top:2vh;width:min(40vw,280px);height:min(26vh,200px);animation:dr-fly-in 1s ease-out}
 .dr-reward>h2{color:#fff;text-shadow:3px 3px 0 var(--flame),5px 5px 0 #000}
+.dr-end-row{display:flex;align-items:center;justify-content:center;gap:0}
+.dr-end-dragon{width:min(42vw,calc(250px*var(--u)));height:min(24vh,calc(180px*var(--u)));margin-right:calc(-20px*var(--u));animation:dr-fly-in 1s ease-out}
 .dr-end-dragon .dr-dragon{width:100%;height:100%}
-@keyframes dr-fly-in{from{transform:translateX(-110%)}}
+.dr-reward .bigpile{color:#fff;text-shadow:3px 3px 0 var(--flame),5px 5px 0 #000;background:#0000;padding:0 calc(10px*var(--u))}
+.dr-reward .lines{color:var(--plum-2)}
+@media (max-height:520px){ /* a phone on its side: the dragon sits beside the pile without adding height */
+  .dr-end-row{position:relative}
+  .dr-end-dragon{position:absolute;right:100%;top:calc(50% - 44px);width:130px;height:88px;margin:0}
+}
+@keyframes dr-fly-in{from{transform:translate(-80vw,-20vh) rotate(-12deg)}}
 .dr-reward .bigpile{position:relative}
-.dr-puff{position:absolute;left:-60px;top:-30px;animation:dr-puff .35s ease-in forwards}
-@keyframes dr-puff{from{transform:translate(-40px,-40px) scale(.6);opacity:.4}to{transform:translate(70px,40px) scale(1);opacity:1}}
-.earned-race{font:900 calc(30px*var(--u)) Nunito,sans-serif;color:var(--sun);background:#000;border-radius:999px;padding:6px 20px;box-shadow:inset 0 0 0 3px var(--sun)}
+.dr-puff{position:absolute;left:-14px;top:-24px;animation:dr-puff .35s ease-in forwards}
+@keyframes dr-puff{from{transform:translate(-50px,-10px) scale(.5);opacity:.5}to{transform:translate(10px,20px) scale(1);opacity:1}}
+.earned-race{display:flex;align-items:center;gap:8px;font:900 calc(30px*var(--u)) Nunito,sans-serif;color:var(--sun);background:#000;border-radius:999px;padding:4px 20px 4px 8px;box-shadow:inset 0 0 0 3px var(--sun)}
+.my-dragon{display:inline-block;width:1.6em;height:1.6em;object-fit:contain;vertical-align:middle;flex:none}
 .dr-reward .btns{align-items:center}
 .race-btn{gap:12px;min-height:max(80px,calc(110px*var(--u)));padding:calc(10px*var(--u)) calc(26px*var(--u));font-size:calc(30px*var(--u))}
-.race-flag{font-size:1.3em}
+.race-flag{font-size:1.3em;display:flex}
 .race-word{font:400 max(18px,calc(30px*var(--u))) Bungee,sans-serif;white-space:nowrap}
 .race-count{font-size:.7em;background:#0006;border-radius:12px;padding:2px 10px;white-space:nowrap}
 .dr-reward .btns .again.second{font-size:calc(28px*var(--u));padding:calc(18px*var(--u)) calc(24px*var(--u))}
@@ -158,14 +177,15 @@ html,body{background:var(--plum)}
 @media (min-width:760px) and (min-height:760px){.dr-reward>h2,.dr-reward>.bigpile,.dr-reward>.earned-race,.dr-reward>.lines,.dr-reward>.btns,.dr-reward>.icon-btn{zoom:1.3}}
 
 /* ---------- naming a dragon ---------- */
-.dr-name{display:flex;flex-direction:column;align-items:center;gap:calc(10px*var(--u));width:100%;height:100%;padding:12px 12px var(--floor);overflow-y:auto;background:linear-gradient(var(--dawn),var(--dawn-2))}
-.dr-name-art{width:min(80vw,360px);height:min(34vh,260px);display:grid;place-items:center}
+.dr-name{display:flex;flex-direction:column;align-items:center;justify-content:safe center;gap:calc(12px*var(--u));width:100%;height:100%;padding:12px 12px var(--floor);overflow-y:auto;background:var(--mountains) center bottom/100% 38% no-repeat,linear-gradient(var(--dawn),var(--dawn-2) 70%)}
+.dr-name-art{width:min(84vw,440px);height:min(36vh,300px);display:grid;place-items:center;flex:none}
 .dr-name-art .dr-dragon{width:100%;height:100%}
 .dr-hatching{width:min(40vw,160px);animation:dr-wobble .3s ease-in-out infinite}
 @keyframes dr-wobble{50%{transform:rotate(8deg)}}
 .dr-name-shown{min-height:1.4em}
-.dr-name-rows{display:flex;flex-direction:column;gap:10px;width:min(100%,760px)}
-.dr-name-row{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+.dr-name-rows{display:flex;flex-direction:column;gap:calc(14px*var(--u));width:min(100%,760px)}
+.dr-name-row{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;padding:10px;border-radius:18px;background:#5b2a4ee6;border:3px solid #000;box-shadow:0 5px 0 #000}
+.dr-name-row.done{background:#2f7a3ee6}
 .dr-name-word{min-height:56px;font-size:max(20px,calc(28px*var(--u)))}
 .dr-name-word.right{background:var(--green);color:#fff}
 
@@ -267,7 +287,7 @@ html,body{background:var(--plum)}
 .dr-breathe{width:max(96px,calc(120px*var(--u)));height:max(96px,calc(120px*var(--u)));border-radius:50%;border:5px solid #000;background:var(--flame);color:#fff;box-shadow:0 7px 0 #000;display:flex;flex-direction:column;align-items:center;justify-content:center;font-size:max(36px,calc(48px*var(--u)));line-height:1;touch-action:none}
 .dr-breathe small{font:400 12px Bungee,sans-serif}
 .dr-breathe.on{transform:translateY(5px);box-shadow:0 2px 0 #000;background:#ffb02e}
-.dr-flight-card{position:absolute;inset:0;z-index:5;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:calc(10px*var(--u));background:#0007;padding:14px 14px calc(var(--floor) + 10px);text-align:center;overflow-y:auto;touch-action:auto}
+.dr-flight-card{position:absolute;inset:0;z-index:5;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:calc(10px*var(--u));background:#3b1a3399;padding:14px 14px calc(var(--floor) + 10px);text-align:center;overflow-y:auto;touch-action:auto}
 .dr-flight-card h2{margin:0;font:400 calc(44px*var(--u)) Bungee,sans-serif;color:var(--sun);text-shadow:3px 3px 0 #000}
 .dr-flight-card p{margin:0;font:900 max(20px,calc(28px*var(--u))) Nunito,sans-serif}
 .dr-flight-card .big-btn{font-size:calc(34px*var(--u));padding:calc(12px*var(--u)) calc(28px*var(--u));min-height:64px}

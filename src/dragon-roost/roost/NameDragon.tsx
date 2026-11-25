@@ -41,8 +41,8 @@ export function NameDragon({ dragon, onDone }: { dragon: Dragon; onDone(): void 
       </div>
       <b class="dr-name-shown tablet big">{adj ? cap(adj) : '…'} {noun ? cap(noun) : '…'}</b>
       <div class="dr-name-rows" aria-hidden={!hatched}>
-        <div class="dr-name-row">{choices.adj.map(w => <button key={w} class={`tablet dr-name-word ${adj === w ? 'right' : ''}`} aria-label={w} onClick={() => pick('adj', w)}>{cap(w)}</button>)}</div>
-        <div class="dr-name-row">{choices.noun.map(w => <button key={w} class={`tablet dr-name-word ${noun === w ? 'right' : ''}`} aria-label={w} onClick={() => pick('noun', w)}>{cap(w)}</button>)}</div>
+        <div class={`dr-name-row ${adj ? 'done' : ''}`}>{choices.adj.map(w => <button key={w} class={`tablet dr-name-word ${adj === w ? 'right' : ''}`} aria-label={w} onClick={() => pick('adj', w)}>{cap(w)}</button>)}</div>
+        <div class={`dr-name-row ${noun ? 'done' : ''}`}>{choices.noun.map(w => <button key={w} class={`tablet dr-name-word ${noun === w ? 'right' : ''}`} aria-label={w} onClick={() => pick('noun', w)}>{cap(w)}</button>)}</div>
       </div>
     </div>
   );
