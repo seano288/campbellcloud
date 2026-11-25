@@ -183,7 +183,8 @@ function roughQ(level: Level, r: Rng): Question {
 
 function bumpQ(level: Level, r: Rng): Question {
   if (level === 1) {
-    const v = pick(r, [{ x: 1, y: 0 }, { x: -1, y: 0 }]), scene: Scene = { type: 'bump', mode: 'ball', v }, choices = ['on', 'stay', 'back'];
+    // the still ball always rolls on (that's the lesson), so the buttons are shuffled: the right one isn't always first
+    const v = pick(r, [{ x: 1, y: 0 }, { x: -1, y: 0 }]), scene: Scene = { type: 'bump', mode: 'ball', v }, choices = shuffle(r, ['on', 'stay', 'back']);
     return q({ kind: 'bump', level, ask: ['A rolling ball hits a ball that is still.', 'What will the still ball do?'], scene, choiceKind: 'arrow', choices, answer: outcome({ scene, choices }) });
   }
   if (level === 2) {

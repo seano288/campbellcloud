@@ -101,7 +101,7 @@ export function drawBarMagnet(ctx: Ctx, x: number, y: number, w: number, h: numb
   ctx.fillText(left, x - w / 4, y + 1); ctx.fillText(right, x + w / 4, y + 1);
 }
 
-const EMOJI: Record<string, string> = { clip: '📎', pan: '🍳', cup: '🥤', paper: '📄', sock: '🧦', feather: '🪶', crayon: '🖍️' };
+const EMOJI: Record<string, string> = { clip: '📎', cup: '🥤', paper: '📄', sock: '🧦', feather: '🪶', crayon: '🖍️' };
 /** A thing a magnet is tried on, centred at (x, y), about s across. */
 export function drawThing(ctx: Ctx, id: string, x: number, y: number, s: number) {
   const lw = Math.max(1.5, s * .06);

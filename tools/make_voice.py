@@ -288,12 +288,12 @@ COLLECTION_SPEECH = {
     },
     # Coaster Crew, pass 1: faster-whisper small.en heard Aria's "You have 1 Ride!" as "You have one right", "Bat Car" as "That car",
     # "Plain Front" as "Play in front", "Mine Train Track" as "mind train track", "First Aid Hut" as "First
-    # aid hat", "Drinks Stand" as "Drink Stand", "A new Guest Paint!" as "and new guest paint" and the squeals "Eek!" and "Wheee!" as "ik"
-    # and "We"; a breath or a respelling for each
+    # aid hat", "Drinks Stand" as "Drink Stand", "A new Guest Paint!" as "and new guest paint" and the squeal "Eek!" as "ik"; a breath or a
+    # respelling for each. (Pass 2: "Wheee!" is said like "we" however it is spelt, so the cheer is "Woo-hoo!".)
     'coaster-crew': {
         'said_as': {'You have 1 Ride!': 'You have one ride.', 'Bat Car': 'Bat, Car', 'Plain Front': 'Plain, Front', 'Mine Train Track': 'Mine-train, Track',
                     'First Aid Hut': 'First Aid, Hut', 'Drinks Stand': 'Drinks, Stand', 'A new Guest Paint!': 'A new, Guest Paint!',
-                    'Eek!': 'Eeeek!', 'Wheee!': 'Wheeeee!'},
+                    'Eek!': 'Eeeek!'},
     },
 }
 

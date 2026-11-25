@@ -50,6 +50,17 @@ describe('the builder', () => {
     expect(fixes.length).toBeGreaterThan(0);
     for (const f of fixes) { expect(f.owned).toBe(false); expect(check(f.pieces).backAt).toBeNull(); expect(applyFix(y, f)).toBeNull(); }
   });
+  it('a full track that rolls back still has a fix: a booster in place of a flat piece before the hill', () => {
+    const pieces = ['pc:lift3', 'pc:drop2', 'pc:straight', 'pc:straight', 'pc:straight', 'pc:hump2'];
+    const y = withPieces(owning('pc:hump2', 'pc:boost'), pieces);
+    expect(pieces.length).toBe(slotsOf(y));
+    expect(check(pieces).backAt).not.toBeNull();
+    const boost = fixesFor(y).find(f => f.kind === 'booster')!;
+    expect(boost.pieces.length).toBe(slotsOf(y));
+    expect(boost.pieces.filter(p => p === 'pc:boost').length).toBe(1);
+    expect(check(boost.pieces).backAt).toBeNull();
+    expect(canRideMine(applyFix(y, boost)!)).toBe(true);
+  });
 });
 
 describe('buying', () => {

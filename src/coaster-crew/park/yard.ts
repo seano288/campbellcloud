@@ -164,10 +164,12 @@ export function fixesFor(y: YardState, pieces: readonly string[] = coasterOf(y).
       if (works(next)) { out.push({ kind: 'lift', piece: id, pieces: next, owned: canUse(y, id) }); break; }
     }
   }
-  // a booster in front of the piece it can't get over
-  for (const id of owned1st(['pc:boost', 'pc:bigboost', 'pc:thunder', 'pc:launch'].filter(usable))) {
-    const next = [...pieces.slice(0, c.backAt.index), id, ...pieces.slice(c.backAt.index)];
-    if (works(next)) { out.push({ kind: 'booster', piece: id, pieces: next, owned: canUse(y, id) }); break; }
+  // a booster in front of the piece it can't get over; on a track with no slot left, a booster in place of the nearest flat piece before
+  // it (a straight, tunnel or turn), so a full track still has a fix one tap away
+  const flatBefore = pieces.slice(0, c.backAt.index).flatMap((id, i) => (pieceOf(id).geo.g === 'flat' && !(pieceOf(id).geo as { boost?: number }).boost ? [i] : [])).reverse();
+  booster: for (const id of owned1st(['pc:boost', 'pc:bigboost', 'pc:thunder', 'pc:launch'].filter(usable))) {
+    const tries = [[...pieces.slice(0, c.backAt.index), id, ...pieces.slice(c.backAt.index)], ...flatBefore.map(i => pieces.map((p, j) => (j === i ? id : p)))];
+    for (const next of tries) if (works(next)) { out.push({ kind: 'booster', piece: id, pieces: next, owned: canUse(y, id) }); break booster; }
   }
   // an owned fix first: one tap, nothing to buy
   return out.sort((a, b) => Number(b.owned) - Number(a.owned));

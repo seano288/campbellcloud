@@ -93,6 +93,9 @@ export function loadsX(mode: 'far' | 'start' | 'stop', m: number, t: number): nu
 /** Where a loaded cart ends up (m). */
 export const loadsEnd = (mode: 'far' | 'start' | 'stop', m: number) =>
   mode === 'far' ? pushedX(speedAfterPush(LOAD_PUSH, m), 99) : mode === 'start' ? loadsX('start', m, 99) : STOP_LINE + stoppingDistance(m, STOP_SPEED, STOP_FORCE);
+/** Rough and Smooth's "must stop at the station": where the station stands (m), just past where the roughest ground stops the cart. Only
+ *  the cart on that ground stops at it; the others roll on past. */
+export const stationAt = (lanes: readonly { readonly ground: string }[]) => Math.min(...lanes.map(l => groundsX(l.ground, 99))) + .25;
 export const groundsX = (ground: string, t: number) => {
   const r = groundOf(ground as never).resistance;
   if (t <= 0) return 0;

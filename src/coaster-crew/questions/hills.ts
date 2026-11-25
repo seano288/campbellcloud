@@ -39,7 +39,9 @@ export function hillTrack(lane: HillLane): HillTrack {
   return t;
 }
 
-export interface HillRun { readonly frames: readonly Rolling[]; readonly over: boolean; readonly speedAtBottom: number }
+/** `bottomT`: when (s) the cart passes the bottom of its slope. A cart let go lower gets there first, though slower, so the scene shows
+ *  each cart's speed there on a sign (art/scene.ts): "faster at the bottom" is never judged by who arrives first. */
+export interface HillRun { readonly frames: readonly Rolling[]; readonly over: boolean; readonly speedAtBottom: number; readonly bottomT: number }
 const runs = new Map<string, HillRun>();
 /** The cart let go from the top, rolled until it stops or rolls off the end. */
 export function hillRun(lane: HillLane): HillRun {
@@ -49,7 +51,8 @@ export function hillRun(lane: HillLane): HillRun {
   const t = hillTrack(lane), r = roll(t.profile, HILL_START, { maxT: 30 });
   let speedAtBottom = 0;
   for (const f of r.frames) if (f.s <= t.bottom + 0.5) speedAtBottom = Math.max(speedAtBottom, f.v);
-  const out = { frames: r.frames, over: t.peak === null || r.frames.some(f => f.s > t.peak! + 0.3), speedAtBottom };
+  const at = r.frames.findIndex(f => f.s >= t.bottom), bottomT = (at < 0 ? r.frames.length : at) / 60;
+  const out = { frames: r.frames, over: t.peak === null || r.frames.some(f => f.s > t.peak! + 0.3), speedAtBottom, bottomT };
   runs.set(key, out);
   return out;
 }

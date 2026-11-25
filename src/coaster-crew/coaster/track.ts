@@ -6,8 +6,16 @@ import { heights, inversions, pieceOf, STEP, type Geo } from './pieces';
 
 /** Rolling resistance of a coaster's wheels on its rails: small, so a little speed is lost all the way round. */
 export const TRACK_RESISTANCE = 0.012;
-/** The station's tyres push the car out at this speed; the chain lifts it at this speed, and creeps over the top. */
+/** The station's tyres push the car out at this speed; the chain lifts it at least this fast, and creeps over the top. */
 export const STATION_SPEED = 2.5, CHAIN_SPEED = 4, CREST_CREEP = 1.4;
+/** A tall lift's chain runs faster, so no climb takes more than about this many seconds: the climb is waiting, not riding (a Mega Lift
+ *  at CHAIN_SPEED was over 20 s of a minute's Ride). What the chain does can't change anything after the top: the car always leaves
+ *  the crest at CREST_CREEP, so speeds, drops, Thrill and rolling back are the same. */
+export const CLIMB_S = 5, MAX_CHAIN_SPEED = 12;
+/** The creep over the top of a lift (m), where the car waits for the lever. */
+export const CREST_L = 2.5;
+/** Out of the station onto a lift the tyres push faster (the chain takes it from there, so it changes nothing after the top). */
+const STATION_TO_LIFT = 5;
 /** The car must keep at least this speed over every crest it climbs by itself, or it is said to roll back. */
 export const CREST_SPEED = 1.2;
 const STATION_L = 16, RUNOUT_BRAKE_L = 18;
@@ -45,9 +53,11 @@ function shape(geo: Geo, x: number, y: number): { pts: [number, number][]; zones
       pts.push([x + 6, y]);
       for (let i = 1; i <= SAMPLES; i++) { const u = i / SAMPLES; pts.push([x + 6 + run * u, y + rise * u]); }
       pts.push([x + 6 + run + 4, y + rise], [x + 6 + run + 8, y + rise]);
-      // the chain climbs briskly, then creeps over the top: he lets it go from there, with almost no speed of its own
-      const total = 6 + Math.hypot(run, rise) + 8, top = (6 + Math.hypot(run, rise)) / total;
-      return { pts, zones: [{ kind: 'chain', a: 0, b: top, speed: CHAIN_SPEED }, { kind: 'chain', a: top, b: 1, speed: CREST_CREEP }] };
+      // the chain climbs briskly along the top, then creeps the last CREST_L metres over the edge: the Ride waits there for the lever, so
+      // the drop comes a moment after he pulls it, and the car leaves with almost no speed of its own
+      const total = 6 + Math.hypot(run, rise) + 8, top = (total - CREST_L) / total;
+      const chain = Math.min(MAX_CHAIN_SPEED, Math.max(CHAIN_SPEED, (6 + Math.hypot(run, rise)) / CLIMB_S));
+      return { pts, zones: [{ kind: 'chain', a: 0, b: top, speed: chain }, { kind: 'chain', a: top, b: 1, speed: CREST_CREEP }] };
     }
     case 'drop': { const d = geo.d * STEP; curve(d * (geo.steep ? .62 : 1.05) + 6, -d, EASE); return { pts, zones: [] }; }
     case 'hump': { const u = geo.u * STEP; curve(u * 2.6 + 10, u, t => (1 - Math.cos(2 * Math.PI * t)) / 2, SAMPLES * 2); return { pts, zones: [] }; }
@@ -113,7 +123,7 @@ export function build(ids: readonly string[]): Built {
     spans.push({ index, id, from, to: L, h0, h1, x0: x, x1: pts[pts.length - 1]![0], geo });
   };
   add(-1, 'station', { g: 'flat', l: STATION_L, look: 'straight' }, 0, 0);
-  zones.push({ kind: 'boost', from: 0, to: STATION_L, speed: STATION_SPEED });
+  zones.push({ kind: 'boost', from: 0, to: STATION_L, speed: ids.length && pieceOf(ids[0]!).geo.g === 'lift' ? STATION_TO_LIFT : STATION_SPEED });
   const hs = heights(ids);
   let h = 0, fitted = 0;
   for (let i = 0; i < ids.length; i++) {
@@ -128,7 +138,7 @@ export function build(ids: readonly string[]): Built {
   add(-2, 'station', { g: 'flat', l: STATION_L, look: 'straight', brake: 1.5 }, 0, 0);
   const lift = spans.find(s => s.geo.g === 'lift');
   const home = spans.find(s => s.id === 'home-brakes')!;
-  return { profile: profile(pts, TRACK_RESISTANCE, zones), spans, liftTop: lift ? lift.to - 8 : null, fitted, home: home.from };
+  return { profile: profile(pts, TRACK_RESISTANCE, zones), spans, liftTop: lift ? lift.to - CREST_L : null, fitted, home: home.from };
 }
 
 export interface Check {

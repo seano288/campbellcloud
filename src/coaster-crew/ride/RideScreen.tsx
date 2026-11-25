@@ -2,7 +2,8 @@
 // what to add). Then the car leaves the station, the chain clacks it up the lift, and it waits at the top for him to pull the lever. A finger
 // held anywhere on the track puts the riders' hands up, which catches the stars; at the big drop the camera comes up for a photo. The view
 // follows the car and draws only the pieces on screen. At the station: the results, the Tokens, the riders counted, any new best, prize,
-// rank or Trophy. `replay` is "Watch it run": the whole coaster on screen, the train going round by itself, nothing paid.
+// rank or Trophy (and, with a Photo Booth, the photo from the big drop). `replay` is "Watch it run": the whole coaster on screen with the
+// train going round by itself, beside his park from above with its visitors walking about; nothing paid.
 import { useEffect, useMemo, useRef, useState } from 'preact/hooks';
 import { sChime, sClink, sFanfare, sPop, sWhoosh, tone } from '../../audio/sfx';
 import { confetti } from '../../celebrate/effects';
@@ -22,6 +23,7 @@ import { pointAt } from '../physics/motion';
 import { useVoice } from '../voice';
 import { startRound } from '../round';
 import { guestLabel, guestSaid } from '../yard/names';
+import { ParkMap } from '../yard/ParkMap';
 
 const cls = (...xs: (string | false | null | undefined)[]) => xs.filter(Boolean).join(' ');
 const said = (x: string | number) => `${x}` as Phrase;
@@ -88,7 +90,8 @@ export function CoasterThumb({ pieces, style, weather, theme = 'th:plain' }: { p
   return <canvas ref={ref} class="cc-thumb" aria-hidden="true" />;
 }
 
-interface Done { pay: RidePay | null; plan: RidePlan; st: RideState }
+/** `photo`: the picture taken at the big drop, kept for the results when he has a Photo Booth (a small JPEG, not saved). */
+interface Done { pay: RidePay | null; plan: RidePlan; st: RideState; photo: string | null }
 
 function Run({ which, replay = false }: { which: Which; replay?: boolean }) {
   const voice = useVoice(), y0 = player.state.peek().yard;
@@ -100,11 +103,15 @@ function Run({ which, replay = false }: { which: Which; replay?: boolean }) {
   const g = which === 'guest' && plan?.guestN ? guest(plan.guestN) : null;
   const look = useMemo(() => trainLook(g ? { body: g.body, front: 'fr:plain', paint: g.paint, stripe: 'sp:one', riders: y0.train.riders } : y0.train), []);
   const cars = g ? g.cars : carsOf(y0), style = g ? g.style : y0.style, weather: Weather = g ? g.weather : y0.night ? 'night' : 'sunset';
-  const speedo = does(y0, 'speedo'), fireworks = does(y0, 'fireworks'), moreStars = does(y0, 'stars'), band = does(y0, 'music');
+  const speedo = does(y0, 'speedo'), fireworks = does(y0, 'fireworks'), moreStars = does(y0, 'stars'), band = does(y0, 'music'), booth = does(y0, 'photo');
 
   useEffect(() => {
     if (!plan) { screen.value = 'yard'; return; }
-    let st = startRide(plan.pieces), raf = 0, last = performance.now(), said0 = false, heldSaid = false, camSaid = false;
+    let st = startRide(plan.pieces), raf = 0, last = performance.now(), said0 = false, heldSaid = false, camSaid = false, snap = false, photo: string | null = null;
+    // an instruction ("Pull the lever!", "Hold your finger down...", "Tap the camera!") is never cut off by the riders' "Eek!" or "Woo-hoo!":
+    // a squeal or a cheer is only said while no instruction is
+    let telling = 0;
+    const tell = (line: Phrase) => { telling++; void voice.say(line).finally(() => { telling--; }); };
     if (moreStars) for (const s of [...st.stars]) st.stars.push({ s: s.s + 12, caught: false, missed: false });
     const c = ref.current!, ctx = c.getContext('2d')!;
     const maxY = Math.max(...st.built.profile.pts.map(p => p[1]));
@@ -117,14 +124,14 @@ function Run({ which, replay = false }: { which: Which; replay?: boolean }) {
       input.current.lever = false; input.current.snap = false;
       for (const e of st.events) {
         if (e === 'star') { sChime(); }
-        if (e === 'squeal') { tone(1400, .25, 'sine', 0, .08, 1800); if (!replay) void voice.say('Eek!'); }
-        if (e === 'cheer') { sWhoosh(.8); if (!replay) void voice.say('Wheee!'); }
-        if (e === 'photo') { sPop(); if (st.photo === 'tapped') void voice.say('Snap!'); }
+        if (e === 'squeal') { tone(1400, .25, 'sine', 0, .08, 1800); if (!replay && !telling) void voice.say('Eek!'); }
+        if (e === 'cheer') { sWhoosh(.8); if (!replay && !telling) void voice.say('Woo-hoo!'); }
+        if (e === 'photo') { sPop(); snap = booth && !replay; if (st.photo === 'tapped') void voice.say('Snap!'); }
         if (e === 'lever') { sClink(); sWhoosh(1); if (band) [523, 659, 784, 1047, 784, 1047].forEach((f, i) => tone(f, .18, 'triangle', .1 + i * .13, .07)); }
       }
-      if (before !== 'hold' && st.phase === 'hold' && !replay && !heldSaid) { heldSaid = true; void voice.say('Pull the lever!'); }
-      if (!camSaid && !replay && cameraUp(st)) { camSaid = true; void voice.say('Tap the camera!'); }
-      if (!said0 && st.phase === 'run' && !replay) { said0 = true; setTimeout(() => void voice.say('Hold your finger down to put your hands up!'), 600); }
+      if (before !== 'hold' && st.phase === 'hold' && !replay && !heldSaid) { heldSaid = true; tell('Pull the lever!'); }
+      if (!camSaid && !replay && cameraUp(st)) { camSaid = true; tell('Tap the camera!'); }
+      if (!said0 && st.phase === 'run' && !replay) { said0 = true; tell('Hold your finger down to put your hands up!'); }
       if (st.phase === 'lift' && Math.floor(st.t * 4) !== Math.floor((st.t - dt) * 4)) tone(220, .04, 'square', 0, .04);
       // draw: the view follows the car, the whole coaster in replay
       const r = c.getBoundingClientRect(), dpr = Math.min(2, devicePixelRatio || 1);
@@ -141,13 +148,18 @@ function Run({ which, replay = false }: { which: Which; replay?: boolean }) {
       drawTrain(ctx, q, st.car.s, cars, look, v, st.hands || replay, st.t);
       if (st.phase === 'done' && replay) { st = startRide(plan.pieces); }
       if (fireworks && st.phase === 'done') for (let i = 0; i < 3; i++) emoji(ctx, '🎆', w * (.2 + .3 * i), h * .2 + Math.sin(st.t * 3 + i) * 10, 40);
+      // the Photo Booth keeps the picture: this frame, copied small (a quick copy, so the big drop doesn't stutter)
+      if (snap) {
+        snap = false;
+        try { const pc = document.createElement('canvas'), pw = 360; pc.width = pw; pc.height = Math.round(pw * h / w); pc.getContext('2d')!.drawImage(c, 0, 0, pc.width, pc.height); photo = pc.toDataURL('image/jpeg', .8); } catch { photo = null; }
+      }
       setUi(u => (u.phase === st.phase && u.camera === cameraUp(st) && Math.abs(u.speed - st.car.v) < 1 && u.stars === st.stars.filter(s => s.caught).length ? u
         : { phase: st.phase, camera: cameraUp(st), speed: st.car.v, stars: st.stars.filter(s => s.caught).length, of: st.stars.length }));
       if (st.phase === 'done' && !replay) {
         cancelAnimationFrame(raf);
         const res = { photo: st.photo === 'tapped', stars: st.stars.filter(s => s.caught).length, starsOf: st.stars.length };
         const pay = settleRide(player, plan, res);
-        setDone({ pay, plan, st });
+        setDone({ pay, plan, st, photo });
       }
     };
     raf = requestAnimationFrame(frame);
@@ -172,6 +184,8 @@ function Run({ which, replay = false }: { which: Which; replay?: boolean }) {
         {!replay && <span class="cc-stars-count">⭐ {ui.stars}/{ui.of}</span>}
         {speedo && <span class="cc-speedo">⏱️ {kmh(ui.speed)}</span>}
       </div>
+      {/* "Watch it run": his park working by itself beside the coaster, visitors walking about and his train going round */}
+      {replay && <div class="cc-watch-park"><ParkMap y={y0} picked={null} onSpot={() => {}} fit /></div>}
       {!replay && ui.phase === 'hold' && (
         <button class="big-btn go cc-lever pulse" aria-label="Pull the lever" onPointerDown={() => { input.current.lever = true; }}>
           <span class="e">🕹️</span><span class="btn-word">Go!</span>
@@ -187,7 +201,7 @@ const posOf = (st: RideState) => pointOf(st, st.car.s);
 const pointOf = (st: RideState, s: number) => pointAt(st.built.profile, s);
 
 function Results({ done, which }: { done: Done; which: Which }) {
-  const voice = useVoice(), { pay, plan, st } = done, y = player.state.value.yard;
+  const voice = useVoice(), { pay, plan, st, photo } = done, y = player.state.value.yard;
   const [awake, setAwake] = useState(false), [lines, setLines] = useState<string[]>([]);
   useEffect(() => {
     void (async () => {
@@ -199,7 +213,8 @@ function Results({ done, which }: { done: Done; which: Which }) {
       if (voice.active) await voice.say('You got', t.said, pay.tokens === 1 ? 'Token.' : 'Tokens.');
       if (st.photo === 'tapped' && voice.active) { add('📷 Photo!'); await voice.say('Great photo!'); }
       if (voice.active) { add(`🧑‍🤝‍🧑 +${pay.riders}`); await voice.say(said(Math.min(100, pay.riders)), 'riders went round!'); }
-      if (which === 'mine' && voice.active) { const th = sayable(plan.check.thrill); add(`⚡ Thrill ${plan.check.thrill}`); await voice.say('Thrill', th.said); }
+      // the Thrill is said only when the voice has its number (to 100, or a whole ten to 400): it never says a number the screen doesn't show
+      if (which === 'mine' && voice.active) { const th = sayable(plan.check.thrill); add(`⚡ Thrill ${plan.check.thrill}`); if (th.exact) await voice.say('Thrill', th.said); }
       if (pay.newBest && voice.active) { sFanfare(); add('🏆 New best!'); await voice.say('New best!'); }
       if (pay.prize && voice.active) {
         sFanfare(); confetti(40, voice.signal);
@@ -225,6 +240,7 @@ function Results({ done, which }: { done: Done; which: Which }) {
           <span>🎖️ {rank.name}{rank.number ? ` ${rank.number}` : ''}</span>
         </div>
       </div>
+      {photo && <figure class="cc-photo"><img src={photo} alt="Your photo from the big drop" /><figcaption>📸</figcaption></figure>}
       <div class="lines">{lines.map((l, i) => <div key={i}>{l}</div>)}</div>
       <div class={`btns ${awake ? '' : 'asleep'}`}>
         <button class="big-btn garage" aria-label="Coaster Yard" onClick={go(() => { screen.value = 'yard'; })}><span class="e">🛠️</span><span class="btn-word">Yard</span></button>

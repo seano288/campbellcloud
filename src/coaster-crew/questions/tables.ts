@@ -3,18 +3,19 @@
 // ---------- Push or Pull: everyday actions ----------
 
 /** A push moves the thing away from the hand (or foot); a pull brings it toward the hand. Only actions with one plain answer: no
- *  "open a door" (it can be either), no throwing (arguable), no dogs on leads (who pulls whom?). */
+ *  "open a door" (it can be either), no throwing (arguable), no dogs on leads (who pulls whom?). What is said never has "push" or "pull"
+ *  in it, or the question would answer itself: he must look at which way the hand moves the thing (problems.test.ts checks). */
 export const ACTIONS = [
   { id: 'kick', said: 'Kicking a ball.', is: 'push', thing: 'ball', by: 'foot' },
-  { id: 'cart', said: 'Pushing a shopping cart.', is: 'push', thing: 'trolley', by: 'hand' },
+  { id: 'cart', said: 'Moving a shopping cart.', is: 'push', thing: 'trolley', by: 'hand' },
   { id: 'close', said: 'Closing a drawer.', is: 'push', thing: 'drawer', by: 'hand' },
-  { id: 'swing', said: 'Pushing a swing.', is: 'push', thing: 'swing', by: 'hand' },
-  { id: 'car', said: 'Pushing a toy car.', is: 'push', thing: 'car', by: 'hand' },
+  { id: 'swing', said: 'Sending a swing up high.', is: 'push', thing: 'swing', by: 'hand' },
+  { id: 'car', said: 'Rolling a toy car away.', is: 'push', thing: 'car', by: 'hand' },
   { id: 'open', said: 'Opening a drawer.', is: 'pull', thing: 'drawer', by: 'hand' },
   { id: 'wagon', said: 'Towing a wagon.', is: 'pull', thing: 'wagon', by: 'hand' },
-  { id: 'sled', said: 'Pulling a sled.', is: 'pull', thing: 'sled', by: 'hand' },
-  { id: 'carrot', said: 'Pulling up a carrot.', is: 'pull', thing: 'carrot', by: 'hand' },
-  { id: 'rope', said: 'Pulling a rope.', is: 'pull', thing: 'rope', by: 'hand' },
+  { id: 'sled', said: 'Dragging a sled through the snow.', is: 'pull', thing: 'sled', by: 'hand' },
+  { id: 'carrot', said: 'Getting a carrot out of the ground.', is: 'pull', thing: 'carrot', by: 'hand' },
+  { id: 'rope', said: 'Playing tug of war.', is: 'pull', thing: 'rope', by: 'hand' },
 ] as const;
 export type ActionId = (typeof ACTIONS)[number]['id'];
 export const actionOf = (id: ActionId) => ACTIONS.find(a => a.id === id)!;
@@ -42,12 +43,13 @@ export const comparable = (a: GroundId, b: GroundId) => {
 // ---------- Magnets: things ----------
 
 /** Everything here is plainly iron or steel, or plainly not metal at all. Left out on purpose: coins, drink cans, foil, keys, jewellery,
- *  pencils (a metal band) and spoons (many steel spoons are a kind of steel a magnet does not pull), and anything just called "metal". */
+ *  pencils (a metal band) and spoons (many steel spoons are a kind of steel a magnet does not pull), and anything just called "metal".
+ *  Every thing here is small enough to jump to a small magnet across the table, as the scenes show (an iron pan was taken out: the
+ *  scene would show a pan leaping to a fridge magnet). */
 export const THINGS = [
   { id: 'clip', name: 'a steel paper clip', short: 'Paper clip', magnetic: true },
   { id: 'nail', name: 'an iron nail', short: 'Nail', magnetic: true },
   { id: 'ball', name: 'a steel ball', short: 'Steel ball', magnetic: true },
-  { id: 'pan', name: 'an iron pan', short: 'Pan', magnetic: true },
   { id: 'block', name: 'a wooden block', short: 'Block', magnetic: false },
   { id: 'cup', name: 'a plastic cup', short: 'Cup', magnetic: false },
   { id: 'paper', name: 'a piece of paper', short: 'Paper', magnetic: false },
@@ -59,7 +61,7 @@ export const THINGS = [
 ] as const;
 export type ThingId = (typeof THINGS)[number]['id'];
 export const thingOf = (id: ThingId) => THINGS.find(t => t.id === id)!;
-/** Small things a magnet can pull across the table (a pan is too heavy to jump to a small magnet: it is only asked about by name). */
+/** The iron and steel things a magnet pulls across the table. */
 export const SMALL_MAGNETIC: readonly ThingId[] = ['clip', 'nail', 'ball'];
 /** Thin things a magnet pulls through: nobody would argue these stop it. */
 export const SHEETS = [

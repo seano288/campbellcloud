@@ -154,7 +154,7 @@ async function lessonOf(p: Asking, teach: boolean, v: VoiceScope, pl: Player) {
       pl.marks.value = { arrows: true };
       if (teach) await yourTurn('Your turn! Tap the ball to roll it.'); else await replay(.45);
       if (!v.active) return;
-      if (sc.mode === 'ball') await v.say('The rolling ball stops, and the still ball rolls on the same way.');
+      if (sc.mode === 'ball') await v.say('The rolling ball gives the still ball a push, so it rolls on the same way.');
       else if (sc.mode === 'wall') await v.say(sc.v.y === 0 ? 'It hits the wall and comes straight back.' : 'It bounces off the wall the other way, like in a mirror.');
       else await v.say('The push from the side adds to the way it was going, so it goes off in between.');
       return;

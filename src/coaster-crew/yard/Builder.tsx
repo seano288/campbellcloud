@@ -12,7 +12,7 @@ import { CUR } from '../branding';
 import { pieceOf } from '../coaster/pieces';
 import { build, check, START } from '../coaster/track';
 import { buy, player, updateYard } from '../game';
-import { ride, watch } from '../nav';
+import { ride, watch, yardTab } from '../nav';
 import { needLine, sayable, type Phrase } from '../phrases';
 import { roll } from '../physics/motion';
 import { addPiece, applyFix, canRideMine, carsOf, coasterOf, fixesFor, pickCoaster, selectGoal, slotsOf, takeLast, trayFor, type Fix } from '../park/yard';
@@ -117,23 +117,28 @@ export function Builder() {
         <span class="cc-slots" aria-label="Pieces used">{coaster.pieces.length}/{slots}</span>
         {c.backAt === null && coaster.pieces.length > 0 && <span class="cc-thrill-tag">⚡ {c.thrill}</span>}
       </div>
-      {c.backAt !== null && (
-        <div class="cc-rollback" role="group" aria-label="It rolls back">
-          <span class="cc-rb-say">🐢 It needs more speed!</span>
-          {fixes.map(f => (
-            <button key={f.kind} class="cc-fix" aria-label={f.kind === 'lift' ? 'Taller first hill' : 'Add a booster'} onClick={() => fix(f)}>
-              <span class="e" aria-hidden="true">{f.kind === 'lift' ? '⛓️' : '⚡'}</span>
-              <span class="tile-name">{f.kind === 'lift' ? 'Taller hill' : 'Booster'}</span>
-              {!f.owned && <span class="tile-cost"><CurrencyIcon kind={CUR} size={16} />{itemOf(f.piece).price}</span>}
-            </button>
-          ))}
-        </div>
-      )}
       <div class="cc-build-actions">
-        <button class="big-btn cc-off" aria-label="Take off the last piece" onClick={off}><span class="e">↩️</span></button>
-        <div class="cc-tray" role="group" aria-label="Pieces that fit">
-          {tray.length ? tray.map(pieceTile) : <span class="cc-tray-empty">{coaster.pieces.length >= slots ? '➕ More Track' : '—'}</span>}
-        </div>
+        <button class={cls('big-btn', 'cc-off', c.backAt !== null && !fixes.length && 'pulse')} aria-label="Take off the last piece" onClick={off}><span class="e">↩️</span></button>
+        {c.backAt !== null ? (
+          // rolling back: the two honest fixes take the tray's place, right beside ↩️, while the car rolls back above (where he can see it)
+          <div class="cc-rollback" role="group" aria-label="It rolls back">
+            <span class="cc-rb-say">🐢 It needs more speed!</span>
+            {fixes.map(f => (
+              <button key={f.kind} class="cc-fix" aria-label={f.kind === 'lift' ? 'Taller first hill' : 'Add a booster'} onClick={() => fix(f)}>
+                <span class="e" aria-hidden="true">{f.kind === 'lift' ? '⛓️' : '⚡'}</span>
+                <span class="tile-name">{f.kind === 'lift' ? 'Taller hill' : 'Booster'}</span>
+                {!f.owned && <span class="tile-cost"><CurrencyIcon kind={CUR} size={16} />{itemOf(f.piece).price}</span>}
+              </button>
+            ))}
+          </div>
+        ) : (
+          <div class="cc-tray" role="group" aria-label="Pieces that fit">
+            {tray.length ? tray.map(pieceTile)
+              // a full track: the way to more is one tap, to More Track in the shop
+              : coaster.pieces.length >= slots ? <button class="cc-tile repeat" aria-label="More Track" onClick={() => { if (!voice.active) return; yardTab.value = 'track'; say('More Track'); }}><span class="tile-icon" aria-hidden="true">➕</span><span class="tile-name">More Track</span></button>
+              : <span class="cc-tray-empty">—</span>}
+          </div>
+        )}
         <button class={cls('big-btn', 'go', 'cc-ride-go', rideable && y.rides > 0 && 'pulse', !rideable && 'locked')} aria-label="Ride" onClick={rideIt}>
           <span class="e">🎢</span><span class="race-count">{y.rides}</span>
         </button>

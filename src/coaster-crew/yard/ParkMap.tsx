@@ -1,21 +1,25 @@
 // His park from above: plots of grass with paths between, every ride and stand on its spot, his coaster's track looping round the top,
 // and little visitors walking the paths in the hats and with the balloons he has bought (queuing at the coaster once he has Queue Lines).
 // With a spot picked, it glows; with Night Lights on, the park is lit at night.
+//
+// It is drawn at one scale both ways, never squashed: land can be bought without end, so in the Yard the map simply grows taller (the Yard
+// scrolls, and every spot stays big enough to tap), and in "Watch it run" (`fit`) the whole park shrinks evenly to fit its box.
 import { useEffect, useRef } from 'preact/hooks';
 import { emoji, INK, outline, rounded } from '../art/draw';
 import { BALLOONS, HATS, itemOf, SPOTS_PER_PLOT } from '../park/catalog';
 import { does, type YardState } from '../park/yard';
 
-const COLS = 3;
+/** Plots a row: two on a narrow screen, so a spot stays at least 44pt across on a phone. */
+export const colsFor = (w: number) => (w < 600 ? 2 : 3);
 export function spotRect(i: number, w: number, plots: number) {
-  const plot = Math.floor(i / SPOTS_PER_PLOT), j = i % SPOTS_PER_PLOT, rows = Math.ceil(plots / COLS);
+  const COLS = colsFor(w), plot = Math.floor(i / SPOTS_PER_PLOT), j = i % SPOTS_PER_PLOT, rows = Math.ceil(plots / COLS);
   const pw = w / COLS, ph = pw * .8, px = (plot % COLS) * pw, py = 70 + Math.floor(plot / COLS) * ph;
   const sw = (pw - 24) / 3, sh = (ph - 24) / 2;
   return { x: px + 12 + (j % 3) * sw, y: py + 12 + Math.floor(j / 3) * sh, w: sw, h: sh, total: 70 + rows * ph + 10 };
 }
 export const mapHeight = (w: number, plots: number) => spotRect(0, w, plots).total;
 
-export function ParkMap({ y, picked, onSpot }: { y: YardState; picked: number | null; onSpot(i: number): void }) {
+export function ParkMap({ y, picked, onSpot, fit = false }: { y: YardState; picked: number | null; onSpot(i: number): void; fit?: boolean }) {
   const ref = useRef<HTMLCanvasElement>(null);
   const plots = y.spots.length / SPOTS_PER_PLOT;
   useEffect(() => {
@@ -29,9 +33,13 @@ export function ParkMap({ y, picked, onSpot }: { y: YardState; picked: number | 
       if (!r.width) return;
       if (c.width !== Math.round(r.width * dpr) || c.height !== Math.round(r.height * dpr)) { c.width = Math.round(r.width * dpr); c.height = Math.round(r.height * dpr); }
       ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
-      const w = r.width, t = now / 1000, scale = r.height / mapHeight(w, plots);
-      ctx.fillStyle = night ? '#1b2a3a' : '#e9d8b0'; ctx.fillRect(0, 0, w, r.height);
-      ctx.save(); ctx.scale(1, scale);
+      const w = r.width, t = now / 1000, COLS = colsFor(w), H = mapHeight(w, plots);
+      // in the Yard the canvas is as tall as the map; to fit a box, the whole map is scaled evenly and centred
+      if (!fit && Math.abs(r.height - H) > 1) c.style.height = `${H}px`;
+      const k = fit ? Math.min(1, r.height / H) : 1;
+      ctx.clearRect(0, 0, w, r.height);
+      ctx.save(); ctx.translate((w - w * k) / 2, 0); ctx.scale(k, k);
+      ctx.fillStyle = night ? '#1b2a3a' : '#e9d8b0'; ctx.fillRect(0, 0, w, fit ? H : r.height);
       // the coaster looping along the top
       ctx.beginPath(); ctx.ellipse(w / 2, 34, w * .44, 22, 0, 0, Math.PI * 2); ctx.strokeStyle = INK; ctx.lineWidth = 9; ctx.stroke(); ctx.strokeStyle = '#e63946'; ctx.lineWidth = 5; ctx.stroke();
       const a = t * .9; emoji(ctx, '🎢', w / 2 + Math.cos(a) * w * .44, 34 + Math.sin(a) * 22, 22);
@@ -60,8 +68,9 @@ export function ParkMap({ y, picked, onSpot }: { y: YardState; picked: number | 
     return () => cancelAnimationFrame(raf);
   }, [y, picked]);
   const tap = (e: PointerEvent) => {
-    const r = ref.current!.getBoundingClientRect(), scale = r.height / mapHeight(r.width, plots), px = e.clientX - r.left, py = (e.clientY - r.top) / scale;
+    if (fit) return;
+    const r = ref.current!.getBoundingClientRect(), px = e.clientX - r.left, py = e.clientY - r.top;
     for (let i = 0; i < y.spots.length; i++) { const s = spotRect(i, r.width, plots); if (px >= s.x && px <= s.x + s.w && py >= s.y && py <= s.y + s.h) { onSpot(i); return; } }
   };
-  return <canvas ref={ref} class="cc-park-map" style={{ aspectRatio: `1 / ${(mapHeight(300, plots) / 300).toFixed(3)}` }} role="img" aria-label="Your park" onPointerDown={tap} />;
+  return <canvas ref={ref} class={`cc-park-map${fit ? ' fit' : ''}`} role="img" aria-label="Your park" onPointerDown={tap} />;
 }

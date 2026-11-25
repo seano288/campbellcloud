@@ -3,11 +3,11 @@
 // a lane lit to tap.
 import { cartColour, groundOf, type ActionId } from '../questions/tables';
 import { type Scene } from '../questions/problems';
-import { hillTrack } from '../questions/hills';
+import { hillRun, hillTrack } from '../questions/hills';
 import {
-  actAt, actIs, bumpAt, groundsX, hillAt, laneDuration, lanesOf, loadsX, magnetTry, nearAt, polesGap, pushesX, throughAt, wayAt, wayVec, STOP_LINE, TABLE, BALL_R,
+  actAt, actIs, bumpAt, groundsX, hillAt, stationAt, laneDuration, lanesOf, loadsX, magnetTry, nearAt, polesGap, pushesX, throughAt, wayAt, wayVec, STOP_LINE, TABLE, BALL_R,
 } from '../questions/scenes';
-import { MAGNET_REACH, coastDistance } from '../physics/motion';
+import { MAGNET_REACH, coastDistance, pointAt } from '../physics/motion';
 import { CART_FLOOR, EMPTY_CART, GROUND_PUSH, LOAD_PUSH } from '../questions/problems';
 import { speedAfterPush } from '../physics/motion';
 import { ball, drawArrow, drawBarMagnet, drawCart, drawGround, drawHand, drawMagnet, drawPerson, drawThing, emoji, INK, outline, rounded, type Ctx } from './draw';
@@ -59,9 +59,12 @@ export function drawScene(ctx: Ctx, sc: Scene, w: number, h: number, look: Look)
     });
     case 'grounds': return lanes(ctx, sc, w, h, look, (i, x, y, lw, lh) => {
       const lane = sc.lanes[i]!, g = groundOf(lane.ground);
-      const far = Math.max(...sc.lanes.map(l => coastDistance(GROUND_PUSH, groundOf(l.ground).resistance))) + 1, geo = laneGeom(x, y, lw, lh, far), gy = geo.gy;
+      // "must stop at the station": the station is just past where the roughest ground stops the cart, in every lane, so the cart on
+      // smoother ground is seen rolling on past it (and off the end); otherwise the lane fits the farthest any cart goes
+      const station = stationAt(sc.lanes);
+      const far = sc.mode === 'station' ? station * 2 : Math.max(...sc.lanes.map(l => coastDistance(GROUND_PUSH, groundOf(l.ground).resistance))) + 1, geo = laneGeom(x, y, lw, lh, far), gy = geo.gy;
       drawGround(ctx, g.id, x, gy, lw, lh - (gy - y), g.colour);
-      if (sc.mode === 'station') emoji(ctx, '🚉', x + lw - geo.s * .6, gy - geo.s * .5, geo.s * .8);
+      if (sc.mode === 'station') emoji(ctx, '🚉', geo.x0 + station * geo.k + geo.s * .55, gy - geo.s * .55, geo.s * .9);
       if (sc.mode === 'long') emoji(ctx, '🏁', x + lw - geo.s * .6, gy - geo.s * .5, geo.s * .8);
       const cx = geo.x0 + groundsX(g.id, t(i)) * geo.k;
       drawCart(ctx, cx, gy, 0, '#ffc21a', geo.s);
@@ -231,6 +234,16 @@ function drawHills(ctx: Ctx, sc: Extract<Scene, { type: 'hills' }>, w: number, h
       const bx = ox - lh * .1, bh = lane.start * ky;
       ctx.beginPath(); ctx.rect(bx - 6, oy - bh, 12, bh); ctx.fillStyle = cartColour(lane.cart); ctx.fill(); outline(ctx, 2);
       ctx.setLineDash([6, 6]); ctx.beginPath(); ctx.moveTo(ox, oy - bh); ctx.lineTo(x + lw, oy - bh); ctx.strokeStyle = cartColour(lane.cart); ctx.lineWidth = 3; ctx.stroke(); ctx.setLineDash([]);
+    }
+    // two carts let go from two heights: a speed sign at the bottom of each lane fills to how fast its cart goes past (the same scale in
+    // every lane), and stays, so the one started higher is plainly the faster there, though the lower one gets there first
+    if (sc.lanes.every(l => l.hill === undefined)) {
+      const run = hillRun(lane), fastest = Math.max(...sc.lanes.map(l => hillRun(l).speedAtBottom)), past = (look.clocks[i] ?? 0) >= run.bottomT;
+      const [bx] = P(pointAt(tr.profile, tr.bottom).x, 0), sw = Math.min(lw * .2, lh * .9), sh = Math.max(16, lh * .16), sx = bx + lh * .12, sy = y + lh * .12;
+      rounded(ctx, sx, sy, sw, sh, sh / 2); ctx.fillStyle = INK; ctx.fill();
+      if (past) { rounded(ctx, sx + 3, sy + 3, Math.max(sh - 6, (sw - 6) * run.speedAtBottom / fastest), sh - 6, (sh - 6) / 2); ctx.fillStyle = '#ffd23f'; ctx.fill(); }
+      emoji(ctx, '⏱️', sx - sh * .2, sy + sh / 2, sh * 1.1);
+      ctx.setLineDash([4, 5]); ctx.beginPath(); ctx.moveTo(bx, sy + sh); ctx.lineTo(bx, oy); ctx.strokeStyle = '#14161b80'; ctx.lineWidth = 2; ctx.stroke(); ctx.setLineDash([]);
     }
     const at = hillAt(lane, look.clocks[i] ?? 0), [cx, cy] = P(at.x, at.y);
     const angle = Math.atan2(Math.sin(at.angle) * ky, Math.cos(at.angle) * kx), size = Math.max(26, Math.min(lh * .3, kx * 1.6));

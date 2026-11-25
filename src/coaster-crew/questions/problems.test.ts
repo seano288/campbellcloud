@@ -6,7 +6,7 @@ import { seeded } from '../../game/rng';
 import { coastDistance, MAGNET_REACH } from '../physics/motion';
 import { arrowAngle, choiceName, HILL_APART, isRightAnswer, KINDS, makeQuestion, outcome, type Level, type Question } from './problems';
 import { hillRun } from './hills';
-import { bumpAt, groundsX, laneDuration, lanesOf, loadsEnd, magnetTry, nearAt, polesGap, pushesX, sceneDuration, throughAt } from './scenes';
+import { bumpAt, groundsX, laneDuration, lanesOf, loadsEnd, magnetTry, nearAt, polesGap, pushesX, sceneDuration, stationAt, throughAt } from './scenes';
 import { ACTIONS, comparable, GROUNDS, groundOf, THINGS, thingOf } from './tables';
 
 const N = 1500;
@@ -42,7 +42,6 @@ describe('every question', () => {
   it('does not always have the same answer: the right choice moves about', () => {
     for (const k of KINDS) for (const l of [1, 2, 3] as const) {
       const qs = of(k, l), first = qs.filter(q => q.choices[0] === q.answer).length / qs.length;
-      if (k === 'bump' && l === 1) continue; // "rolls on" is always right, and that's the lesson; its button moves with the ball's way
       expect(first, `${k} ${l}`).toBeLessThan(.75);
     }
   });
@@ -75,7 +74,13 @@ describe('the scene that plays agrees with the answer', () => {
       const sc = q.scene;
       if (sc.type !== 'hills') continue;
       if (q.answer === 'yes' || q.answer === 'no') expect(hillRun(sc.lanes[0]!).over).toBe(q.answer === 'yes');
-      else if (sc.lanes.every(l => l.hill === undefined)) expect(sc.lanes.find(l => l.cart === q.answer)!.start).toBe(Math.max(...sc.lanes.map(l => l.start)));
+      else if (sc.lanes.every(l => l.hill === undefined)) {
+        expect(sc.lanes.find(l => l.cart === q.answer)!.start).toBe(Math.max(...sc.lanes.map(l => l.start)));
+        // the speed signs at the bottom: the answer's cart goes past its sign fastest (the lower cart gets to the bottom first, so
+        // arriving first is not what the scene shows as faster)
+        const runs = sc.lanes.map(l => hillRun(l)), mine = runs[sc.lanes.findIndex(l => l.cart === q.answer)]!;
+        for (const r of runs) if (r !== mine) { expect(mine.speedAtBottom).toBeGreaterThan(r.speedAtBottom * 1.08); expect(r.bottomT).toBeLessThan(mine.bottomT); }
+      }
       else { const over = sc.lanes.filter(l => hillRun(l).over); expect(over.map(l => l.cart)).toEqual([q.answer]); }
     }
   });
@@ -86,6 +91,12 @@ describe('the scene that plays agrees with the answer', () => {
       const ends = sc.lanes.map(l => groundsX(l.ground, 99));
       const far = sc.lanes[ends.indexOf(Math.max(...ends))]!.ground, near = sc.lanes[ends.indexOf(Math.min(...ends))]!.ground;
       expect(q.answer).toBe(sc.mode === 'far' || sc.mode === 'long' ? far : near);
+      // "must stop at the station": the station is drawn where only the answer's cart stops at it; every other cart rolls on past it
+      if (sc.mode === 'station') {
+        const at = stationAt(sc.lanes);
+        sc.lanes.forEach((l, i) => expect(ends[i]! <= at, `${l.ground} in ${JSON.stringify(sc.lanes)}`).toBe(l.ground === q.answer));
+        expect(Math.max(...ends.filter((_, i) => sc.lanes[i]!.ground !== q.answer))).toBeGreaterThan(at + 1);
+      }
     }
   });
   it('bumps: the ball goes off the way the answer arrow points', () => {
@@ -167,6 +178,22 @@ describe("the brief's rules", () => {
   it('push or pull uses only actions with one plain answer', () => {
     expect(ACTIONS.map(a => a.said).join(' ')).not.toMatch(/door|throw|dog/i);
     expect(new Set(ACTIONS.map(a => a.is))).toEqual(new Set(['push', 'pull']));
+  });
+  it('push or pull never says the answer in the question: no "push" or "pull" in what the action is called', () => {
+    for (const a of ACTIONS) expect(a.said, a.id).not.toMatch(/push|pull/i);
+  });
+  it('nothing the game says puts weight and going downhill together (the one line that does says weight does not matter)', async () => {
+    const { PHRASES } = await import('../phrases');
+    const weight = /\b(heavy|heavier|light|lighter|full|empty|weighs?|weight)\b/i, downhill = /\b(hill|hills|downhill|down|fall|falls|slope|drop|drops|faster)\b/i;
+    const both = PHRASES.filter(p => weight.test(p) && downhill.test(p));
+    expect(both).toEqual([]);
+    expect(PHRASES).toContain('It does not matter how heavy it is. Only how high it starts.');
+  });
+  it('every magnet scene shows only small things that can jump to a small magnet', () => {
+    for (const q of of('magnet')) {
+      const sc = q.scene;
+      if (sc.type === 'magnet') for (const id of sc.things) expect(['clip', 'nail', 'ball', 'block', 'cup', 'paper', 'marble', 'rubber', 'sock', 'feather', 'crayon']).toContain(id);
+    }
   });
   it('near and far: the near clip is well inside the magnet\'s reach and the far one well outside it', () => {
     for (const q of of('magnet', 3)) if (q.scene.type === 'near') { const ds = q.scene.clips.map(c => c.d).sort((a, b) => a - b); expect(ds[0]).toBeLessThan(MAGNET_REACH * .6); expect(ds[1]).toBeGreaterThan(MAGNET_REACH * 2); }

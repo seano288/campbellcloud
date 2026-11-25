@@ -63,7 +63,7 @@ const TEACHING = [
   'Both carts get the same push.', 'The full cart is heavy, so it hardly moves. The empty cart is light, so it goes farther.',
   'The same push gets the light cart going. The heavy cart needs a bigger push.', 'The heavy cart is harder to stop. It keeps going for longer.',
   'Rough ground rubs the wheels and slows the cart down.', 'Smooth ground lets it roll a long way.', 'The rubbing is called friction.',
-  'The rolling ball stops, and the still ball rolls on the same way.', 'It hits the wall and comes straight back.', 'It bounces off the wall the other way, like in a mirror.',
+  'The rolling ball gives the still ball a push, so it rolls on the same way.', 'It hits the wall and comes straight back.', 'It bounces off the wall the other way, like in a mirror.',
   'The push from the side adds to the way it was going, so it goes off in between.',
   'Magnets pull things made of iron or steel.', 'They do not pull wood, plastic, paper, glass or rubber.',
   'It is iron or steel, so the magnet pulls it.', 'It is not iron or steel, so the magnet does not pull it.',
@@ -83,7 +83,7 @@ const YARD = [
 // ---------- the Ride ----------
 const RIDE = [
   'Which coaster?', 'My Coaster', 'or', 'Guest Coaster', 'Your coaster rolls back. Fix it in the Yard first!', 'Build your coaster in the Yard first!', 'Watch it run!',
-  'Eek!', 'Wheee!', 'Snap!', 'Tap the camera!', 'Pull the lever!', 'Hold your finger down to put your hands up!', 'Tap again to leave.', 'What a ride!', 'Great photo!',
+  'Eek!', 'Woo-hoo!', 'Snap!', 'Tap the camera!', 'Pull the lever!', 'Hold your finger down to put your hands up!', 'Tap again to leave.', 'What a ride!', 'Great photo!',
   'riders went round!', 'Thrill', 'New best!', 'A prize!', 'A new Guest Paint!', 'A new Trophy!', 'You are now a',
 ] as const;
 
