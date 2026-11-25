@@ -11,12 +11,12 @@ import { PLACES } from './flight/course';
 import { LOCKED_HINTS, MODE_IDS, MODE_NAMES } from './learning';
 import { meeting } from './questions/meetings';
 import { makeQuestion, type Level } from './questions/problems';
-import { CHEERS, MOST_EARNED, needLine, openedLine, pairLine, pastLine, PHRASES, priceLine, starLine, wordPhrase } from './phrases';
+import { CHEERS, MOST_EARNED, needLine, openedLine, pairLine, pastLine, PHRASES, PRICE_TOP, priceLine, starLine, wordPhrase } from './phrases';
 import { ITEMS, REPEATS } from './roost/catalog';
 import { MARK_NAMES, NAME_ADJECTIVES, NAME_NOUNS, STAGE_NAMES } from './roost/dragons';
 import { RANKS, TROPHIES } from './roost/roost';
 import { CLIPS } from './voice.gen';
-import { PASTS, PLURALS, SQUEEZE_SENTENCES, SQUEEZES, squeezed, whole } from './words/frames';
+import { CHANGING, PASTS, PLURALS, SQUEEZE_SENTENCES, SQUEEZES, squeezed, whole } from './words/frames';
 import { SENTENCES } from './words/sentences';
 import { TERMS } from './words/terms';
 
@@ -40,12 +40,12 @@ describe('the recorded voice', () => {
       for (let i = 0; i < 300; i++) {
         const q = makeQuestion(kind, level, rng);
         built.push(...q.ask, ...(q.choices ?? []).filter(() => q.stage.type === 'words').map(wordPhrase));
-        if (q.stage.type === 'tap') built.push(...q.stage.s.words.map(w => wordPhrase(w.text)));
+        // the words of a sentence a lesson says alone are checked by running every lesson (questions/teach.test.ts)
         if (q.stage.type === 'gap') built.push(whole(q.stage.f));
         if (q.stage.type === 'sort') built.push(wordPhrase(q.stage.word));
       }
     }
-    built.push(...SENTENCES.flatMap(s => s.words.map(w => wordPhrase(w.text))), ...PLURALS.flatMap(p => [wordPhrase(p.one), pairLine(p.one, p.many)]),
+    built.push(...SENTENCES.map(s => s.text), ...CHANGING.map(p => wordPhrase(p.one)), ...PLURALS.map(p => pairLine(p.one, p.many)),
       ...PASTS.map(([a, b]) => pastLine(a, b)), ...SQUEEZES.flatMap(s => [s.from, wordPhrase(s.word)]), ...SQUEEZE_SENTENCES.map(squeezed),
       ...(['noun', 'verb', 'adj'] as const).flatMap(k => Object.values(TERMS[k])));
     // the Meetings
@@ -54,7 +54,7 @@ describe('the recorded voice', () => {
     built.push(...Array.from({ length: MOST_EARNED }, (_, i) => earnedLine(CUR, i + 1)), ...MODE_IDS.flatMap(m => [MODE_NAMES[m], starLine(m), openedLine(m)]), ...Object.values(LOCKED_HINTS), ...CHEERS);
     // the Roost: every thing's name, every price and need, the dragons' names and stages; the Flight: places, ranks, trophies, marks
     built.push(...ITEMS.map(i => i.name), ...REPEATS.map(r => r.name), ...NAME_ADJECTIVES, ...NAME_NOUNS, ...STAGE_NAMES, ...MARK_NAMES, ...RANKS.map(r => r.name), ...TROPHIES.map(t => t.name), ...PLACES.map(p => p.name));
-    for (let n = 1; n <= 400; n++) built.push(...priceLine(n), ...needLine(n));
+    for (let n = 1; n <= PRICE_TOP; n++) built.push(...priceLine(n), ...needLine(n));
     for (let n = 0; n <= 100; n++) built.push(`${n}`);
     expect([...new Set(built.filter(p => !has.has(p)))]).toEqual([]);
   });

@@ -2,7 +2,7 @@
 // thing."), then examples with their pictures, the dragon doing the dragon words, the plural growing, the squeeze. Plain data for the view
 // (views.tsx) and the voice test.
 import type { Meet } from '../mix';
-import { meetLines, MEET_LINES, pairLine, pastLine, wordPhrase } from '../phrases';
+import { CAPITAL_RULE, meetLines, MEET_LINES, pairLine, pastLine, wordPhrase } from '../phrases';
 import { PLURALS, SQUEEZES } from '../words/frames';
 import { TERMS } from '../words/terms';
 import type { Show } from './teach';
@@ -37,7 +37,7 @@ export function meeting(m: Meet['meeting']): Beat[] {
     }
     case 'capital': return [head(meetLines('capital')),
       ...(['Sam', 'Monday', 'May', 'Spain'] as const).map(w => ({ say: [w, `is a ${({ Sam: 'name', Monday: 'day', May: 'month', Spain: 'place' })[w]}.`], show: { kind: 'capital', word: w, step: 1 } as Show })),
-      { say: ['Names start with a big letter.'], show: null }];
+      { say: [CAPITAL_RULE], show: null }];
   }
 }
 export const MEET_TITLES = { noun: TERMS.noun.kind, verb: TERMS.verb.kind, adj: TERMS.adj.kind, plural: 'More Than One', past: 'Yesterday', squeeze: 'Squeeze', capital: 'Big Letters' } as const;

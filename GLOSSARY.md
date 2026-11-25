@@ -997,7 +997,7 @@ _Avoid_: Bolt (in Dragon Roost it's always Flames), coins, gold
 
 **Roost**: the reward he builds: a mountain at dawn with ledges up its side, nests with his eggs warming, his dragons, and the pieces he buys (perches, a hot spring, a waterfall, a lookout). It has no top: a **New Ledge** can always be bought.
 
-**Egg**: bought with Flames and put in a nest; every finished Round warms each egg by one step, and it hatches after a set number of Rounds (three for the first, up to eight for the rarest). He taps a warm egg to hatch it. After the forty named eggs come **Wild Eggs**, each a dragon made from its number, without end.
+**Egg**: bought with Flames and put in a nest; every finished Round warms each egg by one step, and it hatches after a set number of Rounds (three for the first, up to eight for the rarest). He taps a warm egg to hatch it. Once he has twenty of the forty named eggs, **Wild Eggs** open too, each a dragon made from its number, without end.
 
 **Dragon**: hatched from an egg and named by him with one describing word and one noun (Tiny Comet). It grows as he flies it: hatchling, young (3 Flights), great (8 Flights), then a new **mark** every 4 Flights (a stripe, a horn ring, a star on its wing), without end.
 

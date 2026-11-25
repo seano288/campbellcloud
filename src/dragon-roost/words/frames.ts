@@ -65,7 +65,7 @@ export const PAST_FRAMES_1 = [
   'Yesterday the dragon [jumped|jump|jumps] on the rock.', 'Yesterday Sam [hugged|hug|hugs] the dragon.', 'Yesterday we [played|play|plays] on the hill.',
   'Yesterday the king [looked|look|looks] at the egg.', 'Yesterday the dragon [kicked|kick|kicks] a ball.', 'Yesterday Kim [painted|paint|paints] the egg.',
   'Yesterday the dragon [helped|help|helps] the king.', 'Yesterday Max [walked|walk|walks] up the hill.', 'Yesterday Ben [planted|plant|plants] a tree.',
-  'Yesterday the baby [clapped|clap|claps].', 'Yesterday the dragon [rested|rest|rests] in the cave.', 'Yesterday Dot [filled|fill|fills] the cup.',
+  'Yesterday the baby [clapped|clap|claps].', 'Yesterday the dragon [rested|rest|rests] in the cave.', 'Yesterday Meg [filled|fill|fills] the cup.',
   'Yesterday the dragon [sprayed|spray|sprays] the grass.', 'Yesterday Tom [smiled|smile|smiles] at the dragon.', 'Yesterday we [visited|visit|visits] the roost.',
 ].map(frame);
 /** The doing words that change, each with the form nobody argues over (no dreamt, dove, lit or hung). */
@@ -81,7 +81,7 @@ export const PAST_FRAMES_2 = [
   'Yesterday Kim [saw|see|sees] a red egg.', 'Yesterday we [went|go|goes] to the roost.', 'Yesterday the king [came|come|comes] to the roost.',
   'Yesterday the dragon [sat|sit|sits] on the egg.', 'Yesterday the kitten [hid|hide|hides] in the box.', 'Yesterday Ben [told|tell|tells] the king.',
   'Yesterday the dragon [dug|dig|digs] in the mud.', 'Yesterday we [swam|swim|swims] in the lake.', 'Yesterday Max [rode|ride|rides] the dragon.',
-  'Yesterday Dot [made|make|makes] a kite.', 'Yesterday the girl [found|find|finds] a big egg.', 'Yesterday the dragon [slept|sleep|sleeps] in the cave.',
+  'Yesterday Meg [made|make|makes] a kite.', 'Yesterday the girl [found|find|finds] a big egg.', 'Yesterday the dragon [slept|sleep|sleeps] in the cave.',
   'Yesterday the dragon [grew|grow|grows] so big!', 'Yesterday the dragon [blew|blow|blows] a big bubble.', 'Yesterday Tom [drove|drive|drives] the truck.',
 ].map(frame);
 /** Level 3: yesterday or tomorrow picks the form. Every one is about one person or one dragon, so the bare word ("Tomorrow Max go") is

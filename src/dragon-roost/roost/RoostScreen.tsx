@@ -20,8 +20,8 @@ import { COLOURS, EGGS, GEAR, itemOf, REPEATS, ROOST, TOYS, TRICKS, type Item, t
 import { cap, lookOfEgg, marksOf, shownName, stageOf, STAGE_NAMES } from './dragons';
 import { NameDragon } from './NameDragon';
 import {
-  buyable, goalOf, has, hatch, hatchNeed, isReady, lookOf, missingNeed, nestCount, priceOf, rankOf, ride, selectGoal, toggleTrick, trickSlots, TROPHIES, unnamed,
-  wantKey, wear, type RoostState, type Want,
+  buyable, goalOf, has, hatch, hatchNeed, isReady, lookOf, missingNeed, namedEggs, nestCount, priceOf, rankOf, ride, selectGoal, toggleTrick, trickSlots, TROPHIES, unnamed,
+  wantKey, wear, WILD_AFTER, type RoostState, type Want,
 } from './roost';
 
 const cls = (...xs: (string | false | null | undefined)[]) => xs.filter(Boolean).join(' ');
@@ -88,7 +88,7 @@ export function RoostScreen() {
     const why = missingNeed(a, w);
     setPicked(w);
     if (why === 'nest-full') { sNope(); say(nameOf(w), 'Your nests are full!', 'Get a nest or a ledge for another egg!'); return; }
-    if (why === 'named-first') { sNope(); say(nameOf(w), 'Wild eggs come after all the other eggs!'); return; }
+    if (why === 'named-first') { sNope(); say(nameOf(w), 'Wild eggs come after twenty other eggs!'); return; }
     if (why) { sNope(); say(nameOf(w), 'Get this first:', itemOf(why).name); return; }
     const price = priceOf(a, w), does = w.kind === 'item' ? doesLine(itemOf(w.id)) : w.id === 'ledge' ? 'It holds an egg!' : null;
     if (price > balance) { updateRoost(x => selectGoal(x, w)); say(nameOf(w), ...(does ? [does] : []), ...priceLine(price), ...needLine(price - balance)); return; }
@@ -148,7 +148,7 @@ export function RoostScreen() {
       <button key={id} class={cls('dr-tile', 'repeat', why === 'named-first' && 'locked', !why && price <= balance && 'afford', picked && wantKey(picked) === `more:${id}` && 'picked')} aria-label={r.name} onClick={() => tapWant(w)}>
         <span class="tile-icon" aria-hidden="true">{r.icon}</span><span class="tile-name">{r.name}</span>
         {a.more[id] > 0 && <span class="tile-count">×{a.more[id]}</span>}
-        {why === 'named-first' ? <span class="tile-tag">🔒</span> : <span class="tile-cost"><CurrencyIcon kind={CUR} size={16} />{price}</span>}
+        {why === 'named-first' ? <span class="tile-tag">🔒 {namedEggs(a)}/{WILD_AFTER}</span> : <span class="tile-cost"><CurrencyIcon kind={CUR} size={16} />{price}</span>}
       </button>
     );
   };
@@ -195,7 +195,7 @@ export function RoostScreen() {
         {tab === 'roost' && <div class="tiles">{repeatTile('ledge')}{byPrice(ROOST.filter(r => r.price > 0)).map(tile)}</div>}
         {tab === 'eggs' && <>
           <div class="dr-nests">
-            {Array.from({ length: Math.min(nestCount(a), 40) }, (_, i) => {
+            {Array.from({ length: Math.max(a.eggs.length, Math.min(nestCount(a), 40)) }, (_, i) => {
               const e = a.eggs[i];
               if (!e) return <span key={i} class="dr-nest empty" aria-hidden="true">🪺</span>;
               const ready = isReady(a, e), need = hatchNeed(a, e.egg);

@@ -307,11 +307,14 @@ COLLECTION_SPEECH = {
         # "year", "Boy", "Purge", "Bao", "VIG magnet", "thin cake", "SMARTAT" and "Flamewriter". The homophones it wrote another way
         # (ate/eight, blew/blue, rode/road, flew/flue, they're/there, to/two, by/bye, for/four) are said right. "bow" is the ribbon, as
         # in Hook and Ladder. "duck" is Jenny's, as in the other games (Aria's comes out "dack").
+        # pass 2: "hopeful" came back "helpful" (in Jenny's voice too) and "You opened Squeeze!" as "You open Squeeze."; written as below
+        # both are heard right. The name Dot was heard as nothing in either voice and is Meg now.
         'said_as': {'ticket': 'ticket!', 'Gear': 'Gear!', 'Boing!': 'Boing, boing!', 'Bow': 'beau', 'Big Magnet': 'Big, Magnet',
-                    'Big Cake': 'Big, Cake', 'Smart Hat': 'Smart, Hat', 'Flame Rider': 'Flame, Rider'},
-        # Aria's goose, market, slept, won't, Dot, into and Perch still came back wrong however they were written ("goose!", "Market!",
-        # "slept.", "Won't!", "Dot!", "into.", "Perch!"); these are Jenny's
-        'voice_for': {w: 'en-US-JennyNeural' for w in ['duck', 'goose', 'market', 'slept', "won't", 'Dot', 'into', 'Perch']},
+                    'Big Cake': 'Big, Cake', 'Smart Hat': 'Smart, Hat', 'Flame Rider': 'Flame, Rider', 'hopeful': 'Hopeful!',
+                    'You opened Squeeze!': 'You opened, Squeeze!'},
+        # Aria's goose, market, slept, won't, into and Perch still came back wrong however they were written ("goose!", "Market!",
+        # "slept.", "Won't!", "into.", "Perch!"); these are Jenny's
+        'voice_for': {w: 'en-US-JennyNeural' for w in ['duck', 'goose', 'market', 'slept', "won't", 'into', 'Perch']},
     },
 }
 

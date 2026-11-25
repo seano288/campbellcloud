@@ -13,7 +13,7 @@ export const PLURAL_WORDS = ['mouse', 'mice', 'foot', 'feet', 'tooth', 'goose', 
 export const PAST_WORDS = ['ate', 'came', 'sat', 'hid', 'hide', 'told', 'tell', 'dug', 'swam', 'rode', 'made', 'found', 'slept', 'grew', 'blew', 'drove'] as const;
 export const SQUEEZE_WORDS = ["don't", "can't", "isn't", "I'm", "it's", "didn't", "wasn't", "aren't", "hasn't", "won't", "I'll", "we're", "they're", "he's", "she's", 'am'] as const;
 /** Names of people and pets: short, and each one read the usual way. */
-export const NAMES = ['Sam', 'Max', 'Pip', 'Ben', 'Kim', 'Dot', 'Tom', 'Jill'] as const;
+export const NAMES = ['Sam', 'Max', 'Pip', 'Ben', 'Kim', 'Meg', 'Tom', 'Jill'] as const;
 export const DAYS = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'] as const;
 export const MONTHS = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'] as const;
 /** Places that need a big letter (L.2.2a, geographic names): real ones, each made of sounds he has met. */

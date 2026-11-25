@@ -257,6 +257,7 @@ html,body{background:var(--plum)}
 .dr-hud>*{pointer-events:auto}
 .dr-hud-chip{display:flex;align-items:center;gap:6px;background:#000c;border:3px solid var(--sun);border-radius:999px;padding:4px 14px;font:900 max(18px,calc(24px*var(--u))) Nunito,sans-serif;color:var(--sun);white-space:nowrap}
 .dr-hud-chip.best{border-color:#fff;color:#fff}
+.dr-hud-chip.best.beat{border-color:var(--sun);color:var(--sun);animation:pop .4s ease-out}
 .dr-pad{position:absolute;right:max(28px,calc(env(safe-area-inset-right) + 20px));bottom:var(--floor);display:flex;align-items:flex-end;gap:12px;pointer-events:none}
 .dr-pad>*{pointer-events:auto}
 .dr-tricks{display:flex;flex-direction:column-reverse;flex-wrap:wrap-reverse;gap:8px;max-height:min(60vh,320px)}

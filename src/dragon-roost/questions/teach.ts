@@ -12,7 +12,7 @@ import { signal, type Signal } from '@preact/signals';
 import { sChime } from '../../audio/sfx';
 import { createVoiceScope, type Item } from '../voice';
 import type { Asking } from '../mix';
-import { pairLine, pastLine, wordPhrase, type Phrase } from '../phrases';
+import { CAPITAL_RULE, pairLine, pastLine, wordPhrase, type Phrase } from '../phrases';
 import { lex } from '../words/lexicon';
 import { TERMS } from '../words/terms';
 import { CHANGING, LOOKS, PASTS, PLURALS, SQUEEZES, squeezeOf, squeezed, whole, type Frame } from '../words/frames';
@@ -97,7 +97,7 @@ const tapped = (q: Question, answer: string): { text: string; role?: Role } | nu
   return null;
 };
 
-async function lessonOf(q: Question, answer: string, l: Lesson, voice: ReturnType<typeof createVoiceScope>) {
+export async function lessonOf(q: Question, answer: string, l: Lesson, voice: ReturnType<typeof createVoiceScope>) {
   const st = q.stage, said = (w: string) => wordPhrase(w);
   switch (q.kind) {
     case 'noun': case 'verb': case 'adj': {
@@ -189,7 +189,7 @@ async function frameLesson(q: Question, f: Frame, l: Lesson, voice: ReturnType<t
   if (pair) await voice.say(pastLine(pair[0], pair[1]));
 }
 
-async function fuller(q: Question, l: Lesson, voice: ReturnType<typeof createVoiceScope>) {
+export async function fuller(q: Question, l: Lesson, voice: ReturnType<typeof createVoiceScope>) {
   const ex = (words: readonly string[], kind: 'noun' | 'verb' | 'adj') => words.reduce<Promise<void>>((p, w) => p.then(() => step(l, showFor(kind, w), voice, wordPhrase(w))), Promise.resolve());
   switch (q.kind) {
     case 'noun': case 'verb': case 'adj':
@@ -218,7 +218,7 @@ async function fuller(q: Question, l: Lesson, voice: ReturnType<typeof createVoi
       }
       return;
     case 'capital':
-      await step(l, { kind: 'rule', line: 'Names start with a big letter.' }, voice, 'Names start with a big letter.');
+      await step(l, { kind: 'rule', line: CAPITAL_RULE }, voice, CAPITAL_RULE);
       await step(l, { kind: 'capital', word: 'Sam', step: 1 }, voice, 'Sam', 'is a name.');
       await step(l, { kind: 'capital', word: 'Monday', step: 1 }, voice, 'Monday', 'is a day.');
   }

@@ -41,8 +41,9 @@ describe('a word has one job wherever it is asked alone', () => {
     const ws = LEXICON.map(l => l.w);
     expect(ws.filter((w, i) => ws.indexOf(w) !== i)).toEqual([]);
   });
-  it('the brief\'s two-job words are all marked with two jobs', () => {
-    for (const w of ['fly', 'play', 'run', 'jump', 'water', 'park', 'orange', 'cold']) expect(LEXICON.find(l => l.w === w)?.jobs.length ?? 0, w).toBeGreaterThan(1);
+  it('the brief\'s two-job words, and the ones found since, are all marked with two jobs', () => {
+    // pass 2: "pretend" (a pretend castle) and "baby" (a baby dragon) were Level 1 choices: an adjective question could have two answers
+    for (const w of ['fly', 'play', 'run', 'jump', 'water', 'park', 'orange', 'cold', 'pretend', 'baby']) expect(LEXICON.find(l => l.w === w)?.jobs.length ?? 0, w).toBeGreaterThan(1);
   });
   it('there are enough of each for a Level 1 question not to come back within twenty', () => {
     expect(oneJob('noun').length).toBeGreaterThanOrEqual(21);
@@ -66,6 +67,9 @@ describe('the sentences', () => {
     for (const s of SENTENCES) for (const w of s.words) if (w.role === 'x' && rolesOf(w.text)[0] !== 'x') bad.push(`${s.text}: ${w.text} needs a mark`);
     expect(bad).toEqual([]);
   });
+  it('every sentence is asked by some question (an unasked one is a clip nothing plays)', () => {
+    expect(SENTENCES.filter(s => !forNoun(s) && !forVerb(s) && !forAdj(s) && !([1, 2, 3] as const).some(l => forCapital(s, l))).map(s => s.text)).toEqual([]);
+  });
   it('are all different, and about 140 of them', () => {
     const t = SENTENCES.map(s => s.text);
     expect(new Set(t).size).toBe(t.length);
@@ -80,7 +84,11 @@ describe('the sentences', () => {
     expect(SENTENCES.filter(s => forCapital(s, 3)).length).toBeGreaterThanOrEqual(12);
   });
   it('"tap the noun" has exactly one noun; "tap the verb" one doing word and no helper; "tap the adjective" one and no a, the or my', () => {
-    for (const s of SENTENCES.filter(forNoun)) expect(s.words.filter(w => isNoun(w.role))).toHaveLength(1);
+    for (const s of SENTENCES.filter(forNoun)) {
+      expect(s.words.filter(w => isNoun(w.role))).toHaveLength(1);
+      // pass 2: "She went up the hill." asked "Tap the noun.", and she is a person to a child told a noun names a person
+      expect(s.words.filter(w => w.role === 'r' || /^(I|he|she|it|we|they|you|me|him|them)$/i.test(w.text)), s.text).toEqual([]);
+    }
     for (const s of SENTENCES.filter(forVerb)) { expect(s.words.filter(w => w.role === 'v')).toHaveLength(1); expect(s.words.filter(w => w.role === 'h')).toHaveLength(0); }
     for (const s of SENTENCES.filter(forAdj)) { expect(s.words.filter(w => w.role === 'a')).toHaveLength(1); expect(s.words.filter(w => w.role === 'd')).toHaveLength(0); }
   });

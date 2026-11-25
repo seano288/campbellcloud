@@ -41,7 +41,9 @@ function Flying() {
   const [phase, setPhase] = useState<'card' | 'fly' | 'done'>('card');
   const [pay, setPay] = useState<FlightPay | null>(null);
   const [armed, setArmed] = useState(false);
-  const [hud, setHud] = useState({ lit: 0, flames: 0 });
+  const [hud, setHud] = useState({ lit: 0, flames: 0, lights: 0, tricks: '' });
+  // Only a speed trick beats the bird, so without one on a button it just flies by: he isn't told to race what he can't catch
+  const canRace = plan.tricks.some(t => t.effect === 'zoom');
   const canvas = useRef<HTMLCanvasElement>(null), sim = useRef<Sim>(startSim(plan.c, plan.fly));
   const input = useRef<{ target: number | null; breath: boolean; trick: number | null }>({ ...NO_INPUT });
   const steer = useRef<number | null>(null);
@@ -84,7 +86,7 @@ function Flying() {
           if (e.kind === 'flame') { sClink(); const f = s.c.flames[e.i]!; bursts.push({ x: f.x, y: f.y, t: 0, colour: '#ff7a1a', kind: 'flame' }); }
           if (e.kind === 'bounce') sBoing();
           if (e.kind === 'trick') sWhoosh(.4);
-          if (e.kind === 'bird') void voice.sayMore('A bird! Race it!');
+          if (e.kind === 'bird' && canRace) void voice.sayMore('A bird! Race it!');
           if (e.kind === 'beat') { sFanfare(); void voice.sayMore('You beat the bird!'); }
         }
         if (s.done) break;
@@ -96,8 +98,8 @@ function Flying() {
       if (c.width !== Math.round(r.width * dpr) || c.height !== Math.round(r.height * dpr)) { c.width = Math.round(r.width * dpr); c.height = Math.round(r.height * dpr); }
       ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
       renderFlight(ctx, s, plan, look, viewFor(r.width, r.height, s), t, bursts, still());
-      const lit = s.lit.filter(Boolean).length, flames = s.got.filter(Boolean).length;
-      setHud(h => (h.lit === lit && h.flames === flames ? h : { lit, flames }));
+      const { lit, flames, lights } = resultOf(s), tricks = s.tricks.map(x => (x.wait > 0 ? 1 : 0)).join('');
+      setHud(h => (h.lit === lit && h.flames === flames && h.lights === lights && h.tricks === tricks ? h : { lit, flames, lights, tricks }));
       if (s.done) { cancelAnimationFrame(raf); finish(); }
     };
     raf = requestAnimationFrame(loop);
@@ -155,7 +157,7 @@ function Flying() {
         <IconButton label={armed ? 'Tap again to leave' : 'Home'} class={armed ? 'armed' : ''} onClick={home}>🏠</IconButton>
         <span class="dr-hud-chip" aria-label={`${hud.lit} of ${plan.c.beacons.length} beacons`}>🔥 {hud.lit}/{plan.c.beacons.length}</span>
         <span class="dr-hud-chip" aria-label={`${hud.flames} Flames caught`}><CurrencyIcon kind={CUR} size={22} /> {hud.flames}</span>
-        {plan.best !== null && <span class="dr-hud-chip best">🏅 {plan.best}</span>}
+        {plan.best !== null && <span class={cls('dr-hud-chip', 'best', hud.lights > plan.best && 'beat')} aria-label={`${hud.lights}, your best ${plan.best}`}>🏅 {hud.lights}/{plan.best}</span>}
       </div>
       {phase === 'card' && (
         <div class="dr-flight-card">
@@ -181,7 +183,7 @@ function Flying() {
         <div class="dr-flight-card done">
           <h2>{plan.c.name ?? `Flight ${plan.c.n}`}</h2>
           <div class="dr-results">
-            <span>🔥 {pay.result.lit}/{pay.result.beacons}</span><span>☁️ {pay.result.popped}</span><span>🐦 {pay.result.birds}</span>
+            <span>🔥 {pay.result.lit}/{pay.result.beacons}</span><span>☁️ {pay.result.popped}</span>{pay.result.birds > 0 && <span>🐦 {pay.result.birds}</span>}
             <span><CurrencyIcon kind={CUR} size={22} /> +{pay.flames}</span>
           </div>
           {pay.newBest && <p class="dr-best">🏅 New best!</p>}

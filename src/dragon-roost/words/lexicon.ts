@@ -21,7 +21,7 @@ const two = (w: string, jobs: Job[], pic?: string, cat?: Cat): Lex => ({ w, jobs
 /** Words with one job. Only these are ever choices on their own (Level 1). */
 export const ONE_JOB: readonly Lex[] = [
   // people
-  n('king', 'person', '🤴'), n('girl', 'person', '👧'), n('baby', 'person', '👶'), n('sister', 'person', '👧'), n('dentist', 'person'),
+  n('king', 'person', '🤴'), n('girl', 'person', '👧'), n('sister', 'person', '👧'), n('dentist', 'person'),
   n('barber', 'person', '💈'), n('carpenter', 'person', '🪚'), n('fisherman', 'person', '🎣'), n('lumberjack', 'person', '🪓'),
   // animals (no cat: the voice says a lone "cat" as "Kate")
   n('dog', 'animal', '🐕'), n('pig', 'animal', '🐖'), n('hen', 'animal', '🐔'), n('goat', 'animal', '🐐'), n('sheep', 'animal', '🐑'),
@@ -44,7 +44,7 @@ export const ONE_JOB: readonly Lex[] = [
   n('dragon', 'animal', '🐉'),
   // verbs that are never names of things
   v('see', '👀'), v('eat', '🍽️'), v('go'), v('come'), v('find'), v('make'), v('get'), v('sit'), v('grab'), v('grow'), v('speak'), v('think'),
-  v('fill'), v('save'), v('sell'), v('thank'), v('happen'), v('pretend'), v('invent'), v('dig'), v('hide'), v('tell'),
+  v('fill'), v('save'), v('sell'), v('thank'), v('happen'), v('invent'), v('dig'), v('hide'), v('tell'),
   // adjectives that are never names of things or doing words
   a('big'), a('little'), a('tiny'), a('funny'), a('happy'), a('silly'), a('sunny'), a('muddy'), a('jolly'), a('sharp'), a('smart'), a('short'),
   a('thick'), a('soft'), a('careful'), a('helpful'), a('unhappy'), a('useful'), a('playful'), a('clever'), a('rapid'), a('silent'), a('simple'),
@@ -83,6 +83,8 @@ export const TWO_JOB: readonly Lex[] = [
   two('white', ['adj', 'noun']), two('brown', ['adj', 'noun']), two('purple', ['adj', 'noun']), two('dark', ['adj', 'noun']), two('fast', ['adj', 'verb']),
   two('wet', ['adj', 'verb']), two('clean', ['adj', 'verb']), two('safe', ['adj', 'noun']), two('solid', ['adj', 'noun']), two('perfect', ['adj', 'verb']),
   two('hot', ['adj']), two('well', ['adj', 'noun']),
+  // naming or doing words a first grader also uses to describe: "a baby dragon", "a pretend castle"
+  two('baby', ['noun', 'adj'], '👶', 'person'), two('pretend', ['verb', 'adj']),
 ];
 
 /** Words a first grader would plausibly use as another job. None may be a choice on its own (words.test.ts). */
@@ -91,7 +93,7 @@ export const TWO_JOBS: readonly string[] = [
   'plant', 'walk', 'help', 'look', 'roar', 'loop', 'dive', 'glide', 'flap', 'spin', 'slide', 'skate', 'box', 'drum', 'bike', 'duck', 'seal', 'fish', 'farm', 'nest',
   'roost', 'flame', 'red', 'blue', 'green', 'yellow', 'black', 'white', 'brown', 'purple', 'dark', 'fast', 'wet', 'clean', 'safe', 'snow', 'star', 'storm', 'kid',
   'cave', 'map', 'rocket', 'garden', 'market', 'shop', 'chop', 'start', 'rest', 'visit', 'hurt', 'want', 'show', 'blow', 'snap', 'trick', 'bath', 'ball', 'man',
-  'well', 'perfect', 'solid', 'dance', 'wave', 'hatch', 'tree', 'sun', 'shed', 'bag',
+  'well', 'perfect', 'solid', 'dance', 'wave', 'hatch', 'tree', 'sun', 'shed', 'bag', 'baby', 'pretend',
 ];
 
 export const LEXICON: readonly Lex[] = [...ONE_JOB, ...TWO_JOB];

@@ -129,12 +129,17 @@ export const wornItem = (a: Pick<RoostState, 'worn'>, slot: GearSlot | 'breath-c
 export type Want = { kind: 'item'; id: string } | { kind: 'more'; id: RepeatId };
 export const wantKey = (w: Want) => (w.kind === 'item' ? w.id : `more:${w.id}`);
 export const wantOf = (key: string): Want => (key.startsWith('more:') ? { kind: 'more', id: key.slice(5) as RepeatId } : { kind: 'item', id: key });
-export const allNamedEggs = (a: Pick<RoostState, 'owned'>) => EGGS.every(e => has(a, e.id));
+/** Wild Eggs open once he has bought this many of the forty named ones, so that from then on a new dragon at 40 to 60 Flames always sits
+ *  beside the dearest named eggs and gear (pass 2: when they waited for all forty, the last 300 Rounds of the catalogue offered only
+ *  things costing 140 to 180, and the scripted child went up to 19 Rounds with nothing new to buy). */
+export const WILD_AFTER = 20;
+export const namedEggs = (a: Pick<RoostState, 'owned'>) => EGGS.filter(e => has(a, e.id)).length;
+export const wildOpen = (a: Pick<RoostState, 'owned'>) => namedEggs(a) >= WILD_AFTER;
 const isEgg = (w: Want) => (w.kind === 'item' && itemOf(w.id).cat === 'egg') || (w.kind === 'more' && w.id === 'wild');
-/** Why he can't buy it yet, if he can't: a nest it needs first, a full set of nests, or the named eggs before the wild ones. */
+/** Why he can't buy it yet, if he can't: a nest it needs first, a full set of nests, or twenty named eggs before the wild ones. */
 export function missingNeed(a: RoostState, w: Want): 'nest-full' | 'named-first' | string | null {
   if (w.kind === 'item') { const it = itemOf(w.id); if ('needs' in it && it.needs && !has(a, it.needs)) return it.needs; }
-  if (w.kind === 'more' && w.id === 'wild' && !allNamedEggs(a)) return 'named-first';
+  if (w.kind === 'more' && w.id === 'wild' && !wildOpen(a)) return 'named-first';
   if (isEgg(w) && a.eggs.length >= nestCount(a)) return 'nest-full';
   return null;
 }
