@@ -131,7 +131,7 @@ async function typeOnPad(v: string, erase = false) {
 async function tapTape(q: Record<string, any>, v: number) {
   const box = (await page.locator('.ba-tape').first().boundingBox())!, lo = q.form === 'ones' ? q.lo : 0, hi = q.form === 'ones' ? q.lo + 10 : 100;
   const xv = 40 + ((v - lo) / (hi - lo)) * 920;
-  await page.mouse.click(box.x + ((xv + 10) / 1020) * box.width, box.y + (155 / 220) * box.height);
+  await page.mouse.click(box.x + ((xv + 40) / 1080) * box.width, box.y + (155 / 220) * box.height);
 }
 /** Answers as he would, or misses on purpose: `second` picks a different wrong answer. */
 async function answer(p: NonNullable<Q>, miss: boolean, second = false) {

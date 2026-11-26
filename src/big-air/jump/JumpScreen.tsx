@@ -16,18 +16,24 @@ import { IconButton } from '../../ui/bits';
 import { CurrencyIcon } from '../../ui/currency';
 import { CUR } from '../branding';
 import { courseOf, crowdOf, doesArena, planJump, rankOf, type ArenaState, type Course, type JumpPay } from '../arena/arena';
-import { itemOf, type HornItem, type RampItem } from '../arena/catalog';
-import { TruckPic } from '../art/TruckPic';
+import { itemOf, type HornItem, type ObstacleKind, type RampItem } from '../arena/catalog';
 import { player, settleJump } from '../game';
 import { jump as jumpAgain, screen } from '../nav';
 import { unitSaid, type Phrase } from '../phrases';
 import { startRound } from '../round';
 import { useVoiceScope, type VoiceScope } from '../voice';
 import { createScene, layRow } from './render';
+import { ScenePic } from './ScenePic';
 import { createSim, fromTape, recorder, STEP, stepSim, takeEvents, type Input, type Setup, type Sim } from './sim';
 import { boostSound, engineSound, tapeTick, type Engine } from './sounds';
 
 type Phase = 'card' | 'jump' | 'end';
+/** Each thing a Row can hold, as the card lists it. */
+const ROW_ICON: Record<ObstacleKind, string> = {
+  cone: '🔺', hay: '🌾', mini: '🚗', car: '🚗', taxi: '🚕', police: '🚓', van: '🚐', pickup: '🛻', icecream: '🍦', tractor: '🚜', camper: '🚐', limo: '🚘',
+  dump: '🚚', schoolbus: '🚌', bus: '🚌', fire: '🚒', boat: '🛥️', ring: '🔥', rival: '🛻', tanker: '🛢️', train: '🚃', heli: '🚁', plane: '✈️', pool: '🏊',
+  mud: '🟫', dino: '🦖', crane: '🏗️', logs: '🪵', whale: '🐋', rocket: '🚀',
+};
 /** How many Jumps the card tells him how to tilt before. */
 const TILT_TOLD = 5;
 const reduced = () => typeof matchMedia === 'function' && matchMedia('(prefers-reduced-motion:reduce)').matches;
@@ -218,9 +224,9 @@ export function JumpScreen({ replay = false }: { replay?: boolean }) {
       <div class="jump-screen js-card" data-phase="card">
         <header class="js-head"><IconButton label="Arena" onClick={leave}>🏟️</IconButton><h1>{course.target.kind === 'show' ? `Show ${course.target.n}` : course.name}</h1>{plan.night && <span class="ms-chip" aria-label="Night">🌙</span>}</header>
         <div class="js-brief">
-          <TruckPic look={a.truck} size={260} class="js-truck" />
+          <ScenePic a={a} view="card" class="js-plan" label={`${course.target.kind === 'show' ? `Show ${course.target.n}` : course.name}: ${course.feet} feet`} />
           <div class="js-row">
-            <span class="js-row-things" aria-hidden="true">{course.parts.map(([k, n]) => `${n}× ${k === 'cone' ? '🔺' : k === 'ring' ? '🔥' : k === 'pool' ? '🏊' : k === 'mud' ? '🟫' : k === 'plane' ? '✈️' : k === 'heli' ? '🚁' : k.includes('bus') ? '🚌' : k === 'dino' ? '🦖' : '🚗'}`).join('  ')}</span>
+            <span class="js-row-things" aria-hidden="true">{course.parts.map(([k, n]) => `${n}× ${ROW_ICON[k]}`).join('  ')}</span>
             <span class="js-feet"><b>{course.feet}</b> ft</span>
             {course.show?.cup && <span class="js-cup" style={{ background: course.show.cup.bg, borderColor: course.show.cup.rim }}>{course.show.cup.glyph} 🎁</span>}
             {plan.setup.help > 0 && <span class="js-wind">💨 {'→'.repeat(Math.min(5, plan.setup.help))}</span>}

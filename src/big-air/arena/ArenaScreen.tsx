@@ -11,6 +11,7 @@ import { confetti } from '../../celebrate/effects';
 import { IconButton } from '../../ui/bits';
 import { CurrencyIcon, CurrencyPile } from '../../ui/currency';
 import { TruckPic } from '../art/TruckPic';
+import { ScenePic } from '../jump/ScenePic';
 import { CUR } from '../branding';
 import { buy, player, updateArena } from '../game';
 import { arenaTab, jump, screen, watch } from '../nav';
@@ -127,7 +128,7 @@ export function ArenaScreen() {
         <div class="arena-view" aria-label="Your truck in the arena">
           <span class="crowd-chip" aria-label="Crowd">👥 {crowdOf(a).toLocaleString('en-US')}</span>
           <span class="record-chip" aria-label="Your record">🏆 {best} ft</span>
-          <TruckPic look={a.truck} size={300} class="arena-truck-big" />
+          <ScenePic a={a} view="arena" class="arena-scene" label="Your truck in your arena" />
         </div>
         <div class="arena-side">
           <button class={cls('big-btn', 'go', 'fly-btn', a.jumps > 0 && 'pulse')} aria-label="Jump"

@@ -6,6 +6,7 @@ import type { ComponentChildren } from 'preact';
 import { sBad } from '../audio/sfx';
 import { LevelDots } from '../ui/bits';
 import { TruckPic } from './art/TruckPic';
+import { ScenePic } from './jump/ScenePic';
 import { courseOf, nextTarget, rankOf } from './arena/arena';
 import { player } from './game';
 import { LOCKED_HINTS, MODE_IDS, MODE_NAMES, type ModeId } from './learning';
@@ -37,7 +38,7 @@ export function Home({ status }: { status: ComponentChildren }) {
           <span class="e">▶</span>
         </button>
         <button class="tile t-arena" aria-label="Arena" onClick={() => { if (voice.active) screen.value = 'arena'; }}>
-          <TruckPic look={a.truck} class="arena-truck" />
+          <ScenePic a={a} view="arena" class="arena-scene" label="Your arena" />
           <span class="nm">Arena</span>
           {a.jumps > 0 && <span class="race-badge" aria-hidden="true">🛻 {a.jumps}</span>}
         </button>

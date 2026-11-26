@@ -45,9 +45,10 @@ function Shell({ current, kind, text, speech, stage, controls, ready, lesson }: 
         <button class="help-btn" aria-label="Help" onClick={() => current.actions.help(() => help(current.problem, current.signal))}>🔎</button>
       </div>
       <div class="ba-body">
-        <div class="ba-stage">{stage}<NextArrow lesson={lesson} /></div>
+        <div class="ba-stage">{stage}</div>
         {controls && <div class="ba-controls">{controls}</div>}
       </div>
+      <NextArrow lesson={lesson} />
     </div>
   );
 }

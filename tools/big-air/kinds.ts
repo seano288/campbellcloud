@@ -107,7 +107,7 @@ async function pad(page: Page, v: string) {
 async function tapTape(page: Page, q: Record<string, any>, v: number) {
   const box = (await page.locator('.ba-tape').first().boundingBox())!, lo = q.form === 'ones' ? q.lo : 0, hi = q.form === 'ones' ? q.lo + 10 : 100;
   const xv = 40 + ((v - lo) / (hi - lo)) * 920;
-  await page.mouse.click(box.x + ((xv + 10) / 1020) * box.width, box.y + (155 / 220) * box.height);
+  await page.mouse.click(box.x + ((xv + 40) / 1080) * box.width, box.y + (155 / 220) * box.height);
 }
 async function answer(page: Page, p: NonNullable<Q>, miss: 0 | 1 | 2) {
   const q = p.q!, traps = (q.traps as { value: string }[]).map(t => t.value);

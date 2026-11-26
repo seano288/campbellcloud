@@ -54,9 +54,10 @@ export interface Laid { readonly bar: Bar; readonly colour: string; readonly sha
 export function RulerPic({ ruler, laid, hops = 0, overlay, label }: {
   ruler: Ruler; laid: readonly Laid[]; hops?: number; overlay?: { count: number }; label?: string;
 }) {
-  const ticks = rulerTicks(ruler), W = (ruler.top + RULER_PAD * 2) * U, rowH = U * 1.05, top = laid.length * rowH + U * .6, woodH = ruler.other ? U * 2.3 : U * 1.6;
+  const ticks = rulerTicks(ruler), W = (ruler.top + RULER_PAD * 2) * U, rowH = U * 1.05, top = laid.length * rowH + U * .6, woodH = ruler.other ? U * 2.9 : U * 1.95;
   const H = top + woodH + 4, x = (v: number) => (RULER_PAD + v) * U;
-  const big = ruler.top <= 12;
+  // numbers as big as their spaces allow: bigger on a short ruler, a touch smaller where two digits sit in every space
+  const size = ruler.top <= 8 ? 'big' : ruler.top > 12 ? 'dense' : '';
   const first = laid[0];
   return (
     <svg class="ba-ruler" viewBox={`-4 0 ${W + 8} ${H}`} role="img" aria-label={label ?? `A ruler marked in ${unitWord(ruler.unit)}`}>
@@ -80,13 +81,15 @@ export function RulerPic({ ruler, laid, hops = 0, overlay, label }: {
         })}</g>
       )}
       <rect x="0" y={top} width={W} height={woodH} rx="8" class="wood" />
+      <rect x="4" y={top + woodH - 9} width={W - 8} height="5" rx="2" class="wood-edge" />
       {ticks.top.map((t, i) => (
         <g key={i}>
-          <line x1={t * U} x2={t * U} y1={top} y2={top + U * (i % 5 === 0 || big ? .6 : .45)} class="tick" />
-          {(big || i % 1 === 0) && <text x={t * U} y={top + U * 1.15} class={cls('tick-n', !big && 'small')}>{i}</text>}
+          <line x1={t * U} x2={t * U} y1={top} y2={top + U * (i % 5 === 0 || ruler.top <= 12 ? .6 : .45)} class="tick" />
+          <text x={t * U} y={top + U * 1.27} class={cls('tick-n', size)}>{i}</text>
         </g>
       ))}
-      <text x={W - U * .15} y={top + U * .5} class="unit-name">{SHORT[ruler.unit]}</text>
+      {/* the unit's name, under the numbers it belongs to (not at the end, where it sat on the last number) */}
+      <text x={W / 2} y={ruler.other ? top + U * 1.62 : top + woodH - U * .3} class="unit-name">{unitWord(ruler.unit).toUpperCase()}</text>
       {ruler.other && <>
         {ticks.bottom.map((t, i) => (
           <g key={`b${i}`}>
@@ -94,7 +97,7 @@ export function RulerPic({ ruler, laid, hops = 0, overlay, label }: {
             {(ruler.other === 'in' || i % 2 === 0) && <text x={t * U} y={top + woodH - U * .42} class="tick-n other">{i}</text>}
           </g>
         ))}
-        <text x={W - U * .15} y={top + woodH - U * .1} class="unit-name other">{SHORT[ruler.other]}</text>
+        <text x={W / 2} y={top + U * 2.02} class="unit-name other">{unitWord(ruler.other).toUpperCase()}</text>
       </>}
     </svg>
   );
@@ -102,32 +105,34 @@ export function RulerPic({ ruler, laid, hops = 0, overlay, label }: {
 
 // ---------- the tape ----------
 
+/** Room either side of the tape, in svg units, so its first and last numbers are never cut off. */
+export const TAPE_M = 40;
 /** The yellow tape with black numbers, as in the Jump: from `lo` to `hi`, a tick every `step` (and a small one every one when `ones`),
  *  `labels` written. `fill` lights it from one number to another; `hops` draws jumps above it; `onTap` hears a tap as a number. */
 export function Tape({ lo, hi, step, labels, ones, fill, hops = [], mark, onTap, label }: {
   lo: number; hi: number; step: number; labels: readonly number[]; ones?: boolean; fill?: { from: number; to: number } | null;
   hops?: readonly { from: number; to: number; text: string }[]; mark?: number | null; onTap?: (n: number) => void; label: string;
 }) {
-  const W = 1000, padX = 40, H = 220, y0 = 120, th = 70, x = (n: number) => padX + ((n - lo) / (hi - lo)) * (W - padX * 2);
+  const W = 1000, padX = 40, H = 230, y0 = 120, th = 92, x = (n: number) => padX + ((n - lo) / (hi - lo)) * (W - padX * 2);
   function tap(e: PointerEvent) {
     if (!onTap) return;
     const svg = e.currentTarget as SVGSVGElement, b = svg.getBoundingClientRect();
-    const vx = ((e.clientX - b.left) / b.width) * (W + 20) - 10;
+    const vx = ((e.clientX - b.left) / b.width) * (W + TAPE_M * 2) - TAPE_M;
     const n = lo + ((vx - padX) / (W - padX * 2)) * (hi - lo), snap = ones ? 1 : step;
     onTap(Math.max(lo, Math.min(hi, Math.round(n / snap) * snap)));
   }
   const smalls = ones ? Array.from({ length: hi - lo + 1 }, (_, i) => lo + i) : [];
   const bigs = Array.from({ length: Math.floor((hi - lo) / step) + 1 }, (_, i) => lo + i * step);
   return (
-    <svg class={cls('ba-tape', onTap && 'tappable')} viewBox={`-10 0 ${W + 20} ${H}`} role="img" aria-label={label} onPointerDown={tap}>
+    <svg class={cls('ba-tape', onTap && 'tappable', labels.length > 6 && 'dense')} viewBox={`${-TAPE_M} 0 ${W + TAPE_M * 2} ${H}`} role="img" aria-label={label} onPointerDown={tap}>
       {hops.map((h, i) => {
         const a = x(h.from), b = x(h.to), top = y0 - 20 - Math.min(90, (b - a) * .35);
         return <g key={i} class="tape-hop"><path d={`M${a} ${y0}Q${(a + b) / 2} ${top} ${b} ${y0}`} /><text x={(a + b) / 2} y={top + 28}>{h.text}</text></g>;
       })}
       <rect x={padX - 26} y={y0} width={W - padX * 2 + 52} height={th} rx="10" class="tape-body" />
       {fill && <rect x={x(fill.from)} y={y0 + 6} width={Math.max(0, x(fill.to) - x(fill.from))} height={th - 12} rx="6" class="tape-fill" />}
-      {smalls.map(n => <line key={`s${n}`} x1={x(n)} x2={x(n)} y1={y0} y2={y0 + 22} class="tape-tick small" />)}
-      {bigs.map(n => <line key={`b${n}`} x1={x(n)} x2={x(n)} y1={y0} y2={y0 + 38} class="tape-tick" />)}
+      {smalls.map(n => <line key={`s${n}`} x1={x(n)} x2={x(n)} y1={y0} y2={y0 + 26} class="tape-tick small" />)}
+      {bigs.map(n => <line key={`b${n}`} x1={x(n)} x2={x(n)} y1={y0} y2={y0 + 44} class="tape-tick" />)}
       {labels.map(n => <text key={`l${n}`} x={x(n)} y={y0 + th - 6} class="tape-n">{n}</text>)}
       {mark != null && <g class="tape-mark"><path d={`M${x(mark)} ${y0 - 4}l-16 -30h32z`} /><text x={x(mark)} y={y0 - 42}>{mark}</text></g>}
     </svg>
@@ -156,10 +161,29 @@ export function JumpBars({ a, b, laid, count, unit = 'ft' }: { a: number; b: num
 
 // ---------- Best Guess ----------
 
+/** A school eraser, pink with a blue sleeve, drawn because no emoji shows one (🧽 is a sponge). Sits in a 120×100 box at (x, y). */
+function Eraser({ x = 0, y = 0, w = 120 }: { x?: number; y?: number; w?: number }) {
+  const k = w / 120, line = { stroke: '#111', 'stroke-width': 5, 'stroke-linejoin': 'round' as const };
+  return (
+    <g transform={`translate(${x} ${y}) scale(${k})`}>
+      <path d="M30 30H112L90 62H8Z" fill="#ffc2d4" {...line} />
+      <path d="M8 62H90V82H8Z" fill="#ff6f9f" {...line} />
+      <path d="M90 62L112 30V50L90 82Z" fill="#e0508a" {...line} />
+      <path d="M50 30H80L58 62H28Z" fill="#2f8fe8" {...line} />
+      <path d="M28 62H58V82H28Z" fill="#1d6fd1" {...line} />
+      <path d="M50 42H66M44 50H60" stroke="#fff" stroke-width="4" stroke-linecap="round" />
+    </g>
+  );
+}
+/** A thing's picture: its emoji, or a drawing where no emoji fits. */
+export function ThingPic({ t }: { t: Thing }) {
+  if (t.id === 'eraser') return <svg viewBox="0 0 120 100" aria-hidden="true"><Eraser /></svg>;
+  return <>{t.emoji}</>;
+}
 /** A thing as a card: its picture and its name, all cards the same size so the picture can't tell which is longer. */
 export function ThingCard({ id, children }: { id: string; children?: ComponentChildren }) {
   const t = thingOf(id);
-  return <span class="thing-card"><span class="thing-emoji" aria-hidden="true">{t.emoji}</span><span class="thing-name">{t.name}</span>{children}</span>;
+  return <span class="thing-card"><span class="thing-emoji" aria-hidden="true"><ThingPic t={t} /></span><span class="thing-name">{t.name}</span>{children}</span>;
 }
 /** Things side by side at the same scale, with a child standing beside them (about 4 feet tall). */
 export function ScalePic({ things }: { things: readonly Thing[] }) {
@@ -171,7 +195,9 @@ export function ScalePic({ things }: { things: readonly Thing[] }) {
       <text x="190" y={ground - 4} class="child" text-anchor="end" style={{ fontSize: `${Math.max(18, Math.min(170, childH))}px` }}>🧒</text>
       {things.map((t, i) => {
         const w = Math.max(3, t.inches * k), y = ground - 18 - i * 84;
-        return <g key={t.id}><rect x="200" y={y - 26} width={w} height="26" rx="6" class={cls('bar', i ? 'blue' : 'red')} /><text x="200" y={y - 34} class="scale-name">{t.emoji} {t.name}</text></g>;
+        return <g key={t.id}><rect x="200" y={y - 26} width={w} height="26" rx="6" class={cls('bar', i ? 'blue' : 'red')} />{t.id === 'eraser'
+          ? <><Eraser x={200} y={y - 62} w={34} /><text x="242" y={y - 34} class="scale-name">{t.name}</text></>
+          : <text x="200" y={y - 34} class="scale-name">{t.emoji} {t.name}</text>}</g>;
       })}
     </svg>
   );

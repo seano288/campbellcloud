@@ -37,15 +37,20 @@ export function drawTruck(ctx: CanvasRenderingContext2D, l: TruckLook, x: number
   const exhaust = look<PartItem>(l.exhaust), lights = look<PartItem>(l.lights), flag = look<PartItem>(l.flag);
   const paint = look<ColourItem>(l.colour).hex, pat = look<PatternItem>(l.pattern).look, decal = look<DecalItem>(l.decal).glyph, trim = look<TrimItem>(l.trim).hex;
   const driver = look<DriverItem>(l.driver);
-  const r = 17 + tires.look * 1.3, lift = 10 + springs.look * 1.2 - squash * 8, L = TRUCK_LEN * body.long, H = 34 * body.tall, base = -(r * 2 + lift * .4);
+  const r = 19 + tires.look * 1.4, lift = 10 + springs.look * 1.2 - squash * 8, L = TRUCK_LEN * body.long, H = 34 * body.tall, base = -(r * 2 + lift * .4);
   const v = body.look;
   ctx.save();
   ctx.translate(x, y); ctx.scale(s, s); ctx.rotate((-pitch * Math.PI) / 180);
-  ctx.lineJoin = 'round'; ctx.lineWidth = 3.2; ctx.strokeStyle = '#111';
-  // springs: coils between axle and body
+  ctx.lineJoin = 'round'; ctx.lineCap = 'round'; ctx.lineWidth = 3.2; ctx.strokeStyle = '#111';
+  // the chassis: a dark frame from axle to axle, and a shock with its spring on each wheel (the springs part colours the coil)
+  ctx.fillStyle = '#2a2f36'; ctx.fillRect(-L * .4, base + 2, L * .8, 7); ctx.strokeRect(-L * .4, base + 2, L * .8, 7);
+  const coil = springs.look >= 6 ? '#7dff6b' : springs.look >= 4 ? '#ff4d1a' : springs.look >= 2 ? '#ffd23f' : '#e8edf2';
   for (const wx of [-L * .3, L * .3]) {
-    ctx.strokeStyle = '#c9d1da'; ctx.lineWidth = 3; ctx.beginPath();
-    for (let i = 0; i <= 6; i++) ctx.lineTo(wx + (i % 2 ? 4 : -4), -r - (i / 6) * (lift + 4));
+    const lean = wx < 0 ? -5 : 5;
+    ctx.strokeStyle = '#111'; ctx.lineWidth = 8; ctx.beginPath(); ctx.moveTo(wx, -r); ctx.lineTo(wx + lean, base + 4); ctx.stroke();
+    ctx.strokeStyle = '#9aa3ad'; ctx.lineWidth = 4.5; ctx.stroke();
+    ctx.strokeStyle = coil; ctx.lineWidth = 3; ctx.beginPath();
+    for (let i = 0; i <= 7; i++) { const k = i / 7; ctx.lineTo(wx + lean * k + (i % 2 ? 5 : -5), -r + (base + 4 + r) * k); }
     ctx.stroke();
   }
   ctx.strokeStyle = '#111'; ctx.lineWidth = 3.2;
@@ -58,8 +63,17 @@ export function drawTruck(ctx: CanvasRenderingContext2D, l: TruckLook, x: number
   else if (v === 11) { ctx.moveTo(-L / 2, base); ctx.lineTo(-L / 2, top + H * .25); ctx.lineTo(L * .25, top + H * .25); ctx.quadraticCurveTo(L * .6, top + H * .5, L / 2 + 10, base - H * .2); ctx.lineTo(L / 2, base); }
   else { ctx.moveTo(-L / 2, base); ctx.lineTo(-L / 2, top + H * .25); ctx.lineTo(L / 2 - 6, top + H * .3); ctx.lineTo(L / 2, top + H * .45); ctx.lineTo(L / 2, base); }
   ctx.closePath(); ctx.fill();
-  ctx.save(); ctx.clip(); pattern(ctx, pat, -L / 2, top, L, H, paint, t); ctx.restore();
+  ctx.save(); ctx.clip(); pattern(ctx, pat, -L / 2, top, L, H, paint, t);
+  // a shine along the top and a shadow along the bottom, so the paint reads as a solid body
+  ctx.fillStyle = 'rgba(255,255,255,.3)'; ctx.fillRect(-L / 2, top + H * .22, L, H * .14);
+  ctx.fillStyle = 'rgba(0,0,0,.24)'; ctx.fillRect(-L / 2, base - H * .2, L, H * .2);
+  ctx.restore();
   ctx.stroke();
+  // a headlight at the front and a tail light at the back
+  if (v !== 2) {
+    ctx.fillStyle = '#fff6c4'; ctx.beginPath(); ctx.arc(L / 2 - 5, base - H * .5, 4.5, 0, 7); ctx.fill(); ctx.lineWidth = 2; ctx.stroke();
+    ctx.fillStyle = '#ff2d3d'; ctx.fillRect(-L / 2, base - H * .62, 5, 7); ctx.strokeRect(-L / 2, base - H * .62, 5, 7); ctx.lineWidth = 3.2;
+  }
   // the cab
   if (v !== 2) {
     ctx.fillStyle = paint;
@@ -68,7 +82,9 @@ export function drawTruck(ctx: CanvasRenderingContext2D, l: TruckLook, x: number
     // the window, with the driver
     ctx.fillStyle = '#bfe6ff';
     const wx = cabX + cabW * .05, wy = top + H * .28 - cabH * .85;
-    ctx.beginPath(); ctx.rect(wx - cabW * .25, wy, cabW * .55, cabH * .62); ctx.fill(); ctx.strokeStyle = trim; ctx.lineWidth = 4; ctx.stroke();
+    ctx.beginPath(); ctx.rect(wx - cabW * .25, wy, cabW * .55, cabH * .62); ctx.fill();
+    ctx.save(); ctx.clip(); ctx.fillStyle = 'rgba(255,255,255,.55)'; ctx.beginPath(); ctx.moveTo(wx + cabW * .1, wy); ctx.lineTo(wx + cabW * .22, wy); ctx.lineTo(wx + cabW * .02, wy + cabH * .62); ctx.lineTo(wx - cabW * .1, wy + cabH * .62); ctx.fill(); ctx.restore();
+    ctx.strokeStyle = trim; ctx.lineWidth = 4; ctx.stroke();
     ctx.fillStyle = driver.helmet; ctx.beginPath(); ctx.arc(wx, wy + cabH * .38, cabH * .26, 0, 7); ctx.fill(); ctx.strokeStyle = '#111'; ctx.lineWidth = 2; ctx.stroke();
     ctx.font = `${cabH * .34}px sans-serif`; ctx.textAlign = 'center'; ctx.textBaseline = 'middle'; ctx.fillText(driver.face, wx, wy + cabH * .42);
   } else {
@@ -121,14 +137,22 @@ export function drawTruck(ctx: CanvasRenderingContext2D, l: TruckLook, x: number
     ctx.fillStyle = '#c9d1da'; ctx.fillRect(-L / 2 - 14, base - 20, 22, 10); ctx.strokeRect(-L / 2 - 14, base - 20, 22, 10);
     ctx.fillStyle = '#e63946'; ctx.beginPath(); ctx.moveTo(-L / 2 - 14, base - 20); ctx.lineTo(-L / 2 - 20, base - 15); ctx.lineTo(-L / 2 - 14, base - 10); ctx.fill();
   }
-  // the wheels
-  ctx.strokeStyle = '#111';
+  // the wheels: fat tires with chunky tread blocks that stick out past the round, and a rim with bolts (both turn as it drives)
+  const rim = tires.look === 7 ? '#e8edf2' : tires.look === 8 ? '#ff4d1a' : tires.look === 9 ? '#e0b13a' : tires.look >= 4 ? '#ffd23f' : '#9aa3ad';
+  const lugs = 12 + Math.min(4, tires.look);
   for (const wx of [-L * .3, L * .3]) {
-    ctx.fillStyle = '#1b1e24'; ctx.beginPath(); ctx.arc(wx, -r, r, 0, 7); ctx.fill();
-    ctx.strokeStyle = tires.look === 9 ? '#3a3f47' : '#2a2f36'; ctx.lineWidth = 3;
-    for (let k = 0; k < 10; k++) { const a = (k / 10) * Math.PI * 2 + t * 4; ctx.beginPath(); ctx.moveTo(wx + Math.cos(a) * r * .8, -r + Math.sin(a) * r * .8); ctx.lineTo(wx + Math.cos(a) * r, -r + Math.sin(a) * r); ctx.stroke(); }
-    ctx.fillStyle = tires.look === 7 ? '#e8edf2' : tires.look === 8 ? '#ff4d1a' : '#9aa3ad'; ctx.beginPath(); ctx.arc(wx, -r, r * .42, 0, 7); ctx.fill();
-    ctx.strokeStyle = '#111'; ctx.lineWidth = 2; ctx.stroke();
+    ctx.fillStyle = '#1b1e24'; ctx.strokeStyle = '#111'; ctx.lineWidth = 2.5;
+    for (let k = 0; k < lugs; k++) {
+      const a = (k / lugs) * Math.PI * 2 + t * 4, w = (Math.PI * 2 * r) / lugs * .55;
+      ctx.save(); ctx.translate(wx + Math.cos(a) * r * .94, -r + Math.sin(a) * r * .94); ctx.rotate(a);
+      ctx.beginPath(); ctx.roundRect(-r * .1, -w / 2, r * .2, w, 2); ctx.fill(); ctx.stroke(); ctx.restore();
+    }
+    ctx.beginPath(); ctx.arc(wx, -r, r * .97, 0, 7); ctx.fill(); ctx.lineWidth = 3; ctx.stroke();
+    ctx.strokeStyle = '#3a3f47'; ctx.lineWidth = 2; ctx.beginPath(); ctx.arc(wx, -r, r * .74, 0, 7); ctx.stroke();
+    ctx.fillStyle = rim; ctx.strokeStyle = '#111'; ctx.beginPath(); ctx.arc(wx, -r, r * .5, 0, 7); ctx.fill(); ctx.lineWidth = 2.5; ctx.stroke();
+    ctx.fillStyle = 'rgba(0,0,0,.3)'; ctx.beginPath(); ctx.arc(wx, -r, r * .22, 0, 7); ctx.fill();
+    ctx.fillStyle = '#1b1e24';
+    for (let k = 0; k < 5; k++) { const a = (k / 5) * Math.PI * 2 + t * 4; ctx.beginPath(); ctx.arc(wx + Math.cos(a) * r * .35, -r + Math.sin(a) * r * .35, Math.max(1.4, r * .06), 0, 7); ctx.fill(); }
   }
   ctx.restore();
 }

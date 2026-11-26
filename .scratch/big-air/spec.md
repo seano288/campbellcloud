@@ -221,11 +221,26 @@ truck); open question.
 
 ## Look
 
-A night arena: deep navy sky with stars, floodlight beams (with the Floodlights), a dark crowd of coloured dots with camera flashes, dirt
-brown, and the truck in loud colours. The tape and the Home ruler are yellow with black numbers. The question card stays white so the
-ruler reads clearly. Icon: a red truck in the air, nose up, over a yellow ruler, on a night sky with two floodlight beams and a dirt floor.
-Kept apart from Monster Truck Money (a garage, money): here the truck is a tool for the jump and the arena is what he builds; the two games
-do not share a save. The family look: Bungee titles, Nunito reading, 4px black outlines, chunky shadows.
+A night arena: deep navy sky with stars, floodlight towers in warm white (beams on the dirt with the Floodlights), tiered dark stands
+whose crowd (heads and shoulders, some waving) fills up as he buys seats, camera flashes as little white stars, a padded wall in tape
+yellow and black, dirt brown, and the truck in loud colours. The tape and the Home ruler are yellow with black numbers. The question card
+stays white so the ruler reads clearly. The family look: Bungee titles, Nunito reading, 4px black outlines, chunky shadows.
+
+- **The arena is drawn, not described.** The Jump's scene (`jump/render.ts`) is also the Arena screen's and Home tile's picture of his
+  arena (`jump/ScenePic.tsx`, `view: 'arena'`) and the Jump card's plan of the next jump (`view: 'card'`: his ramp, the Row and a tape
+  under it from the lip to the flag). Every arena piece shows up in the stands, on the wall or in the sky; Floodlights, Spotlights, the
+  Laser Show and the Smoke Machine change the light. Rival trucks in a Row are drawn as monster trucks (his drawing, painted purple).
+- **The tape on the Jump** comes out of a yellow case at the lip, labelled every 5 or 10 feet. The truck stops with its back wheels on
+  the landing point (rounded as the distance is), a red line and pin mark the spot under the tape, and the distance is written beside the
+  pin once the tape reaches it. Only the drawing changed; the measured distance and the physics are as before.
+- **Rulers**: numbers as big as their spaces allow (bigger on short rulers and on a narrow screen), the unit's name in brown under the
+  numbers rather than on top of the last one.
+- **Best Guess's eraser** is drawn (a pink school eraser with a blue sleeve); no emoji shows one.
+- **Icon**: a loud orange monster truck side-on, nose up, high over a yellow tape measure pulled from its case (numbers 0 to 3), on a
+  night arena: navy floodlight rays fanning from behind the truck, dark stands with coloured crowd and flashes, a yellow-and-black wall
+  and dirt. Kept apart from Monster Truck Money (a red truck front-on on yellow, in a garage) and Turbo Tally (a race car on a track):
+  here the truck is a tool for the jump and the arena is what he builds; the two games do not share a save.
+- Controls on the Jump sit at least 48px in from the sides (56px for the pedal) and above the 56px floor.
 
 ## Voice
 

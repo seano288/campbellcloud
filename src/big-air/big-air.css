@@ -1,63 +1,79 @@
-/* Globe Hopper: Time Flies' styles (imported before this file) taken to a launch day. A deep blue sky going to black, concrete and steel
-   for the base, white rockets with bold stripes, and an Earth in clear friendly colours, one fixed colour for each continent. The family
-   look stays: Bungee titles, Nunito reading, thick black outlines and chunky drop shadows that press in. The family's colour signals stay
-   base-) or its screens, so nothing leaks between kinds. */
+/* Big Air: Time Flies' styles (imported before this file) taken to a monster-truck stunt arena at night. A deep navy sky with stars,
+   floodlight beams in warm white, dark tiered stands, a dirt-brown floor, the tape measure's yellow with black numbers, and his truck in
+   loud colours. The family look stays: Bungee titles, Nunito reading, 4px black outlines and chunky drop shadows.
+   Big Air's own pieces are prefixed ba- (or live on its own screens), so nothing leaks between kinds or games. */
 :root{
-  --space:#05060f;--night:#1a1206;--night-2:#2c1e0c;--strato:#3a2410;--sky:#1d1a3a;--sky-2:#3a335f;--sky-3:#d4ecff;--dirt:#6b4226;--dirt-2:#8b5a2b;--tape:#ffd23f;--wood:#e9c27d;
-  --concrete:#b8bec6;--concrete-2:#8a9099;--steel:#3a3f48;--steel-2:#2b2f36;--sun:#ffd23f;--flame:#ff7a00;--sign:#14161b;--go-green:#2fa84f;
+  --ba-sky:#070a1c;--ba-sky-2:#1d1a3a;--ba-sky-3:#2a2552;--ba-stand:#1c1a26;--ba-flood:#fff6c4;
+  --ba-dirt:#6b4226;--ba-dirt-2:#8b5a2b;--ba-dirt-3:#4a2c17;--ba-tape:#ffd23f;--ba-flame:#ff7a00;--ba-ink:#14161b;
+  --ba-steel:#2b2f36;--ba-steel-2:#1f2229;--ba-wood:#e9c27d;--ba-go:#2fa84f;--ba-red:#e63946;
   --floor:max(56px,calc(env(safe-area-inset-bottom) + 40px));
+  /* the night arena: two floodlight beams, stars, the sky going violet low down, the dirt floor */
+  --ba-night:
+    linear-gradient(104deg,transparent 0 16%,#fff6c41f 21% 29%,transparent 34%),
+    linear-gradient(256deg,transparent 0 16%,#fff6c41f 21% 29%,transparent 34%),
+    radial-gradient(circle at 12% 20%,#fff 0 1.4px,transparent 2.4px) 0 0/90px 70px,
+    radial-gradient(circle at 60% 70%,#ffffffa0 0 1px,transparent 2px) 0 0/130px 110px,
+    linear-gradient(var(--ba-sky),var(--ba-sky-2) 52%,var(--ba-sky-3) 76%,var(--ba-dirt-2) 76% calc(76% + 6px),var(--ba-dirt) calc(76% + 6px));
 }
-html,body{background:var(--night)}
+html,body{background:var(--ba-sky)}
+.start.ba-start,.home-screen.ba-home-screen,.round-screen,.ba-reward,.arena-screen{background:var(--ba-night)}
 
 /* ---------- the Start screen ---------- */
-.start.ba-start{background:radial-gradient(ellipse 120% 60% at 50% 118%,#6b4fd8 0,#3a2a9a 30%,transparent 62%),linear-gradient(var(--space),var(--night) 55%,var(--strato));padding-bottom:calc(var(--floor) + 24px)}
-.ba-start h1{color:var(--sun);text-shadow:3px 3px 0 var(--flame),6px 6px 0 #000;line-height:1.02}
-.ba-start-art{width:min(86vw,62vh,520px);aspect-ratio:1.35}
+.start.ba-start{padding-bottom:calc(var(--floor) + 24px)}
+.ba-start h1{color:var(--ba-tape);text-shadow:3px 3px 0 var(--ba-flame),6px 6px 0 #000;line-height:1.02}
+.ba-start-art{position:relative;display:grid;place-items:center;width:min(86vw,62vh,520px);aspect-ratio:1.35}
+.ba-start-art .truck-pic{width:84%;height:auto;transform:rotate(-10deg) translateY(-10%);filter:drop-shadow(0 10px 0 #0006)}
 @media (max-height:520px){.ba-start-art{width:min(60vw,44vh)}.start.ba-start{gap:10px}}
 
+/* a tape measure drawn in CSS (Start, Home's Play): yellow, a tick every inch and a long one every four, black edge */
+.start-ruler,.play-ruler{position:absolute;left:6%;right:6%;bottom:6%;height:16%;border:4px solid #000;border-radius:10px;box-shadow:0 5px 0 #000;
+  background:repeating-linear-gradient(90deg,#000 0 3px,transparent 3px 100%) 6px 0/24% 52% repeat-x,repeating-linear-gradient(90deg,#000 0 2px,transparent 2px 100%) 6px 0/6% 30% repeat-x,var(--ba-tape)}
+
 /* ---------- Home ---------- */
-/* the edge of space: black above, deep blue, and the violet of the high sky low down */
-.home-screen.ba-home-screen,.round-screen{background:radial-gradient(ellipse 140% 50% at 50% 112%,#5a43c8 0,#33288a 34%,transparent 70%),linear-gradient(175deg,var(--space) 0%,var(--night) 45%,var(--night-2) 100%)}
-.ba-home-screen .home-head h1{color:var(--sun);text-shadow:2px 2px 0 var(--flame),4px 4px 0 #000}
+.ba-home-screen .home-head h1{color:var(--ba-tape);text-shadow:2px 2px 0 var(--ba-flame),4px 4px 0 #000}
 .home.ba-home{padding-bottom:var(--floor);grid-template-areas:"p p" "a r" "k k";grid-template-rows:minmax(0,1fr) minmax(0,.78fr) auto;grid-template-columns:1.3fr 1fr}
 @media (orientation:landscape){.home.ba-home{grid-template-areas:"p a" "p r" "k k";grid-template-rows:minmax(0,1fr) minmax(0,.62fr) auto;grid-template-columns:1fr 1.15fr}}
-/* Play is the Earth turning with his rocket going round it, and the big green go in front of it */
-.ba-home .t-play{grid-area:p;position:relative;overflow:hidden;display:flex;align-items:flex-end;justify-content:center;padding-bottom:max(26px,calc(30px*var(--u)));
-  background:radial-gradient(circle at 50% 42%,#1b3f8a 0,#0d1f52 45%,var(--space) 85%);--door:max(92px,calc(140px*var(--u)))}
-.ba-home .t-play .e{position:relative;z-index:1;display:grid;place-items:center;width:var(--door);height:var(--door);border-radius:50%;border:5px solid #000;background:var(--go);color:#fff;font-size:calc(60px*var(--u));padding-left:calc(8px*var(--u));box-shadow:0 0 0 7px var(--go-green),0 0 0 11px #000,0 11px 0 11px #000;animation:ba-breathe 2.4s ease-in-out infinite}
-@keyframes ba-breathe{50%{box-shadow:0 0 0 7px var(--go-green),0 0 0 11px #000,0 11px 0 11px #000,0 0 0 22px #3ddc8440}}
-.ba-home .t-play:active .e{transform:translateY(5px);box-shadow:0 0 0 7px var(--go-green),0 0 0 11px #000,0 6px 0 11px #000}
+/* Play: his truck in the air over the tape, under a floodlight, and the big green go in front */
+.ba-home .t-play{grid-area:p;position:relative;overflow:hidden;display:flex;align-items:flex-end;justify-content:center;padding-bottom:max(26px,calc(30px*var(--u)));container-type:size;
+  background:radial-gradient(ellipse 60% 70% at 50% -10%,#fff6c455,transparent 70%),linear-gradient(var(--ba-sky) 0,var(--ba-sky-2) 70%,var(--ba-dirt-2) 70% calc(70% + 5px),var(--ba-dirt) calc(70% + 5px));--door:max(92px,calc(140px*var(--u)))}
+.ba-home .t-play .play-art{position:absolute;inset:0 0 calc(var(--door) * .42) 0;display:grid;place-items:center}
+.ba-home .t-play .play-truck{width:min(70%,60cqh);height:auto;transform:rotate(-12deg) translateY(-12%);animation:ba-hop 3s ease-in-out infinite;filter:drop-shadow(0 12px 0 #0005)}
+@keyframes ba-hop{50%{transform:rotate(-6deg) translateY(-20%)}}
+.ba-home .t-play .e{position:relative;z-index:1;display:grid;place-items:center;width:var(--door);height:var(--door);border-radius:50%;border:5px solid #000;background:var(--ba-go);color:#fff;font-size:calc(60px*var(--u));padding-left:calc(8px*var(--u));box-shadow:0 0 0 7px var(--ba-tape),0 0 0 11px #000,0 11px 0 11px #000;animation:ba-breathe 2.4s ease-in-out infinite}
+@keyframes ba-breathe{50%{box-shadow:0 0 0 7px var(--ba-tape),0 0 0 11px #000,0 11px 0 11px #000,0 0 0 24px #ffd23f40}}
+.ba-home .t-play:active .e{transform:translateY(5px);box-shadow:0 0 0 7px var(--ba-tape),0 0 0 11px #000,0 6px 0 11px #000}
 .ba-home .t-play:active{transform:none}
-/* his base, drawn as he has built it */
-.ba-home .t-arena{grid-area:a;position:relative;padding:0;overflow:hidden;background:#8fc8f5;display:block}
-.ba-home .t-arena .nm{position:absolute;left:50%;bottom:calc(8px*var(--u));transform:translateX(-50%);white-space:nowrap;font-size:max(15px,calc(22px*var(--u)));color:var(--sun);background:#000;border-radius:10px;padding:3px 12px;box-shadow:0 3px 0 #0007}
-.ba-home .race-badge{position:absolute;right:8px;top:8px;background:#000;color:var(--sun);border-radius:999px;padding:3px 12px;font:900 max(16px,calc(22px*var(--u))) Nunito,sans-serif;border:3px solid var(--sun)}
-/* the next photo mission: a little globe turned to it, and its name */
-.ba-home .t-next{grid-area:r;position:relative;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:calc(6px*var(--u));padding:calc(10px*var(--u));color:#fff;cursor:default;overflow:hidden;container-type:size;
-  background:radial-gradient(circle at 18% 22%,#ffffff30 0 1.5px,transparent 2.5px) 0 0/46px 46px,radial-gradient(circle at 50% 35%,#24307e,var(--space) 85%)}
+/* his arena, drawn as he has built it */
+.ba-home .t-arena{grid-area:a;position:relative;padding:0;overflow:hidden;display:block;background:var(--ba-sky)}
+.scene-pic{display:block;width:100%;height:100%}
+.ba-home .t-arena .arena-scene{position:absolute;inset:0}
+.ba-home .t-arena .nm{position:absolute;left:50%;bottom:calc(8px*var(--u));transform:translateX(-50%);white-space:nowrap;font-size:max(15px,calc(22px*var(--u)));color:var(--ba-tape);background:#000;border-radius:10px;padding:3px 12px;box-shadow:0 3px 0 #0007}
+.ba-home .race-badge{position:absolute;right:8px;top:8px;background:#000;color:var(--ba-tape);border-radius:999px;padding:3px 12px;font:900 max(16px,calc(22px*var(--u))) Nunito,sans-serif;border:3px solid var(--ba-tape)}
+/* the next Jump, on an arena scoreboard: bulbs round the edge, the Row's name and its length on a piece of tape */
+.ba-home .t-next{grid-area:r;position:relative;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:calc(6px*var(--u));padding:calc(14px*var(--u));color:#fff;cursor:default;overflow:hidden;
+  background:radial-gradient(circle,var(--ba-flood) 0 2.5px,transparent 3.5px) 0 0/16px 16px,#0b0d12;background-clip:border-box}
+.ba-home .t-next::before{content:"";position:absolute;inset:9px;border-radius:16px;background:radial-gradient(ellipse at 50% 0,#2a2552,#0b0d12 75%);box-shadow:inset 0 0 0 3px #000}
+.ba-home .t-next>*{position:relative}
 .ba-home .t-next:active{transform:none;box-shadow:0 7px 0 #000}
-.ba-home .next-globe{flex:1 1 0;min-height:0;width:100%;max-width:min(100%,62cqh);aspect-ratio:1;display:block}
-.ba-home .next-words{display:flex;flex-direction:column;align-items:center;gap:4px;flex:none}
-.ba-home .next-dest{display:flex;flex-wrap:wrap;justify-content:center;gap:6px}
-.ba-home .nd-name{font:900 max(16px,calc(24px*var(--u)))/1.05 Nunito,sans-serif;background:#fff;color:#14161b;border:3px solid #000;border-radius:999px;padding:3px 12px;box-shadow:0 4px 0 #000}
-.ba-home .board-head{font:400 max(14px,calc(17px*var(--u))) Bungee,sans-serif;color:var(--sun)}
-.ba-home .cup-count{font:900 max(14px,calc(17px*var(--u))) Nunito,sans-serif}
-@container (min-aspect-ratio:8/5){.ba-home .t-next{flex-direction:row;gap:calc(14px*var(--u))}.ba-home .next-globe{flex:none;height:min(100%,140px);width:auto;max-width:none}.ba-home .next-words{align-items:flex-start}.ba-home .next-dest{justify-content:flex-start}}
-@container (max-height:150px){.ba-home .t-next .cup-count{display:none}}
-@container (max-width:200px) and (max-height:230px){.ba-home .t-next .board-head{display:none}}
-.ba-home .t-kinds{grid-area:k;background:linear-gradient(var(--steel),var(--steel-2));display:grid;grid-template-columns:repeat(3,1fr);grid-auto-rows:minmax(max(48px,calc(56px*var(--u))),auto);column-gap:calc(12px*var(--u));padding:0 calc(14px*var(--u)) calc(12px*var(--u));cursor:default;color:#fff}
+.ba-home .board-head{font:400 max(14px,calc(17px*var(--u))) Bungee,sans-serif;color:var(--ba-tape)}
+.ba-home .next-dest{font:400 max(15px,calc(22px*var(--u)))/1.1 Bungee,sans-serif;color:#fff;text-align:center;text-shadow:2px 2px 0 #000;max-width:100%}
+.ba-home .next-feet{font:900 max(20px,calc(30px*var(--u))) Nunito,sans-serif;background:var(--ba-tape);color:#000;border:3px solid #000;border-radius:8px;padding:0 14px;box-shadow:0 4px 0 #000;
+  background-image:repeating-linear-gradient(90deg,#000 0 2px,transparent 2px 12px);background-size:100% 6px;background-repeat:repeat-x}
+.ba-home .cup-count{font:900 max(14px,calc(17px*var(--u))) Nunito,sans-serif;color:#ffe9a6}
+/* My Levels: a steel board, a yellow placard */
+.ba-home .t-kinds{grid-area:k;background:linear-gradient(var(--ba-steel),var(--ba-steel-2));display:grid;grid-template-columns:repeat(3,1fr);grid-auto-rows:minmax(max(48px,calc(56px*var(--u))),auto);column-gap:calc(12px*var(--u));padding:0 calc(14px*var(--u)) calc(12px*var(--u));cursor:default;color:#fff}
 .ba-home .t-kinds:active{transform:none;box-shadow:0 7px 0 #000}
-.ba-home .kinds-head{grid-column:1/-1;justify-self:center;margin:calc(10px*var(--u)) 0 calc(4px*var(--u));padding:2px 14px;font:400 max(14px,calc(16px*var(--u))) Bungee,sans-serif;color:#14161b;background:var(--sun);border:3px solid #000;border-radius:10px}
+.ba-home .kinds-head{grid-column:1/-1;justify-self:center;margin:calc(10px*var(--u)) 0 calc(4px*var(--u));padding:2px 14px;font:400 max(14px,calc(16px*var(--u))) Bungee,sans-serif;color:var(--ba-ink);background:var(--ba-tape);border:3px solid #000;border-radius:10px}
 .ba-home .kind{position:relative;display:flex;align-items:center;gap:10px;background:none;border:0;padding:2px;min-height:44px;text-align:left;color:#fff;cursor:default;font-size:max(20px,calc(26px*var(--u)))}
 .ba-home .kind .kb{flex:1;min-width:0;display:flex;flex-direction:column;gap:4px}
 .ba-home .kind .kn{font:900 max(15px,calc(20px*var(--u))) Nunito,sans-serif;line-height:1.1}
-.ba-home .kind .lvl i{width:max(12px,calc(15px*var(--u)));height:max(12px,calc(15px*var(--u)));border:2px solid #000;background:var(--steel-2)}
+.ba-home .kind .lvl i{width:max(12px,calc(15px*var(--u)));height:max(12px,calc(15px*var(--u)));border:2px solid #000;background:var(--ba-steel-2)}
 .ba-home .kind .lvl i.on{background:radial-gradient(circle at 35% 35%,#fff3b0,#ffc400 60%);box-shadow:0 0 6px 1px #ffc40099}
 .ba-home .kind.locked{color:#ffffff8c}
 .ba-home .kind.fresh{animation:pulse 1s infinite}
 .ba-home .kind .badge{flex:none;font-size:max(16px,calc(20px*var(--u)));line-height:1}
 @media (max-width:560px){.ba-home .t-kinds{grid-template-columns:repeat(2,1fr)}}
-/* a phone on its side: Play on the left; his base over his Levels on the right (the next mission waits for the Launch card) */
+/* a phone on its side: Play on the left; his arena over his Levels on the right (the next Jump waits for the Jump card) */
 @media (orientation:landscape) and (max-height:520px){
   .home.ba-home{grid-template-areas:"p a" "p k";grid-template-columns:1fr 1.3fr;grid-template-rows:minmax(0,1fr) auto}
   .ba-home .t-next{display:none}
@@ -67,56 +83,156 @@ html,body{background:var(--night)}
   .ba-home .t-play{--door:72px;padding-bottom:18px}.ba-home .t-play .e{font-size:36px;border-width:4px}
 }
 
-/* ---------- a question ---------- */
-.round-screen .card{background:#f7f9fc}
+/* ---------- a question: a white card, so the ruler reads clearly ---------- */
+.round-screen .card{background:#fbfaf6}
 .game.ba{justify-content:flex-start;gap:calc(8px*var(--u));padding:calc(10px*var(--u));overflow:hidden}
 @media (min-height:600px){.game.ba{padding-bottom:max(calc(10px*var(--u)),calc(var(--floor) - 14px))}}
 @media (orientation:landscape) and (max-height:520px){.game.ba{padding-bottom:calc(var(--floor) - 20px)}}
-.game.ba .ask{flex:none;width:100%;max-width:100%;padding-bottom:calc(8px*var(--u));border-bottom:4px solid #e3e6eb}
+.game.ba .ask{flex:none;width:100%;max-width:100%;padding-bottom:calc(8px*var(--u));border-bottom:4px solid #ebe4d4}
 .game.ba .ask h2{flex:1;min-width:0;font:900 max(19px,calc(30px*var(--u)))/1.15 Nunito,sans-serif;text-align:left;text-wrap:balance}
+.game.ba .ask h2 b.red{color:#d62828}.game.ba .ask h2 b.blue{color:#1d6fd1}
+.game.ba .ask h2 .num{white-space:nowrap}
 .game.ba .help-btn{flex:none;font-size:max(20px,calc(24px*var(--u)));padding:4px 12px}
 .ba-body{flex:1;min-height:0;width:100%;display:flex;flex-direction:column;gap:calc(10px*var(--u));align-items:stretch}
-.ba-stage{position:relative;flex:1 1 0;min-height:0;min-width:0;display:flex;align-items:center;justify-content:center}
+.ba-stage{position:relative;flex:1 1 0;min-height:0;min-width:0;display:flex;align-items:center;justify-content:center;container-type:size;overflow:hidden}
 .ba-controls{flex:none;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:calc(12px*var(--u))}
 @media (orientation:landscape){.ba-body{flex-direction:row}.ba-controls{flex:0 0 auto;width:clamp(200px,30vw,400px)}}
 .game.ba .ba-controls{transition:opacity .25s,filter .25s}
 .game.ba[data-ready="no"] .ba-controls{opacity:.55;filter:saturate(.5)}
-/* the Earth: the flat map keeps its 2:1 shape, the globe its circle; both as big as the stage allows */
-.ba-stage{container-type:size;overflow:hidden}
-/* landform cards */
-/* name buttons: each with its continent's colour chip, lit orange as it is read */
+.ba-picture{width:100%;height:100%;display:grid;place-items:center;min-height:0}
+.ba-picture>svg{display:block;max-width:100%;max-height:100%;width:100%;height:auto}
+
+/* choices: big, one row upright, a column on its side */
 .choices{display:flex;flex-direction:column;gap:calc(10px*var(--u));width:100%}
 @media (orientation:portrait){.choices{flex-direction:row;flex-wrap:wrap;justify-content:center}.choices .choice{flex:1 1 30%}}
 .choice{display:flex;align-items:center;justify-content:center;gap:10px;min-height:max(56px,calc(72px*var(--u)));font:900 max(18px,calc(26px*var(--u))) Nunito,sans-serif}
-.choice .chip{flex:none;width:max(22px,calc(28px*var(--u)));height:max(22px,calc(28px*var(--u)));border-radius:50%;background:var(--chip);border:3px solid #000}
-.choice.lit{outline:6px solid var(--flame);outline-offset:2px}
+.choice.lit{outline:6px solid var(--ba-flame);outline-offset:2px}
 .choice.wrong{opacity:.4}
 .choice.right,.choice.hint{background:var(--green);color:#fff}
-/* the lesson's pop-up: a place's picture and name, or a landform from the side and from above */
-/* meeting a continent: the globe and the map side by side */
+.choice.hint{outline:5px solid var(--ba-tape);outline-offset:3px;box-shadow:0 6px 0 #000,0 0 0 11px #000}
+.choices.words .choice,.choices.nums .choice{flex:1 1 0;min-width:0;min-height:max(56px,calc(72px*var(--u)));font:900 max(18px,calc(26px*var(--u)))/1.1 Nunito,sans-serif;padding:6px 10px}
+.choices.words,.choices.nums{display:flex;gap:calc(10px*var(--u));width:100%}
+@media (orientation:landscape){.choices.words,.choices.nums{flex-direction:column}}
+
+/* the ruler: pale wood, black ticks and numbers as big as the spaces allow, the unit's name in brown under them */
+.ba-ruler .wood{fill:var(--ba-wood);stroke:#000;stroke-width:4}
+.ba-ruler .wood-edge{fill:#d9a95a}
+.ba-ruler .tick{stroke:#000;stroke-width:4;stroke-linecap:round}
+.ba-ruler .tick.half{stroke-width:2.5}
+.ba-ruler .tick.other{stroke-width:3}
+.ba-ruler .tick-n{font:900 27px Nunito,sans-serif;text-anchor:middle;fill:#000}
+.ba-ruler .tick-n.big{font-size:31px}
+.ba-ruler .tick-n.dense{font-size:25px}
+.ba-ruler .tick-n.other{font-size:19px;fill:#3a3f48}
+.ba-ruler .unit-name{font:400 14px Bungee,sans-serif;text-anchor:middle;fill:#7a4a22;letter-spacing:.06em}
+.ba-ruler .unit-name.other{fill:#5a5f68}
+.ba-ruler .laid{transition:transform .8s ease-in-out}
+.ba-ruler .hop{fill:none;stroke:#ff7a00;stroke-width:4;stroke-dasharray:6 5}
+.ba-ruler .hop.last{stroke:#d62828;stroke-width:6;stroke-dasharray:none}
+/* on a narrow stage (an upright phone) the centimetre ruler's numbers grow to fill their spaces */
+@container (max-width:520px){.ba-ruler .tick-n.dense{font-size:30px}.ba-ruler .tick-n{font-size:30px}.ba-ruler .tick-n.big{font-size:33px}.ba-ruler .tick-n.other{font-size:22px}.ba-ruler .unit-name{font-size:17px}}
+.lit-unit{fill:#ffd23fcc;stroke:#000;stroke-width:3}
+
+/* the tape, as on the Jump: yellow, black ticks and numbers */
+.ba-tape{touch-action:manipulation;-webkit-user-select:none;user-select:none}
+.ba-tape.tappable{cursor:pointer}
+.ba-tape .tape-body{fill:var(--ba-tape);stroke:#000;stroke-width:5}
+.ba-tape .tape-fill{fill:#ff7a00aa}
+.ba-tape .tape-tick{stroke:#000;stroke-width:5}
+.ba-tape .tape-tick.small{stroke-width:3}
+.ba-tape .tape-n{font:900 40px Nunito,sans-serif;text-anchor:middle;fill:#000}
+.ba-tape .tape-hop path{fill:none;stroke:#d62828;stroke-width:7;stroke-linecap:round}
+.ba-tape .tape-hop text{font:900 32px Nunito,sans-serif;text-anchor:middle;fill:#d62828}
+.ba-tape .tape-mark path{fill:#d62828;stroke:#000;stroke-width:3}
+.ba-tape .tape-mark text{font:900 34px Nunito,sans-serif;text-anchor:middle;fill:#14161b}
+/* on a narrow stage (an upright phone) the tape's numbers grow: the tape is as wide as the screen, so they would be tiny */
+@container (max-width:520px){.ba-tape .tape-n{font-size:58px}.ba-tape.dense .tape-n{font-size:46px}.ba-tape .tape-hop text,.ba-tape .tape-mark text{font-size:54px}.ba-tape .tape-tick{stroke-width:7}.ba-tape .tape-tick.small{stroke-width:5}}
+.ba-tape .tape-case{fill:var(--ba-tape);stroke:#000;stroke-width:5}
+.ba-tape .tape-hub{fill:#1b1e24}
+
+/* bars: jumps, stories, Best Guess's lesson */
+.ba-bars .bar{stroke:#000;stroke-width:4}
+.ba-bars .bar.red{fill:#e63946}.ba-bars .bar.blue{fill:#2f8fe8}.ba-bars .bar.whole{fill:#2fa84f}
+.ba-bars .bar.unknown{fill:#fff;stroke-dasharray:10 8}
+.ba-bars .bar-n{font:900 42px Nunito,sans-serif;text-anchor:middle;fill:#000;paint-order:stroke;stroke:#fff;stroke-width:6px}
+.ba-bars .bar-n.end{text-anchor:end}
+.ba-bars .laid{transition:transform .8s ease-in-out}
+.ba-scale .ground{stroke:#6b4226;stroke-width:6}
+.ba-scale .bar{stroke:#000;stroke-width:3}.ba-scale .bar.red{fill:#e63946}.ba-scale .bar.blue{fill:#2f8fe8}
+.ba-scale .scale-name{font:900 28px Nunito,sans-serif;fill:#14161b}
+.ba-scale .child{font-family:sans-serif}
+.ba-units .unit-tile{stroke:#000;stroke-width:2}
+.ba-units .unit-tile.big{fill:#ffd23f}.ba-units .unit-tile.small{fill:#5fd3f3}
+.ba-units .bar-n{font:900 32px Nunito,sans-serif;fill:#14161b;paint-order:stroke;stroke:#fff;stroke-width:6px}.ba-units .bar-n.end{text-anchor:end}
+
+/* Best Guess: two things on cards, the same size, so the picture can't say which is longer */
+.thing-pair{display:grid;grid-template-columns:1fr 1fr;gap:calc(14px*var(--u));width:min(100%,640px)}
+.thing-btn{padding:0;border:0;background:none;border-radius:18px;box-shadow:0 6px 0 #000;transition:transform .1s}
+.thing-btn:active{transform:translateY(4px);box-shadow:0 2px 0 #000}
+.thing-btn.wrong{opacity:.4}
+.thing-btn.right,.thing-btn.hint{outline:6px solid var(--green);outline-offset:3px}
+.thing-card{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;min-height:max(120px,30cqh);padding:10px;border:4px solid #000;border-radius:18px;background:#fff;color:#14161b}
+.ba-picture>.thing-card{width:min(70%,320px)}
+.thing-emoji{font-size:max(56px,min(22cqh,120px));line-height:1}
+.thing-emoji svg{display:block;width:1.15em;height:1em}
+.thing-name{font:900 max(18px,calc(24px*var(--u))) Andika,Nunito,sans-serif}
+
+/* the fuller lesson's arrow */
+/* in the card's corner, over the controls, which wait while it shows */
+.game.ba{position:relative}
+.ba-next{position:absolute;right:max(12px,calc(10px*var(--u)));bottom:max(12px,calc(var(--floor) - 14px));z-index:2;width:max(64px,calc(80px*var(--u)));height:max(64px,calc(80px*var(--u)));border-radius:50%;border:5px solid #000;background:var(--ba-tape);font:900 36px Nunito,sans-serif;box-shadow:0 6px 0 #000}
+.ba-next:active{transform:translateY(4px);box-shadow:0 2px 0 #000}
+
+/* the number pad: ten big keys, erase and done; two rows of six upright, a block of keys on its side */
+.ba-pad{display:flex;flex-direction:column;align-items:stretch;gap:calc(8px*var(--u));width:100%}
+.pad-show{display:flex;align-items:baseline;justify-content:center;gap:8px;padding:4px 12px;border:4px solid #000;border-radius:14px;background:#fff;color:#14161b;box-shadow:inset 0 -6px 0 var(--ba-tape)}
+.pad-show b{font:900 max(30px,calc(40px*var(--u)))/1.1 Nunito,sans-serif;min-width:1.4em;text-align:center}
+.pad-show small{font:900 max(15px,calc(18px*var(--u))) Nunito,sans-serif;color:#555}
+.pad-show.hint{outline:5px solid var(--ba-tape)}
+.pad-keys{display:grid;grid-template-columns:repeat(6,minmax(44px,1fr));gap:6px}
+.pad-key{min-height:max(48px,calc(58px*var(--u)));border-radius:12px;border:3px solid #000;background:#fff;color:#14161b;font:900 max(22px,calc(28px*var(--u))) Nunito,sans-serif;box-shadow:0 4px 0 #000;padding:0}
+.pad-key:active{transform:translateY(3px);box-shadow:0 1px 0 #000}
+.pad-key.erase{background:#e3e6eb}
+.pad-key.done-btn{background:var(--ba-go);color:#fff}
+.pad-key.done-btn.hint{outline:5px solid var(--ba-tape);outline-offset:2px}
+@media (orientation:landscape){.pad-keys{grid-template-columns:repeat(3,minmax(44px,1fr))}}
+@media (orientation:landscape) and (max-height:520px){.pad-keys{grid-template-columns:repeat(4,minmax(44px,1fr));gap:4px}.pad-key{min-height:44px;font-size:20px}.pad-show{padding:0 8px}.pad-show b{font-size:24px}}
+.game.ba.k-ruler .ba-controls,.game.ba.k-longer .ba-controls{width:min(100%,520px)}
+@media (orientation:landscape){.game.ba.k-ruler .ba-controls,.game.ba.k-longer .ba-controls{width:clamp(210px,30vw,360px)}}
+.game.ba.meet .go-btn{min-height:max(64px,calc(80px*var(--u)));padding:8px 28px;display:flex;align-items:center;gap:8px;font-size:calc(30px*var(--u))}
+@media (max-width:430px){.game.ba{padding-left:6px;padding-right:6px}.round-screen .card{margin-left:6px;margin-right:6px}}
 
 /* ---------- the end of a Round ---------- */
-.ba-reward{background:linear-gradient(var(--space),var(--night) 60%,var(--strato));padding-bottom:calc(var(--floor) + 16px)}
+.ba-reward{padding-bottom:calc(var(--floor) + 16px)}
 .ba-reward>*{position:relative}
-.earned-race{font:900 calc(30px*var(--u)) Nunito,sans-serif;color:var(--sun);background:#000;border-radius:999px;padding:6px 20px;box-shadow:inset 0 0 0 3px var(--sun)}
+.ba-reward h2{color:var(--ba-tape);text-shadow:3px 3px 0 var(--ba-flame),6px 6px 0 #000}
+.ba-reward-sky{display:none}
+.earned-race{font:900 calc(30px*var(--u)) Nunito,sans-serif;color:var(--ba-tape);background:#000;border-radius:999px;padding:6px 20px;box-shadow:inset 0 0 0 3px var(--ba-tape),0 5px 0 #0008}
+.ba-reward .lines{color:#fff;text-shadow:2px 2px 0 #000}
 .ba-reward .btns{align-items:center}
 .race-btn{gap:12px;min-height:max(80px,calc(110px*var(--u)));padding:calc(10px*var(--u)) calc(26px*var(--u));font-size:calc(30px*var(--u))}
 .race-flag{font-size:1.3em}
 .race-word{font:400 max(18px,calc(30px*var(--u))) Bungee,sans-serif;white-space:nowrap}
 .race-count{font-size:.7em;background:#0006;border-radius:12px;padding:2px 10px;white-space:nowrap}
 .ba-reward .btns .again.second{font-size:calc(28px*var(--u));padding:calc(18px*var(--u)) calc(24px*var(--u))}
+/* the yellow Arena buttons read in ink, not white (white on the family yellow is about 1.5:1) */
+.ba-reward .big-btn.garage,.ms-result .big-btn.garage{color:var(--ba-ink);background:var(--ba-tape)}
 @media (min-width:760px) and (min-height:760px){.ba-reward>h2,.ba-reward>.bigpile,.ba-reward>.earned-race,.ba-reward>.lines,.ba-reward>.btns,.ba-reward>.icon-btn{zoom:1.3}}
 
-/* ---------- the Rocket Base ---------- */
-.arena-screen{gap:calc(8px*var(--u));padding:max(8px,env(safe-area-inset-top)) max(10px,env(safe-area-inset-right)) max(10px,env(safe-area-inset-bottom)) max(10px,env(safe-area-inset-left));background:radial-gradient(circle at 30% 0%,#22478a,var(--night) 70%);color:#fff}
+/* ---------- the Arena ---------- */
+.arena-screen{gap:calc(8px*var(--u));padding:max(8px,env(safe-area-inset-top)) max(10px,env(safe-area-inset-right)) max(10px,env(safe-area-inset-bottom)) max(10px,env(safe-area-inset-left));color:#fff;
+  background:linear-gradient(104deg,transparent 0 16%,#fff6c41a 21% 29%,transparent 34%),radial-gradient(circle at 12% 20%,#fff 0 1.4px,transparent 2.4px) 0 0/90px 70px,linear-gradient(var(--ba-sky),var(--ba-sky-2) 45%,var(--ba-dirt-3))}
 .ba-head{display:flex;align-items:center;gap:10px;flex:none;min-width:0}
-.ba-head h1{margin:0 auto 0 0;font:400 calc(30px*var(--u)) Bungee,sans-serif;color:var(--sun);text-shadow:2px 2px 0 #000;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.ba-head h1{margin:0 auto 0 0;font:400 calc(30px*var(--u)) Bungee,sans-serif;color:var(--ba-tape);text-shadow:2px 2px 0 var(--ba-flame),4px 4px 0 #000;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 @media (max-width:430px){.ba-head h1{font-size:16px}}
-.rank-chip{display:flex;align-items:center;gap:6px;background:var(--steel);color:var(--sun);border:3px solid #000;border-radius:10px;padding:2px 10px;font:900 max(15px,calc(20px*var(--u))) Nunito,sans-serif;white-space:nowrap}
+.rank-chip{display:flex;align-items:center;gap:6px;background:var(--ba-steel);color:var(--ba-tape);border:3px solid #000;border-radius:10px;padding:2px 10px;font:900 max(15px,calc(20px*var(--u))) Nunito,sans-serif;white-space:nowrap}
 .rank-chip small{font-size:.75em;color:#fff}
 @media (max-width:430px){.rank-chip small{display:none}}
 .arena-main{flex:1.5 1 0;min-height:0;display:grid;grid-template-columns:minmax(0,1fr) auto;gap:calc(10px*var(--u))}
-.arena-view{position:relative;min-height:0;border:4px solid #000;border-radius:16px;overflow:hidden;background:var(--sky);box-shadow:0 6px 0 #000}
+.arena-view{position:relative;min-height:0;border:4px solid #000;border-radius:16px;overflow:hidden;background:var(--ba-sky);box-shadow:0 6px 0 #000}
+.arena-view .arena-scene{position:absolute;inset:0}
+.crowd-chip,.record-chip{position:absolute;top:8px;z-index:1;background:#000c;border:3px solid var(--ba-tape);border-radius:999px;padding:2px 12px;font:900 max(15px,calc(18px*var(--u))) Nunito,sans-serif;color:var(--ba-tape)}
+.crowd-chip{left:8px}.record-chip{right:8px}
 .arena-side{display:flex;flex-direction:column;gap:calc(8px*var(--u));justify-content:center;width:clamp(150px,24vw,240px);min-height:0}
 @media (orientation:portrait){.arena-main{grid-template-columns:minmax(0,1fr);grid-template-rows:minmax(0,1fr) auto}.arena-side{flex-direction:row;width:auto;align-items:stretch}.arena-side .fly-btn{flex:1}}
 .fly-btn{display:grid;grid-template-columns:auto 1fr auto;grid-template-rows:auto auto;align-items:center;column-gap:8px;padding:calc(8px*var(--u)) calc(14px*var(--u));min-height:max(76px,calc(96px*var(--u)))}
@@ -124,63 +240,63 @@ html,body{background:var(--night)}
 .fly-word{font:400 max(20px,calc(30px*var(--u))) Bungee,sans-serif}
 .fly-to{grid-column:2/4;font:900 max(13px,calc(15px*var(--u))) Nunito,sans-serif;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;text-align:left}
 .fly-btn .race-count{font-size:max(18px,calc(22px*var(--u)))}
-.ba-goal{display:flex;align-items:center;gap:8px;min-height:max(52px,calc(60px*var(--u)));padding:4px 10px;border-radius:999px;border:3px solid var(--sun);background:#000;color:#fff;min-width:0}
+.ba-goal{display:flex;align-items:center;gap:8px;min-height:max(52px,calc(60px*var(--u)));padding:4px 10px;border-radius:999px;border:3px solid var(--ba-tape);background:#000;color:#fff;min-width:0}
 .goal-icon{font-size:calc(28px*var(--u))}
-.goal-bar{flex:1;min-width:40px;height:14px;border-radius:7px;background:#fff3;overflow:hidden}
-.goal-bar i{display:block;height:100%;background:var(--sun);border-radius:7px;transition:width .4s}
+.goal-bar{flex:1;min-width:40px;height:16px;border-radius:8px;background:#fff3;overflow:hidden;box-shadow:inset 0 0 0 2px #0008}
+.goal-bar i{display:block;height:100%;background:repeating-linear-gradient(90deg,#000 0 2px,transparent 2px 10px) 0 0/100% 40% no-repeat,var(--ba-tape);border-radius:8px;transition:width .4s}
 .goal-num{font:900 max(14px,calc(16px*var(--u))) Nunito,sans-serif;white-space:nowrap}
 .side-row{display:flex;gap:8px}
 .side-row:empty{display:none}
-.side-btn{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;min-height:max(56px,calc(68px*var(--u)));font-size:calc(32px*var(--u));padding:4px;background:#fff;color:#14161b}
+.side-btn{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;min-height:max(56px,calc(68px*var(--u)));font-size:calc(32px*var(--u));padding:4px;background:#fff;color:var(--ba-ink)}
 .side-word{font:400 max(11px,calc(13px*var(--u))) Bungee,sans-serif;line-height:1}
 @media (orientation:portrait){.arena-side .ba-goal{flex:1}.side-row{flex:none}.side-btn{width:max(56px,calc(68px*var(--u)))}}
 @media (orientation:portrait) and (max-width:560px){.arena-side{flex-wrap:wrap}.arena-side .fly-btn{flex:1 1 100%}}
-.buy-bar{flex:none;display:flex;align-items:center;gap:10px;padding:6px 10px;background:#000;border:3px solid var(--sun);border-radius:16px}
+.buy-bar{flex:none;display:flex;align-items:center;gap:10px;padding:6px 10px;background:#000;border:3px solid var(--ba-tape);border-radius:16px}
 .buy-icon{font-size:calc(30px*var(--u))}
 .buy-name{flex:1;min-width:0;font:900 max(16px,calc(22px*var(--u))) Nunito,sans-serif;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.buy-need{display:flex;align-items:center;gap:4px;font:900 max(16px,calc(20px*var(--u))) Nunito,sans-serif;color:var(--sun);white-space:nowrap}
+.buy-need{display:flex;align-items:center;gap:4px;font:900 max(16px,calc(20px*var(--u))) Nunito,sans-serif;color:var(--ba-tape);white-space:nowrap}
 .buy-btn{display:flex;align-items:center;gap:6px;font:900 max(20px,calc(26px*var(--u))) Nunito,sans-serif;padding:6px 18px;min-height:52px}
 .ba-tabs{flex:none;display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:4px}
 @media (max-width:760px),(orientation:landscape) and (max-height:520px){.ba-tabs{gap:2px}.tab-name{display:none}}
 @media (max-width:430px){.arena-screen{padding-left:max(8px,env(safe-area-inset-left));padding-right:max(8px,env(safe-area-inset-right))}}
-.ba-tab{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;min-height:max(48px,calc(58px*var(--u)));min-width:44px;border-radius:12px;background:var(--steel-2);border:3px solid #fff3;color:#fff;padding:0 2px;font-size:calc(22px*var(--u))}
+.ba-tab{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;min-height:max(48px,calc(58px*var(--u)));min-width:44px;border-radius:12px;background:var(--ba-steel-2);border:3px solid #fff3;color:#fff;padding:0 2px;font-size:calc(24px*var(--u))}
 .tab-name{font:900 max(11px,calc(13px*var(--u))) Nunito,sans-serif}
-.ba-tab.on{background:var(--sun);border-color:#000;box-shadow:0 4px 0 #000;color:#000}
+.ba-tab.on{background:var(--ba-tape);border-color:#000;box-shadow:0 4px 0 #000;color:#000}
 .ba-tab.fresh{animation:pulse 1s infinite}
 .ba-tray{flex:1 1 0;min-height:max(130px,22vh);overflow-y:auto;overscroll-behavior:contain;touch-action:pan-y;display:flex;flex-direction:column;gap:8px;padding-bottom:calc(var(--floor) - 20px)}
 .tiles{display:grid;grid-template-columns:repeat(auto-fill,minmax(max(104px,calc(128px*var(--u))),1fr));grid-auto-rows:max-content;gap:calc(8px*var(--u))}
-.ba-tile{position:relative;display:flex;flex-direction:column;align-items:center;gap:2px;padding:6px 4px;min-height:96px;border-radius:14px;background:var(--steel-2);border:3px solid #fff3;color:#fff;font:800 max(13px,calc(15px*var(--u)))/1.1 Nunito,sans-serif}
-.ba-tile img,.ba-tile canvas{width:92%;height:calc(56px*var(--u));min-height:40px;object-fit:contain}
-.ba-tile.rocket-tile img{height:max(84px,calc(104px*var(--u)));border-radius:10px;background:linear-gradient(#bfe0fb,#8fc8f5 85%,#b8bec6 85%)}
-/* a part tile: his rocket with that part fitted, showing the end of the rocket where the part is (art/PartPic.tsx) */
-.ba-tile .part-pic{display:block;width:92%;height:max(58px,calc(66px*var(--u)));min-height:0;border-radius:10px;background:linear-gradient(#bfe0fb,#8fc8f5)}
+.ba-tile{position:relative;display:flex;flex-direction:column;align-items:center;gap:2px;padding:6px 4px;min-height:96px;border-radius:14px;background:linear-gradient(var(--ba-steel),var(--ba-steel-2));border:3px solid #fff3;color:#fff;font:800 max(13px,calc(15px*var(--u)))/1.1 Nunito,sans-serif}
+.ba-tile .truck-pic{width:92%;height:calc(60px*var(--u));min-height:44px;object-fit:contain}
+.ba-tile.body-tile .truck-pic{height:max(70px,calc(86px*var(--u)))}
 .tile-icon{font-size:max(28px,calc(36px*var(--u)));line-height:1.2}
 .swatch-dot{display:inline-block;width:max(36px,calc(44px*var(--u)));height:max(36px,calc(44px*var(--u)));border-radius:50%;border:3px solid #000;box-shadow:0 0 0 2px #fff5}
-.chip-btn .swatch-dot{width:28px;height:28px;vertical-align:middle}
 .tile-name{min-height:2.2em;display:grid;place-items:center;text-align:center}
 .tile-cost,.tile-tag{display:inline-flex;align-items:center;gap:2px;font-size:max(14px,1.05em);color:#ffd97a}
-.tile-lift{position:absolute;left:4px;top:4px;background:#000a;border-radius:999px;padding:0 6px;font-weight:900;font-size:.9em}
-.tile-count{position:absolute;right:4px;top:4px;background:var(--sun);color:#000;border-radius:999px;padding:0 6px;font-weight:900}
+.tile-lift{position:absolute;left:4px;top:4px;background:var(--ba-tape);color:#000;border:2px solid #000;border-radius:6px;padding:0 5px;font-weight:900;font-size:.9em}
+.tile-count{position:absolute;right:4px;top:4px;background:var(--ba-tape);color:#000;border-radius:999px;padding:0 6px;font-weight:900}
 .ba-tile.locked{background:#14161b;opacity:.75}
-.ba-tile.afford{border-color:var(--sun)}
+.ba-tile.afford{border-color:var(--ba-tape)}
 .ba-tile.owned{border-color:#3ddc8466}
 .ba-tile.worn{border-color:var(--green);background:#143526;color:#c4f7dc}
-.ba-tile.flown{background:#1b2a4a}
+.ba-tile.cleared{background:#143526}
 .ba-tile.picked{outline:3px solid #fff;outline-offset:1px}
+/* the strip above a tab's tiles: what his truck can do now, or his truck as painted */
 .fleet-bar{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
-.fleet-bar img{width:auto;height:max(60px,calc(90px*var(--u)));object-fit:contain;background:linear-gradient(var(--sky-2) 0 80%,var(--concrete) 80%);border:3px solid #000;border-radius:12px;padding:2px 10px}
+.fleet-bar img{width:auto;height:max(60px,calc(90px*var(--u)));object-fit:contain;background:linear-gradient(var(--ba-sky-2) 0 72%,var(--ba-dirt) 72%);border:3px solid #000;border-radius:12px;padding:2px 10px}
 .chip-btn{min-height:48px;min-width:48px;padding:4px 14px;border-radius:999px;border:3px solid #000;background:#fff;color:#000;font:900 max(16px,calc(20px*var(--u))) Nunito,sans-serif;box-shadow:0 3px 0 #000}
-.chip-note{font:900 max(16px,calc(18px*var(--u))) Nunito,sans-serif;color:#fffc}
-.chip-note.pulse{color:var(--sun);background:#000;border:3px solid var(--sun);border-radius:999px;padding:4px 14px;animation:ba-glow 1.4s ease-in-out infinite}
-@keyframes ba-glow{50%{box-shadow:0 0 0 6px #ffd23f55}}
-.slot-row h3{margin:4px 0;font:400 max(14px,calc(16px*var(--u))) Bungee,sans-serif;color:var(--sun)}
+.chip-note{font:900 max(16px,calc(18px*var(--u))) Nunito,sans-serif;color:#fffc;background:#0006;border-radius:999px;padding:2px 10px}
+.slot-row h3{margin:4px 0;font:400 max(14px,calc(16px*var(--u))) Bungee,sans-serif;color:var(--ba-tape)}
+/* Records: the rank bar, then the Record Board as an arena scoreboard (yellow numbers on black), trophies and Show Cups */
 .ba-records{display:flex;flex-direction:column;gap:10px}
-.log-next{display:flex;align-items:center;gap:10px;padding:8px 14px;border-radius:999px;background:#000;border:3px solid var(--sun);font:900 max(16px,calc(20px*var(--u))) Nunito,sans-serif}
-.log-rank{color:var(--sun);white-space:nowrap}.log-to{white-space:nowrap}
-.log-stats{display:grid;grid-template-columns:repeat(auto-fill,minmax(max(92px,calc(112px*var(--u))),1fr));gap:8px}
-.log-stat{display:flex;flex-direction:column;align-items:center;gap:0;padding:6px 4px;border-radius:14px;background:var(--steel-2);border:3px solid #fff3;text-align:center}
-.log-stat b{font:900 max(22px,calc(28px*var(--u)))/1.05 Nunito,sans-serif;color:#fff}
-.log-stat small{font:800 max(13px,calc(14px*var(--u))) Nunito,sans-serif;color:#c9d6ff}
+.log-next{display:flex;align-items:center;gap:10px;padding:8px 14px;border-radius:999px;background:#000;border:3px solid var(--ba-tape);font:900 max(16px,calc(20px*var(--u))) Nunito,sans-serif}
+.log-rank{color:var(--ba-tape);white-space:nowrap}.log-to{white-space:nowrap}
+.record-board{list-style:none;margin:0;padding:8px;display:grid;grid-template-columns:repeat(auto-fill,minmax(max(150px,calc(180px*var(--u))),1fr));gap:6px;background:#0b0d12;border:4px solid #000;border-radius:16px;box-shadow:inset 0 0 0 2px #ffffff14,0 5px 0 #000}
+.record-board li{display:flex;align-items:center;gap:8px;padding:4px 10px;border-radius:10px;background:#16181f;border:2px solid #ffffff14;font:900 max(16px,calc(20px*var(--u))) Nunito,sans-serif;min-height:48px;color:#ffe9a6}
+.record-board li.top{border-color:var(--ba-tape);background:#2a2008;color:var(--ba-tape)}
+.record-board li.empty{justify-content:center;font-size:max(22px,calc(26px*var(--u)));grid-column:1/-1}
+.record-board .rb-place{display:grid;place-items:center;width:1.7em;height:1.7em;border-radius:50%;background:var(--ba-tape);color:#000;border:2px solid #000}
+.record-board .rb-feet{flex:1;white-space:nowrap}.record-board .rb-feet b{font-size:1.2em}.record-board small{color:#9aa3ad}
+.js-cup{display:inline-grid;place-items:center;min-width:1.8em;height:1.8em;border-radius:50% 50% 40% 40%;border:4px solid;box-shadow:0 3px 0 #000;font-size:1.1em;padding:0 4px}
 @media (orientation:landscape) and (max-height:520px){
   .arena-screen{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);grid-template-rows:auto auto minmax(0,1fr) auto;grid-template-areas:"head head" "main tabs" "main tray" "buy tray";column-gap:10px;padding-bottom:var(--floor)}
   .arena-screen .ba-head{grid-area:head}
@@ -195,34 +311,59 @@ html,body{background:var(--night)}
   .arena-screen .ba-tabs{grid-area:tabs}
   .arena-screen .ba-tray{grid-area:tray;min-height:0;padding-bottom:0}
   .arena-screen .buy-bar{grid-area:buy}
+  .ba-tray{min-height:110px}
 }
 
-/* ---------- the Launch ---------- */
-.jump-screen{position:fixed;inset:0;overflow:hidden;touch-action:none;overscroll-behavior:none;-webkit-user-select:none;user-select:none;-webkit-touch-callout:none;background:var(--space);color:#fff}
+/* ---------- the Jump ---------- */
+.jump-screen{position:fixed;inset:0;overflow:hidden;touch-action:none;overscroll-behavior:none;-webkit-user-select:none;user-select:none;-webkit-touch-callout:none;background:var(--ba-sky);color:#fff}
 .js-canvas{position:absolute;inset:0;width:100%;height:100%;display:block}
-.js-hud{position:absolute;left:0;right:0;top:0;display:flex;align-items:center;gap:10px;padding:max(12px,env(safe-area-inset-top)) max(24px,calc(env(safe-area-inset-right) + 24px)) 0 max(24px,calc(env(safe-area-inset-left) + 24px));pointer-events:none}
+/* the controls keep off the edges, which belong to iPadOS: at least 48px in from either side and above the floor */
+.js-hud{position:absolute;left:0;right:0;top:0;display:flex;align-items:center;gap:10px;padding:max(12px,env(safe-area-inset-top)) max(48px,calc(env(safe-area-inset-right) + 28px)) 0 max(48px,calc(env(safe-area-inset-left) + 28px));pointer-events:none}
 .js-hud>*{pointer-events:auto}
-.hud-chip{display:flex;align-items:center;gap:6px;background:#000c;border:3px solid var(--sun);border-radius:999px;padding:4px 14px;font:900 max(18px,calc(26px*var(--u))) Nunito,sans-serif;color:var(--sun);white-space:nowrap}
-.js-acts{position:absolute;right:max(24px,calc(env(safe-area-inset-right) + 24px));bottom:calc(var(--floor) + 10px);pointer-events:none}
+.hud-chip{display:flex;align-items:center;gap:6px;background:#000c;border:3px solid var(--ba-tape);border-radius:999px;padding:4px 14px;font:900 max(18px,calc(26px*var(--u))) Nunito,sans-serif;color:var(--ba-tape);white-space:nowrap}
+.feet-chip{color:#000;background:var(--ba-tape);border-color:#000;box-shadow:0 4px 0 #000;font-size:max(22px,calc(30px*var(--u)))}
+.speed-chip{width:max(90px,14vw);height:22px;padding:2px}
+.speed-chip i{display:block;height:100%;width:0;background:linear-gradient(90deg,var(--ba-go),var(--ba-tape),var(--ba-flame));border-radius:999px}
+.js-acts{position:absolute;right:max(56px,calc(env(safe-area-inset-right) + 32px));bottom:calc(var(--floor) + 16px);pointer-events:none}
 .js-act{pointer-events:auto;touch-action:none;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;width:max(110px,calc(150px*var(--u)));height:max(110px,calc(150px*var(--u)));border-radius:50%;border:5px solid #000;box-shadow:0 7px 0 #000;padding:0;font-size:max(34px,calc(48px*var(--u)));line-height:1;color:#fff}
 .js-act b{font:400 max(14px,calc(18px*var(--u))) Bungee,sans-serif;text-shadow:2px 2px 0 #000}
+.js-act span{font-size:max(34px,calc(44px*var(--u)))}
 .js-act:active{transform:translateY(5px);box-shadow:0 2px 0 #000}
-.js-act.drop{background:radial-gradient(circle at 40% 35%,#ffd9a0,var(--flame) 60%,#7a3300)}
-.js-act.deploy{background:radial-gradient(circle at 40% 35%,#9ff0b0,var(--go-green) 60%,#0d4a2a)}
-.js-card{display:flex;flex-direction:column;gap:calc(12px*var(--u));padding:max(12px,env(safe-area-inset-top)) max(24px,calc(env(safe-area-inset-right) + 24px)) max(14px,env(safe-area-inset-bottom)) max(24px,calc(env(safe-area-inset-left) + 24px));background:radial-gradient(ellipse 140% 50% at 50% 112%,#5a43c8 0,#33288a 34%,transparent 70%),linear-gradient(175deg,var(--space) 0%,var(--night) 45%,var(--night-2) 100%);touch-action:auto}
+.js-act.pedal{background:radial-gradient(circle at 40% 35%,#9ff0b0,var(--ba-go) 60%,#0d4a2a)}
+.js-act.boost{background:radial-gradient(circle at 40% 35%,#ffd9a0,var(--ba-flame) 60%,#7a3300)}
+.js-tilt{position:absolute;left:0;right:0;bottom:calc(var(--floor) + 8px);display:flex;justify-content:space-between;padding:0 max(56px,calc(env(safe-area-inset-left) + 32px));pointer-events:none;font:900 48px Nunito,sans-serif;color:#ffffff66}
+/* the card before a Jump: its name, the plan of the jump (ramp, Row and a tape under it), what's in the Row, his record and Jump */
+.js-card{display:flex;flex-direction:column;gap:calc(12px*var(--u));padding:max(12px,env(safe-area-inset-top)) max(24px,calc(env(safe-area-inset-right) + 24px)) max(14px,env(safe-area-inset-bottom)) max(24px,calc(env(safe-area-inset-left) + 24px));background:var(--ba-night);touch-action:auto}
 .js-head{display:flex;align-items:center;gap:10px}
-.js-head h1{margin:0;flex:1;min-width:0;font:400 calc(32px*var(--u)) Bungee,sans-serif;color:var(--sun);text-shadow:3px 3px 0 #000;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.js-head h1{margin:0;flex:1;min-width:0;font:400 calc(32px*var(--u)) Bungee,sans-serif;color:var(--ba-tape);text-shadow:2px 2px 0 var(--ba-flame),4px 4px 0 #000;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .ms-chip{background:#000;border-radius:999px;padding:4px 12px;font:900 max(15px,calc(20px*var(--u))) Nunito,sans-serif;white-space:nowrap}
+.js-brief{flex:1;min-height:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:calc(12px*var(--u))}
+.js-plan{flex:1 1 0;min-height:120px;width:100%;max-width:1100px;border:4px solid #000;border-radius:18px;box-shadow:0 6px 0 #000;background:var(--ba-sky)}
+@media (orientation:portrait){.js-plan{flex:0 1 auto;height:auto;aspect-ratio:4/3;max-height:100%}}
+.js-row{display:flex;flex-wrap:wrap;align-items:center;justify-content:center;gap:10px;padding:8px 16px;border-radius:18px;background:#000b;border:3px solid var(--ba-tape)}
+.js-row-things{font:900 max(18px,calc(24px*var(--u))) Nunito,sans-serif}
+.js-feet{font:900 max(22px,calc(30px*var(--u))) Nunito,sans-serif;background:var(--ba-tape);color:#000;border:3px solid #000;border-radius:8px;padding:0 12px}
+.js-wind{font:900 max(18px,calc(22px*var(--u))) Nunito,sans-serif;color:#9ff0ff}
 .js-foot{display:flex;align-items:center;justify-content:center;gap:16px;flex-wrap:wrap;padding-bottom:calc(var(--floor) - 14px)}
-.ms-best{background:#000;border:3px solid var(--sun);border-radius:16px;padding:6px 14px;font:900 max(18px,calc(22px*var(--u))) Nunito,sans-serif}
+.ms-best{background:#000;border:3px solid var(--ba-tape);border-radius:16px;padding:6px 14px;font:900 max(18px,calc(22px*var(--u))) Nunito,sans-serif}
 .js-foot .big-btn.go{min-width:max(120px,calc(160px*var(--u)));min-height:max(80px,calc(96px*var(--u)));display:flex;align-items:center;gap:10px;font-size:calc(34px*var(--u))}
+@media (orientation:landscape) and (max-height:520px){
+  .js-card{flex-direction:row;flex-wrap:wrap;align-content:flex-start;gap:8px;padding-bottom:var(--floor)}
+  .js-head{flex:1 1 100%}
+  .js-brief{flex:1 1 0;height:calc(100% - 60px)}
+  .js-row{padding:4px 12px}
+  .js-foot{flex:none;flex-direction:column;align-self:center;padding:0}
+  .js-foot .big-btn.go{min-height:72px}
+}
+/* the results, over the measured jump */
 .ms-result{position:fixed;inset:0;z-index:5;display:grid;place-items:center;background:#000a;padding:14px 14px calc(var(--floor) + 10px);text-align:center;overflow-y:auto;touch-action:auto}
-.ms-result .result-card{display:flex;flex-direction:column;align-items:center;gap:calc(8px*var(--u));width:min(560px,100%);padding:calc(16px*var(--u)) calc(24px*var(--u));border:4px solid #000;border-radius:24px;background:radial-gradient(circle at 50% 0%,#22478a,var(--night) 70%);box-shadow:0 8px 0 #000,0 18px 40px #000a}
-.ms-result h2{margin:0;font:400 calc(40px*var(--u)) Bungee,sans-serif;color:var(--sun);text-shadow:3px 3px 0 #000}
+.ms-result .result-card{display:flex;flex-direction:column;align-items:center;gap:calc(8px*var(--u));width:min(560px,100%);padding:calc(16px*var(--u)) calc(24px*var(--u));border:4px solid #000;border-radius:24px;
+  background:radial-gradient(ellipse 80% 60% at 50% 0,#fff6c430,transparent 70%),linear-gradient(var(--ba-sky-2),var(--ba-sky));box-shadow:0 8px 0 #000,0 18px 40px #000a}
+.ms-result h2{margin:0;font:400 calc(40px*var(--u)) Bungee,sans-serif;color:var(--ba-tape);text-shadow:3px 3px 0 var(--ba-flame),5px 5px 0 #000}
 .ms-row{display:flex;align-items:center;gap:20px;font:900 calc(30px*var(--u)) Nunito,sans-serif}
-.ms-row.log small{font-size:.65em;color:var(--sun)}
+.ms-row.log small{font-size:.65em;color:var(--ba-tape)}
 .result-bolts{display:flex;align-items:center;gap:6px}
-.won-line{display:flex;align-items:center;gap:8px;font:900 max(18px,calc(24px*var(--u))) Nunito,sans-serif;color:var(--sun)}
+.won-line{display:flex;align-items:center;gap:8px;font:900 max(18px,calc(24px*var(--u))) Nunito,sans-serif;color:var(--ba-tape)}
 .ms-result .btns{display:flex;gap:14px;align-items:center;justify-content:center;flex-wrap:wrap}
 .ms-result .big-btn{font-size:calc(34px*var(--u));padding:calc(12px*var(--u)) calc(28px*var(--u));min-height:64px}
 @media (orientation:landscape) and (max-height:520px){
@@ -231,151 +372,8 @@ html,body{background:var(--night)}
   .ms-result .big-btn{min-height:52px;padding:4px 16px}
   .ms-result .ms-row.log{display:none}
   .ms-result .won-line{font-size:15px}
-  .arena-side{width:clamp(140px,26vw,220px)}
-  .ba-tray{min-height:110px}
 }
 
 @media (prefers-reduced-motion:reduce){
-  .ba-home .t-play .e,.fly-btn.pulse,.js-act.pulse,.ba-tab.fresh,.chip-note.pulse{animation:none}
-  .choice.hint{outline:5px solid var(--sun);outline-offset:3px}
+  .ba-home .t-play .e,.ba-home .t-play .play-truck,.fly-btn.pulse,.js-act.pulse,.ba-tab.fresh,.ba-home .kind.fresh{animation:none}
 }
-
-/* the yellow Base buttons read in ink, not white (white on the family yellow is about 1.5:1) */
-.ba-reward .big-btn.garage,.ms-result .big-btn.garage{color:#14161b}
-
-/* ---------- Big Air's own pieces ---------- */
-/* the night arena behind Start, Home, the Rounds and the end of a Round: dark sky, floodlight beams, dirt at the bottom */
-.start.ba-start,.home-screen.ba-home-screen,.round-screen,.ba-reward{background:
-  linear-gradient(105deg,transparent 0 18%,#fff6c41a 22% 30%,transparent 34%),linear-gradient(255deg,transparent 0 18%,#fff6c41a 22% 30%,transparent 34%),
-  radial-gradient(circle at 12% 20%,#fff 0 1.5px,transparent 2.5px) 0 0/90px 70px,
-  linear-gradient(var(--space),#1d1a3a 55%,var(--strato) 82%,var(--dirt) 82%)}
-.ba-start-art{position:relative;display:grid;place-items:center}
-.ba-start-art .truck-pic{width:80%;height:auto;transform:rotate(-10deg) translateY(-8%)}
-.start-ruler,.play-ruler{position:absolute;left:6%;right:6%;bottom:6%;height:16%;border:4px solid #000;border-radius:10px;
-  background:repeating-linear-gradient(90deg,#000 0 3px,transparent 3px 100%) 0 0/12.5% 45% no-repeat,repeating-linear-gradient(90deg,#000 0 2px,transparent 2px 100%) 0 0/6.25% 28% repeat-x,var(--tape)}
-.ba-home .t-play .play-art{position:absolute;inset:0 0 calc(var(--door) * .42) 0;display:grid;place-items:center}
-.ba-home .t-play .play-truck{width:min(70%,60cqh);height:auto;transform:rotate(-12deg) translateY(-12%);animation:ba-hop 3s ease-in-out infinite}
-@keyframes ba-hop{50%{transform:rotate(-6deg) translateY(-20%)}}
-.ba-home .t-play{container-type:size}
-.ba-home .t-arena{background:linear-gradient(#1d1a3a 0 62%,var(--dirt) 62%);display:grid;place-items:center}
-.ba-home .t-arena .arena-truck{width:min(80%,220px);height:auto;margin-bottom:12%}
-.ba-home .t-next{background:linear-gradient(var(--night-2),var(--night));color:#fff;gap:4px}
-.ba-home .next-dest{font:900 max(16px,calc(24px*var(--u)))/1.05 Nunito,sans-serif;background:#fff;color:#14161b;border:3px solid #000;border-radius:999px;padding:2px 14px;text-align:center}
-.ba-home .next-feet{font:900 max(18px,calc(26px*var(--u))) Nunito,sans-serif;background:var(--tape);color:#000;border:3px solid #000;border-radius:8px;padding:0 12px}
-.truck-pic{display:block;pointer-events:none}
-
-/* the questions */
-.game.ba .ask h2 b.red{color:#d62828}.game.ba .ask h2 b.blue{color:#1d6fd1}
-.game.ba .ask h2 .num{white-space:nowrap}
-.ba-picture{width:100%;height:100%;display:grid;place-items:center;min-height:0}
-.ba-picture>svg{display:block;max-width:100%;max-height:100%;width:100%;height:auto}
-.ba-stage{container-type:size;overflow:hidden}
-.ba-ruler .wood{fill:var(--wood);stroke:#000;stroke-width:4}
-.ba-ruler .tick{stroke:#000;stroke-width:3.5;stroke-linecap:round}
-.ba-ruler .tick.other{stroke-width:2.5}
-.ba-ruler .tick-n{font:900 21px Nunito,sans-serif;text-anchor:middle;fill:#000}
-.ba-ruler .tick-n.small{font-size:17px}
-.ba-ruler .tick-n.other{font-size:14px;fill:#3a3f48}
-.ba-ruler .unit-name{font:400 15px Bungee,sans-serif;text-anchor:end;fill:#7a4a22}
-.ba-ruler .unit-name.other{font-size:12px}
-.ba-ruler .laid{transition:transform .8s ease-in-out}
-.ba-ruler .hop{fill:none;stroke:#ff7a00;stroke-width:4;stroke-dasharray:6 5}
-.ba-ruler .hop.last{stroke:#d62828;stroke-width:6;stroke-dasharray:none}
-.lit-unit{fill:#ffd23fcc;stroke:#000;stroke-width:3}
-.ba-tape{touch-action:manipulation;-webkit-user-select:none;user-select:none}
-.ba-tape.tappable{cursor:pointer}
-.ba-tape .tape-body{fill:var(--tape);stroke:#000;stroke-width:5}
-.ba-tape .tape-fill{fill:#ff7a00aa}
-.ba-tape .tape-tick{stroke:#000;stroke-width:5}
-.ba-tape .tape-tick.small{stroke-width:3}
-.ba-tape .tape-n{font:900 30px Nunito,sans-serif;text-anchor:middle;fill:#000}
-.ba-tape .tape-hop path{fill:none;stroke:#d62828;stroke-width:7;stroke-linecap:round}
-.ba-tape .tape-hop text{font:900 30px Nunito,sans-serif;text-anchor:middle;fill:#d62828}
-.ba-tape .tape-mark path{fill:#d62828;stroke:#000;stroke-width:3}
-.ba-tape .tape-mark text{font:900 32px Nunito,sans-serif;text-anchor:middle;fill:#14161b}
-.ba-bars .bar{stroke:#000;stroke-width:4}
-.ba-bars .bar.red{fill:#e63946}.ba-bars .bar.blue{fill:#2f8fe8}.ba-bars .bar.whole{fill:#2fa84f}
-.ba-bars .bar.unknown{fill:#fff;stroke-dasharray:10 8}
-.ba-bars .bar-n{font:900 42px Nunito,sans-serif;text-anchor:middle;fill:#000;paint-order:stroke;stroke:#fff;stroke-width:6px}
-.ba-bars .bar-n.end{text-anchor:end}
-.ba-bars .laid{transition:transform .8s ease-in-out}
-.ba-scale .ground{stroke:#6b4226;stroke-width:6}
-.ba-scale .bar{stroke:#000;stroke-width:3}.ba-scale .bar.red{fill:#e63946}.ba-scale .bar.blue{fill:#2f8fe8}
-.ba-scale .scale-name{font:900 26px Nunito,sans-serif;fill:#14161b}
-.ba-scale .child{font-family:sans-serif}
-.ba-units .unit-tile{stroke:#000;stroke-width:2}
-.ba-units .unit-tile.big{fill:#ffd23f}.ba-units .unit-tile.small{fill:#5fd3f3}
-.ba-units .bar-n{font:900 30px Nunito,sans-serif;fill:#14161b}.ba-units .bar-n.end{text-anchor:end}
-.thing-pair{display:grid;grid-template-columns:1fr 1fr;gap:calc(14px*var(--u));width:min(100%,640px)}
-.thing-btn{padding:0;border:0;background:none;border-radius:18px;box-shadow:0 6px 0 #000;transition:transform .1s}
-.thing-btn:active{transform:translateY(4px);box-shadow:0 2px 0 #000}
-.thing-btn.wrong{opacity:.4}
-.thing-btn.right,.thing-btn.hint{outline:6px solid var(--green);outline-offset:3px}
-.thing-card{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;min-height:max(120px,30cqh);padding:10px;border:4px solid #000;border-radius:18px;background:#fff;color:#14161b}
-.ba-picture>.thing-card{width:min(70%,320px)}
-.thing-emoji{font-size:max(56px,min(22cqh,120px));line-height:1}
-.thing-name{font:900 max(18px,calc(24px*var(--u))) Andika,Nunito,sans-serif}
-.choices.words .choice,.choices.nums .choice{flex:1 1 0;min-width:0;min-height:max(56px,calc(72px*var(--u)));font:900 max(18px,calc(26px*var(--u)))/1.1 Nunito,sans-serif;padding:6px 10px}
-.choices.words,.choices.nums{display:flex;gap:calc(10px*var(--u));width:100%}
-@media (orientation:landscape){.choices.words,.choices.nums{flex-direction:column}}
-.choice.hint{outline:5px solid var(--sun);outline-offset:3px}
-.ba-next{position:absolute;right:8px;bottom:8px;z-index:2;width:max(64px,calc(80px*var(--u)));height:max(64px,calc(80px*var(--u)));border-radius:50%;border:5px solid #000;background:var(--sun);font:900 36px Nunito,sans-serif;box-shadow:0 6px 0 #000}
-
-/* the number pad: ten big keys, erase and done; two rows of five on a phone, a block of keys in landscape */
-.ba-pad{display:flex;flex-direction:column;align-items:stretch;gap:calc(8px*var(--u));width:100%}
-.pad-show{display:flex;align-items:baseline;justify-content:center;gap:8px;padding:4px 12px;border:4px solid #000;border-radius:14px;background:#fff;color:#14161b}
-.pad-show b{font:900 max(30px,calc(40px*var(--u)))/1.1 Nunito,sans-serif;min-width:1.4em;text-align:center}
-.pad-show small{font:900 max(15px,calc(18px*var(--u))) Nunito,sans-serif;color:#555}
-.pad-show.hint{outline:5px solid var(--sun)}
-.pad-keys{display:grid;grid-template-columns:repeat(6,minmax(44px,1fr));gap:6px}
-.pad-key{min-height:max(48px,calc(58px*var(--u)));border-radius:12px;border:3px solid #000;background:#fff;color:#14161b;font:900 max(22px,calc(28px*var(--u))) Nunito,sans-serif;box-shadow:0 4px 0 #000;padding:0}
-.pad-key:active{transform:translateY(3px);box-shadow:0 1px 0 #000}
-.pad-key.erase{background:#e3e6eb}
-.pad-key.done-btn{background:var(--go-green);color:#fff}
-.pad-key.done-btn.hint{outline:5px solid var(--sun);outline-offset:2px}
-@media (orientation:landscape){.pad-keys{grid-template-columns:repeat(3,minmax(44px,1fr))}}
-@media (orientation:landscape) and (max-height:520px){.pad-keys{grid-template-columns:repeat(4,minmax(44px,1fr));gap:4px}.pad-key{min-height:44px;font-size:20px}.pad-show{padding:0 8px}.pad-show b{font-size:24px}}
-.game.ba.k-ruler .ba-controls,.game.ba.k-longer .ba-controls{width:min(100%,520px)}
-@media (orientation:landscape){.game.ba.k-ruler .ba-controls,.game.ba.k-longer .ba-controls{width:clamp(210px,30vw,360px)}}
-.game.ba.meet .go-btn{min-height:max(64px,calc(80px*var(--u)));padding:8px 28px;display:flex;align-items:center;gap:8px;font-size:calc(30px*var(--u))}
-
-/* the Arena */
-.arena-view{background:linear-gradient(#1d1a3a 0 58%,#2b2440 58% 70%,var(--dirt) 70%);display:grid;place-items:end center;padding-bottom:4%}
-.arena-view .arena-truck-big{width:auto;height:min(78%,300px);max-width:80%;object-fit:contain}
-.crowd-chip,.record-chip{position:absolute;top:8px;background:#000c;border:3px solid var(--sun);border-radius:999px;padding:2px 12px;font:900 max(15px,calc(18px*var(--u))) Nunito,sans-serif;color:var(--sun)}
-.crowd-chip{left:8px}.record-chip{right:8px}
-.ba-tile .truck-pic{width:92%;height:calc(60px*var(--u));min-height:44px;object-fit:contain}
-.ba-tile.body-tile .truck-pic{height:max(70px,calc(86px*var(--u)))}
-.ba-tile.cleared{background:#143526}
-.ba-records{display:flex;flex-direction:column;gap:10px}
-.record-board{list-style:none;margin:0;padding:0;display:grid;grid-template-columns:repeat(auto-fill,minmax(max(150px,calc(180px*var(--u))),1fr));gap:6px}
-.record-board li{display:flex;align-items:center;gap:8px;padding:4px 10px;border-radius:12px;background:var(--steel-2);border:3px solid #fff3;font:900 max(16px,calc(20px*var(--u))) Nunito,sans-serif;min-height:48px}
-.record-board li.top{border-color:var(--sun);background:#3a2a0a}
-.record-board .rb-place{display:grid;place-items:center;width:1.7em;height:1.7em;border-radius:50%;background:var(--sun);color:#000}
-.record-board .rb-feet{flex:1}.record-board small{color:#c9d6ff}
-.js-cup{display:inline-grid;place-items:center;min-width:1.8em;height:1.8em;border-radius:50% 50% 40% 40%;border:4px solid;box-shadow:0 3px 0 #000;font-size:1.1em;padding:0 4px}
-
-/* the Jump */
-.jump-screen{background:#05060f}
-.js-card{background:linear-gradient(var(--space),#1d1a3a 60%,var(--dirt) 60%);color:#fff}
-.js-brief{flex:1;min-height:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:calc(12px*var(--u))}
-.js-brief .js-truck{width:min(70vw,48vh,360px);height:auto}
-.js-row{display:flex;flex-wrap:wrap;align-items:center;justify-content:center;gap:10px;padding:8px 16px;border-radius:18px;background:#000b;border:3px solid var(--sun)}
-.js-row-things{font:900 max(18px,calc(24px*var(--u))) Nunito,sans-serif}
-.js-feet{font:900 max(22px,calc(30px*var(--u))) Nunito,sans-serif;background:var(--tape);color:#000;border:3px solid #000;border-radius:8px;padding:0 12px}
-.js-wind{font:900 max(18px,calc(22px*var(--u))) Nunito,sans-serif;color:#9ff0ff}
-.js-head{display:flex;align-items:center;gap:10px}
-.js-head h1{margin:0;flex:1;min-width:0;font:400 calc(30px*var(--u)) Bungee,sans-serif;color:var(--sun);text-shadow:3px 3px 0 #000;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.js-card .js-foot .big-btn.go{display:flex;align-items:center;gap:10px}
-.js-act.pedal{background:radial-gradient(circle at 40% 35%,#9ff0b0,var(--go-green) 60%,#0d4a2a)}
-.js-act.boost{background:radial-gradient(circle at 40% 35%,#ffd9a0,var(--flame) 60%,#7a3300)}
-.js-act span{font-size:max(34px,calc(44px*var(--u)))}
-.js-tilt{position:absolute;left:0;right:0;bottom:calc(var(--floor) + 8px);display:flex;justify-content:space-between;padding:0 max(30px,calc(env(safe-area-inset-left) + 30px));pointer-events:none;font:900 48px Nunito,sans-serif;color:#ffffff66}
-.feet-chip{color:#000;background:var(--tape);border-color:#000}
-.speed-chip{width:max(90px,14vw);height:22px;padding:2px}
-.speed-chip i{display:block;height:100%;width:0;background:linear-gradient(90deg,var(--go-green),var(--sun),var(--flame));border-radius:999px}
-.ba-reward-sky{position:fixed;inset:auto 0 0 0;height:18%;background:var(--dirt);pointer-events:none}
-.ba-reward .big-btn.garage,.ms-result .big-btn.garage{color:#14161b}
-@media (prefers-reduced-motion:reduce){.ba-home .t-play .play-truck,.js-act.pulse{animation:none}}
-
-@media (max-width:430px){.game.ba{padding-left:6px;padding-right:6px}.round-screen .card{margin-left:6px;margin-right:6px}}
